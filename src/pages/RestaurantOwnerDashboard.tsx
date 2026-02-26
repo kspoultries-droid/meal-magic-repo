@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Edit } from "lucide-react";
+import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const RestaurantOwnerDashboard = () => {
@@ -182,7 +182,7 @@ const MenuTab = () => {
     });
   }, [user]);
 
-  useEffect(() => {
+  const fetchMenu = () => {
     if (selectedRest) {
       setLoading(true);
       supabase.from("menu_items").select("*").eq("restaurant_id", selectedRest).order("category").then(({ data }) => {
@@ -190,7 +190,9 @@ const MenuTab = () => {
         setLoading(false);
       });
     }
-  }, [selectedRest]);
+  };
+
+  useEffect(() => { fetchMenu(); }, [selectedRest]);
 
   const addItem = async () => {
     if (!form.name || !form.price) { toast.error("نام اور قیمت درکار ہے"); return; }
@@ -206,19 +208,19 @@ const MenuTab = () => {
     toast.success("آئٹم شامل ہو گئی!");
     setShowAdd(false);
     setForm({ name: "", description: "", price: "", category: "Main", image_url: "" });
-    supabase.from("menu_items").select("*").eq("restaurant_id", selectedRest).order("category").then(({ data }) => setMenuItems(data || []));
+    fetchMenu();
   };
 
   const toggleAvailability = async (id: string, current: boolean) => {
     await supabase.from("menu_items").update({ is_available: !current }).eq("id", id);
     toast.success("اپڈیٹ ہو گیا");
-    supabase.from("menu_items").select("*").eq("restaurant_id", selectedRest).order("category").then(({ data }) => setMenuItems(data || []));
+    fetchMenu();
   };
 
   const deleteItem = async (id: string) => {
     await supabase.from("menu_items").delete().eq("id", id);
     toast.success("حذف ہو گیا");
-    supabase.from("menu_items").select("*").eq("restaurant_id", selectedRest).order("category").then(({ data }) => setMenuItems(data || []));
+    fetchMenu();
   };
 
   if (restaurants.length === 0) return <Card><CardContent className="p-8 text-center text-muted-foreground">پہلے ریسٹورنٹ شامل کریں</CardContent></Card>;
@@ -295,14 +297,14 @@ const OwnerOrdersTab = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     setLoading(true);
-    // Get owner's restaurant IDs first
     const { data: rests } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id);
     if (rests?.length) {
       const ids = rests.map((r) => r.id);
-      const { data } = await supabase.from("orders").select("*").in("restaurant_id", ids).order("created_at", { ascending: false }).limit(50);
+      const { data } = await supabase.from("orders").select("*, order_items(*)").in("restaurant_id", ids).order("created_at", { ascending: false }).limit(50);
       setOrders(data || []);
     }
     setLoading(false);
@@ -310,10 +312,24 @@ const OwnerOrdersTab = () => {
 
   useEffect(() => { fetchOrders(); }, [user]);
 
+  // Realtime
+  useEffect(() => {
+    const channel = supabase
+      .channel("owner-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchOrders())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const updateStatus = async (id: string, status: string) => {
     await supabase.from("orders").update({ status }).eq("id", id);
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
     fetchOrders();
+  };
+
+  const statusColor = (s: string) => {
+    const map: Record<string, string> = { pending: "bg-warning text-warning-foreground", confirmed: "bg-primary text-primary-foreground", preparing: "bg-accent text-accent-foreground", delivering: "bg-primary text-primary-foreground", delivered: "bg-success text-success-foreground", cancelled: "bg-destructive text-destructive-foreground" };
+    return map[s] || "bg-muted text-muted-foreground";
   };
 
   return (
@@ -326,32 +342,50 @@ const OwnerOrdersTab = () => {
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : orders.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>ٹوٹل</TableHead>
-                <TableHead>سٹیٹس</TableHead>
-                <TableHead>تاریخ</TableHead>
-                <TableHead>ایکشنز</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-mono text-xs">{o.id.slice(0, 8)}</TableCell>
-                  <TableCell>Rs {o.total_amount}</TableCell>
-                  <TableCell><Badge>{o.status}</Badge></TableCell>
-                  <TableCell className="text-xs">{new Date(o.created_at).toLocaleDateString("ur-PK")}</TableCell>
-                  <TableCell className="flex gap-1">
-                    {o.status === "pending" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "confirmed")}>تصدیق</Button>}
-                    {o.status === "confirmed" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "preparing")}>تیاری شروع</Button>}
-                    {o.status === "preparing" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "delivering")}>بھیج دیا</Button>}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="space-y-3">
+            {orders.map((o) => (
+              <div key={o.id} className="border rounded-xl p-4 space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
+                    <span className="ml-3 font-bold">Rs {o.total_amount}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={statusColor(o.status)}>{o.status}</Badge>
+                    <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <button className="text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
+                  {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
+                </button>
+                {expandedOrder === o.id && o.order_items?.length > 0 && (
+                  <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
+                    {o.order_items.map((item: any) => (
+                      <div key={item.id} className="flex justify-between text-sm">
+                        <span>{item.name} × {item.quantity}</span>
+                        <span className="font-bold">Rs {item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
+                {o.notes && <p className="text-xs text-muted-foreground">📝 {o.notes}</p>}
+
+                {/* Status Actions */}
+                <div className="flex gap-1 flex-wrap">
+                  {o.status === "pending" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "confirmed")}>✅ تصدیق</Button>}
+                  {o.status === "confirmed" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "preparing")}>👨‍🍳 تیاری شروع</Button>}
+                  {o.status === "preparing" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "delivering")}>🏍️ بھیج دیا</Button>}
+                  {o.status !== "cancelled" && o.status !== "delivered" && (
+                    <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => updateStatus(o.id, "cancelled")}>❌ منسوخ</Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>

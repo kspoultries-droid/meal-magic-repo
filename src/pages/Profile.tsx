@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, User, ShoppingBag, RefreshCw } from "lucide-react";
+import { ArrowLeft, User, ShoppingBag, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
 
@@ -20,6 +20,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone: "", address: "" });
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -30,7 +31,7 @@ const Profile = () => {
     setLoading(true);
     const [{ data: prof }, { data: ords }, { data: userRoles }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("orders").select("*").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("orders").select("*, order_items(*)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("user_roles").select("role").eq("user_id", user.id),
     ]);
     setProfile(prof);
@@ -41,6 +42,16 @@ const Profile = () => {
   };
 
   useEffect(() => { fetchData(); }, [user]);
+
+  // Realtime order updates
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("profile-orders")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `customer_id=eq.${user.id}` }, () => fetchData())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   const updateProfile = async () => {
     const { error } = await supabase.from("profiles").update(form).eq("id", user!.id);
@@ -53,6 +64,15 @@ const Profile = () => {
   const statusColor = (s: string) => {
     const map: Record<string, string> = { pending: "bg-warning text-warning-foreground", confirmed: "bg-primary text-primary-foreground", preparing: "bg-accent text-accent-foreground", delivering: "bg-primary text-primary-foreground", delivered: "bg-success text-success-foreground", cancelled: "bg-destructive text-destructive-foreground" };
     return map[s] || "bg-muted text-muted-foreground";
+  };
+
+  const statusLabel: Record<string, string> = {
+    pending: "زیر التواء",
+    confirmed: "تصدیق شدہ",
+    preparing: "تیاری جاری",
+    delivering: "ڈلیوری جاری",
+    delivered: "مکمل ✅",
+    cancelled: "منسوخ ❌",
   };
 
   if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
@@ -128,16 +148,41 @@ const Profile = () => {
             ) : (
               <div className="space-y-3">
                 {orders.map((o) => (
-                  <div key={o.id} className="flex items-center justify-between bg-secondary/30 rounded-xl p-4 border">
-                    <div>
-                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                      <p className="font-bold text-foreground">Rs {o.total_amount}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</p>
+                  <div key={o.id} className="bg-secondary/30 rounded-xl p-4 border space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                        <p className="font-bold text-foreground">Rs {o.total_amount}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge className={statusColor(o.status)}>{statusLabel[o.status] || o.status}</Badge>
+                        <p className="text-xs text-muted-foreground mt-1">{o.payment_method}</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <Badge className={statusColor(o.status)}>{o.status}</Badge>
-                      <p className="text-xs text-muted-foreground mt-1">{o.payment_method}</p>
-                    </div>
+
+                    {/* Expandable Order Items */}
+                    {o.order_items?.length > 0 && (
+                      <>
+                        <button
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}
+                        >
+                          {expandedOrder === o.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          {expandedOrder === o.id ? "آئٹمز چھپائیں" : `آئٹمز دیکھیں (${o.order_items.length})`}
+                        </button>
+                        {expandedOrder === o.id && (
+                          <div className="bg-background rounded-lg p-3 space-y-1 border">
+                            {o.order_items.map((item: any) => (
+                              <div key={item.id} className="flex justify-between text-sm">
+                                <span>{item.name} × {item.quantity}</span>
+                                <span className="font-bold">Rs {item.price * item.quantity}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
