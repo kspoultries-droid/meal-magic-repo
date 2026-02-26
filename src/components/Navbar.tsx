@@ -22,7 +22,7 @@ const Navbar = () => {
 
         <button className="hidden md:flex items-center gap-2 bg-secondary px-4 py-2 rounded-full text-sm font-semibold text-foreground hover:bg-muted transition-colors">
           <MapPin className="w-4 h-4 text-primary" />
-          <span>New York, NY</span>
+          <span>Pakistan</span>
         </button>
 
         <div className="flex items-center gap-3">
@@ -30,13 +30,22 @@ const Navbar = () => {
             <Search className="w-5 h-5 text-muted-foreground" />
           </button>
           {user ? (
-            <button
-              onClick={async () => { await signOut(); navigate("/"); }}
-              className="p-2 rounded-full hover:bg-secondary transition-colors"
-              title="لاگ آؤٹ"
-            >
-              <LogOut className="w-5 h-5 text-muted-foreground" />
-            </button>
+            <>
+              <button
+                onClick={() => navigate("/profile")}
+                className="p-2 rounded-full hover:bg-secondary transition-colors"
+                title="پروفائل"
+              >
+                <User className="w-5 h-5 text-primary" />
+              </button>
+              <button
+                onClick={async () => { await signOut(); navigate("/"); }}
+                className="p-2 rounded-full hover:bg-secondary transition-colors"
+                title="لاگ آؤٹ"
+              >
+                <LogOut className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </>
           ) : (
             <button
               onClick={() => navigate("/auth")}

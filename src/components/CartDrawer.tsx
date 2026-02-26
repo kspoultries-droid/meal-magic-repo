@@ -2,9 +2,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const CartDrawer = () => {
   const { items, isOpen, setIsOpen, updateQuantity, removeItem, clearCart, totalItems, totalPrice } = useCart();
+  const navigate = useNavigate();
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -12,15 +14,15 @@ const CartDrawer = () => {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-primary" />
-            Your Cart ({totalItems})
+            کارٹ ({totalItems})
           </SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
             <ShoppingBag className="w-16 h-16 mb-4 opacity-30" />
-            <p className="text-lg font-semibold">Your cart is empty</p>
-            <p className="text-sm">Add items from a restaurant to get started</p>
+            <p className="text-lg font-semibold">کارٹ خالی ہے</p>
+            <p className="text-sm">ریسٹورنٹ سے آئٹمز شامل کریں</p>
           </div>
         ) : (
           <>
@@ -53,22 +55,18 @@ const CartDrawer = () => {
 
             <div className="border-t pt-4 space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">سب ٹوٹل</span>
                 <span className="font-bold text-foreground">Rs. {totalPrice}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Delivery Fee</span>
-                <span className="font-bold text-success">FREE</span>
-              </div>
               <div className="flex justify-between text-base border-t pt-3">
-                <span className="font-bold text-foreground">Total</span>
+                <span className="font-bold text-foreground">کل</span>
                 <span className="font-extrabold text-primary">Rs. {totalPrice}</span>
               </div>
-              <Button className="w-full h-12 text-base font-bold">
-                Checkout — Rs. {totalPrice}
+              <Button className="w-full h-12 text-base font-bold" onClick={() => { setIsOpen(false); navigate("/checkout"); }}>
+                چیک آؤٹ — Rs. {totalPrice}
               </Button>
               <button onClick={clearCart} className="w-full text-sm text-muted-foreground hover:text-destructive transition-colors">
-                Clear cart
+                کارٹ خالی کریں
               </button>
             </div>
           </>
