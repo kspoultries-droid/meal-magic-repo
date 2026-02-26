@@ -1,13 +1,17 @@
-import { MapPin, ShoppingBag, User, Search } from "lucide-react";
+import { MapPin, ShoppingBag, User, Search, LogOut } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const { totalItems, setIsOpen } = useCart();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <nav className="sticky top-0 z-50 bg-card border-b shadow-sm">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-extrabold text-lg">fp</span>
           </div>
@@ -25,9 +29,23 @@ const Navbar = () => {
           <button className="p-2 rounded-full hover:bg-secondary transition-colors">
             <Search className="w-5 h-5 text-muted-foreground" />
           </button>
-          <button className="p-2 rounded-full hover:bg-secondary transition-colors">
-            <User className="w-5 h-5 text-muted-foreground" />
-          </button>
+          {user ? (
+            <button
+              onClick={async () => { await signOut(); navigate("/"); }}
+              className="p-2 rounded-full hover:bg-secondary transition-colors"
+              title="لاگ آؤٹ"
+            >
+              <LogOut className="w-5 h-5 text-muted-foreground" />
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/auth")}
+              className="p-2 rounded-full hover:bg-secondary transition-colors"
+              title="لاگ ان / سائن اپ"
+            >
+              <User className="w-5 h-5 text-muted-foreground" />
+            </button>
+          )}
           <button
             onClick={() => setIsOpen(true)}
             className="relative p-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
