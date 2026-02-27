@@ -60,9 +60,7 @@ const Checkout = () => {
     setSubmitting(true);
 
     try {
-      // We need a restaurant_id. For simplicity, use the first item's restaurant name
-      // In a real app, we'd store restaurant_id in cart items
-      // For now, we'll try to find the restaurant by name
+      // Find restaurant_id from cart items
       const restaurantName = items[0]?.restaurant;
       const { data: restData } = await supabase.from("restaurants").select("id").eq("name", restaurantName).limit(1).single();
 
@@ -72,30 +70,22 @@ const Checkout = () => {
         return;
       }
 
-      const { data: order, error: orderError } = await supabase.from("orders").insert({
-        customer_id: user!.id,
-        restaurant_id: restData.id,
-        city_id: selectedCity,
-        total_amount: totalPrice + deliveryFee,
-        delivery_fee: deliveryFee,
-        delivery_address: address,
-        notes,
-        payment_method: paymentMethod,
-      }).select().single();
-
-      if (orderError) throw orderError;
-
-      // Insert order items
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
+      // Use server-side RPC to create order with validated prices
+      const menuItems = items.map((item) => ({
         menu_item_id: item.id,
-        name: item.name,
-        price: item.price,
         quantity: item.quantity,
       }));
 
-      const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
-      if (itemsError) throw itemsError;
+      const { data: orderId, error: orderError } = await supabase.rpc("create_order", {
+        _restaurant_id: restData.id,
+        _city_id: selectedCity,
+        _delivery_address: address,
+        _notes: notes || "",
+        _payment_method: paymentMethod,
+        _menu_items: menuItems,
+      });
+
+      if (orderError) throw orderError;
 
       toast.success("آرڈر کامیابی سے دیا گیا! 🎉");
       clearCart();
