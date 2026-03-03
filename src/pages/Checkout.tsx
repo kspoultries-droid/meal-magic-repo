@@ -26,10 +26,19 @@ const Checkout = () => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
+  // Auto-fill address and city from profile
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("address, city_id").eq("id", user.id).single().then(({ data }) => {
+      if (data?.address) setAddress(data.address);
+      if (data?.city_id) setSelectedCity(data.city_id);
+    });
+  }, [user]);
+
   useEffect(() => {
     supabase.from("cities").select("*").order("name").then(({ data }) => {
       setCities(data || []);
-      if (data?.length) {
+      if (data?.length && !selectedCity) {
         setSelectedCity(data[0].id);
         setDeliveryFee(data[0].delivery_fee || 0);
       }
