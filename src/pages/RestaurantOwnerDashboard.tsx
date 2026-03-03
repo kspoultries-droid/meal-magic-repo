@@ -96,6 +96,13 @@ const MyRestaurantTab = () => {
 
   useEffect(() => { fetchAll(); }, [user]);
 
+  const deleteRestaurant = async (id: string) => {
+    const { error } = await supabase.from("restaurants").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("ریسٹورنٹ حذف ہو گیا!");
+    fetchAll();
+  };
+
   const addRestaurant = async () => {
     if (!form.name.trim() || !selectedCity) { toast.error("نام اور شہر درکار ہے"); return; }
     const { error } = await supabase.from("restaurants").insert({
@@ -156,6 +163,9 @@ const MyRestaurantTab = () => {
                     <Badge variant="outline">⭐ {r.rating}</Badge>
                     <Badge variant="outline">{r.delivery_time}</Badge>
                   </div>
+                  <Button size="sm" variant="destructive" className="mt-2 h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
+                    <Trash2 className="h-3 w-3 mr-1" /> حذف کریں
+                  </Button>
                 </div>
               </div>
             ))}
