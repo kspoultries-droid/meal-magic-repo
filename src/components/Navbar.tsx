@@ -1,11 +1,11 @@
-import { MapPin, ShoppingBag, User, Search, LogOut } from "lucide-react";
+import { MapPin, ShoppingBag, User, Search, LogOut, Shield, Store, Bike } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const { totalItems, setIsOpen } = useCart();
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, isRestaurantOwner, isRider, signOut } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -20,10 +20,33 @@ const Navbar = () => {
           </span>
         </div>
 
-        <button className="hidden md:flex items-center gap-2 bg-secondary px-4 py-2 rounded-full text-sm font-semibold text-foreground hover:bg-muted transition-colors">
-          <MapPin className="w-4 h-4 text-primary" />
-          <span>Pakistan</span>
-        </button>
+        {/* Role-based dashboard links */}
+        <div className="hidden md:flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={() => navigate("/admin")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+            >
+              <Shield className="w-3.5 h-3.5" /> ایڈمن
+            </button>
+          )}
+          {isRestaurantOwner && (
+            <button
+              onClick={() => navigate("/restaurant-dashboard")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <Store className="w-3.5 h-3.5" /> ریسٹورنٹ
+            </button>
+          )}
+          {isRider && (
+            <button
+              onClick={() => navigate("/rider-dashboard")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-accent text-accent-foreground hover:opacity-80 transition-colors"
+            >
+              <Bike className="w-3.5 h-3.5" /> رائیڈر
+            </button>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           <button className="p-2 rounded-full hover:bg-secondary transition-colors">
@@ -31,6 +54,24 @@ const Navbar = () => {
           </button>
           {user ? (
             <>
+              {/* Mobile role links */}
+              <div className="flex md:hidden items-center gap-1">
+                {isAdmin && (
+                  <button onClick={() => navigate("/admin")} className="p-2 rounded-full hover:bg-secondary" title="ایڈمن">
+                    <Shield className="w-4 h-4 text-destructive" />
+                  </button>
+                )}
+                {isRestaurantOwner && (
+                  <button onClick={() => navigate("/restaurant-dashboard")} className="p-2 rounded-full hover:bg-secondary" title="ریسٹورنٹ">
+                    <Store className="w-4 h-4 text-primary" />
+                  </button>
+                )}
+                {isRider && (
+                  <button onClick={() => navigate("/rider-dashboard")} className="p-2 rounded-full hover:bg-secondary" title="رائیڈر">
+                    <Bike className="w-4 h-4 text-accent-foreground" />
+                  </button>
+                )}
+              </div>
               <button
                 onClick={() => navigate("/profile")}
                 className="p-2 rounded-full hover:bg-secondary transition-colors"

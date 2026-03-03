@@ -7,6 +7,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isRestaurantOwner: boolean;
+  isRider: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -15,6 +17,8 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   isAdmin: false,
+  isRestaurantOwner: false,
+  isRider: false,
   signOut: async () => {},
 });
 
@@ -23,17 +27,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isRestaurantOwner, setIsRestaurantOwner] = useState(false);
+  const [isRider, setIsRider] = useState(false);
+
+  const checkRoles = async (userId: string) => {
+    const [adminRes, ownerRes, riderRes] = await Promise.all([
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      supabase.rpc("has_role", { _user_id: userId, _role: "restaurant_owner" }),
+      supabase.rpc("has_role", { _user_id: userId, _role: "rider" }),
+    ]);
+    setIsAdmin(!!adminRes.data);
+    setIsRestaurantOwner(!!ownerRes.data);
+    setIsRider(!!riderRes.data);
+  };
+
+  const clearRoles = () => {
+    setIsAdmin(false);
+    setIsRestaurantOwner(false);
+    setIsRider(false);
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        // Check admin role via DB function
-        supabase.rpc("has_role", { _user_id: session.user.id, _role: "admin" })
-          .then(({ data }) => setIsAdmin(!!data));
+        checkRoles(session.user.id);
       } else {
-        setIsAdmin(false);
+        clearRoles();
       }
       setLoading(false);
     });
@@ -42,8 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        supabase.rpc("has_role", { _user_id: session.user.id, _role: "admin" })
-          .then(({ data }) => setIsAdmin(!!data));
+        checkRoles(session.user.id);
       }
       setLoading(false);
     });
@@ -56,7 +76,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, isRider, signOut }}>
       {children}
     </AuthContext.Provider>
   );
