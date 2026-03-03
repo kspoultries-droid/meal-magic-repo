@@ -31,11 +31,11 @@ const COLOR_OPTIONS = [
 const ServicesTab = () => {
   return (
     <Tabs defaultValue="bookings">
-      <TabsList className="mb-4">
-        <TabsTrigger value="bookings"><Calendar className="h-4 w-4 mr-1" /> بکنگز / Bookings</TabsTrigger>
-        <TabsTrigger value="services">سروسز / Services</TabsTrigger>
-        <TabsTrigger value="categories">کیٹیگریز / Categories</TabsTrigger>
-        <TabsTrigger value="settings">⚙️ سیٹنگز / Settings</TabsTrigger>
+      <TabsList className="mb-4 grid w-full grid-cols-4">
+        <TabsTrigger value="bookings" className="text-xs px-1"><Calendar className="h-3 w-3 mr-0.5" /> بکنگز</TabsTrigger>
+        <TabsTrigger value="services" className="text-xs px-1">سروسز</TabsTrigger>
+        <TabsTrigger value="categories" className="text-xs px-1">کیٹیگریز</TabsTrigger>
+        <TabsTrigger value="settings" className="text-xs px-1">⚙️ سیٹنگز</TabsTrigger>
       </TabsList>
       <TabsContent value="bookings"><BookingsSection /></TabsContent>
       <TabsContent value="services"><ServicesSection /></TabsContent>
