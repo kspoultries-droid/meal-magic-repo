@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Bike, ArrowLeft, RefreshCw, Wallet, TrendingUp, Package } from "lucide-react";
+import { LogOut, Bike, ArrowLeft, RefreshCw, Wallet, TrendingUp, Package, Navigation } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 const RiderDashboard = () => {
@@ -171,6 +171,16 @@ const RiderDashboard = () => {
                       <Button size="sm" onClick={() => acceptOrder(o.id)}>قبول کریں 🏍️</Button>
                     </div>
                     <p className="text-sm text-muted-foreground">📍 {o.delivery_address || "پتہ نہیں"}</p>
+                    {o.delivery_address && (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.delivery_address)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline"
+                      >
+                        <Navigation className="w-3 h-3" /> نقشے میں دیکھیں
+                      </a>
+                    )}
                     {o.order_items?.length > 0 && (
                       <div className="text-xs text-muted-foreground">
                         {o.order_items.map((item: any) => (
@@ -214,8 +224,20 @@ const RiderDashboard = () => {
                       </TableCell>
                       <TableCell>Rs {o.total_amount}</TableCell>
                       <TableCell><Badge>{o.status}</Badge></TableCell>
-                      <TableCell className="text-sm max-w-[200px] truncate">{o.delivery_address || "—"}</TableCell>
-                      <TableCell>
+                      <TableCell className="text-sm max-w-[200px] truncate">
+                        {o.delivery_address || "—"}
+                        {o.delivery_address && (
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.delivery_address)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-2 inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline"
+                          >
+                            <Navigation className="w-3 h-3" /> نقشہ
+                          </a>
+                        )}
+                      </TableCell>
+                      <TableCell className="space-y-1">
                         {o.status === "delivering" && (
                           <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateOrderStatus(o.id, "delivered")}>
                             ڈلیور ہو گیا ✅
