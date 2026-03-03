@@ -11,7 +11,7 @@ const promos = [
     title: "Up to 25% off",
     subtitle: "beverages",
     code: "",
-    gradient: "from-pink-400 to-pink-300",
+    gradient: "from-emerald-500 to-teal-400",
   },
   {
     title: "Free delivery",
