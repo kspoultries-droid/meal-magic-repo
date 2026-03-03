@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera } from "lucide-react";
+import PhotoListOrder from "@/components/grocery/PhotoListOrder";
+import CustomerListOrders from "@/components/grocery/CustomerListOrders";
+import ShopkeeperListOrders from "@/components/grocery/ShopkeeperListOrders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -284,6 +287,20 @@ const GroceryStoreDetail = () => {
       </div>
 
       {/* Products Grid */}
+      {/* Photo List Order Section */}
+      <div className="container mx-auto px-4 pb-3">
+        {isOwner ? (
+          <ShopkeeperListOrders storeId={id!} />
+        ) : (
+          <>
+            <PhotoListOrder storeId={id!} storeName={store.name} />
+            <div className="mt-3">
+              <CustomerListOrders storeId={id!} />
+            </div>
+          </>
+        )}
+      </div>
+
       <div className="container mx-auto px-4 pb-6">
         {filtered.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">اس کیٹیگری میں کوئی پروڈکٹ نہیں</p>
