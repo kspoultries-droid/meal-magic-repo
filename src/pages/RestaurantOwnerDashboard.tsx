@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft } from "lucide-react";
+import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const RestaurantOwnerDashboard = () => {
@@ -184,6 +184,8 @@ const MenuTab = () => {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", price: "", category: "Main", image_url: "" });
+  const [editItem, setEditItem] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: "", description: "", price: "", category: "", image_url: "" });
 
   useEffect(() => {
     supabase.from("restaurants").select("id,name").eq("owner_id", user!.id).then(({ data }) => {
@@ -230,6 +232,32 @@ const MenuTab = () => {
   const deleteItem = async (id: string) => {
     await supabase.from("menu_items").delete().eq("id", id);
     toast.success("حذف ہو گیا");
+    fetchMenu();
+  };
+
+  const openEdit = (item: any) => {
+    setEditItem(item);
+    setEditForm({
+      name: item.name,
+      description: item.description || "",
+      price: String(item.price),
+      category: item.category || "Main",
+      image_url: item.image_url || "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editForm.name || !editForm.price) { toast.error("نام اور قیمت درکار ہے"); return; }
+    const { error } = await supabase.from("menu_items").update({
+      name: editForm.name,
+      description: editForm.description,
+      price: Number(editForm.price),
+      category: editForm.category,
+      image_url: editForm.image_url,
+    }).eq("id", editItem.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("آئٹم اپڈیٹ ہو گئی!");
+    setEditItem(null);
     fetchMenu();
   };
 
@@ -285,6 +313,9 @@ const MenuTab = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="flex gap-1">
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openEdit(m)}>
+                      <Pencil className="h-3 w-3" />
+                    </Button>
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleAvailability(m.id, m.is_available)}>
                       {m.is_available ? "بند" : "فعال"}
                     </Button>
@@ -298,6 +329,21 @@ const MenuTab = () => {
             </TableBody>
           </Table>
         )}
+
+        {/* Edit Dialog */}
+        <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>آئٹم ایڈٹ کریں</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Input placeholder="آئٹم کا نام" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+              <Input placeholder="تفصیل" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+              <Input placeholder="قیمت" type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+              <Input placeholder="کیٹگری" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
+              <Input placeholder="تصویر URL" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} />
+              <Button className="w-full" onClick={saveEdit}>اپڈیٹ کریں</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
