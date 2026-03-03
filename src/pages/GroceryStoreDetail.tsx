@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -30,7 +30,7 @@ const GroceryStoreDetail = () => {
   const [editPrice, setEditPrice] = useState("");
   const [editDiscount, setEditDiscount] = useState("");
   const [showAddProduct, setShowAddProduct] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg", discount_price: "" });
+  const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg", discount_price: "", image_url: "" });
 
   const fetchData = async () => {
     setLoading(true);
@@ -117,6 +117,17 @@ const GroceryStoreDetail = () => {
     fetchData();
   };
 
+  const uploadProductImage = async (productId: string, file: File) => {
+    const ext = file.name.split('.').pop();
+    const path = `products/${productId}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    if (uploadError) { toast.error(uploadError.message); return; }
+    const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+    await supabase.from("grocery_products").update({ image_url: urlData.publicUrl }).eq("id", productId);
+    toast.success("تصویر اپڈیٹ / Image updated");
+    fetchData();
+  };
+
   const addProduct = async () => {
     if (!newProduct.name.trim() || !newProduct.price) { toast.error("نام اور قیمت درکار / Name & price required"); return; }
     const { error } = await supabase.from("grocery_products").insert({
@@ -127,10 +138,11 @@ const GroceryStoreDetail = () => {
       unit: newProduct.unit,
       discount_price: newProduct.discount_price ? Number(newProduct.discount_price) : null,
       is_special_offer: !!newProduct.discount_price,
+      image_url: newProduct.image_url || null,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("پروڈکٹ شامل / Product added");
-    setNewProduct({ name: "", price: "", category: "General", unit: "kg", discount_price: "" });
+    setNewProduct({ name: "", price: "", category: "General", unit: "kg", discount_price: "", image_url: "" });
     setShowAddProduct(false);
     fetchData();
   };
@@ -179,6 +191,7 @@ const GroceryStoreDetail = () => {
                         {GROCERY_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                       </select>
                       <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
+                      <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
                       <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
                     </div>
                   </DialogContent>
@@ -227,11 +240,20 @@ const GroceryStoreDetail = () => {
                       غیر فعال / Hidden
                     </div>
                   )}
-                  <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden">
+                  <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                     ) : (
                       <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
+                    )}
+                    {isOwner && (
+                      <label className="absolute bottom-1 right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md">
+                        <Camera className="w-3.5 h-3.5" />
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadProductImage(product.id, file);
+                        }} />
+                      </label>
                     )}
                   </div>
                   <div className="p-3">
