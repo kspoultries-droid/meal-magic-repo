@@ -6,7 +6,7 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from "https://esm.sh/@simplewebauthn/server@13.1.1";
-import { isoBase64URL } from "https://esm.sh/@simplewebauthn/server@13.1.1/helpers";
+import { isoBase64URL, isoUint8Array } from "https://esm.sh/@simplewebauthn/server@13.1.1/helpers";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,7 +65,7 @@ serve(async (req) => {
       const options = await generateRegistrationOptions({
         rpName,
         rpID,
-        userID: isoBase64URL.fromUTF8String(user.id),
+        userID: new TextEncoder().encode(user.id),
         userName: user.email || user.id,
         userDisplayName: user.user_metadata?.full_name || user.email || "User",
         attestationType: "none",
