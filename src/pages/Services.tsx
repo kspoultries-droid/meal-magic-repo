@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import HelplineSection from "@/components/services/HelplineSection";
 import FeedbackDialog from "@/components/services/FeedbackDialog";
+import PromotionalAds from "@/components/PromotionalAds";
 
 const iconMap: Record<string, any> = {
   AirVent, Wrench, Zap, Sparkles, Paintbrush, Hammer, Car,
@@ -173,6 +174,9 @@ const Services = () => {
           </div>
         </div>
       </div>
+
+      {/* Promotional Ads */}
+      <PromotionalAds placement="home" />
 
       {/* Categories Grid */}
       <div className="container mx-auto px-4 py-6">
