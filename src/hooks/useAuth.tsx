@@ -31,14 +31,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isRider, setIsRider] = useState(false);
 
   const checkRoles = async (userId: string) => {
-    const [adminRes, ownerRes, riderRes] = await Promise.all([
-      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
-      supabase.rpc("has_role", { _user_id: userId, _role: "restaurant_owner" }),
-      supabase.rpc("has_role", { _user_id: userId, _role: "rider" }),
-    ]);
-    setIsAdmin(!!adminRes.data);
-    setIsRestaurantOwner(!!ownerRes.data);
-    setIsRider(!!riderRes.data);
+    try {
+      const [adminRes, ownerRes, riderRes] = await Promise.all([
+        supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+        supabase.rpc("has_role", { _user_id: userId, _role: "restaurant_owner" }),
+        supabase.rpc("has_role", { _user_id: userId, _role: "rider" }),
+      ]);
+      setIsAdmin(!!adminRes.data);
+      setIsRestaurantOwner(!!ownerRes.data);
+      setIsRider(!!riderRes.data);
+    } catch (error) {
+      console.error("Error checking roles:", error);
+      clearRoles();
+    }
   };
 
   const clearRoles = () => {
