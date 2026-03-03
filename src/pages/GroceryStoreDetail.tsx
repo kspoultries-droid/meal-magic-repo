@@ -270,7 +270,7 @@ const GroceryStoreDetail = () => {
       </div>
 
       {/* Category Chips */}
-      <div className="px-4 py-4 overflow-x-auto">
+      <div className="px-4 pt-6 pb-4 overflow-x-auto">
         <div className="flex gap-2">
           {categories.map((cat) => (
             <button
