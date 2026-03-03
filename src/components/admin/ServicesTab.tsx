@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const ICON_OPTIONS = [
   "Wrench", "Zap", "Droplets", "Paintbrush", "Hammer", "HardHat",
   "Truck", "Scissors", "Thermometer", "Shield", "Home", "Building",
-  "Shovel", "Cog", "Fan", "Plug", "Wifi", "Camera",
+  "Shovel", "Cog", "Fan", "Plug", "Wifi", "Camera", "Car",
 ];
 
 const COLOR_OPTIONS = [
