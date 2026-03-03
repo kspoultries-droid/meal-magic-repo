@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          id: string
+          key: string
+          label: string | null
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          label?: string | null
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          label?: string | null
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           created_at: string | null
