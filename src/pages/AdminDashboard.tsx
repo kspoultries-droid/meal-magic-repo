@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield } from "lucide-react";
+import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import GroceryTab from "@/components/admin/GroceryTab";
+import ServicesTab from "@/components/admin/ServicesTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -44,6 +46,8 @@ const AdminDashboard = () => {
             <TabsTrigger value="riders" className="gap-1"><Bike className="h-4 w-4" /> رائیڈرز</TabsTrigger>
             <TabsTrigger value="cities" className="gap-1"><MapPin className="h-4 w-4" /> شہر</TabsTrigger>
             <TabsTrigger value="users" className="gap-1"><Users className="h-4 w-4" /> یوزرز</TabsTrigger>
+            <TabsTrigger value="grocery" className="gap-1"><ShoppingCart className="h-4 w-4" /> گروسری</TabsTrigger>
+            <TabsTrigger value="services" className="gap-1"><Wrench className="h-4 w-4" /> سروسز</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders"><OrdersTab /></TabsContent>
@@ -51,6 +55,8 @@ const AdminDashboard = () => {
           <TabsContent value="riders"><RidersTab /></TabsContent>
           <TabsContent value="cities"><CitiesTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
+          <TabsContent value="grocery"><GroceryTab /></TabsContent>
+          <TabsContent value="services"><ServicesTab /></TabsContent>
         </Tabs>
       </div>
     </div>
