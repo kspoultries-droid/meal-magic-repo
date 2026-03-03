@@ -35,6 +35,100 @@ export type Database = {
         }
         Relationships: []
       }
+      grocery_products: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          name: string
+          price: number
+          store_id: string
+          unit: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name: string
+          price: number
+          store_id: string
+          unit?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name?: string
+          price?: number
+          store_id?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grocery_stores: {
+        Row: {
+          category: string
+          city_id: string | null
+          created_at: string | null
+          delivery_time: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          owner_id: string
+          rating: number | null
+        }
+        Insert: {
+          category?: string
+          city_id?: string | null
+          created_at?: string | null
+          delivery_time?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          owner_id: string
+          rating?: number | null
+        }
+        Update: {
+          category?: string
+          city_id?: string | null
+          created_at?: string | null
+          delivery_time?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          owner_id?: string
+          rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_stores_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           category: string | null
