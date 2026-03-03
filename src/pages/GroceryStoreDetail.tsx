@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
-import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock } from "lucide-react";
+import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -30,8 +30,8 @@ const GroceryStoreDetail = () => {
     if (id) fetchData();
   }, [id]);
 
-  const categories = ["All", ...Array.from(new Set(products.map((p) => p.category || "General")))];
-  const filtered = activeCategory === "All" ? products : products.filter((p) => p.category === activeCategory);
+  const categories = ["All", "🔥 Special Offers", ...Array.from(new Set(products.map((p) => p.category || "General")))];
+  const filtered = activeCategory === "All" ? products : activeCategory === "🔥 Special Offers" ? products.filter((p) => p.is_special_offer) : products.filter((p) => p.category === activeCategory);
 
   const getCartQty = (productId: string) => {
     const item = cartItems.find((i) => i.id === productId);
@@ -39,11 +39,12 @@ const GroceryStoreDetail = () => {
   };
 
   const handleAdd = (product: any) => {
+    const effectivePrice = product.discount_price || product.price;
     addItem({
       id: product.id,
       name: product.name,
       restaurant: store?.name || "Grocery",
-      price: product.price,
+      price: effectivePrice,
       image: product.image_url || "",
     });
   };
@@ -105,7 +106,12 @@ const GroceryStoreDetail = () => {
             {filtered.map((product) => {
               const qty = getCartQty(product.id);
               return (
-                <div key={product.id} className="bg-card rounded-2xl border overflow-hidden">
+                <div key={product.id} className="bg-card rounded-2xl border overflow-hidden relative">
+                  {product.is_special_offer && (
+                    <div className="absolute top-2 left-2 z-10 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                      <Percent className="w-3 h-3" /> آفر / Offer
+                    </div>
+                  )}
                   <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
@@ -118,7 +124,14 @@ const GroceryStoreDetail = () => {
                     {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
                     <div className="flex items-center justify-between mt-2">
                       <div>
-                        <span className="text-sm font-extrabold text-primary">Rs {product.price}</span>
+                        {product.discount_price ? (
+                          <>
+                            <span className="text-sm font-extrabold text-destructive">Rs {product.discount_price}</span>
+                            <span className="text-xs text-muted-foreground line-through ml-1">Rs {product.price}</span>
+                          </>
+                        ) : (
+                          <span className="text-sm font-extrabold text-primary">Rs {product.price}</span>
+                        )}
                         {product.unit && <span className="text-xs text-muted-foreground">/{product.unit}</span>}
                       </div>
                       {qty === 0 ? (
