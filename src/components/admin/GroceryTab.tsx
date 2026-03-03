@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -26,6 +26,20 @@ const GroceryTab = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg" });
   const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "" });
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editProductPrice, setEditProductPrice] = useState("");
+  const [editProductDiscount, setEditProductDiscount] = useState("");
+
+  const saveProductPrice = async (productId: string) => {
+    const updates: any = { price: Number(editProductPrice) };
+    updates.discount_price = editProductDiscount ? Number(editProductDiscount) : null;
+    updates.is_special_offer = !!editProductDiscount;
+    const { error } = await supabase.from("grocery_products").update(updates).eq("id", productId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("قیمت اپڈیٹ / Price updated");
+    setEditingProductId(null);
+    fetchData();
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -238,6 +252,7 @@ const GroceryTab = () => {
                 <TableRow>
                   <TableHead>نام / Name</TableHead>
                   <TableHead>قیمت / Price</TableHead>
+                  <TableHead>ڈسکاؤنٹ / Discount</TableHead>
                   <TableHead>کیٹیگری / Category</TableHead>
                   <TableHead>یونٹ / Unit</TableHead>
                   <TableHead>دستیاب / Available</TableHead>
@@ -245,28 +260,64 @@ const GroceryTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((p) => (
+                {products.map((p) => {
+                  const isEditing = editingProductId === p.id;
+                  return (
                   <TableRow key={p.id}>
                     <TableCell>{p.name}</TableCell>
-                    <TableCell>Rs {p.price}</TableCell>
+                    <TableCell>
+                      {isEditing ? (
+                        <Input type="number" value={editProductPrice} onChange={(e) => setEditProductPrice(e.target.value)} className="h-7 w-20 text-xs" />
+                      ) : (
+                        <span className="font-semibold">Rs {p.price}</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isEditing ? (
+                        <Input type="number" value={editProductDiscount} onChange={(e) => setEditProductDiscount(e.target.value)} placeholder="خالی" className="h-7 w-20 text-xs" />
+                      ) : (
+                        p.discount_price ? <span className="text-destructive font-semibold">Rs {p.discount_price}</span> : <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>{p.category}</TableCell>
                     <TableCell>{p.unit}</TableCell>
                     <TableCell>
                       <Badge className={p.is_available ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
-                        {p.is_available ? "ہاں / Yes" : "نہیں / No"}
+                        {p.is_available ? "ہاں" : "نہیں"}
                       </Badge>
                     </TableCell>
                     <TableCell className="flex gap-1">
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleProductAvailable(p.id, p.is_available)}>
-                        {p.is_available ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                      </Button>
-                      <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteProduct(p.id)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      {isEditing ? (
+                        <>
+                          <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => saveProductPrice(p.id)}>
+                            <Check className="h-3 w-3 mr-0.5" /> محفوظ
+                          </Button>
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setEditingProductId(null)}>
+                            <XIcon className="h-3 w-3" />
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => {
+                            setEditingProductId(p.id);
+                            setEditProductPrice(String(p.price));
+                            setEditProductDiscount(p.discount_price ? String(p.discount_price) : "");
+                          }}>
+                            <Pencil className="h-3 w-3 mr-0.5" /> قیمت
+                          </Button>
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleProductAvailable(p.id, p.is_available)}>
+                            {p.is_available ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                          </Button>
+                          <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteProduct(p.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
-                ))}
-                {products.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی پروڈکٹ نہیں / No products</TableCell></TableRow>}
+                  );
+                })}
+                {products.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">کوئی پروڈکٹ نہیں / No products</TableCell></TableRow>}
               </TableBody>
             </Table>
           </CardContent>
