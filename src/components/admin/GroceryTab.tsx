@@ -63,6 +63,8 @@ const GroceryTab = () => {
   };
 
   const deleteStore = async (id: string) => {
+    if (!window.confirm("کیا آپ واقعی یہ اسٹور حذف کرنا چاہتے ہیں؟ تمام پروڈکٹس بھی حذف ہو جائیں گی!\n\nAre you sure? All products will also be deleted!")) return;
+    await supabase.from("grocery_products").delete().eq("store_id", id);
     await supabase.from("grocery_stores").delete().eq("id", id);
     toast.success("اسٹور حذف ہو گیا / Store deleted");
     if (selectedStore === id) setSelectedStore(null);
@@ -93,6 +95,7 @@ const GroceryTab = () => {
   };
 
   const deleteProduct = async (id: string) => {
+    if (!window.confirm("کیا آپ واقعی یہ پروڈکٹ حذف کرنا چاہتے ہیں؟\nAre you sure you want to delete this product?")) return;
     await supabase.from("grocery_products").delete().eq("id", id);
     toast.success("پروڈکٹ حذف ہو گیا / Product deleted");
     fetchData();
@@ -199,8 +202,32 @@ const GroceryTab = () => {
                         </button>
                       </div>
                     </TableCell>
-                    <TableCell>{s.category}</TableCell>
-                    <TableCell>{s.delivery_time}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <span>{s.category}</span>
+                        <button className="text-muted-foreground hover:text-foreground" onClick={() => {
+                          const newCat = prompt("نئی کیٹیگری / New Category:\n" + GROCERY_CATEGORIES.join(", "), s.category);
+                          if (newCat && newCat.trim()) {
+                            supabase.from("grocery_stores").update({ category: newCat.trim() }).eq("id", s.id).then(() => { toast.success("کیٹیگری اپڈیٹ / Category updated"); fetchData(); });
+                          }
+                        }}>
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <span>{s.delivery_time}</span>
+                        <button className="text-muted-foreground hover:text-foreground" onClick={() => {
+                          const newTime = prompt("ڈلیوری ٹائم / Delivery Time:", s.delivery_time);
+                          if (newTime && newTime.trim()) {
+                            supabase.from("grocery_stores").update({ delivery_time: newTime.trim() }).eq("id", s.id).then(() => { toast.success("ڈلیوری ٹائم اپڈیٹ / Delivery time updated"); fetchData(); });
+                          }
+                        }}>
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge className={s.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
                         {s.is_active ? "ایکٹو" : "غیر ایکٹو"}
