@@ -89,6 +89,8 @@ const Services = () => {
     if (user) fetchMyBookings();
   }, [user]);
 
+  const advanceFee = selectedService ? Math.round(selectedService.price * 0.15) : 0;
+
   const handleBook = async () => {
     if (!user) {
       toast.error("Please login first / پہلے لاگ ان کریں");
@@ -108,13 +110,14 @@ const Services = () => {
       scheduled_time: bookingTime,
       notes: bookingNotes,
       total_amount: selectedService.price,
+      advance_fee: advanceFee,
     });
     setSubmitting(false);
     if (error) {
       toast.error("Booking failed / بکنگ میں مسئلہ آیا");
       console.error(error);
     } else {
-      toast.success("Booking successful! / بکنگ کامیاب! ✅");
+      toast.success("Booking successful! Advance fee: Rs " + advanceFee + " / بکنگ کامیاب! ایڈوانس فیس: Rs " + advanceFee + " ✅");
       setSelectedService(null);
       setBookingDate("");
       setBookingTime("");
@@ -337,10 +340,20 @@ const Services = () => {
                 />
               </div>
 
+              {/* Advance Fee Info */}
+              <div className="bg-orange-50 rounded-xl p-3 text-sm">
+                <p className="font-bold text-orange-700 mb-1">⚡ Advance Fee / ایڈوانس فیس (15%)</p>
+                <div className="flex justify-between text-orange-600">
+                  <span>Advance: Rs {advanceFee}</span>
+                  <span>Remaining: Rs {selectedService.price - advanceFee}</span>
+                </div>
+                <p className="text-xs text-orange-500 mt-1">Remaining on completion / باقی کام مکمل ہونے پر</p>
+              </div>
+
               {/* Payment Info */}
               <div className="bg-secondary rounded-xl p-3 flex items-center gap-2 text-sm">
                 <CreditCard className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Payment: Cash on Delivery (COD) / ادائیگی: کام مکمل ہونے پر</span>
+                <span className="text-muted-foreground">Advance: Wallet/JazzCash | Remaining: COD</span>
               </div>
 
               {/* Book Button */}
@@ -349,7 +362,7 @@ const Services = () => {
                 onClick={handleBook}
                 disabled={submitting}
               >
-                {submitting ? "Booking... / بکنگ ہو رہی ہے..." : `Book Now / بک کریں — Rs ${selectedService.price}`}
+                {submitting ? "Booking... / بکنگ ہو رہی ہے..." : `Book Now — Total Rs ${selectedService.price} (Advance Rs ${advanceFee})`}
               </Button>
             </div>
           )}

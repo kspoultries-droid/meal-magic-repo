@@ -22,6 +22,7 @@ import GroceryStoreDetail from "./pages/GroceryStoreDetail";
 import OrderTracking from "./pages/OrderTracking";
 import SearchPage from "./pages/SearchPage";
 import Services from "./pages/Services";
+import Wallet from "./pages/Wallet";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
                 <Route path="/order-tracking/:id" element={<OrderTracking />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/services" element={<Services />} />
+                <Route path="/wallet" element={<Wallet />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
