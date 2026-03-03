@@ -290,6 +290,87 @@ export type Database = {
           },
         ]
       }
+      payout_settings: {
+        Row: {
+          account_number: string | null
+          account_title: string | null
+          commission_rate: number
+          created_at: string
+          id: string
+          payout_method: string
+          payout_schedule: string
+          updated_at: string
+          user_id: string
+          vendor_type: string
+        }
+        Insert: {
+          account_number?: string | null
+          account_title?: string | null
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          payout_method?: string
+          payout_schedule?: string
+          updated_at?: string
+          user_id: string
+          vendor_type?: string
+        }
+        Update: {
+          account_number?: string | null
+          account_title?: string | null
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          payout_method?: string
+          payout_schedule?: string
+          updated_at?: string
+          user_id?: string
+          vendor_type?: string
+        }
+        Relationships: []
+      }
+      payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          payout_method: string
+          period_end: string
+          period_start: string
+          processed_at: string | null
+          processed_by: string | null
+          status: string
+          vendor_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payout_method?: string
+          period_end: string
+          period_start: string
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payout_method?: string
+          period_end?: string
+          period_start?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -431,6 +512,8 @@ export type Database = {
       service_bookings: {
         Row: {
           address: string
+          advance_fee: number | null
+          advance_paid: boolean | null
           city_id: string | null
           created_at: string | null
           customer_id: string
@@ -446,6 +529,8 @@ export type Database = {
         }
         Insert: {
           address: string
+          advance_fee?: number | null
+          advance_paid?: boolean | null
           city_id?: string | null
           created_at?: string | null
           customer_id: string
@@ -461,6 +546,8 @@ export type Database = {
         }
         Update: {
           address?: string
+          advance_fee?: number | null
+          advance_paid?: boolean | null
           city_id?: string | null
           created_at?: string | null
           customer_id?: string
@@ -640,6 +727,89 @@ export type Database = {
         Update: {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          description: string | null
+          id: string
+          payment_method: string | null
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          type: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          payment_method?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          type: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          payment_method?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          total_earned: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
