@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   Search, Star, Clock, ChevronRight, AirVent, Wrench, Zap,
-  Sparkles, Paintbrush, Hammer, ArrowLeft, Calendar, MapPin, CreditCard
+  Sparkles, Paintbrush, Hammer, ArrowLeft, Calendar, MapPin, CreditCard, Car
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
@@ -19,8 +19,20 @@ import HelplineSection from "@/components/services/HelplineSection";
 import FeedbackDialog from "@/components/services/FeedbackDialog";
 
 const iconMap: Record<string, any> = {
-  AirVent, Wrench, Zap, Sparkles, Paintbrush, Hammer,
+  AirVent, Wrench, Zap, Sparkles, Paintbrush, Hammer, Car,
 };
+
+const CAR_MODELS = [
+  "Toyota Corolla", "Toyota Yaris", "Toyota Vitz", "Honda Civic", "Honda City",
+  "Honda Vezel", "Suzuki Alto", "Suzuki Cultus", "Suzuki WagonR", "Suzuki Swift",
+  "Suzuki Mehran", "Hyundai Tucson", "Hyundai Elantra", "KIA Sportage", "KIA Picanto",
+  "Changan Alsvin", "MG HS", "MG ZS", "Other / دوسری"
+];
+
+const OIL_COMPANIES = [
+  "Shell Helix", "Castrol", "Mobil 1", "Total Quartz", "ZIC",
+  "Havoline", "Toyota Genuine", "Honda Genuine", "Other / دوسری"
+];
 
 const Services = () => {
   const [categories, setCategories] = useState<any[]>([]);
@@ -36,6 +48,8 @@ const Services = () => {
   const [submitting, setSubmitting] = useState(false);
   const [feedbackBooking, setFeedbackBooking] = useState<any>(null);
   const [myBookings, setMyBookings] = useState<any[]>([]);
+  const [carModel, setCarModel] = useState("");
+  const [oilCompany, setOilCompany] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -91,6 +105,9 @@ const Services = () => {
 
   const advanceFee = selectedService ? Math.round(selectedService.price * 0.15) : 0;
 
+  const isOilChange = selectedService?.name?.toLowerCase().includes("oil change") || selectedService?.name?.includes("آئل چینج");
+  const isCarService = categories.find(c => c.id === selectedService?.category_id)?.name?.toLowerCase().includes("car");
+
   const handleBook = async () => {
     if (!user) {
       toast.error("Please login first / پہلے لاگ ان کریں");
@@ -101,14 +118,20 @@ const Services = () => {
       toast.error("Fill all fields / تمام فیلڈز بھریں");
       return;
     }
+    if (isOilChange && (!carModel || !oilCompany)) {
+      toast.error("Car model aur oil company select karein / گاڑی کا ماڈل اور آئل کمپنی منتخب کریں");
+      return;
+    }
     setSubmitting(true);
+    const carInfo = isOilChange ? `Car: ${carModel} | Oil: ${oilCompany}` : isCarService && carModel ? `Car: ${carModel}` : "";
+    const fullNotes = [carInfo, bookingNotes].filter(Boolean).join(" | ");
     const { error } = await supabase.from("service_bookings").insert({
       service_id: selectedService.id,
       customer_id: user.id,
       address: bookingAddress,
       scheduled_date: bookingDate,
       scheduled_time: bookingTime,
-      notes: bookingNotes,
+      notes: fullNotes || null,
       total_amount: selectedService.price,
       advance_fee: advanceFee,
     });
@@ -122,6 +145,8 @@ const Services = () => {
       setBookingDate("");
       setBookingTime("");
       setBookingNotes("");
+      setCarModel("");
+      setOilCompany("");
     }
   };
 
@@ -277,6 +302,44 @@ const Services = () => {
                 </div>
                 <span className="text-lg font-extrabold text-primary">Rs {selectedService.price}</span>
               </div>
+
+              {/* Car Model Selection - for car services */}
+              {isCarService && (
+                <div>
+                  <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
+                    <Car className="w-4 h-4" /> Car Model / گاڑی کا ماڈل {isOilChange && <span className="text-destructive">*</span>}
+                  </label>
+                  <select
+                    value={carModel}
+                    onChange={(e) => setCarModel(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm"
+                  >
+                    <option value="">Select Car / گاڑی منتخب کریں...</option>
+                    {CAR_MODELS.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Oil Company Selection - only for oil change */}
+              {isOilChange && (
+                <div>
+                  <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
+                    🛢️ Oil Company / آئل کمپنی <span className="text-destructive">*</span>
+                  </label>
+                  <select
+                    value={oilCompany}
+                    onChange={(e) => setOilCompany(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm"
+                  >
+                    <option value="">Select Oil / آئل منتخب کریں...</option>
+                    {OIL_COMPANIES.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Date */}
               <div>
