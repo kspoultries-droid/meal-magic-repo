@@ -186,7 +186,19 @@ const GroceryTab = () => {
                         {s.image_url ? <img src={s.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{s.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-1">
+                        <span>{s.name}</span>
+                        <button className="text-muted-foreground hover:text-foreground" onClick={() => {
+                          const newName = prompt("نیا نام / New Name:", s.name);
+                          if (newName && newName.trim()) {
+                            supabase.from("grocery_stores").update({ name: newName.trim() }).eq("id", s.id).then(() => { toast.success("نام اپڈیٹ / Name updated"); fetchData(); });
+                          }
+                        }}>
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </TableCell>
                     <TableCell>{s.category}</TableCell>
                     <TableCell>{s.delivery_time}</TableCell>
                     <TableCell>
