@@ -157,8 +157,8 @@ const GroceryStoreDetail = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Store Header */}
-      <div className="relative bg-primary pb-6">
-        <div className="absolute top-4 left-4 z-10">
+      <div className="relative bg-primary">
+        <div className="absolute top-4 left-4 z-20">
           <Button variant="ghost" size="icon" className="bg-card/80 backdrop-blur" onClick={() => navigate("/grocery")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -173,7 +173,7 @@ const GroceryStoreDetail = () => {
             </div>
           )}
           {isOwner && (
-            <div className="absolute bottom-2 right-2 flex gap-1.5">
+            <div className="absolute bottom-2 right-2 z-20 flex gap-1.5">
               <label className="flex items-center gap-1 bg-card/90 backdrop-blur text-foreground text-xs font-bold px-3 py-1.5 rounded-full cursor-pointer shadow-md border">
                 <Camera className="w-3.5 h-3.5" /> بینر تبدیل / Change Banner
                 <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
@@ -192,7 +192,8 @@ const GroceryStoreDetail = () => {
             </div>
           )}
         </div>
-        <div className="px-4 -mt-6 relative z-10">
+      </div>
+      <div className="px-4 -mt-6 relative z-10">
           <div className="bg-card rounded-2xl p-4 shadow-lg border">
             {/* Store Name - editable for owner */}
             <div className="flex items-center gap-2">
@@ -267,7 +268,6 @@ const GroceryStoreDetail = () => {
             )}
           </div>
         </div>
-      </div>
 
       {/* Category Chips */}
       <div className="px-4 pt-6 pb-4 overflow-x-auto">
