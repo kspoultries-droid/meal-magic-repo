@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,7 +36,7 @@ const GroceryStoreDetail = () => {
     setLoading(true);
     const [{ data: storeData }, { data: productsData }] = await Promise.all([
       supabase.from("grocery_stores").select("*").eq("id", id).single(),
-      supabase.from("grocery_products").select("*").eq("store_id", id).order("category"),
+      supabase.from("grocery_products").select("*").eq("store_id", id).order("sort_order").order("category"),
     ]);
     setStore(storeData);
     // Owner sees all products, customers see only available
@@ -100,6 +100,20 @@ const GroceryStoreDetail = () => {
   const deleteProduct = async (productId: string) => {
     await supabase.from("grocery_products").delete().eq("id", productId);
     toast.success("پروڈکٹ حذف / Product deleted");
+    fetchData();
+  };
+
+  const moveProduct = async (productId: string, direction: "up" | "down") => {
+    const idx = products.findIndex((p) => p.id === productId);
+    if (idx < 0) return;
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= products.length) return;
+    const a = products[idx];
+    const b = products[swapIdx];
+    await Promise.all([
+      supabase.from("grocery_products").update({ sort_order: b.sort_order }).eq("id", a.id),
+      supabase.from("grocery_products").update({ sort_order: a.sort_order }).eq("id", b.id),
+    ]);
     fetchData();
   };
 
@@ -258,7 +272,13 @@ const GroceryStoreDetail = () => {
                           {product.unit && <span className="text-xs text-muted-foreground">/{product.unit}</span>}
                         </div>
                         {isOwner ? (
-                          <div className="flex gap-0.5">
+                          <div className="flex gap-0.5 flex-wrap">
+                            <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "up")} title="اوپر / Move Up">
+                              <ArrowUp className="w-3 h-3 text-foreground" />
+                            </button>
+                            <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "down")} title="نیچے / Move Down">
+                              <ArrowDown className="w-3 h-3 text-foreground" />
+                            </button>
                             <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => startEdit(product)}>
                               <Pencil className="w-3 h-3 text-foreground" />
                             </button>
