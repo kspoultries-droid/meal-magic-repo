@@ -193,8 +193,8 @@ const GroceryStoreDetail = () => {
           )}
         </div>
       </div>
-      <div className="px-2 -mt-4 relative z-10">
-          <div className="bg-card rounded-2xl p-4 shadow-lg border">
+      <div className="px-2 -mt-2 relative z-10">
+          <div className="bg-card rounded-2xl px-4 py-3 shadow-lg border">
             {/* Store Name - editable for owner */}
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-extrabold text-foreground flex-1">{store.name}</h1>
