@@ -1,4 +1,4 @@
-import { UtensilsCrossed, Store, Wallet, ShoppingBag, User, Wrench } from "lucide-react";
+import { UtensilsCrossed, Store, ShoppingBag, User, Wrench } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 
@@ -6,7 +6,7 @@ const tabs = [
   { name: "Food", icon: UtensilsCrossed, path: "/" },
   { name: "Grocery", icon: Store, path: "/grocery" },
   { name: "Services", icon: Wrench, path: "/services" },
-  { name: "Wallet", icon: Wallet, path: "/wallet" },
+  { name: "Cart", icon: ShoppingBag, path: "cart" },
   { name: "Account", icon: User, path: "/profile" },
 ];
 
@@ -20,6 +20,10 @@ const BottomTabBar = () => {
   if (hiddenPaths.some((p) => location.pathname.startsWith(p))) return null;
 
   const handleTab = (tab: typeof tabs[0]) => {
+    if (tab.path === "cart") {
+      setIsOpen(true);
+      return;
+    }
     navigate(tab.path);
   };
 
