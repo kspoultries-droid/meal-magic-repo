@@ -47,6 +47,7 @@ export type Database = {
           is_special_offer: boolean | null
           name: string
           price: number
+          sort_order: number | null
           store_id: string
           unit: string | null
         }
@@ -61,6 +62,7 @@ export type Database = {
           is_special_offer?: boolean | null
           name: string
           price: number
+          sort_order?: number | null
           store_id: string
           unit?: string | null
         }
@@ -75,6 +77,7 @@ export type Database = {
           is_special_offer?: boolean | null
           name?: string
           price?: number
+          sort_order?: number | null
           store_id?: string
           unit?: string | null
         }
