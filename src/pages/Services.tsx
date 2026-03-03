@@ -91,12 +91,12 @@ const Services = () => {
 
   const handleBook = async () => {
     if (!user) {
-      toast.error("پہلے لاگ ان کریں");
+      toast.error("Please login first / پہلے لاگ ان کریں");
       navigate("/auth");
       return;
     }
     if (!bookingDate || !bookingTime || !bookingAddress.trim()) {
-      toast.error("تمام فیلڈز بھریں");
+      toast.error("Fill all fields / تمام فیلڈز بھریں");
       return;
     }
     setSubmitting(true);
@@ -111,10 +111,10 @@ const Services = () => {
     });
     setSubmitting(false);
     if (error) {
-      toast.error("بکنگ میں مسئلہ آیا");
+      toast.error("Booking failed / بکنگ میں مسئلہ آیا");
       console.error(error);
     } else {
-      toast.success("بکنگ کامیاب! ✅ جلد آپ سے رابطہ کیا جائے گا");
+      toast.success("Booking successful! / بکنگ کامیاب! ✅");
       setSelectedService(null);
       setBookingDate("");
       setBookingTime("");
@@ -130,8 +130,8 @@ const Services = () => {
 
       {/* Header */}
       <div className="bg-primary pt-4 pb-8 px-4">
-        <h1 className="text-2xl font-extrabold text-primary-foreground mb-1">Home Services</h1>
-        <p className="text-primary-foreground/70 text-sm mb-4">پروفیشنل سروسز آپ کی دہلیز پر 🏠</p>
+        <h1 className="text-2xl font-extrabold text-primary-foreground mb-1">Home Services / ہوم سروسز</h1>
+        <p className="text-primary-foreground/70 text-sm mb-4">Professional services at your doorstep / پروفیشنل سروسز آپ کی دہلیز پر 🏠</p>
         <div className="flex bg-card rounded-2xl overflow-hidden shadow-lg">
           <div className="flex items-center gap-3 flex-1 px-4 py-3">
             <Search className="w-5 h-5 text-muted-foreground shrink-0" />
@@ -139,7 +139,7 @@ const Services = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="سروس تلاش کریں..."
+              placeholder="Search services / سروس تلاش کریں..."
               className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
             />
           </div>
@@ -148,7 +148,7 @@ const Services = () => {
 
       {/* Categories Grid */}
       <div className="container mx-auto px-4 py-6">
-        <h2 className="text-xl font-extrabold text-foreground mb-4">کیٹیگریز</h2>
+        <h2 className="text-xl font-extrabold text-foreground mb-4">Categories / کیٹیگریز</h2>
         <div className="grid grid-cols-3 gap-3">
           {categories.map((cat) => {
             const Icon = iconMap[cat.icon] || Wrench;
@@ -164,7 +164,7 @@ const Services = () => {
                 <div className={`w-12 h-12 rounded-2xl ${cat.color} flex items-center justify-center`}>
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-bold text-foreground">{cat.name}</span>
+                <span className="text-xs font-bold text-foreground text-center">{cat.name}</span>
               </button>
             );
           })}
@@ -175,16 +175,16 @@ const Services = () => {
       <div className="container mx-auto px-4 pb-6">
         <h2 className="text-xl font-extrabold text-foreground mb-4">
           {activeCategory
-            ? `${categories.find((c) => c.id === activeCategory)?.name || ""} سروسز`
-            : "تمام سروسز"}
+            ? `${categories.find((c) => c.id === activeCategory)?.name || ""} Services / سروسز`
+            : "All Services / تمام سروسز"}
         </h2>
         {loading ? (
-          <p className="text-center text-muted-foreground py-8">لوڈ ہو رہا ہے...</p>
+          <p className="text-center text-muted-foreground py-8">Loading... / لوڈ ہو رہا ہے...</p>
         ) : services.length === 0 ? (
           <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-6 text-center">
             <Wrench className="w-12 h-12 text-primary-foreground mx-auto mb-3" />
-            <h3 className="text-xl font-extrabold text-primary-foreground mb-1">جلد آ رہا ہے!</h3>
-            <p className="text-primary-foreground/80 text-sm">اس کیٹیگری میں ابھی کوئی سروس نہیں</p>
+            <h3 className="text-xl font-extrabold text-primary-foreground mb-1">Coming Soon! / جلد آ رہا ہے!</h3>
+            <p className="text-primary-foreground/80 text-sm">No services in this category yet / اس کیٹیگری میں ابھی کوئی سروس نہیں</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -208,7 +208,7 @@ const Services = () => {
                   )}
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-yellow-500" /> {service.rating || "New"}
+                      <Star className="w-3 h-3 text-yellow-500" /> {service.rating || "New / نیا"}
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" /> {service.duration}
@@ -226,7 +226,7 @@ const Services = () => {
       {/* My Completed Bookings - Feedback */}
       {user && myBookings.length > 0 && (
         <div className="container mx-auto px-4 pb-6">
-          <h2 className="text-xl font-extrabold text-foreground mb-4">فیڈبیک دیں ⭐</h2>
+          <h2 className="text-xl font-extrabold text-foreground mb-4">Give Feedback / فیڈبیک دیں ⭐</h2>
           <div className="space-y-2">
             {myBookings.map((b) => (
               <button
@@ -235,10 +235,10 @@ const Services = () => {
                 className="w-full flex items-center justify-between bg-card rounded-2xl p-4 border hover:shadow-md transition-shadow text-left"
               >
                 <div>
-                  <p className="font-bold text-foreground text-sm">{b.services?.name || "سروس"}</p>
+                  <p className="font-bold text-foreground text-sm">{b.services?.name || "Service / سروس"}</p>
                   <p className="text-xs text-muted-foreground">{b.scheduled_date}</p>
                 </div>
-                <span className="text-xs font-bold text-primary">ریٹنگ دیں →</span>
+                <span className="text-xs font-bold text-primary">Rate Now / ریٹنگ دیں →</span>
               </button>
             ))}
           </div>
@@ -260,7 +260,7 @@ const Services = () => {
       <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)}>
         <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg font-extrabold">بکنگ کریں</DialogTitle>
+            <DialogTitle className="text-lg font-extrabold">Book Now / بکنگ کریں</DialogTitle>
             <DialogDescription>{selectedService?.name}</DialogDescription>
           </DialogHeader>
 
@@ -278,7 +278,7 @@ const Services = () => {
               {/* Date */}
               <div>
                 <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
-                  <Calendar className="w-4 h-4" /> تاریخ منتخب کریں
+                  <Calendar className="w-4 h-4" /> Select Date / تاریخ منتخب کریں
                 </label>
                 <input
                   type="date"
@@ -292,7 +292,7 @@ const Services = () => {
               {/* Time Slots */}
               <div>
                 <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4" /> وقت منتخب کریں
+                  <Clock className="w-4 h-4" /> Select Time / وقت منتخب کریں
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                   {timeSlots.map((slot) => (
@@ -314,12 +314,12 @@ const Services = () => {
               {/* Address */}
               <div>
                 <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
-                  <MapPin className="w-4 h-4" /> پتہ
+                  <MapPin className="w-4 h-4" /> Address / پتہ
                 </label>
                 <textarea
                   value={bookingAddress}
                   onChange={(e) => setBookingAddress(e.target.value)}
-                  placeholder="مکمل پتہ لکھیں..."
+                  placeholder="Enter full address / مکمل پتہ لکھیں..."
                   rows={2}
                   className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm resize-none"
                 />
@@ -327,12 +327,12 @@ const Services = () => {
 
               {/* Notes */}
               <div>
-                <label className="text-sm font-bold text-foreground mb-1 block">نوٹس (اختیاری)</label>
+                <label className="text-sm font-bold text-foreground mb-1 block">Notes (Optional) / نوٹس (اختیاری)</label>
                 <input
                   type="text"
                   value={bookingNotes}
                   onChange={(e) => setBookingNotes(e.target.value)}
-                  placeholder="کوئی خاص ہدایت..."
+                  placeholder="Special instructions / کوئی خاص ہدایت..."
                   className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm"
                 />
               </div>
@@ -340,7 +340,7 @@ const Services = () => {
               {/* Payment Info */}
               <div className="bg-secondary rounded-xl p-3 flex items-center gap-2 text-sm">
                 <CreditCard className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">ادائیگی: کام مکمل ہونے پر (COD)</span>
+                <span className="text-muted-foreground">Payment: Cash on Delivery (COD) / ادائیگی: کام مکمل ہونے پر</span>
               </div>
 
               {/* Book Button */}
@@ -349,7 +349,7 @@ const Services = () => {
                 onClick={handleBook}
                 disabled={submitting}
               >
-                {submitting ? "بکنگ ہو رہی ہے..." : `بک کریں — Rs ${selectedService.price}`}
+                {submitting ? "Booking... / بکنگ ہو رہی ہے..." : `Book Now / بک کریں — Rs ${selectedService.price}`}
               </Button>
             </div>
           )}

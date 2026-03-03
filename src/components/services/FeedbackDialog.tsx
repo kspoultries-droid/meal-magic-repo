@@ -22,7 +22,7 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      toast.error("ریٹنگ دیں");
+      toast.error("Please give a rating / ریٹنگ دیں");
       return;
     }
     setSubmitting(true);
@@ -36,13 +36,13 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
     setSubmitting(false);
     if (error) {
       if (error.code === "23505") {
-        toast.error("آپ پہلے ہی فیڈبیک دے چکے ہیں");
+        toast.error("Already reviewed / آپ پہلے ہی فیڈبیک دے چکے ہیں");
       } else {
-        toast.error("فیڈبیک میں مسئلہ آیا");
+        toast.error("Feedback failed / فیڈبیک میں مسئلہ آیا");
         console.error(error);
       }
     } else {
-      toast.success("فیڈبیک کا شکریہ! ⭐");
+      toast.success("Thanks for feedback! / فیڈبیک کا شکریہ! ⭐");
       setRating(0);
       setComment("");
       onOpenChange(false);
@@ -54,8 +54,8 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm mx-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-extrabold">فیڈبیک دیں ⭐</DialogTitle>
-          <DialogDescription>اپنے تجربے کی ریٹنگ اور رائے دیں</DialogDescription>
+          <DialogTitle className="text-lg font-extrabold">Give Feedback / فیڈبیک دیں ⭐</DialogTitle>
+          <DialogDescription>Rate your experience / اپنے تجربے کی ریٹنگ دیں</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -80,17 +80,17 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
             ))}
           </div>
           <p className="text-center text-sm text-muted-foreground">
-            {rating === 0 ? "ستارے پر ٹیپ کریں" : 
-             rating <= 2 ? "😞 بہتری کی ضرورت" : 
-             rating <= 3 ? "😐 ٹھیک ہے" : 
-             rating <= 4 ? "😊 اچھا تجربہ" : "🤩 بہترین!"}
+            {rating === 0 ? "Tap a star / ستارے پر ٹیپ کریں" : 
+             rating <= 2 ? "😞 Needs improvement / بہتری کی ضرورت" : 
+             rating <= 3 ? "😐 Okay / ٹھیک ہے" : 
+             rating <= 4 ? "😊 Good experience / اچھا تجربہ" : "🤩 Excellent! / بہترین!"}
           </p>
 
           {/* Comment */}
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="اپنی رائے لکھیں (اختیاری)..."
+            placeholder="Write your review (optional) / اپنی رائے لکھیں (اختیاری)..."
             rows={3}
             maxLength={500}
             className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm resize-none"
@@ -101,7 +101,7 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
             onClick={handleSubmit}
             disabled={submitting || rating === 0}
           >
-            {submitting ? "بھیج رہے ہیں..." : "فیڈبیک بھیجیں"}
+            {submitting ? "Submitting... / بھیج رہے ہیں..." : "Submit Feedback / فیڈبیک بھیجیں"}
           </Button>
         </div>
       </DialogContent>

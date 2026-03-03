@@ -1,10 +1,9 @@
 import { Phone, MessageCircle, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const HelplineSection = () => {
   return (
     <div className="container mx-auto px-4 pb-6">
-      <h2 className="text-xl font-extrabold text-foreground mb-4">ہیلپ لائن & سپورٹ</h2>
+      <h2 className="text-xl font-extrabold text-foreground mb-4">Helpline & Support / ہیلپ لائن اور سپورٹ</h2>
       <div className="grid grid-cols-1 gap-3">
         <a
           href="tel:03001234567"
@@ -14,8 +13,8 @@ const HelplineSection = () => {
             <Phone className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground">ہیلپ لائن کال کریں</h3>
-            <p className="text-xs text-muted-foreground">0300-1234567 (صبح 9 سے رات 9 تک)</p>
+            <h3 className="font-bold text-foreground">Call Helpline / ہیلپ لائن کال کریں</h3>
+            <p className="text-xs text-muted-foreground">0300-1234567 (9 AM - 9 PM / صبح 9 سے رات 9 تک)</p>
           </div>
         </a>
 
@@ -29,8 +28,8 @@ const HelplineSection = () => {
             <MessageCircle className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground">واٹس ایپ سپورٹ</h3>
-            <p className="text-xs text-muted-foreground">فوری مدد کے لیے میسج کریں</p>
+            <h3 className="font-bold text-foreground">WhatsApp Support / واٹس ایپ سپورٹ</h3>
+            <p className="text-xs text-muted-foreground">Message for instant help / فوری مدد کے لیے میسج کریں</p>
           </div>
         </a>
 
@@ -39,8 +38,8 @@ const HelplineSection = () => {
             <Shield className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground">سروس گارنٹی</h3>
-            <p className="text-xs text-muted-foreground">اگر سروس سے مطمئن نہ ہوں تو 24 گھنٹے میں شکایت درج کرائیں</p>
+            <h3 className="font-bold text-foreground">Service Guarantee / سروس گارنٹی</h3>
+            <p className="text-xs text-muted-foreground">File a complaint within 24 hours if not satisfied / اگر مطمئن نہ ہوں تو 24 گھنٹے میں شکایت درج کرائیں</p>
           </div>
         </div>
       </div>
