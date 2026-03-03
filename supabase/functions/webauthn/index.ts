@@ -76,7 +76,8 @@ serve(async (req) => {
         authenticatorSelection: {
           authenticatorAttachment: "platform",
           userVerification: "required",
-          residentKey: "preferred",
+          residentKey: "required",
+          requireResidentKey: true,
         },
       });
 
@@ -124,48 +125,32 @@ serve(async (req) => {
     }
 
     if (action === "auth-options") {
-      const email = body.email;
-      
-      // Find user by email
-      const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
-      const user = users?.find(u => u.email === email);
-      if (!user) throw new Error("User not found");
-
-      const { data: creds } = await supabaseAdmin
-        .from("webauthn_credentials")
-        .select("credential_id")
-        .eq("user_id", user.id);
-
-      if (!creds?.length) throw new Error("No biometric registered");
-
+      // No email needed — discoverable credentials (passkeys) handle user selection
       const options = await generateAuthenticationOptions({
         rpID,
-        allowCredentials: creds.map((c) => ({
-          id: c.credential_id,
-          type: "public-key",
-        })),
         userVerification: "required",
+        // Empty allowCredentials = browser shows all registered passkeys for this RP
       });
 
-      storeChallenge(`auth_${user.id}`, options.challenge);
+      // Store challenge with a generic key (we'll match by credential ID later)
+      storeChallenge(`auth_discoverable`, options.challenge);
 
-      return new Response(JSON.stringify({ ...options, userId: user.id }), {
+      return new Response(JSON.stringify(options), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (action === "auth-verify") {
-      const { credential, userId } = body;
+      const { credential } = body;
 
-      const expectedChallenge = getChallenge(`auth_${userId}`);
+      const expectedChallenge = getChallenge(`auth_discoverable`);
       if (!expectedChallenge) throw new Error("Challenge expired");
 
-      // Get stored credential
+      // Find stored credential by credential_id (no userId needed)
       const { data: storedCred } = await supabaseAdmin
         .from("webauthn_credentials")
         .select("*")
         .eq("credential_id", credential.id)
-        .eq("user_id", userId)
         .single();
 
       if (!storedCred) throw new Error("Credential not found");
@@ -191,7 +176,7 @@ serve(async (req) => {
         .eq("id", storedCred.id);
 
       // Generate magic link for the user
-      const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+      const { data: userData } = await supabaseAdmin.auth.admin.getUserById(storedCred.user_id);
       if (!userData?.user?.email) throw new Error("User email not found");
 
       const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -201,7 +186,6 @@ serve(async (req) => {
 
       if (linkError) throw linkError;
 
-      // Extract token from the link
       const tokenHash = linkData?.properties?.hashed_token;
       
       return new Response(JSON.stringify({ 

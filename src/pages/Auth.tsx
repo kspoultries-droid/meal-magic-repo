@@ -15,7 +15,6 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [biometricEmail, setBiometricEmail] = useState("");
   const navigate = useNavigate();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -47,24 +46,20 @@ const Auth = () => {
   };
 
   const handleBiometricLogin = async () => {
-    if (!biometricEmail.trim()) {
-      toast.error("پہلے ای میل درج کریں / Enter email first");
-      return;
-    }
     setLoading(true);
     try {
       const funcUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn/auth-options`;
       
-      // Get authentication options
+      // Get authentication options (no email needed - discoverable credentials)
       const optRes = await fetch(funcUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-        body: JSON.stringify({ email: biometricEmail }),
+        body: JSON.stringify({}),
       });
       const optData = await optRes.json();
       if (optData.error) throw new Error(optData.error);
 
-      // Start biometric authentication
+      // Start biometric authentication - browser shows registered passkeys
       const credential = await startAuthentication({ optionsJSON: optData });
 
       // Verify with server
@@ -73,7 +68,7 @@ const Auth = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-          body: JSON.stringify({ credential, userId: optData.userId }),
+          body: JSON.stringify({ credential }),
         }
       );
       const verifyData = await verifyRes.json();
@@ -153,22 +148,13 @@ const Auth = () => {
               <TabsContent value="biometric">
                 <div className="space-y-4">
                   <div className="text-center pb-2">
-                    <Fingerprint className="w-12 h-12 text-primary mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">فنگر پرنٹ سے لاگ ان کریں / Login with fingerprint</p>
+                    <Fingerprint className="w-16 h-16 text-primary mx-auto mb-3" />
+                    <p className="text-sm text-muted-foreground">صرف فنگر لگائیں — ای میل کی ضرورت نہیں</p>
+                    <p className="text-xs text-muted-foreground">Just touch — no email needed</p>
                   </div>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="email"
-                      placeholder="اپنا ای میل درج کریں / Enter your email"
-                      value={biometricEmail}
-                      onChange={(e) => setBiometricEmail(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Button onClick={handleBiometricLogin} className="w-full" disabled={loading}>
-                    <Fingerprint className="w-4 h-4 mr-2" />
-                    {loading ? "تصدیق ہو رہی ہے..." : "فنگر پرنٹ سے لاگ ان"}
+                  <Button onClick={handleBiometricLogin} className="w-full h-14 text-base" disabled={loading}>
+                    <Fingerprint className="w-5 h-5 mr-2" />
+                    {loading ? "تصدیق ہو رہی ہے..." : "فنگر پرنٹ سے لاگ ان 👆"}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">
                     پہلے پروفائل سے فنگر پرنٹ رجسٹر کریں / Register fingerprint from Profile first
