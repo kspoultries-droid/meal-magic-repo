@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil } from "lucide-react";
+import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint } from "lucide-react";
+import { startRegistration } from "@simplewebauthn/browser";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
@@ -212,6 +213,72 @@ const Profile = () => {
             <div className="flex items-center gap-3">
               <Ticket className="w-5 h-5 text-primary" />
               <span className="text-sm font-semibold text-foreground">Vouchers</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+      </div>
+
+      {/* Fingerprint Registration */}
+      <div className="px-4 py-2">
+        <h3 className="text-lg font-extrabold text-foreground mb-3">سیکیورٹی / Security</h3>
+        <div className="bg-card rounded-2xl border divide-y">
+          <button
+            onClick={async () => {
+              try {
+                const session = await supabase.auth.getSession();
+                const token = session.data.session?.access_token;
+                if (!token) { toast.error("پہلے لاگ ان کریں"); return; }
+
+                const optRes = await fetch(
+                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn/register-options`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${token}`,
+                      "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                    },
+                    body: JSON.stringify({}),
+                  }
+                );
+                const optData = await optRes.json();
+                if (optData.error) throw new Error(optData.error);
+
+                const credential = await startRegistration({ optionsJSON: optData });
+
+                const verifyRes = await fetch(
+                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn/register-verify`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${token}`,
+                      "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                    },
+                    body: JSON.stringify({ credential, deviceName: "My Phone" }),
+                  }
+                );
+                const verifyData = await verifyRes.json();
+                if (verifyData.error) throw new Error(verifyData.error);
+
+                toast.success("فنگر پرنٹ رجسٹر ہو گیا! 🎉 / Fingerprint registered!");
+              } catch (err: any) {
+                if (err.name === "NotAllowedError") {
+                  toast.error("فنگر پرنٹ منسوخ ہو گیا");
+                } else {
+                  toast.error(err.message || "فنگر پرنٹ رجسٹر نہیں ہوا");
+                }
+              }
+            }}
+            className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Fingerprint className="w-5 h-5 text-primary" />
+              <div className="text-left">
+                <span className="text-sm font-semibold text-foreground block">فنگر پرنٹ رجسٹر کریں</span>
+                <span className="text-xs text-muted-foreground">Register Fingerprint for quick login</span>
+              </div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
