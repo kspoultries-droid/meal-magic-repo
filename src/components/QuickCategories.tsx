@@ -4,7 +4,7 @@ const quickCategories = [
   { name: "Offers", icon: Percent, color: "bg-primary/10 text-primary" },
   { name: "New", icon: Sparkles, color: "bg-warning/10 text-warning" },
   { name: "Pick-up", icon: ShoppingBag, color: "bg-primary/10 text-primary" },
-  { name: "Homechefs", icon: ChefHat, color: "bg-pink-100 text-pink-500" },
+  { name: "Homechefs", icon: ChefHat, color: "bg-accent text-accent-foreground" },
   { name: "Top Rated", icon: Award, color: "bg-warning/10 text-warning" },
 ];
 
