@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Phone, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,10 +35,12 @@ const ServicesTab = () => {
         <TabsTrigger value="bookings"><Calendar className="h-4 w-4 mr-1" /> بکنگز / Bookings</TabsTrigger>
         <TabsTrigger value="services">سروسز / Services</TabsTrigger>
         <TabsTrigger value="categories">کیٹیگریز / Categories</TabsTrigger>
+        <TabsTrigger value="settings">⚙️ سیٹنگز / Settings</TabsTrigger>
       </TabsList>
       <TabsContent value="bookings"><BookingsSection /></TabsContent>
       <TabsContent value="services"><ServicesSection /></TabsContent>
       <TabsContent value="categories"><CategoriesSection /></TabsContent>
+      <TabsContent value="settings"><SettingsSection /></TabsContent>
     </Tabs>
   );
 };
@@ -424,6 +427,78 @@ const CategoriesSection = () => {
               {categories.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">کوئی کیٹیگری نہیں / No categories</TableCell></TableRow>}
             </TableBody>
           </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Settings ───
+const SettingsSection = () => {
+  const [phone, setPhone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const fetchSettings = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("app_settings").select("key, value").in("key", ["helpline_phone", "whatsapp_number"]);
+    if (data) {
+      data.forEach((s) => {
+        if (s.key === "helpline_phone") setPhone(s.value);
+        if (s.key === "whatsapp_number") setWhatsapp(s.value);
+      });
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchSettings(); }, []);
+
+  const saveSettings = async () => {
+    if (!phone.trim() || !whatsapp.trim()) { toast.error("دونوں نمبر درکار ہیں / Both numbers required"); return; }
+    setSaving(true);
+    await Promise.all([
+      supabase.from("app_settings").update({ value: phone.trim() }).eq("key", "helpline_phone"),
+      supabase.from("app_settings").update({ value: whatsapp.trim() }).eq("key", "whatsapp_number"),
+    ]);
+    setSaving(false);
+    toast.success("نمبرز اپڈیٹ ہو گئے / Numbers updated ✅");
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>⚙️ ایپ سیٹنگز / App Settings</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
+          <>
+            <div>
+              <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
+                <Phone className="w-4 h-4" /> ہیلپ لائن نمبر / Helpline Phone
+              </label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="03001234567"
+              />
+              <p className="text-xs text-muted-foreground mt-1">یہ نمبر کال ہیلپ لائن میں دکھے گا</p>
+            </div>
+            <div>
+              <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
+                <MessageCircle className="w-4 h-4" /> واٹس ایپ نمبر / WhatsApp Number
+              </label>
+              <Input
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="923001234567"
+              />
+              <p className="text-xs text-muted-foreground mt-1">92 سے شروع ہو، بغیر + کے (مثلاً 923001234567)</p>
+            </div>
+            <Button onClick={saveSettings} disabled={saving} className="w-full">
+              {saving ? "سیو ہو رہا ہے..." : "سیو کریں / Save Settings ✅"}
+            </Button>
+          </>
         )}
       </CardContent>
     </Card>
