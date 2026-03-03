@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, User, ShoppingBag, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
+import BottomTabBar from "@/components/BottomTabBar";
 
 const Profile = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -21,6 +21,7 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone: "", address: "" });
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [showOrders, setShowOrders] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -43,7 +44,6 @@ const Profile = () => {
 
   useEffect(() => { fetchData(); }, [user]);
 
-  // Realtime order updates
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -66,130 +66,164 @@ const Profile = () => {
     return map[s] || "bg-muted text-muted-foreground";
   };
 
-  const statusLabel: Record<string, string> = {
-    pending: "زیر التواء",
-    confirmed: "تصدیق شدہ",
-    preparing: "تیاری جاری",
-    delivering: "ڈلیوری جاری",
-    delivered: "مکمل ✅",
-    cancelled: "منسوخ ❌",
-  };
+  const statusLabel: Record<string, string> = { pending: "زیر التواء", confirmed: "تصدیق شدہ", preparing: "تیاری جاری", delivering: "ڈلیوری جاری", delivered: "مکمل ✅", cancelled: "منسوخ ❌" };
 
   if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <div className="min-h-screen bg-background pb-20">
       <CartDrawer />
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate("/")}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> واپس
-        </Button>
 
-        {/* Profile Card */}
-        <Card className="mb-6">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2"><User className="w-5 h-5" /> میرا پروفائل</CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>
-              {editing ? "منسوخ" : "ایڈٹ"}
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <p className="text-xs text-muted-foreground">ای میل</p>
-              <p className="font-medium">{user?.email}</p>
-            </div>
-            <div className="flex gap-2">
-              {roles.map((r) => <Badge key={r} variant="outline">{r}</Badge>)}
-            </div>
-            {editing ? (
-              <div className="space-y-3 pt-2">
-                <Input placeholder="پورا نام" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-                <Input placeholder="فون نمبر" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                <Input placeholder="پتہ" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-                <Button onClick={updateProfile}>محفوظ کریں</Button>
-              </div>
-            ) : (
-              <div className="space-y-1 pt-2">
-                <p className="text-sm"><span className="text-muted-foreground">نام:</span> {profile?.full_name || "—"}</p>
-                <p className="text-sm"><span className="text-muted-foreground">فون:</span> {profile?.phone || "—"}</p>
-                <p className="text-sm"><span className="text-muted-foreground">پتہ:</span> {profile?.address || "—"}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Role-Based Navigation */}
-        {roles.includes("restaurant_owner") && (
-          <Button variant="outline" className="w-full mb-3" onClick={() => navigate("/restaurant-dashboard")}>
-            🍽️ ریسٹورنٹ ڈیش بورڈ
-          </Button>
-        )}
-        {roles.includes("rider") && (
-          <Button variant="outline" className="w-full mb-3" onClick={() => navigate("/rider-dashboard")}>
-            🏍️ رائیڈر ڈیش بورڈ
-          </Button>
-        )}
-        {roles.includes("admin") && (
-          <Button variant="outline" className="w-full mb-3" onClick={() => navigate("/admin")}>
-            ⚙️ ایڈمن ڈیش بورڈ
-          </Button>
-        )}
-
-        {/* Orders History */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2"><ShoppingBag className="w-5 h-5" /> میرے آرڈرز</CardTitle>
-            <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className="h-4 w-4" /></Button>
-          </CardHeader>
-          <CardContent>
-            {orders.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">ابھی کوئی آرڈر نہیں</p>
-            ) : (
-              <div className="space-y-3">
-                {orders.map((o) => (
-                  <div key={o.id} className="bg-secondary/30 rounded-xl p-4 border space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                        <p className="font-bold text-foreground">Rs {o.total_amount}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</p>
-                      </div>
-                      <div className="text-right">
-                        <Badge className={statusColor(o.status)}>{statusLabel[o.status] || o.status}</Badge>
-                        <p className="text-xs text-muted-foreground mt-1">{o.payment_method}</p>
-                      </div>
-                    </div>
-
-                    {/* Expandable Order Items */}
-                    {o.order_items?.length > 0 && (
-                      <>
-                        <button
-                          className="flex items-center gap-1 text-xs text-primary hover:underline"
-                          onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}
-                        >
-                          {expandedOrder === o.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                          {expandedOrder === o.id ? "آئٹمز چھپائیں" : `آئٹمز دیکھیں (${o.order_items.length})`}
-                        </button>
-                        {expandedOrder === o.id && (
-                          <div className="bg-background rounded-lg p-3 space-y-1 border">
-                            {o.order_items.map((item: any) => (
-                              <div key={item.id} className="flex justify-between text-sm">
-                                <span>{item.name} × {item.quantity}</span>
-                                <span className="font-bold">Rs {item.price * item.quantity}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-card border-b px-4 h-14 flex items-center justify-between">
+        <h1 className="text-lg font-extrabold text-foreground">Account</h1>
+        <button className="p-2 rounded-full hover:bg-secondary">
+          <Settings className="w-5 h-5 text-muted-foreground" />
+        </button>
       </div>
+
+      {/* User Name & Profile Link */}
+      <div className="px-4 pt-6 pb-4 border-b">
+        <h2 className="text-2xl font-extrabold text-foreground">{profile?.full_name || user?.email?.split("@")[0] || "User"}</h2>
+        <button onClick={() => setEditing(!editing)} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+          {editing ? "Cancel" : "View profile"}
+        </button>
+        {editing && (
+          <div className="mt-4 space-y-3">
+            <Input placeholder="پورا نام" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+            <Input placeholder="فون نمبر" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <Input placeholder="پتہ" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <Button onClick={updateProfile} className="w-full">محفوظ کریں</Button>
+          </div>
+        )}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="px-4 py-4 grid grid-cols-3 gap-3">
+        <button onClick={() => setShowOrders(!showOrders)} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-md transition-shadow">
+          <ShoppingBag className="w-6 h-6 text-muted-foreground" />
+          <span className="text-xs font-semibold text-foreground">Orders</span>
+        </button>
+        <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-md transition-shadow">
+          <Heart className="w-6 h-6 text-muted-foreground" />
+          <span className="text-xs font-semibold text-foreground">Favourites</span>
+        </button>
+        <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-md transition-shadow">
+          <MapPin className="w-6 h-6 text-muted-foreground" />
+          <span className="text-xs font-semibold text-foreground">Addresses</span>
+        </button>
+      </div>
+
+      {/* Orders Section (collapsible) */}
+      {showOrders && (
+        <div className="px-4 pb-4">
+          <h3 className="text-lg font-extrabold text-foreground mb-3">میرے آرڈرز</h3>
+          {orders.length === 0 ? (
+            <p className="text-center text-muted-foreground py-6">ابھی کوئی آرڈر نہیں</p>
+          ) : (
+            <div className="space-y-3">
+              {orders.map((o) => (
+                <div key={o.id} className="bg-card rounded-2xl p-4 border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                      <p className="font-bold text-foreground">Rs {o.total_amount}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</p>
+                    </div>
+                    <Badge className={statusColor(o.status)}>{statusLabel[o.status] || o.status}</Badge>
+                  </div>
+                  {o.order_items?.length > 0 && (
+                    <>
+                      <button className="flex items-center gap-1 text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
+                        {expandedOrder === o.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        {expandedOrder === o.id ? "چھپائیں" : `آئٹمز (${o.order_items.length})`}
+                      </button>
+                      {expandedOrder === o.id && (
+                        <div className="bg-secondary/30 rounded-xl p-3 space-y-1">
+                          {o.order_items.map((item: any) => (
+                            <div key={item.id} className="flex justify-between text-sm">
+                              <span>{item.name} × {item.quantity}</span>
+                              <span className="font-bold">Rs {item.price * item.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Perks Section */}
+      <div className="px-4 py-2">
+        <h3 className="text-lg font-extrabold text-foreground mb-3">Perks for you</h3>
+        <div className="bg-card rounded-2xl border divide-y">
+          {roles.includes("restaurant_owner") && (
+            <button onClick={() => navigate("/restaurant-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Pencil className="w-5 h-5 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Restaurant Dashboard</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+          {roles.includes("rider") && (
+            <button onClick={() => navigate("/rider-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Crown className="w-5 h-5 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Rider Dashboard</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+          {roles.includes("admin") && (
+            <button onClick={() => navigate("/admin")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Settings className="w-5 h-5 text-destructive" />
+                <span className="text-sm font-semibold text-foreground">Admin Dashboard</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+          <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <Crown className="w-5 h-5 text-purple-500" />
+              <span className="text-sm font-semibold text-foreground">Become a pro</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+          <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <Gift className="w-5 h-5 text-primary" />
+              <span className="text-sm font-semibold text-foreground">Panda Rewards</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+          <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <Ticket className="w-5 h-5 text-primary" />
+              <span className="text-sm font-semibold text-foreground">Vouchers</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+      </div>
+
+      {/* Logout */}
+      <div className="px-4 py-6">
+        <Button
+          variant="outline"
+          className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+          onClick={async () => { await signOut(); navigate("/"); }}
+        >
+          <LogOut className="w-4 h-4 mr-2" /> لاگ آؤٹ
+        </Button>
+      </div>
+
+      <BottomTabBar />
     </div>
   );
 };
