@@ -248,13 +248,22 @@ const GroceryStoreDetail = () => {
                       <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
                     )}
                     {isOwner && (
-                      <label className="absolute bottom-1 right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md">
-                        <Camera className="w-3.5 h-3.5" />
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) uploadProductImage(product.id, file);
-                        }} />
-                      </label>
+                      <div className="absolute bottom-1 right-1 flex gap-1">
+                        <label className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md" title="کیمرہ / Camera">
+                          <Camera className="w-3.5 h-3.5" />
+                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) uploadProductImage(product.id, file);
+                          }} />
+                        </label>
+                        <label className="w-7 h-7 rounded-full bg-accent text-foreground flex items-center justify-center cursor-pointer shadow-md" title="گیلری / Gallery">
+                          <Plus className="w-3.5 h-3.5" />
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) uploadProductImage(product.id, file);
+                          }} />
+                        </label>
+                      </div>
                     )}
                   </div>
                   <div className="p-3">
