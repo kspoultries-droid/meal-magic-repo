@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint } from "lucide-react";
+import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Navbar from "@/components/Navbar";
@@ -195,6 +195,31 @@ const Profile = () => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
+          {roles.includes("support") && (
+            <button onClick={() => navigate("/support-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Headphones className="w-5 h-5 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Support Dashboard</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+          {roles.includes("mechanic") && (
+            <button onClick={() => navigate("/mechanic-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Wrench className="w-5 h-5 text-orange-500" />
+                <span className="text-sm font-semibold text-foreground">Mechanic Dashboard</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+          <button onClick={() => navigate("/wallet")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
+            <div className="flex items-center gap-3">
+              <Wallet className="w-5 h-5 text-primary" />
+              <span className="text-sm font-semibold text-foreground">Wallet / والیٹ</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
           <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
             <div className="flex items-center gap-3">
               <Crown className="w-5 h-5 text-purple-500" />
