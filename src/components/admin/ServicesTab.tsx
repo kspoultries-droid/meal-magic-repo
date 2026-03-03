@@ -129,7 +129,7 @@ const ServicesSection = () => {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", price: "", duration: "1-2 hours", category_id: "", description: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editPrice, setEditPrice] = useState("");
+  const [editForm, setEditForm] = useState({ name: "", price: "", duration: "", category_id: "", description: "" });
 
   const fetchData = async () => {
     setLoading(true);
@@ -159,15 +159,29 @@ const ServicesSection = () => {
     fetchData();
   };
 
-  const startEditPrice = (id: string, currentPrice: number) => {
-    setEditingId(id);
-    setEditPrice(String(currentPrice));
+  const startEdit = (s: any) => {
+    setEditingId(s.id);
+    setEditForm({
+      name: s.name || "",
+      price: String(s.price || ""),
+      duration: s.duration || "",
+      category_id: s.category_id || "",
+      description: s.description || "",
+    });
   };
 
-  const savePrice = async (id: string) => {
-    if (!editPrice || isNaN(Number(editPrice))) { toast.error("درست قیمت درج کریں"); return; }
-    await supabase.from("services").update({ price: Number(editPrice) }).eq("id", id);
-    toast.success("قیمت اپڈیٹ ہو گئی / Price updated");
+  const saveEdit = async (id: string) => {
+    if (!editForm.name.trim() || !editForm.price || isNaN(Number(editForm.price))) {
+      toast.error("نام اور درست قیمت درکار ہے"); return;
+    }
+    await supabase.from("services").update({
+      name: editForm.name,
+      price: Number(editForm.price),
+      duration: editForm.duration || null,
+      category_id: editForm.category_id,
+      description: editForm.description || null,
+    }).eq("id", id);
+    toast.success("سروس اپڈیٹ ہو گئی / Service updated");
     setEditingId(null);
     fetchData();
   };
@@ -211,54 +225,73 @@ const ServicesSection = () => {
       </CardHeader>
       <CardContent>
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>نام / Name</TableHead>
-                <TableHead>کیٹیگری / Category</TableHead>
-                <TableHead>قیمت / Price</TableHead>
-                <TableHead>دورانیہ / Duration</TableHead>
-                <TableHead>ایکٹو / Active</TableHead>
-                <TableHead>ایکشنز / Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {services.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell>{getCatName(s.category_id)}</TableCell>
-                  <TableCell>
-                    {editingId === s.id ? (
-                      <div className="flex items-center gap-1">
-                        <Input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} className="w-20 h-7 text-xs" />
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => savePrice(s.id)}><Check className="h-3 w-3 text-green-600" /></Button>
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingId(null)}><X className="h-3 w-3 text-destructive" /></Button>
+          <div className="space-y-3">
+            {services.map((s) => (
+              <div key={s.id} className="border rounded-xl p-4 space-y-2">
+                {editingId === s.id ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-bold text-muted-foreground">نام / Name</label>
+                      <Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="h-8 text-sm" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground">قیمت / Price (Rs)</label>
+                        <Input type="number" value={editForm.price} onChange={e => setEditForm({...editForm, price: e.target.value})} className="h-8 text-sm" />
                       </div>
-                    ) : (
-                      <span className="flex items-center gap-1 cursor-pointer group" onClick={() => startEditPrice(s.id, s.price)}>
-                        Rs {s.price} <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>{s.duration}</TableCell>
-                  <TableCell>
-                    <Badge className={s.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
-                      {s.is_active ? "ایکٹو" : "غیر ایکٹو"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="flex gap-1">
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(s.id, s.is_active)}>
-                      {s.is_active ? "بند / Off" : "فعال / On"}
-                    </Button>
-                    <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteService(s.id)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {services.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی سروس نہیں / No services</TableCell></TableRow>}
-            </TableBody>
-          </Table>
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground">دورانیہ / Duration</label>
+                        <Input value={editForm.duration} onChange={e => setEditForm({...editForm, duration: e.target.value})} className="h-8 text-sm" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-muted-foreground">کیٹیگری / Category</label>
+                      <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={editForm.category_id} onChange={e => setEditForm({...editForm, category_id: e.target.value})}>
+                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-muted-foreground">تفصیل / Description</label>
+                      <Input value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} className="h-8 text-sm" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => saveEdit(s.id)} className="h-8"><Check className="h-3 w-3 mr-1" /> محفوظ / Save</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="h-8"><X className="h-3 w-3 mr-1" /> منسوخ / Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div>
+                        <span className="font-bold text-foreground">{s.name}</span>
+                        <Badge className="ml-2 text-[10px]" variant="outline">{getCatName(s.category_id)}</Badge>
+                      </div>
+                      <Badge className={s.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
+                        {s.is_active ? "ایکٹو" : "غیر ایکٹو"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="font-bold text-primary">Rs {s.price}</span>
+                      <span>⏱ {s.duration}</span>
+                    </div>
+                    {s.description && <p className="text-xs text-muted-foreground">{s.description}</p>}
+                    <div className="flex gap-1 flex-wrap pt-1">
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => startEdit(s)}>
+                        <Pencil className="h-3 w-3 mr-1" /> ترمیم / Edit
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(s.id, s.is_active)}>
+                        {s.is_active ? <><EyeOff className="h-3 w-3 mr-1" /> بند / Off</> : <><Eye className="h-3 w-3 mr-1" /> فعال / On</>}
+                      </Button>
+                      <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteService(s.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+            {services.length === 0 && <p className="text-center text-muted-foreground py-8">کوئی سروس نہیں / No services</p>}
+          </div>
         )}
       </CardContent>
     </Card>
