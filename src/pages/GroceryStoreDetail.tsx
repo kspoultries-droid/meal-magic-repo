@@ -98,6 +98,7 @@ const GroceryStoreDetail = () => {
   };
 
   const deleteProduct = async (productId: string) => {
+    if (!window.confirm("کیا آپ واقعی حذف کرنا چاہتے ہیں؟\nAre you sure?")) return;
     await supabase.from("grocery_products").delete().eq("id", productId);
     toast.success("پروڈکٹ حذف / Product deleted");
     fetchData();
