@@ -129,6 +129,7 @@ const UsersTab = () => {
           <select className="border rounded-md p-2 bg-background text-foreground text-sm" value={roleType} onChange={(e) => setRoleType(e.target.value)}>
             <option value="restaurant_owner">Restaurant Owner</option>
             <option value="rider">Rider</option>
+            <option value="mechanic">Mechanic</option>
             <option value="support">Support</option>
             <option value="admin">Admin</option>
           </select>

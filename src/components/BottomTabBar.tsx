@@ -16,7 +16,7 @@ const BottomTabBar = () => {
   const { totalItems, setIsOpen } = useCart();
 
   // Hide on dashboard/admin pages
-  const hiddenPaths = ["/admin", "/restaurant-dashboard", "/rider-dashboard", "/checkout", "/auth"];
+  const hiddenPaths = ["/admin", "/restaurant-dashboard", "/rider-dashboard", "/mechanic-dashboard", "/checkout", "/auth"];
   if (hiddenPaths.some((p) => location.pathname.startsWith(p))) return null;
 
   const handleTab = (tab: typeof tabs[0]) => {

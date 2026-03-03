@@ -10,6 +10,7 @@ interface AuthContextType {
   isRestaurantOwner: boolean;
   isRider: boolean;
   isSupport: boolean;
+  isMechanic: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   isRestaurantOwner: false,
   isRider: false,
   isSupport: false,
+  isMechanic: false,
   signOut: async () => {},
 });
 
@@ -32,19 +34,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isRestaurantOwner, setIsRestaurantOwner] = useState(false);
   const [isRider, setIsRider] = useState(false);
   const [isSupport, setIsSupport] = useState(false);
+  const [isMechanic, setIsMechanic] = useState(false);
 
   const checkRoles = async (userId: string) => {
     try {
-      const [adminRes, ownerRes, riderRes, supportRes] = await Promise.all([
+      const [adminRes, ownerRes, riderRes, supportRes, mechanicRes] = await Promise.all([
         supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
         supabase.rpc("has_role", { _user_id: userId, _role: "restaurant_owner" }),
         supabase.rpc("has_role", { _user_id: userId, _role: "rider" }),
         supabase.rpc("has_role", { _user_id: userId, _role: "support" }),
+        supabase.rpc("has_role", { _user_id: userId, _role: "mechanic" }),
       ]);
       setIsAdmin(!!adminRes.data);
       setIsRestaurantOwner(!!ownerRes.data);
       setIsRider(!!riderRes.data);
       setIsSupport(!!supportRes.data);
+      setIsMechanic(!!mechanicRes.data);
     } catch (error) {
       console.error("Error checking roles:", error);
       clearRoles();
@@ -56,6 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsRestaurantOwner(false);
     setIsRider(false);
     setIsSupport(false);
+    setIsMechanic(false);
   };
 
   useEffect(() => {
@@ -87,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, isRider, isSupport, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, signOut }}>
       {children}
     </AuthContext.Provider>
   );
