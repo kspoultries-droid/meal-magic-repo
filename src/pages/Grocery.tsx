@@ -10,7 +10,7 @@ const groceryCategories = [
   { name: "Fruits", icon: Apple, color: "bg-green-100 text-green-600", filter: "Fruits" },
   { name: "Vegetables", icon: Carrot, color: "bg-orange-100 text-orange-600", filter: "Vegetables" },
   { name: "Dairy", icon: Milk, color: "bg-blue-100 text-blue-600", filter: "Dairy" },
-  { name: "Eggs", icon: Egg, color: "bg-yellow-100 text-yellow-600", filter: "Eggs" },
+  { name: "Eggs & Meat", icon: Egg, color: "bg-yellow-100 text-yellow-600", filter: "Eggs & Meat" },
   { name: "Grocery", icon: ShoppingBasket, color: "bg-primary/10 text-primary", filter: "General" },
   { name: "Atta & Rice", icon: Wheat, color: "bg-amber-100 text-amber-700", filter: "Atta & Rice" },
 ];
