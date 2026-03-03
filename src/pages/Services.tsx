@@ -68,10 +68,10 @@ const Services = () => {
   useEffect(() => {
     const fetchServices = async () => {
       setLoading(true);
-      let query = supabase.from("services").select("*, service_categories(name)").eq("is_active", true);
+      let query = supabase.from("services").select("*, service_categories(name)");
       if (activeCategory) query = query.eq("category_id", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
-      const { data } = await query.order("created_at", { ascending: false });
+      const { data } = await query.order("is_active", { ascending: false }).order("created_at", { ascending: false });
       setServices(data || []);
       setLoading(false);
     };
@@ -219,20 +219,37 @@ const Services = () => {
             {services.map((service) => (
               <button
                 key={service.id}
-                onClick={() => setSelectedService(service)}
-                className="w-full flex items-center gap-4 bg-card rounded-2xl p-4 border hover:shadow-md transition-shadow text-left"
+                onClick={() => service.is_active && setSelectedService(service)}
+                className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left ${
+                  service.is_active 
+                    ? "bg-card hover:shadow-md" 
+                    : "bg-muted/50 opacity-75 cursor-default"
+                }`}
               >
-                <div className="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+                <div className={`w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${
+                  service.is_active ? "bg-secondary" : "bg-muted"
+                }`}>
                   {service.image_url ? (
-                    <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+                    <img src={service.image_url} alt={service.name} className={`w-full h-full object-cover ${!service.is_active ? "grayscale" : ""}`} />
                   ) : (
                     <Wrench className="w-8 h-8 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-foreground truncate">{service.name}</h3>
-                  {service.description && (
-                    <p className="text-xs text-muted-foreground truncate">{service.description}</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-foreground truncate">{service.name}</h3>
+                    {!service.is_active && (
+                      <span className="shrink-0 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
+                        🔄 جلد آ رہا ہے
+                      </span>
+                    )}
+                  </div>
+                  {service.is_active ? (
+                    service.description && (
+                      <p className="text-xs text-muted-foreground truncate">{service.description}</p>
+                    )
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Coming Soon — اپ ڈیٹ ہو رہی ہے ⏳</p>
                   )}
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">
@@ -242,9 +259,13 @@ const Services = () => {
                       <Clock className="w-3 h-3" /> {service.duration}
                     </span>
                   </div>
-                  <span className="text-sm font-extrabold text-primary">Rs {service.price}</span>
+                  <span className={`text-sm font-extrabold ${service.is_active ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                {service.is_active ? (
+                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                ) : (
+                  <Clock className="w-5 h-5 text-muted-foreground shrink-0" />
+                )}
               </button>
             ))}
           </div>
