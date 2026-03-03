@@ -15,6 +15,8 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from "@/components/ui/dialog";
+import HelplineSection from "@/components/services/HelplineSection";
+import FeedbackDialog from "@/components/services/FeedbackDialog";
 
 const iconMap: Record<string, any> = {
   AirVent, Wrench, Zap, Sparkles, Paintbrush, Hammer,
@@ -32,6 +34,8 @@ const Services = () => {
   const [bookingAddress, setBookingAddress] = useState("");
   const [bookingNotes, setBookingNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [feedbackBooking, setFeedbackBooking] = useState<any>(null);
+  const [myBookings, setMyBookings] = useState<any[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -68,6 +72,22 @@ const Services = () => {
       });
     }
   }, [user, selectedService]);
+
+  // Fetch completed bookings for feedback
+  const fetchMyBookings = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("service_bookings")
+      .select("*, services(name)")
+      .eq("customer_id", user.id)
+      .eq("status", "completed")
+      .order("created_at", { ascending: false });
+    setMyBookings(data || []);
+  };
+
+  useEffect(() => {
+    if (user) fetchMyBookings();
+  }, [user]);
 
   const handleBook = async () => {
     if (!user) {
@@ -202,6 +222,39 @@ const Services = () => {
           </div>
         )}
       </div>
+
+      {/* My Completed Bookings - Feedback */}
+      {user && myBookings.length > 0 && (
+        <div className="container mx-auto px-4 pb-6">
+          <h2 className="text-xl font-extrabold text-foreground mb-4">فیڈبیک دیں ⭐</h2>
+          <div className="space-y-2">
+            {myBookings.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => setFeedbackBooking(b)}
+                className="w-full flex items-center justify-between bg-card rounded-2xl p-4 border hover:shadow-md transition-shadow text-left"
+              >
+                <div>
+                  <p className="font-bold text-foreground text-sm">{b.services?.name || "سروس"}</p>
+                  <p className="text-xs text-muted-foreground">{b.scheduled_date}</p>
+                </div>
+                <span className="text-xs font-bold text-primary">ریٹنگ دیں →</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Helpline */}
+      <HelplineSection />
+
+      {/* Feedback Dialog */}
+      <FeedbackDialog
+        open={!!feedbackBooking}
+        onOpenChange={() => setFeedbackBooking(null)}
+        booking={feedbackBooking}
+        onSuccess={fetchMyBookings}
+      />
 
       {/* Booking Dialog */}
       <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)}>
