@@ -9,6 +9,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isRestaurantOwner: boolean;
   isRider: boolean;
+  isSupport: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   isRestaurantOwner: false,
   isRider: false,
+  isSupport: false,
   signOut: async () => {},
 });
 
@@ -29,17 +31,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isRestaurantOwner, setIsRestaurantOwner] = useState(false);
   const [isRider, setIsRider] = useState(false);
+  const [isSupport, setIsSupport] = useState(false);
 
   const checkRoles = async (userId: string) => {
     try {
-      const [adminRes, ownerRes, riderRes] = await Promise.all([
+      const [adminRes, ownerRes, riderRes, supportRes] = await Promise.all([
         supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
         supabase.rpc("has_role", { _user_id: userId, _role: "restaurant_owner" }),
         supabase.rpc("has_role", { _user_id: userId, _role: "rider" }),
+        supabase.rpc("has_role", { _user_id: userId, _role: "support" }),
       ]);
       setIsAdmin(!!adminRes.data);
       setIsRestaurantOwner(!!ownerRes.data);
       setIsRider(!!riderRes.data);
+      setIsSupport(!!supportRes.data);
     } catch (error) {
       console.error("Error checking roles:", error);
       clearRoles();
@@ -50,6 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsAdmin(false);
     setIsRestaurantOwner(false);
     setIsRider(false);
+    setIsSupport(false);
   };
 
   useEffect(() => {
@@ -81,7 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, isRider, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, isRider, isSupport, signOut }}>
       {children}
     </AuthContext.Provider>
   );

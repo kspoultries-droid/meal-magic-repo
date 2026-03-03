@@ -1,4 +1,4 @@
-import { ShoppingBag, User, Search, LogOut, Shield, Store, Bike, Menu, X } from "lucide-react";
+import { ShoppingBag, User, Search, LogOut, Shield, Store, Bike, Menu, X, Headphones } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -6,11 +6,11 @@ import { useState } from "react";
 
 const Navbar = () => {
   const { totalItems, setIsOpen } = useCart();
-  const { user, isAdmin, isRestaurantOwner, isRider, signOut } = useAuth();
+  const { user, isAdmin, isRestaurantOwner, isRider, isSupport, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const hasRoles = isAdmin || isRestaurantOwner || isRider;
+  const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport;
 
   return (
     <nav className="sticky top-0 z-50 bg-card border-b shadow-sm pt-[env(safe-area-inset-top)]">
@@ -49,6 +49,14 @@ const Navbar = () => {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-accent text-accent-foreground hover:opacity-80 transition-colors"
             >
               <Bike className="w-3.5 h-3.5" /> رائیڈر
+            </button>
+          )}
+          {isSupport && (
+            <button
+              onClick={() => navigate("/support-dashboard")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-secondary text-foreground hover:opacity-80 transition-colors"
+            >
+              <Headphones className="w-3.5 h-3.5" /> سپورٹ
             </button>
           )}
         </div>
@@ -104,6 +112,14 @@ const Navbar = () => {
                             className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-accent-foreground hover:bg-secondary transition-colors"
                           >
                             <Bike className="w-4 h-4" /> رائیڈر ڈیش بورڈ
+                          </button>
+                        )}
+                        {isSupport && (
+                          <button
+                            onClick={() => { navigate("/support-dashboard"); setMenuOpen(false); }}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                          >
+                            <Headphones className="w-4 h-4" /> سپورٹ ڈیش بورڈ
                           </button>
                         )}
                         <div className="border-t my-1" />
