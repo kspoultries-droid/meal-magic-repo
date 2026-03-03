@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -219,13 +220,33 @@ const Profile = () => {
 
       {/* Logout */}
       <div className="px-4 py-6">
-        <Button
-          variant="outline"
-          className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
-          onClick={async () => { await signOut(); navigate("/"); }}
-        >
-          <LogOut className="w-4 h-4 mr-2" /> لاگ آؤٹ
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+            >
+              <LogOut className="w-4 h-4 mr-2" /> لاگ آؤٹ
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>لاگ آؤٹ کریں؟ / Logout?</AlertDialogTitle>
+              <AlertDialogDescription>
+                کیا آپ واقعی لاگ آؤٹ کرنا چاہتے ہیں؟ / Are you sure you want to logout?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>نہیں / Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={async () => { await signOut(); navigate("/"); }}
+              >
+                ہاں، لاگ آؤٹ / Yes, Logout
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <BottomTabBar />
