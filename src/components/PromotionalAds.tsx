@@ -26,13 +26,21 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
 
   useEffect(() => {
     const fetchAds = async () => {
+      // Home and restaurant are the same page, so fetch ads for both placements
+      const placements = placement === "home" ? ["home", "restaurant"] : [placement];
+      
+      // Fetch ads that match ANY of the placements
       const { data } = await supabase
         .from("promotional_ads")
-        .select("id, title, brand_name, image_url, link_url, sort_order")
-        .contains("placements", [placement])
+        .select("id, title, brand_name, image_url, link_url, sort_order, placements")
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
-      setAds(data || []);
+      
+      // Filter client-side: ad must contain at least one of our target placements
+      const filtered = (data || []).filter(ad => 
+        (ad as any).placements?.some((p: string) => placements.includes(p))
+      );
+      setAds(filtered);
     };
     fetchAds();
   }, [placement]);
