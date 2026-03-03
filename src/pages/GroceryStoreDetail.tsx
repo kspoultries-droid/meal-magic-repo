@@ -2,33 +2,57 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
-import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
+import { toast } from "sonner";
+
+const GROCERY_CATEGORIES = [
+  "General", "Fruits", "Vegetables", "Dairy", "Eggs & Meat", "Atta & Rice",
+  "Beverages", "Snacks", "Bakery", "Frozen", "Cleaning", "Personal Care",
+];
 
 const GroceryStoreDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { items: cartItems, addItem, updateQuantity } = useCart();
   const [store, setStore] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [editDiscount, setEditDiscount] = useState("");
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg", discount_price: "" });
+
+  const fetchData = async () => {
+    setLoading(true);
+    const [{ data: storeData }, { data: productsData }] = await Promise.all([
+      supabase.from("grocery_stores").select("*").eq("id", id).single(),
+      supabase.from("grocery_products").select("*").eq("store_id", id).order("category"),
+    ]);
+    setStore(storeData);
+    // Owner sees all products, customers see only available
+    const visibleProducts = (storeData && user && storeData.owner_id === user.id)
+      ? (productsData || [])
+      : (productsData || []).filter((p: any) => p.is_available);
+    setProducts(visibleProducts);
+    if (storeData && user) {
+      setIsOwner(storeData.owner_id === user.id);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const [{ data: storeData }, { data: productsData }] = await Promise.all([
-        supabase.from("grocery_stores").select("*").eq("id", id).single(),
-        supabase.from("grocery_products").select("*").eq("store_id", id).eq("is_available", true).order("category"),
-      ]);
-      setStore(storeData);
-      setProducts(productsData || []);
-      setLoading(false);
-    };
     if (id) fetchData();
-  }, [id]);
+  }, [id, user]);
 
   const categories = ["All", "🔥 Special Offers", ...Array.from(new Set(products.map((p) => p.category || "General")))];
   const filtered = activeCategory === "All" ? products : activeCategory === "🔥 Special Offers" ? products.filter((p) => p.is_special_offer) : products.filter((p) => p.category === activeCategory);
@@ -47,6 +71,54 @@ const GroceryStoreDetail = () => {
       price: effectivePrice,
       image: product.image_url || "",
     });
+  };
+
+  // Owner functions
+  const startEdit = (product: any) => {
+    setEditingId(product.id);
+    setEditPrice(String(product.price));
+    setEditDiscount(product.discount_price ? String(product.discount_price) : "");
+  };
+
+  const savePrice = async (productId: string) => {
+    const updates: any = { price: Number(editPrice) };
+    updates.discount_price = editDiscount ? Number(editDiscount) : null;
+    updates.is_special_offer = !!editDiscount;
+    const { error } = await supabase.from("grocery_products").update(updates).eq("id", productId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("قیمت اپڈیٹ ہو گئی / Price updated");
+    setEditingId(null);
+    fetchData();
+  };
+
+  const toggleAvailable = async (productId: string, current: boolean) => {
+    await supabase.from("grocery_products").update({ is_available: !current }).eq("id", productId);
+    toast.success("اپڈیٹ ہو گیا / Updated");
+    fetchData();
+  };
+
+  const deleteProduct = async (productId: string) => {
+    await supabase.from("grocery_products").delete().eq("id", productId);
+    toast.success("پروڈکٹ حذف / Product deleted");
+    fetchData();
+  };
+
+  const addProduct = async () => {
+    if (!newProduct.name.trim() || !newProduct.price) { toast.error("نام اور قیمت درکار / Name & price required"); return; }
+    const { error } = await supabase.from("grocery_products").insert({
+      store_id: id,
+      name: newProduct.name,
+      price: Number(newProduct.price),
+      category: newProduct.category,
+      unit: newProduct.unit,
+      discount_price: newProduct.discount_price ? Number(newProduct.discount_price) : null,
+      is_special_offer: !!newProduct.discount_price,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("پروڈکٹ شامل / Product added");
+    setNewProduct({ name: "", price: "", category: "General", unit: "kg", discount_price: "" });
+    setShowAddProduct(false);
+    fetchData();
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
@@ -76,6 +148,29 @@ const GroceryStoreDetail = () => {
               <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {store.delivery_time}</span>
               <span className="text-primary font-semibold">{store.category}</span>
             </div>
+            {isOwner && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-bold">👑 آپ کی دکان / Your Shop</span>
+                <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="h-7 text-xs"><Plus className="h-3 w-3 mr-1" /> پروڈکٹ شامل / Add</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>نئی پروڈکٹ / New Product</DialogTitle></DialogHeader>
+                    <div className="space-y-3">
+                      <Input placeholder="نام / Name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                      <Input placeholder="قیمت / Price (Rs)" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                      <Input placeholder="ڈسکاؤنٹ قیمت / Discount Price (optional)" type="number" value={newProduct.discount_price} onChange={(e) => setNewProduct({...newProduct, discount_price: e.target.value})} />
+                      <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>
+                        {GROCERY_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                      </select>
+                      <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
+                      <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -105,11 +200,17 @@ const GroceryStoreDetail = () => {
           <div className="grid grid-cols-2 gap-3">
             {filtered.map((product) => {
               const qty = getCartQty(product.id);
+              const isEditing = editingId === product.id;
               return (
-                <div key={product.id} className="bg-card rounded-2xl border overflow-hidden relative">
+                <div key={product.id} className={`bg-card rounded-2xl border overflow-hidden relative ${!product.is_available && isOwner ? 'opacity-60' : ''}`}>
                   {product.is_special_offer && (
                     <div className="absolute top-2 left-2 z-10 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
                       <Percent className="w-3 h-3" /> آفر / Offer
+                    </div>
+                  )}
+                  {isOwner && !product.is_available && (
+                    <div className="absolute top-2 right-2 z-10 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      غیر فعال / Hidden
                     </div>
                   )}
                   <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden">
@@ -122,34 +223,69 @@ const GroceryStoreDetail = () => {
                   <div className="p-3">
                     <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
                     {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
-                    <div className="flex items-center justify-between mt-2">
-                      <div>
-                        {product.discount_price ? (
-                          <>
-                            <span className="text-sm font-extrabold text-destructive">Rs {product.discount_price}</span>
-                            <span className="text-xs text-muted-foreground line-through ml-1">Rs {product.price}</span>
-                          </>
-                        ) : (
-                          <span className="text-sm font-extrabold text-primary">Rs {product.price}</span>
-                        )}
-                        {product.unit && <span className="text-xs text-muted-foreground">/{product.unit}</span>}
-                      </div>
-                      {qty === 0 ? (
-                        <Button size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => handleAdd(product)}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      ) : (
+
+                    {/* Price Edit Mode for Owner */}
+                    {isEditing ? (
+                      <div className="mt-2 space-y-1.5">
                         <div className="flex items-center gap-1">
-                          <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center" onClick={() => updateQuantity(product.id, qty - 1)}>
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="text-sm font-bold w-5 text-center">{qty}</span>
-                          <button className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center" onClick={() => handleAdd(product)}>
-                            <Plus className="w-3 h-3" />
-                          </button>
+                          <span className="text-[10px] text-muted-foreground w-12">قیمت:</span>
+                          <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="h-7 text-xs" />
                         </div>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-muted-foreground w-12">ڈسکاؤنٹ:</span>
+                          <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder="خالی = بغیر ڈسکاؤنٹ" className="h-7 text-xs" />
+                        </div>
+                        <div className="flex gap-1">
+                          <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
+                            <Check className="w-3 h-3 mr-0.5" /> محفوظ / Save
+                          </Button>
+                          <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setEditingId(null)}>
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between mt-2">
+                        <div>
+                          {product.discount_price ? (
+                            <>
+                              <span className="text-sm font-extrabold text-destructive">Rs {product.discount_price}</span>
+                              <span className="text-xs text-muted-foreground line-through ml-1">Rs {product.price}</span>
+                            </>
+                          ) : (
+                            <span className="text-sm font-extrabold text-primary">Rs {product.price}</span>
+                          )}
+                          {product.unit && <span className="text-xs text-muted-foreground">/{product.unit}</span>}
+                        </div>
+                        {isOwner ? (
+                          <div className="flex gap-0.5">
+                            <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => startEdit(product)}>
+                              <Pencil className="w-3 h-3 text-foreground" />
+                            </button>
+                            <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => toggleAvailable(product.id, product.is_available)}>
+                              {product.is_available ? <X className="w-3 h-3 text-destructive" /> : <Check className="w-3 h-3 text-primary" />}
+                            </button>
+                            <button className="w-7 h-7 rounded-full bg-destructive/10 flex items-center justify-center" onClick={() => deleteProduct(product.id)}>
+                              <Trash2 className="w-3 h-3 text-destructive" />
+                            </button>
+                          </div>
+                        ) : qty === 0 ? (
+                          <Button size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => handleAdd(product)}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center" onClick={() => updateQuantity(product.id, qty - 1)}>
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="text-sm font-bold w-5 text-center">{qty}</span>
+                            <button className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center" onClick={() => handleAdd(product)}>
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
