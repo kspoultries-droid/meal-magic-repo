@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -25,7 +25,7 @@ const GroceryTab = () => {
   const [showAddStore, setShowAddStore] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg" });
-  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min" });
+  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "" });
 
   const fetchData = async () => {
     setLoading(true);
@@ -62,11 +62,12 @@ const GroceryTab = () => {
       name: newStore.name,
       category: newStore.category,
       delivery_time: newStore.delivery_time,
+      image_url: newStore.image_url || null,
       owner_id: user.id,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("اسٹور شامل ہو گیا / Store added");
-    setNewStore({ name: "", category: "General", delivery_time: "20-30 min" });
+    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "" });
     setShowAddStore(false);
     fetchData();
   };
@@ -123,6 +124,7 @@ const GroceryTab = () => {
                     </select>
                   </div>
                   <Input placeholder="ڈلیوری ٹائم / Delivery Time" value={newStore.delivery_time} onChange={(e) => setNewStore({...newStore, delivery_time: e.target.value})} />
+                  <Input placeholder="بینر تصویر URL / Banner Image URL" value={newStore.image_url} onChange={(e) => setNewStore({...newStore, image_url: e.target.value})} />
                   <Button onClick={addStore} className="w-full">شامل کریں / Add</Button>
                 </div>
               </DialogContent>
@@ -154,9 +156,9 @@ const GroceryTab = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>تصویر / Image</TableHead>
                   <TableHead>نام / Name</TableHead>
                   <TableHead>کیٹیگری / Category</TableHead>
-                  <TableHead>ریٹنگ / Rating</TableHead>
                   <TableHead>ڈلیوری / Delivery</TableHead>
                   <TableHead>ایکٹو / Active</TableHead>
                   <TableHead>ایکشنز / Actions</TableHead>
@@ -165,18 +167,30 @@ const GroceryTab = () => {
               <TableBody>
                 {stores.map((s) => (
                   <TableRow key={s.id} className={selectedStore === s.id ? "bg-accent/30" : ""}>
+                    <TableCell>
+                      <div className="w-14 h-10 rounded overflow-hidden bg-secondary flex items-center justify-center">
+                        {s.image_url ? <img src={s.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell>{s.category}</TableCell>
-                    <TableCell>{s.rating}</TableCell>
                     <TableCell>{s.delivery_time}</TableCell>
                     <TableCell>
                       <Badge className={s.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
                         {s.is_active ? "ایکٹو" : "غیر ایکٹو"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="flex gap-1">
+                    <TableCell className="flex gap-1 flex-wrap">
                       <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setSelectedStore(selectedStore === s.id ? null : s.id)}>
-                        <Eye className="h-3 w-3 mr-1" /> پروڈکٹس / Products
+                        <Eye className="h-3 w-3 mr-1" /> پروڈکٹس
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => {
+                        const url = prompt("بینر تصویر URL / Banner Image URL:", s.image_url || "");
+                        if (url !== null) {
+                          supabase.from("grocery_stores").update({ image_url: url || null }).eq("id", s.id).then(() => { toast.success("بینر اپڈیٹ / Banner updated"); fetchData(); });
+                        }
+                      }}>
+                        <ImageIcon className="h-3 w-3 mr-1" /> بینر
                       </Button>
                       <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleStoreActive(s.id, s.is_active)}>
                         {s.is_active ? "بند / Off" : "فعال / On"}
