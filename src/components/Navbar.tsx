@@ -1,26 +1,31 @@
-import { MapPin, ShoppingBag, User, Search, LogOut, Shield, Store, Bike } from "lucide-react";
+import { ShoppingBag, User, Search, LogOut, Shield, Store, Bike, Menu, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const Navbar = () => {
   const { totalItems, setIsOpen } = useCart();
   const { user, isAdmin, isRestaurantOwner, isRider, signOut } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const hasRoles = isAdmin || isRestaurantOwner || isRider;
 
   return (
     <nav className="sticky top-0 z-50 bg-card border-b shadow-sm">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-extrabold text-lg">fp</span>
+      <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4">
+        {/* Logo */}
+        <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => navigate("/")}>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-extrabold text-base sm:text-lg">fp</span>
           </div>
-          <span className="text-xl font-extrabold text-foreground hidden sm:block">
+          <span className="text-lg sm:text-xl font-extrabold text-foreground hidden sm:block">
             food<span className="text-primary">panda</span>
           </span>
         </div>
 
-        {/* Role-based dashboard links */}
+        {/* Desktop role links */}
         <div className="hidden md:flex items-center gap-2">
           {isAdmin && (
             <button
@@ -48,41 +53,85 @@ const Navbar = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="p-2 rounded-full hover:bg-secondary transition-colors">
+        {/* Right side actions */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          <button className="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Search">
             <Search className="w-5 h-5 text-muted-foreground" />
           </button>
+
           {user ? (
             <>
-              {/* Mobile role links */}
-              <div className="flex md:hidden items-center gap-1">
-                {isAdmin && (
-                  <button onClick={() => navigate("/admin")} className="p-2 rounded-full hover:bg-secondary" title="ایڈمن">
-                    <Shield className="w-4 h-4 text-destructive" />
-                  </button>
-                )}
-                {isRestaurantOwner && (
-                  <button onClick={() => navigate("/restaurant-dashboard")} className="p-2 rounded-full hover:bg-secondary" title="ریسٹورنٹ">
-                    <Store className="w-4 h-4 text-primary" />
-                  </button>
-                )}
-                {isRider && (
-                  <button onClick={() => navigate("/rider-dashboard")} className="p-2 rounded-full hover:bg-secondary" title="رائیڈر">
-                    <Bike className="w-4 h-4 text-accent-foreground" />
-                  </button>
-                )}
-              </div>
               <button
                 onClick={() => navigate("/profile")}
                 className="p-2 rounded-full hover:bg-secondary transition-colors"
-                title="پروفائل"
+                aria-label="پروفائل"
               >
                 <User className="w-5 h-5 text-primary" />
               </button>
+
+              {/* Mobile menu for roles + logout */}
+              <div className="md:hidden relative">
+                {hasRoles ? (
+                  <>
+                    <button
+                      onClick={() => setMenuOpen(!menuOpen)}
+                      className="p-2 rounded-full hover:bg-secondary transition-colors"
+                      aria-label="مینو"
+                    >
+                      {menuOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
+                    </button>
+                    {menuOpen && (
+                      <div className="absolute right-0 top-full mt-1 w-44 bg-card border rounded-xl shadow-lg py-2 z-50">
+                        {isAdmin && (
+                          <button
+                            onClick={() => { navigate("/admin"); setMenuOpen(false); }}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-destructive hover:bg-secondary transition-colors"
+                          >
+                            <Shield className="w-4 h-4" /> ایڈمن ڈیش بورڈ
+                          </button>
+                        )}
+                        {isRestaurantOwner && (
+                          <button
+                            onClick={() => { navigate("/restaurant-dashboard"); setMenuOpen(false); }}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-primary hover:bg-secondary transition-colors"
+                          >
+                            <Store className="w-4 h-4" /> ریسٹورنٹ ڈیش بورڈ
+                          </button>
+                        )}
+                        {isRider && (
+                          <button
+                            onClick={() => { navigate("/rider-dashboard"); setMenuOpen(false); }}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-accent-foreground hover:bg-secondary transition-colors"
+                          >
+                            <Bike className="w-4 h-4" /> رائیڈر ڈیش بورڈ
+                          </button>
+                        )}
+                        <div className="border-t my-1" />
+                        <button
+                          onClick={async () => { await signOut(); navigate("/"); setMenuOpen(false); }}
+                          className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" /> لاگ آؤٹ
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    onClick={async () => { await signOut(); navigate("/"); }}
+                    className="p-2 rounded-full hover:bg-secondary transition-colors"
+                    aria-label="لاگ آؤٹ"
+                  >
+                    <LogOut className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+
+              {/* Desktop logout */}
               <button
                 onClick={async () => { await signOut(); navigate("/"); }}
-                className="p-2 rounded-full hover:bg-secondary transition-colors"
-                title="لاگ آؤٹ"
+                className="hidden md:flex p-2 rounded-full hover:bg-secondary transition-colors"
+                aria-label="لاگ آؤٹ"
               >
                 <LogOut className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -91,19 +140,23 @@ const Navbar = () => {
             <button
               onClick={() => navigate("/auth")}
               className="p-2 rounded-full hover:bg-secondary transition-colors"
-              title="لاگ ان / سائن اپ"
+              aria-label="لاگ ان / سائن اپ"
             >
               <User className="w-5 h-5 text-muted-foreground" />
             </button>
           )}
+
           <button
             onClick={() => setIsOpen(true)}
             className="relative p-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            aria-label="کارٹ"
           >
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-foreground text-background text-xs font-bold rounded-full flex items-center justify-center">
-              {totalItems}
-            </span>
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-foreground text-background text-xs font-bold rounded-full flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
           </button>
         </div>
       </div>
