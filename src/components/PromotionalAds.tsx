@@ -27,7 +27,7 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
   useEffect(() => {
     const fetchAds = async () => {
       // Home and restaurant are the same page, so fetch ads for both placements
-      const placements = placement === "home" ? ["home", "restaurant"] : [placement];
+      const placements = placement === "home" ? ["home", "restaurant", "services"] : [placement];
       
       // Fetch ads that match ANY of the placements
       const { data } = await supabase
