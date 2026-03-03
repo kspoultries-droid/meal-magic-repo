@@ -95,6 +95,59 @@ export type Database = {
         }
         Relationships: []
       }
+      grocery_list_orders: {
+        Row: {
+          created_at: string
+          customer_id: string
+          delivery_address: string | null
+          id: string
+          image_url: string
+          notes: string | null
+          payment_method: string | null
+          shopkeeper_notes: string | null
+          status: string
+          store_id: string
+          total_amount: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          delivery_address?: string | null
+          id?: string
+          image_url: string
+          notes?: string | null
+          payment_method?: string | null
+          shopkeeper_notes?: string | null
+          status?: string
+          store_id: string
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          delivery_address?: string | null
+          id?: string
+          image_url?: string
+          notes?: string | null
+          payment_method?: string | null
+          shopkeeper_notes?: string | null
+          status?: string
+          store_id?: string
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_list_orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grocery_products: {
         Row: {
           category: string | null
