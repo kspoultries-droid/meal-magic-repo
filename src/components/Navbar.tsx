@@ -13,7 +13,7 @@ const Navbar = () => {
   const hasRoles = isAdmin || isRestaurantOwner || isRider;
 
   return (
-    <nav className="sticky top-0 z-50 bg-card border-b shadow-sm">
+    <nav className="sticky top-0 z-50 bg-card border-b shadow-sm pt-[env(safe-area-inset-top)]">
       <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4">
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => navigate("/")}>
