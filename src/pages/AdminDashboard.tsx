@@ -321,7 +321,16 @@ const RestaurantsTab = () => {
   };
 
   const deleteRestaurant = async (id: string) => {
-    await supabase.from("restaurants").delete().eq("id", id);
+    if (!window.confirm("کیا آپ واقعی یہ ریسٹورنٹ حذف کرنا چاہتے ہیں؟")) return;
+    const { error } = await supabase.from("restaurants").delete().eq("id", id);
+    if (error) {
+      if (error.code === "23503") {
+        toast.error("یہ ریسٹورنٹ حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز منسلک ہیں\nCannot delete: restaurant has linked orders");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
     toast.success("حذف ہو گیا");
     fetchRests();
   };
@@ -472,7 +481,16 @@ const CitiesTab = () => {
   };
 
   const deleteCity = async (id: string) => {
-    await supabase.from("cities").delete().eq("id", id);
+    if (!window.confirm("کیا آپ واقعی یہ شہر حذف کرنا چاہتے ہیں؟")) return;
+    const { error } = await supabase.from("cities").delete().eq("id", id);
+    if (error) {
+      if (error.code === "23503") {
+        toast.error("یہ شہر حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز یا ریسٹورنٹس منسلک ہیں\nCannot delete: city has linked orders/restaurants");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
     toast.success("شہر حذف ہو گیا");
     fetchCities();
   };
