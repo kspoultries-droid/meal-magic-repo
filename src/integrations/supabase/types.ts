@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_packages: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          placements: string[]
+          price_per_day: number
+          price_per_month: number
+          price_per_week: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          placements?: string[]
+          price_per_day?: number
+          price_per_month?: number
+          price_per_week?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          placements?: string[]
+          price_per_day?: number
+          price_per_month?: number
+          price_per_week?: number
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           id: string
@@ -432,6 +468,68 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promotional_ads: {
+        Row: {
+          brand_name: string
+          created_at: string | null
+          end_date: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          link_url: string | null
+          package_id: string | null
+          payment_amount: number | null
+          payment_status: string | null
+          placements: string[]
+          sort_order: number | null
+          start_date: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          brand_name: string
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link_url?: string | null
+          package_id?: string | null
+          payment_amount?: number | null
+          payment_status?: string | null
+          placements?: string[]
+          sort_order?: number | null
+          start_date?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          brand_name?: string
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link_url?: string | null
+          package_id?: string | null
+          payment_amount?: number | null
+          payment_status?: string | null
+          placements?: string[]
+          sort_order?: number | null
+          start_date?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotional_ads_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "ad_packages"
             referencedColumns: ["id"]
           },
         ]

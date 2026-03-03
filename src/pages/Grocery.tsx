@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import CartDrawer from "@/components/CartDrawer";
 
@@ -56,6 +57,9 @@ const Grocery = () => {
           </div>
         </div>
       </div>
+
+      {/* Sponsored Ads */}
+      <PromotionalAds placement="grocery" />
 
       {/* Categories Grid */}
       <div className="container mx-auto px-4 py-6">

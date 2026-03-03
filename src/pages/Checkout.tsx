@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, CreditCard, ShoppingBag } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import PromotionalAds from "@/components/PromotionalAds";
 
 const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
@@ -171,6 +172,9 @@ const Checkout = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Sponsored Ads */}
+        <PromotionalAds placement="checkout" className="!px-0" />
 
         <Button className="w-full h-12 text-base font-bold" disabled={submitting} onClick={placeOrder}>
           {submitting ? "آرڈر دیا جا رہا ہے..." : `آرڈر دیں — Rs ${totalPrice + deliveryFee}`}

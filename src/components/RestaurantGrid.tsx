@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import RestaurantCard from "./RestaurantCard";
+import PromotionalAds from "./PromotionalAds";
 
 export interface MenuItem {
   id: string;
@@ -82,6 +83,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
 
   return (
     <section className="container mx-auto px-4 pb-16">
+      <PromotionalAds placement="restaurant" />
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-extrabold text-foreground">
           {searchQuery ? `"${searchQuery}" کے نتائج` : "آپ کے قریب مشہور"}
