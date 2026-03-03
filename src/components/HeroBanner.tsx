@@ -17,10 +17,10 @@ const HeroBanner = ({ searchQuery, onSearchChange }: HeroBannerProps) => {
       <div className="relative container mx-auto px-4 py-20 md:py-28">
         <div className="max-w-xl">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-background leading-tight mb-4">
-            It's the food and groceries you love, delivered
+            Food, Groceries & Home Services — all delivered
           </h1>
           <p className="text-background/80 text-lg mb-8">
-            Order from your favorite restaurants & shops near you.
+            Order meals, shop groceries & book trusted home services near you.
           </p>
 
           <div className="flex bg-card rounded-2xl overflow-hidden shadow-xl">
