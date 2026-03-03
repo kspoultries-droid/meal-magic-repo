@@ -36,7 +36,31 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
     setOrders(data || []);
   };
 
-  useEffect(() => { fetchOrders(); }, [user, storeId]);
+  useEffect(() => {
+    fetchOrders();
+    if (!user) return;
+    const channel = supabase
+      .channel(`customer-list-${storeId}-${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'grocery_list_orders',
+        filter: `store_id=eq.${storeId}`,
+      }, (payload) => {
+        const updated = payload.new as any;
+        if (updated.customer_id !== user.id) return;
+        fetchOrders();
+        if (updated.status === 'quoted') {
+          toast(`💰 دکاندار نے قیمت بتائی: Rs ${updated.total_amount}`, { duration: 6000 });
+        } else if (updated.status === 'delivering') {
+          toast.success("🚴 ڈلیوری شروع ہو گئی! / Delivery started!");
+        } else if (updated.status === 'completed') {
+          toast.success("✅ آرڈر مکمل! / Order completed!");
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, storeId]);
 
   const respondToQuote = async (orderId: string, accept: boolean) => {
     const { error } = await supabase.from("grocery_list_orders")

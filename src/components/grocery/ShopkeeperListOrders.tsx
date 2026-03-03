@@ -38,7 +38,30 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchOrders(); }, [storeId]);
+  useEffect(() => {
+    fetchOrders();
+    // Realtime subscription for new/updated orders
+    const channel = supabase
+      .channel(`list-orders-${storeId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'grocery_list_orders',
+        filter: `store_id=eq.${storeId}`,
+      }, (payload) => {
+        fetchOrders();
+        if (payload.eventType === 'INSERT') {
+          toast("📸 نئی راشن لسٹ آئی! / New ration list received!", { duration: 5000 });
+        } else if (payload.eventType === 'UPDATE') {
+          const newStatus = (payload.new as any)?.status;
+          if (newStatus === 'confirmed') {
+            toast.success("✅ کسٹمر نے قیمت منظور کر لی! / Customer accepted quote!");
+          }
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [storeId]);
 
   const updateOrder = async (orderId: string, updates: any) => {
     setUpdating(true);
