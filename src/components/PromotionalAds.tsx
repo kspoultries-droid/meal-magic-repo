@@ -56,7 +56,7 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
       >
         <CarouselContent className="-ml-2">
           {ads.map((ad) => (
-            <CarouselItem key={ad.id} className="pl-2 basis-[96%] sm:basis-[48%] lg:basis-[33%]">
+            <CarouselItem key={ad.id} className="pl-2 basis-full sm:basis-[48%] lg:basis-[33%]">
               <a
                 href={ad.link_url || "#"}
                 target={ad.link_url ? "_blank" : undefined}
