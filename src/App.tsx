@@ -17,6 +17,8 @@ import Checkout from "./pages/Checkout";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Install from "./pages/Install";
+import Grocery from "./pages/Grocery";
+import SearchPage from "./pages/SearchPage";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +54,8 @@ const App = () => (
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/install" element={<Install />} />
+                <Route path="/grocery" element={<Grocery />} />
+                <Route path="/search" element={<SearchPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
