@@ -1,0 +1,164 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package } from "lucide-react";
+
+const orderSteps = [
+  { key: "pending", label: "آرڈر موصول ہوا", icon: Package, urdu: "آپ کا آرڈر موصول ہو گیا" },
+  { key: "confirmed", label: "تصدیق شدہ", icon: CheckCircle2, urdu: "ریسٹورنٹ نے آرڈر قبول کر لیا" },
+  { key: "preparing", label: "تیاری جاری", icon: ChefHat, urdu: "آپ کا کھانا بن رہا ہے" },
+  { key: "delivering", label: "ڈلیوری جاری", icon: Bike, urdu: "رائیڈر آپ کے پاس آ رہا ہے" },
+  { key: "delivered", label: "مکمل ✅", icon: MapPin, urdu: "آرڈر ڈلیور ہو گیا!" },
+];
+
+const OrderTracking = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [order, setOrder] = useState<any>(null);
+  const [rider, setRider] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchOrder = async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from("orders")
+      .select("*, order_items(*)")
+      .eq("id", id)
+      .single();
+    setOrder(data);
+    if (data?.rider_id) {
+      const { data: riderData } = await supabase
+        .from("riders")
+        .select("*")
+        .eq("id", data.rider_id)
+        .single();
+      setRider(riderData);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchOrder();
+  }, [id]);
+
+  // Realtime updates
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`order-track-${id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` }, () => fetchOrder())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id]);
+
+  // Realtime rider location
+  useEffect(() => {
+    if (!order?.rider_id) return;
+    const channel = supabase
+      .channel(`rider-loc-${order.rider_id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "riders", filter: `id=eq.${order.rider_id}` }, (payload) => {
+        setRider(payload.new);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [order?.rider_id]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">آرڈر نہیں ملا</div>;
+
+  const currentStepIndex = orderSteps.findIndex((s) => s.key === order.status);
+  const isCancelled = order.status === "cancelled";
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-card border-b px-4 h-14 flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-lg font-extrabold text-foreground">آرڈر ٹریکنگ</h1>
+      </div>
+
+      {/* Map area (placeholder for Google Maps) */}
+      <div className="h-56 bg-secondary relative flex items-center justify-center">
+        {rider?.current_lat && rider?.current_lng ? (
+          <div className="text-center">
+            <Bike className="w-12 h-12 text-primary mx-auto mb-2 animate-bounce" />
+            <p className="text-sm font-bold text-foreground">رائیڈر آپ کے قریب ہے</p>
+            <p className="text-xs text-muted-foreground">
+              📍 {rider.current_lat.toFixed(4)}, {rider.current_lng.toFixed(4)}
+            </p>
+          </div>
+        ) : (
+          <div className="text-center">
+            <MapPin className="w-12 h-12 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">
+              {order.status === "delivering" ? "رائیڈر کی لوکیشن جلد دستیاب ہوگی" : "نقشہ ڈلیوری شروع ہونے پر دکھائی دے گا"}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Order Status Steps */}
+      <div className="px-6 py-6">
+        <h2 className="text-lg font-extrabold text-foreground mb-6">
+          {isCancelled ? "آرڈر منسوخ ہو گیا ❌" : orderSteps[currentStepIndex]?.urdu || "ٹریکنگ"}
+        </h2>
+
+        {!isCancelled && (
+          <div className="space-y-0">
+            {orderSteps.map((step, index) => {
+              const Icon = step.icon;
+              const isCompleted = index <= currentStepIndex;
+              const isCurrent = index === currentStepIndex;
+              return (
+                <div key={step.key} className="flex items-start gap-4">
+                  {/* Line + Circle */}
+                  <div className="flex flex-col items-center">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                      isCompleted ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+                    } ${isCurrent ? "ring-4 ring-primary/20" : ""}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    {index < orderSteps.length - 1 && (
+                      <div className={`w-0.5 h-10 ${isCompleted && index < currentStepIndex ? "bg-primary" : "bg-border"}`} />
+                    )}
+                  </div>
+                  {/* Label */}
+                  <div className="pt-2">
+                    <p className={`text-sm font-bold ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>{step.label}</p>
+                    {isCurrent && <p className="text-xs text-primary mt-0.5">{step.urdu}</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Order Details */}
+      <div className="px-6 pb-8">
+        <div className="bg-card rounded-2xl border p-4 space-y-3">
+          <div className="flex justify-between items-center">
+            <p className="text-xs text-muted-foreground font-mono">#{order.id.slice(0, 8)}</p>
+            <p className="text-sm font-extrabold text-primary">Rs {order.total_amount}</p>
+          </div>
+          {order.delivery_address && (
+            <p className="text-sm text-muted-foreground">📍 {order.delivery_address}</p>
+          )}
+          {order.order_items?.map((item: any) => (
+            <div key={item.id} className="flex justify-between text-sm">
+              <span>{item.name} × {item.quantity}</span>
+              <span className="font-bold">Rs {item.price * item.quantity}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrderTracking;

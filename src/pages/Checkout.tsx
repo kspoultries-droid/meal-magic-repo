@@ -98,7 +98,7 @@ const Checkout = () => {
 
       toast.success("آرڈر کامیابی سے دیا گیا! 🎉");
       clearCart();
-      navigate("/profile");
+      navigate(`/order-tracking/${orderId}`);
     } catch (error: any) {
       toast.error(error.message || "آرڈر میں مسئلہ آ گیا");
     } finally {

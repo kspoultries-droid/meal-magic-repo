@@ -18,6 +18,8 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Install from "./pages/Install";
 import Grocery from "./pages/Grocery";
+import GroceryStoreDetail from "./pages/GroceryStoreDetail";
+import OrderTracking from "./pages/OrderTracking";
 import SearchPage from "./pages/SearchPage";
 
 const queryClient = new QueryClient();
@@ -55,6 +57,8 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/grocery" element={<Grocery />} />
+                <Route path="/grocery/:id" element={<GroceryStoreDetail />} />
+                <Route path="/order-tracking/:id" element={<OrderTracking />} />
                 <Route path="/search" element={<SearchPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

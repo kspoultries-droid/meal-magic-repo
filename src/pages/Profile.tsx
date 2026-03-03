@@ -132,6 +132,11 @@ const Profile = () => {
                     </div>
                     <Badge className={statusColor(o.status)}>{statusLabel[o.status] || o.status}</Badge>
                   </div>
+                  {o.status !== "delivered" && o.status !== "cancelled" && (
+                    <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => navigate(`/order-tracking/${o.id}`)}>
+                      ٹریک کریں 📍
+                    </Button>
+                  )}
                   {o.order_items?.length > 0 && (
                     <>
                       <button className="flex items-center gap-1 text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
