@@ -40,9 +40,11 @@ export type Database = {
           category: string | null
           created_at: string | null
           description: string | null
+          discount_price: number | null
           id: string
           image_url: string | null
           is_available: boolean | null
+          is_special_offer: boolean | null
           name: string
           price: number
           store_id: string
@@ -52,9 +54,11 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          discount_price?: number | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          is_special_offer?: boolean | null
           name: string
           price: number
           store_id: string
@@ -64,9 +68,11 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          discount_price?: number | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          is_special_offer?: boolean | null
           name?: string
           price?: number
           store_id?: string
