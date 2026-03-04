@@ -38,21 +38,23 @@ const COLLAGE_SETS: Record<string, string[]> = {
 };
 
 const BANNER_THEMES: Record<string, { gradient: string; label: string }> = {
-  green: { gradient: "from-emerald-700/85 via-emerald-600/70 to-green-500/60", label: "🟢 سبز / Green" },
-  blue: { gradient: "from-blue-800/85 via-blue-600/70 to-cyan-500/60", label: "🔵 نیلا / Blue" },
-  red: { gradient: "from-red-800/85 via-red-600/70 to-orange-500/60", label: "🔴 لال / Red" },
-  purple: { gradient: "from-purple-800/85 via-purple-600/70 to-pink-500/60", label: "🟣 جامنی / Purple" },
-  amber: { gradient: "from-amber-800/85 via-amber-600/70 to-yellow-500/60", label: "🟡 سنہرا / Gold" },
-  dark: { gradient: "from-gray-900/90 via-gray-800/75 to-gray-600/60", label: "⚫ گہرا / Dark" },
-  teal: { gradient: "from-teal-800/85 via-teal-600/70 to-emerald-400/60", label: "🩵 فیروزی / Teal" },
-  rose: { gradient: "from-rose-800/85 via-rose-600/70 to-pink-400/60", label: "🌹 گلابی / Rose" },
+  none: { gradient: "", label: "🚫 بغیر / None" },
+  light: { gradient: "from-black/20 to-black/10", label: "🌤 ہلکا / Light" },
+  dark: { gradient: "from-black/50 to-black/30", label: "🌑 گہرا / Dark" },
+};
+
+const NAME_SIZES: Record<string, { className: string; label: string }> = {
+  small: { className: "text-lg", label: "چھوٹا / Small" },
+  medium: { className: "text-xl", label: "درمیانہ / Medium" },
+  large: { className: "text-2xl", label: "بڑا / Large" },
+  xlarge: { className: "text-3xl", label: "بہت بڑا / X-Large" },
 };
 
 const NAME_STYLES: Record<string, { className: string; label: string }> = {
   bold: { className: "font-extrabold", label: "بولڈ / Bold" },
   italic: { className: "font-bold italic", label: "اٹالک / Italic" },
   uppercase: { className: "font-extrabold uppercase tracking-wider", label: "بڑے حروف / UPPERCASE" },
-  light: { className: "font-light text-2xl", label: "ہلکا / Light" },
+  light: { className: "font-light", label: "ہلکا / Light" },
   fancy: { className: "font-extrabold tracking-tight", label: "فینسی / Fancy" },
 };
 
@@ -76,8 +78,9 @@ const StoreBanner = ({
 }: StoreBannerProps) => {
   const [showThemePicker, setShowThemePicker] = useState(false);
   
-  const theme = BANNER_THEMES[store.banner_theme] || BANNER_THEMES.green;
+  const theme = BANNER_THEMES[store.banner_theme] || BANNER_THEMES.none;
   const nameStyle = NAME_STYLES[store.name_style] || NAME_STYLES.bold;
+  const nameSize = NAME_SIZES[store.name_size] || NAME_SIZES.medium;
   const nameColor = store.name_color || "#ffffff";
   const collageImages = COLLAGE_SETS[store.category] || COLLAGE_SETS.General;
 
@@ -108,15 +111,15 @@ const StoreBanner = ({
           </div>
         )}
 
-        {/* Color Theme Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient}`} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        {/* Overlay - only bottom gradient for text readability */}
+        {theme.gradient && <div className={`absolute inset-0 bg-gradient-to-b ${theme.gradient}`} />}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
         {/* Store Info */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 z-10">
           <div className="flex items-center gap-2">
             <h1
-              className={`text-xl flex-1 drop-shadow-lg ${nameStyle.className}`}
+              className={`flex-1 drop-shadow-lg ${nameStyle.className} ${nameSize.className}`}
               style={{ color: nameColor, textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
             >
               {store.name}
@@ -172,19 +175,37 @@ const StoreBanner = ({
                 <DialogContent className="max-w-sm">
                   <DialogHeader><DialogTitle>بینر تھیم / Banner Theme</DialogTitle></DialogHeader>
                   <div className="space-y-4">
-                    {/* Color Theme */}
+                    {/* Overlay */}
                     <div>
-                      <p className="text-sm font-medium mb-2">رنگ / Color</p>
-                      <div className="grid grid-cols-4 gap-2">
+                      <p className="text-sm font-medium mb-2">اوورلے / Overlay</p>
+                      <div className="flex gap-2">
                         {Object.entries(BANNER_THEMES).map(([key, t]) => (
                           <button
                             key={key}
                             onClick={() => updateStore({ banner_theme: key })}
-                            className={`px-2 py-2 rounded-lg text-xs font-bold text-center border-2 transition-all ${
+                            className={`px-3 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
                               store.banner_theme === key ? "border-primary ring-2 ring-primary/30" : "border-transparent"
                             }`}
                           >
                             {t.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Name Size */}
+                    <div>
+                      <p className="text-sm font-medium mb-2">نام کا سائز / Name Size</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {Object.entries(NAME_SIZES).map(([key, s]) => (
+                          <button
+                            key={key}
+                            onClick={() => updateStore({ name_size: key })}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
+                              store.name_size === key ? "border-primary ring-2 ring-primary/30" : "border-transparent"
+                            }`}
+                          >
+                            {s.label}
                           </button>
                         ))}
                       </div>
