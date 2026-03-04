@@ -183,7 +183,7 @@ const Services = () => {
       {/* Categories Grid */}
       <div className="container mx-auto px-4 py-6">
         <h2 className="text-xl font-extrabold text-foreground mb-4">Categories / کیٹیگریز</h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-2">
           {categories.map((cat) => {
             const Icon = iconMap[cat.icon] || Wrench;
             const isActive = activeCategory === cat.id;
@@ -196,14 +196,14 @@ const Services = () => {
                     setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
                   }
                 }}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${
+                className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${
                   isActive ? "bg-primary/10 border-primary shadow-md scale-105" : "bg-card hover:shadow-md"
                 }`}
               >
-                <div className={`w-12 h-12 rounded-2xl ${cat.color} flex items-center justify-center`}>
-                  <Icon className="w-6 h-6" />
+                <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center`}>
+                  <Icon className="w-4 h-4" />
                 </div>
-                <span className="text-xs font-bold text-foreground text-center">{cat.name}</span>
+                <span className="text-[10px] font-bold text-foreground text-center leading-tight">{cat.name}</span>
               </button>
             );
           })}
