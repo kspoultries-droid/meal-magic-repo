@@ -85,7 +85,8 @@ const StoreBanner = ({
   const collageImages = COLLAGE_SETS[store.category] || COLLAGE_SETS.General;
 
   const updateStore = async (updates: Record<string, any>) => {
-    await supabase.from("grocery_stores").update(updates).eq("id", storeId);
+    const { error } = await supabase.from("grocery_stores").update(updates).eq("id", storeId);
+    if (error) { toast.error("اپڈیٹ ناکام: " + error.message); return; }
     toast.success("اپڈیٹ ہو گیا / Updated");
     onRefresh();
   };
