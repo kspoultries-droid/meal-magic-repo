@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown, AlertTriangle, PauseCircle, PlayCircle } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown, AlertTriangle, PauseCircle, PlayCircle, Copy, MessageCircle, Link } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -222,7 +222,38 @@ const GroceryTab = () => {
                           <Pencil className="h-3 w-3" />
                         </button>
                       </div>
-                      {s.slug && <p className="text-[10px] text-muted-foreground">/store/{s.slug}</p>}
+                      {s.slug ? (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <p className="text-[10px] text-muted-foreground">/store/{s.slug}</p>
+                          <button className="text-primary hover:text-primary/80" title="لنک کاپی" onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/store/${s.slug}`);
+                            toast.success("لنک کاپی ہو گیا!");
+                          }}>
+                            <Copy className="h-3 w-3" />
+                          </button>
+                          <button className="text-green-600 hover:text-green-700" title="واٹس ایپ پر بھیجیں" onClick={() => {
+                            const storeUrl = `${window.location.origin}/store/${s.slug}`;
+                            const appUrl = `${window.location.origin}/install`;
+                            const msg = `🛒 *${s.name}* اسٹور آن لائن!\n\n📱 اسٹور لنک:\n${storeUrl}\n\n📥 ایپ ڈاؤنلوڈ:\n${appUrl}\n\nیہ لنک اپنے کسٹمرز کو شیئر کریں!`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                          }}>
+                            <MessageCircle className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button className="text-[10px] text-primary underline mt-0.5" onClick={() => {
+                          const slug = prompt("اسٹور کا slug سیٹ کریں (مثلاً: al-noor-mart):");
+                          if (slug) {
+                            const val = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+                            supabase.from("grocery_stores").update({ slug: val }).eq("id", s.id).then(({ error }) => {
+                              if (error) { toast.error(error.message.includes("duplicate") ? "یہ slug پہلے سے استعمال ہو رہا ہے" : error.message); return; }
+                              toast.success("Slug سیٹ ہو گیا"); fetchData();
+                            });
+                          }
+                        }}>
+                          <Link className="h-3 w-3 inline mr-0.5" />slug سیٹ کریں
+                        </button>
+                      )}
                     </TableCell>
                     <TableCell>{s.category}</TableCell>
                     <TableCell>
