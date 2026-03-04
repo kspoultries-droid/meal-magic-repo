@@ -255,18 +255,24 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
                 </div>
               )}
 
-              {/* Confirmed: Upload bill + Start delivery */}
+              {/* Confirmed: Upload/update bill + Start delivery */}
               {selectedOrder.status === "confirmed" && (
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full gap-2"
-                    disabled={uploadingBill}
-                    onClick={() => billInputRef.current?.click()}
-                  >
-                    {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                    🧾 بل کی تصویر لگائیں / Upload Bill
-                  </Button>
+                  {!selectedOrder.bill_image_url ? (
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1 gap-1 text-xs" size="sm" disabled={uploadingBill} onClick={() => billInputRef.current?.click()}>
+                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />} 📷 کیمرہ سے بل
+                      </Button>
+                      <Button variant="outline" className="flex-1 gap-1 text-xs" size="sm" disabled={uploadingBill} onClick={() => galleryBillInputRef.current?.click()}>
+                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileImage className="w-4 h-4" />} 🖼 گیلری سے بل
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold flex items-center gap-1"><Receipt className="w-3 h-3" /> 🧾 بل:</p>
+                      <img src={selectedOrder.bill_image_url} alt="Bill" className="w-full rounded-xl border max-h-32 object-contain bg-secondary" />
+                    </div>
+                  )}
                   <Button className="w-full" disabled={updating} onClick={() => updateOrder(selectedOrder.id, { status: "delivering" })}>
                     ڈلیوری شروع / Start Delivery
                   </Button>
@@ -277,15 +283,14 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
               {selectedOrder.status === "delivering" && (
                 <div className="space-y-2">
                   {!selectedOrder.bill_image_url && (
-                    <Button
-                      variant="outline"
-                      className="w-full gap-2"
-                      disabled={uploadingBill}
-                      onClick={() => billInputRef.current?.click()}
-                    >
-                      {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                      🧾 بل لگائیں / Upload Bill
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1 gap-1 text-xs" size="sm" disabled={uploadingBill} onClick={() => billInputRef.current?.click()}>
+                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />} 📷 کیمرہ
+                      </Button>
+                      <Button variant="outline" className="flex-1 gap-1 text-xs" size="sm" disabled={uploadingBill} onClick={() => galleryBillInputRef.current?.click()}>
+                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileImage className="w-4 h-4" />} 🖼 گیلری
+                      </Button>
+                    </div>
                   )}
                   <p className="text-xs text-center text-muted-foreground">⏳ کسٹمر سامان وصول کرے گا / Waiting for customer to confirm receipt</p>
                 </div>
