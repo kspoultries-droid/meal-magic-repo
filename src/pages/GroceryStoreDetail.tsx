@@ -311,9 +311,9 @@ const GroceryStoreDetail = () => {
               const isEditing = editingId === product.id;
               return (
                 <div key={product.id} className={`bg-card rounded-2xl border overflow-hidden relative ${!product.is_available && isOwner ? 'opacity-60' : ''}`}>
-                  {product.is_special_offer && (
+                  {product.is_special_offer && product.discount_price && product.price > product.discount_price && (
                     <div className="absolute top-2 left-2 z-10 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                      <Percent className="w-3 h-3" /> آفر / Offer
+                      <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}% آفر
                     </div>
                   )}
                   {isOwner && !product.is_available && (
