@@ -1,11 +1,9 @@
-import { ShoppingBag, User, Search, LogOut, Shield, Store, Bike, Menu, X, Headphones, Wrench } from "lucide-react";
-import { useCart } from "@/contexts/CartContext";
+import { User, LogOut, Shield, Store, Bike, Menu, X, Headphones, Wrench } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const Navbar = () => {
-  const { totalItems, setIsOpen } = useCart();
   const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,15 +11,15 @@ const Navbar = () => {
   const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic;
 
   return (
-    <nav className="sticky top-0 z-50 bg-card border-b shadow-sm pt-[env(safe-area-inset-top)]">
+    <nav className="sticky top-0 z-50 bg-primary pt-[env(safe-area-inset-top)]">
       <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4">
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => navigate("/")}>
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
             <span className="text-primary-foreground font-extrabold text-base sm:text-lg">fp</span>
           </div>
-          <span className="text-lg sm:text-xl font-extrabold text-foreground hidden sm:block">
-            food<span className="text-primary">panda</span>
+          <span className="text-lg sm:text-xl font-extrabold text-primary-foreground hidden sm:block">
+            food<span className="text-primary-foreground/80">panda</span>
           </span>
         </div>
 
@@ -71,18 +69,14 @@ const Navbar = () => {
 
         {/* Right side actions */}
         <div className="flex items-center gap-1 sm:gap-2">
-          <button className="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Search">
-            <Search className="w-5 h-5 text-muted-foreground" />
-          </button>
-
           {user ? (
             <>
               <button
                 onClick={() => navigate("/profile")}
-                className="p-2 rounded-full hover:bg-secondary transition-colors"
+                className="p-2 rounded-full hover:bg-primary-foreground/20 transition-colors"
                 aria-label="پروفائل"
               >
-                <User className="w-5 h-5 text-primary" />
+                <User className="w-5 h-5 text-primary-foreground" />
               </button>
 
               {/* Mobile menu for roles + logout */}
@@ -91,10 +85,10 @@ const Navbar = () => {
                   <>
                     <button
                       onClick={() => setMenuOpen(!menuOpen)}
-                      className="p-2 rounded-full hover:bg-secondary transition-colors"
+                      className="p-2 rounded-full hover:bg-primary-foreground/20 transition-colors"
                       aria-label="مینو"
                     >
-                      {menuOpen ? <X className="w-5 h-5 text-foreground" /> : <Menu className="w-5 h-5 text-foreground" />}
+                      {menuOpen ? <X className="w-5 h-5 text-primary-foreground" /> : <Menu className="w-5 h-5 text-primary-foreground" />}
                     </button>
                     {menuOpen && (
                       <div className="absolute right-0 top-full mt-1 w-44 bg-card border rounded-xl shadow-lg py-2 z-50">
@@ -151,10 +145,10 @@ const Navbar = () => {
                 ) : (
                   <button
                     onClick={async () => { await signOut(); navigate("/"); }}
-                    className="p-2 rounded-full hover:bg-secondary transition-colors"
+                    className="p-2 rounded-full hover:bg-primary-foreground/20 transition-colors"
                     aria-label="لاگ آؤٹ"
                   >
-                    <LogOut className="w-5 h-5 text-muted-foreground" />
+                    <LogOut className="w-5 h-5 text-primary-foreground" />
                   </button>
                 )}
               </div>
@@ -162,34 +156,21 @@ const Navbar = () => {
               {/* Desktop logout */}
               <button
                 onClick={async () => { await signOut(); navigate("/"); }}
-                className="hidden md:flex p-2 rounded-full hover:bg-secondary transition-colors"
+                className="hidden md:flex p-2 rounded-full hover:bg-primary-foreground/20 transition-colors"
                 aria-label="لاگ آؤٹ"
               >
-                <LogOut className="w-5 h-5 text-muted-foreground" />
+                <LogOut className="w-5 h-5 text-primary-foreground" />
               </button>
             </>
           ) : (
             <button
               onClick={() => navigate("/auth")}
-              className="p-2 rounded-full hover:bg-secondary transition-colors"
+              className="p-2 rounded-full hover:bg-primary-foreground/20 transition-colors"
               aria-label="لاگ ان / سائن اپ"
             >
-              <User className="w-5 h-5 text-muted-foreground" />
+              <User className="w-5 h-5 text-primary-foreground" />
             </button>
           )}
-
-          <button
-            onClick={() => setIsOpen(true)}
-            className="relative p-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
-            aria-label="کارٹ"
-          >
-            <ShoppingBag className="w-5 h-5" />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-foreground text-background text-xs font-bold rounded-full flex items-center justify-center">
-                {totalItems}
-              </span>
-            )}
-          </button>
         </div>
       </div>
     </nav>

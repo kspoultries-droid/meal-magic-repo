@@ -1,8 +1,7 @@
 import { useState } from "react";
+import { Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import HeroBanner from "@/components/HeroBanner";
 import QuickCategories from "@/components/QuickCategories";
-// PromoBanners removed - using PromotionalAds only
 import PromotionalAds from "@/components/PromotionalAds";
 import CategoryChips from "@/components/CategoryChips";
 import RestaurantGrid from "@/components/RestaurantGrid";
@@ -17,7 +16,19 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <Navbar />
-      <HeroBanner searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+      {/* Compact search bar */}
+      <div className="bg-primary px-4 pb-4">
+        <div className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5 shadow">
+          <Search className="w-5 h-5 text-muted-foreground shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search for restaurants and groceries"
+            className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
+          />
+        </div>
+      </div>
       <QuickCategories />
       <PromotionalAds placement="home" />
       <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
