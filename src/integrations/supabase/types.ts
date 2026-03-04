@@ -102,10 +102,15 @@ export type Database = {
           created_at: string
           customer_id: string
           delivery_address: string | null
+          delivery_lat: number | null
+          delivery_lng: number | null
           id: string
           image_url: string
+          is_gift: boolean | null
           notes: string | null
           payment_method: string | null
+          receiver_name: string | null
+          receiver_phone: string | null
           shopkeeper_notes: string | null
           status: string
           store_id: string
@@ -118,10 +123,15 @@ export type Database = {
           created_at?: string
           customer_id: string
           delivery_address?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           id?: string
           image_url: string
+          is_gift?: boolean | null
           notes?: string | null
           payment_method?: string | null
+          receiver_name?: string | null
+          receiver_phone?: string | null
           shopkeeper_notes?: string | null
           status?: string
           store_id: string
@@ -134,10 +144,15 @@ export type Database = {
           created_at?: string
           customer_id?: string
           delivery_address?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           id?: string
           image_url?: string
+          is_gift?: boolean | null
           notes?: string | null
           payment_method?: string | null
+          receiver_name?: string | null
+          receiver_phone?: string | null
           shopkeeper_notes?: string | null
           status?: string
           store_id?: string
@@ -362,10 +377,15 @@ export type Database = {
           customer_id: string
           delivery_address: string | null
           delivery_fee: number | null
+          delivery_lat: number | null
+          delivery_lng: number | null
           id: string
+          is_gift: boolean | null
           notes: string | null
           payment_method: string | null
           payment_status: string | null
+          receiver_name: string | null
+          receiver_phone: string | null
           restaurant_id: string
           rider_id: string | null
           status: string | null
@@ -378,10 +398,15 @@ export type Database = {
           customer_id: string
           delivery_address?: string | null
           delivery_fee?: number | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           id?: string
+          is_gift?: boolean | null
           notes?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          receiver_name?: string | null
+          receiver_phone?: string | null
           restaurant_id: string
           rider_id?: string | null
           status?: string | null
@@ -394,10 +419,15 @@ export type Database = {
           customer_id?: string
           delivery_address?: string | null
           delivery_fee?: number | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           id?: string
+          is_gift?: boolean | null
           notes?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          receiver_name?: string | null
+          receiver_phone?: string | null
           restaurant_id?: string
           rider_id?: string | null
           status?: string | null
@@ -1042,17 +1072,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_order: {
-        Args: {
-          _city_id: string
-          _delivery_address: string
-          _menu_items: Json
-          _notes: string
-          _payment_method: string
-          _restaurant_id: string
-        }
-        Returns: string
-      }
+      create_order:
+        | {
+            Args: {
+              _city_id: string
+              _delivery_address: string
+              _menu_items: Json
+              _notes: string
+              _payment_method: string
+              _restaurant_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _city_id: string
+              _delivery_address: string
+              _delivery_lat?: number
+              _delivery_lng?: number
+              _is_gift?: boolean
+              _menu_items: Json
+              _notes: string
+              _payment_method: string
+              _receiver_name?: string
+              _receiver_phone?: string
+              _restaurant_id: string
+            }
+            Returns: string
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
