@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera, Share2 } from "lucide-react";
+import { Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera, Share2, AlertTriangle, PauseCircle } from "lucide-react";
 import StoreBanner from "@/components/grocery/StoreBanner";
 import PhotoListOrder from "@/components/grocery/PhotoListOrder";
 import CustomerListOrders from "@/components/grocery/CustomerListOrders";
@@ -171,6 +171,19 @@ const StandaloneStore = () => {
     </div>
   </div>;
 
+  // Paused store - show message to customers, owner can still see
+  if (store.subscription_status === 'paused' && !isOwner) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-center px-4">
+        <div>
+          <PauseCircle className="w-16 h-16 mx-auto text-muted-foreground/40 mb-4" />
+          <p className="text-lg font-bold text-foreground">یہ اسٹور عارضی طور پر بند ہے</p>
+          <p className="text-sm text-muted-foreground mt-2">براہ کرم بعد میں دوبارہ کوشش کریں</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Store Header - no back navigation to grocery list */}
@@ -187,6 +200,23 @@ const StandaloneStore = () => {
         addProduct={addProduct}
         onNavigateBack={() => {}} // No back in standalone mode
       />
+
+      {/* Warning/Pause Banner for Owner */}
+      {isOwner && (store.subscription_status === 'warned' || store.subscription_status === 'paused') && (
+        <div className={`mx-4 mt-3 p-3 rounded-xl flex items-start gap-2 ${
+          store.subscription_status === 'paused' ? 'bg-destructive/10 border border-destructive/30' : 'bg-yellow-50 border border-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700'
+        }`}>
+          <AlertTriangle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${store.subscription_status === 'paused' ? 'text-destructive' : 'text-yellow-600'}`} />
+          <div>
+            <p className={`text-sm font-bold ${store.subscription_status === 'paused' ? 'text-destructive' : 'text-yellow-700 dark:text-yellow-400'}`}>
+              {store.subscription_status === 'paused' ? '⏸️ آپ کا اسٹور معطل ہے — کسٹمرز کو نظر نہیں آ رہا' : '⚠️ وارننگ'}
+            </p>
+            {store.warning_message && (
+              <p className="text-xs text-muted-foreground mt-1">{store.warning_message}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* WhatsApp Share Button for Owner */}
       {isOwner && (
