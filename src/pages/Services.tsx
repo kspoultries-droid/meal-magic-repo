@@ -184,10 +184,31 @@ const Services = () => {
       <div className="container mx-auto px-4 py-3">
         {!activeCategory && <h2 className="text-lg font-extrabold text-foreground mb-3">Categories / کیٹیگریز</h2>}
         <div className={`grid gap-2 ${activeCategory ? "grid-cols-6" : "grid-cols-4"}`}>
+          {/* All button */}
+          {activeCategory ? (
+            <button
+              onClick={() => setActiveCategory(null)}
+              className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg border bg-card hover:shadow-sm transition-all"
+            >
+              <Wrench className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-[8px] font-semibold text-muted-foreground text-center leading-tight">All / سب</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setActiveCategory(null)}
+              className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${
+                !activeCategory ? "bg-primary/10 border-primary shadow-md" : "bg-card hover:shadow-md"
+              }`}
+            >
+              <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center">
+                <Wrench className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-bold text-foreground text-center leading-tight">All / سب</span>
+            </button>
+          )}
           {categories.map((cat) => {
             const Icon = iconMap[cat.icon] || Wrench;
             const isActive = activeCategory === cat.id;
-            // When a category is active, show all as small chips
             if (activeCategory && !isActive) {
               return (
                 <button
