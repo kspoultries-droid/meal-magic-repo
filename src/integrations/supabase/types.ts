@@ -1052,6 +1052,10 @@ export type Database = {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
       }
+      request_wallet_topup: {
+        Args: { _amount: number; _payment_method: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role:
