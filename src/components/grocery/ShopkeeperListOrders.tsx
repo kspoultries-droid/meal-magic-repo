@@ -196,10 +196,42 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
                 </div>
               )}
 
-              {/* Pending: Quote + Alternatives */}
+              {/* Pending: Quote + Bill + Alternatives */}
               {selectedOrder.status === "pending" && (
                 <div className="space-y-2">
                   <Input type="number" placeholder="کل قیمت / Total Price (Rs)" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} />
+
+                  {/* Bill upload with quote */}
+                  {selectedOrder.bill_image_url ? (
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold flex items-center gap-1"><Receipt className="w-3 h-3" /> 🧾 بل لگا دیا گیا:</p>
+                      <img src={selectedOrder.bill_image_url} alt="Bill" className="w-full rounded-xl border max-h-32 object-contain bg-secondary" />
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 gap-1 text-xs"
+                        size="sm"
+                        disabled={uploadingBill}
+                        onClick={() => billInputRef.current?.click()}
+                      >
+                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                        📷 کیمرہ سے بل
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 gap-1 text-xs"
+                        size="sm"
+                        disabled={uploadingBill}
+                        onClick={() => galleryBillInputRef.current?.click()}
+                      >
+                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileImage className="w-4 h-4" />}
+                        🖼 گیلری سے بل
+                      </Button>
+                    </div>
+                  )}
+
                   <Input placeholder="دکاندار نوٹ / Your notes (optional)" value={shopNotes} onChange={(e) => setShopNotes(e.target.value)} />
                   <Textarea
                     placeholder="🔄 متبادل اشیاء / Alternatives (e.g. Sufi oil nahi hai, Dalda chalegi?)"
