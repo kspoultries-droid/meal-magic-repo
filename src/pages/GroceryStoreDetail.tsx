@@ -191,16 +191,14 @@ const GroceryStoreDetail = () => {
 
       {/* Products Grid */}
       {/* Photo List Order Section */}
-      <div className="container mx-auto px-4 pb-3">
+      <div className="container mx-auto px-4 pb-2">
         {isOwner ? (
           <ShopkeeperListOrders storeId={id!} />
         ) : (
-          <>
+          <div className="space-y-2">
             <PhotoListOrder storeId={id!} storeName={store.name} />
-            <div className="mt-3">
-              <CustomerListOrders storeId={id!} />
-            </div>
-          </>
+            <CustomerListOrders storeId={id!} />
+          </div>
         )}
       </div>
 
