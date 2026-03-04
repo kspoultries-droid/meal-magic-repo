@@ -193,7 +193,7 @@ const Services = () => {
                 onClick={() => {
                   setActiveCategory(isActive ? null : cat.id);
                   if (!isActive) {
-                    setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                    setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
                   }
                 }}
                 className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${
@@ -211,8 +211,8 @@ const Services = () => {
       </div>
 
       {/* Services List */}
-      <div ref={servicesRef} className="container mx-auto px-4 pb-6">
-        <h2 className="text-xl font-extrabold text-foreground mb-4">
+      <div className="container mx-auto px-4 pb-6">
+        <h2 ref={servicesRef} className="text-xl font-extrabold text-foreground mb-4 scroll-mt-4">
           {activeCategory
             ? `${categories.find((c) => c.id === activeCategory)?.name || ""} Services / سروسز`
             : "All Services / تمام سروسز"}
