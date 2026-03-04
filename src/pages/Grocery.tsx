@@ -30,7 +30,7 @@ const Grocery = () => {
       let query = supabase.from("grocery_stores").select("*").eq("is_active", true);
       if (activeCategory) query = query.eq("category", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
-      const { data } = await query.order("created_at", { ascending: false });
+      const { data } = await query.order("sort_order", { ascending: true }).order("created_at", { ascending: false });
       setStores(data || []);
       setLoading(false);
     };

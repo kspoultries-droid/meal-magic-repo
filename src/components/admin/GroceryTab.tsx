@@ -74,8 +74,6 @@ const GroceryTab = () => {
       supabase.from("grocery_stores").update({ sort_order: newOrderA }).eq("id", stores[idx].id),
       supabase.from("grocery_stores").update({ sort_order: newOrderB }).eq("id", stores[swapIdx].id),
     ]);
-    // Re-fetch to ensure consistency
-    fetchData();
   };
 
   const toggleStoreActive = async (id: string, current: boolean) => {
