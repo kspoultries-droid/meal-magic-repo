@@ -158,114 +158,19 @@ const GroceryStoreDetail = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Store Header */}
-      <div className="relative">
-        <div className="absolute top-4 left-4 z-20">
-          <Button variant="ghost" size="icon" className="bg-card/80 backdrop-blur" onClick={() => navigate("/grocery")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </div>
-        <div className="relative">
-          {store.image_url ? (
-            <img src={store.image_url} alt={store.name} className="w-full h-48 object-cover" />
-          ) : (
-            <div className="w-full h-48 bg-primary flex items-center justify-center">
-              <ShoppingBasket className="w-20 h-20 text-primary-foreground/30" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 z-10">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-extrabold text-white flex-1 drop-shadow-lg">{store.name}</h1>
-              {isOwner && (
-                <button className="text-white/70 hover:text-white" onClick={async () => {
-                  const newName = prompt("دکان کا نام / Store Name:", store.name);
-                  if (newName && newName.trim() && newName.trim() !== store.name) {
-                    await supabase.from("grocery_stores").update({ name: newName.trim() }).eq("id", id);
-                    toast.success("نام اپڈیٹ / Name updated");
-                    fetchData();
-                  }
-                }}>
-                  <Pencil className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-            <div className="flex items-center gap-4 mt-1 text-sm text-white/80 flex-wrap">
-              <span className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400" /> {store.rating || "New"}</span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" /> {store.delivery_time}
-                {isOwner && (
-                  <button className="text-white/60 hover:text-white ml-0.5" onClick={async () => {
-                    const val = prompt("ڈلیوری ٹائم / Delivery Time:", store.delivery_time);
-                    if (val && val.trim()) {
-                      await supabase.from("grocery_stores").update({ delivery_time: val.trim() }).eq("id", id);
-                      toast.success("اپڈیٹ ہو گیا"); fetchData();
-                    }
-                  }}>
-                    <Pencil className="w-3 h-3" />
-                  </button>
-                )}
-              </span>
-              <span className="font-semibold text-white flex items-center gap-1">
-                {store.category}
-                {isOwner && (
-                  <button className="text-white/60 hover:text-white" onClick={async () => {
-                    const val = prompt("کیٹیگری / Category:\n" + GROCERY_CATEGORIES.join(", "), store.category);
-                    if (val && val.trim()) {
-                      await supabase.from("grocery_stores").update({ category: val.trim() }).eq("id", id);
-                      toast.success("اپڈیٹ ہو گیا"); fetchData();
-                    }
-                  }}>
-                    <Pencil className="w-3 h-3" />
-                  </button>
-                )}
-              </span>
-            </div>
-            {isOwner && (
-              <div className="mt-2 flex items-center gap-2">
-                <span className="text-xs bg-white/20 text-white px-2 py-1 rounded-full font-bold backdrop-blur-sm">👑 آپ کی دکان</span>
-                <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="h-7 text-xs"><Plus className="h-3 w-3 mr-1" /> پروڈکٹ شامل</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>نئی پروڈکٹ / New Product</DialogTitle></DialogHeader>
-                    <div className="space-y-3">
-                      <Input placeholder="نام / Name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-                      <Input placeholder="قیمت / Price (Rs)" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                      <Input placeholder="ڈسکاؤنٹ قیمت / Discount Price (optional)" type="number" value={newProduct.discount_price} onChange={(e) => setNewProduct({...newProduct, discount_price: e.target.value})} />
-                      <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>
-                        {GROCERY_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                      </select>
-                      <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
-                      <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
-                      <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )}
-          </div>
-          {isOwner && (
-            <div className="absolute top-4 right-4 z-20">
-              <label className="flex items-center gap-1 bg-card/90 backdrop-blur text-foreground text-xs font-bold px-3 py-1.5 rounded-full cursor-pointer shadow-md border">
-                <Camera className="w-3.5 h-3.5" /> بینر تبدیل
-                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const ext = file.name.split('.').pop();
-                  const path = `store-banners/${id}.${ext}`;
-                  const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
-                  if (upErr) { toast.error(upErr.message); return; }
-                  const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-                  await supabase.from("grocery_stores").update({ image_url: urlData.publicUrl }).eq("id", id);
-                  toast.success("بینر اپڈیٹ / Banner updated");
-                  fetchData();
-                }} />
-              </label>
-            </div>
-          )}
-        </div>
-      </div>
+      <StoreBanner
+        store={store}
+        isOwner={isOwner}
+        storeId={id!}
+        onRefresh={fetchData}
+        categories={GROCERY_CATEGORIES}
+        showAddProduct={showAddProduct}
+        setShowAddProduct={setShowAddProduct}
+        newProduct={newProduct}
+        setNewProduct={setNewProduct}
+        addProduct={addProduct}
+        onNavigateBack={() => navigate("/grocery")}
+      />
 
       {/* Category Chips */}
       <div className="px-4 pt-3 pb-3 overflow-x-auto">
