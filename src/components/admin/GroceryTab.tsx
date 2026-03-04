@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 
