@@ -43,7 +43,7 @@ const GroceryTab = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    let query = supabase.from("grocery_stores").select("*").order("created_at", { ascending: false });
+    let query = supabase.from("grocery_stores").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: false });
     if (activeCategory) query = query.eq("category", activeCategory);
     const { data: storesData } = await query;
     setStores(storesData || []);
