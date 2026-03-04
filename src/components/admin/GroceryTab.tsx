@@ -261,6 +261,12 @@ const GroceryTab = () => {
                       <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleStoreActive(s.id, s.is_active)}>
                         {s.is_active ? "بند / Off" : "فعال / On"}
                       </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "up")} disabled={stores.indexOf(s) === 0}>
+                        <ArrowUp className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "down")} disabled={stores.indexOf(s) === stores.length - 1}>
+                        <ArrowDown className="h-3 w-3" />
+                      </Button>
                       <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteStore(s.id)}>
                         <Trash2 className="h-3 w-3" />
                       </Button>
