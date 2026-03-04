@@ -9,11 +9,11 @@ import CartDrawer from "@/components/CartDrawer";
 
 const groceryCategories = [
   { name: "All", nameUr: "سب", icon: ShoppingBasket, filter: null },
-  { name: "Fruits", nameUr: "پھل", icon: Apple, filter: "Fruits" },
-  { name: "Vegetables", nameUr: "سبزیاں", icon: Carrot, filter: "Vegetables" },
-  { name: "Dairy", nameUr: "دودھ", icon: Milk, filter: "Dairy" },
-  { name: "Meat", nameUr: "گوشت", icon: Drumstick, filter: "Eggs & Meat" },
   { name: "Grocery", nameUr: "گروسری", icon: ShoppingBasket, filter: "General" },
+  { name: "Meat", nameUr: "گوشت", icon: Drumstick, filter: "Eggs & Meat" },
+  { name: "Vegetables", nameUr: "سبزیاں", icon: Carrot, filter: "Vegetables" },
+  { name: "Fruits", nameUr: "پھل", icon: Apple, filter: "Fruits" },
+  { name: "Dairy", nameUr: "دودھ", icon: Milk, filter: "Dairy" },
   { name: "Atta/Rice", nameUr: "آٹا چاول", icon: Wheat, filter: "Atta & Rice" },
 ];
 
