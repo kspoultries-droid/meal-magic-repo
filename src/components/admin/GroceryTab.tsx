@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -43,7 +43,7 @@ const GroceryTab = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    let query = supabase.from("grocery_stores").select("*").order("created_at", { ascending: false });
+    let query = supabase.from("grocery_stores").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: false });
     if (activeCategory) query = query.eq("category", activeCategory);
     const { data: storesData } = await query;
     setStores(storesData || []);
@@ -55,6 +55,19 @@ const GroceryTab = () => {
   };
 
   useEffect(() => { fetchData(); }, [selectedStore, activeCategory]);
+
+  const moveStore = async (id: string, direction: "up" | "down") => {
+    const idx = stores.findIndex(s => s.id === id);
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= stores.length) return;
+    const currentOrder = stores[idx].sort_order ?? idx;
+    const swapOrder = stores[swapIdx].sort_order ?? swapIdx;
+    await Promise.all([
+      supabase.from("grocery_stores").update({ sort_order: swapOrder }).eq("id", stores[idx].id),
+      supabase.from("grocery_stores").update({ sort_order: currentOrder }).eq("id", stores[swapIdx].id),
+    ]);
+    fetchData();
+  };
 
   const toggleStoreActive = async (id: string, current: boolean) => {
     await supabase.from("grocery_stores").update({ is_active: !current }).eq("id", id);
@@ -247,6 +260,12 @@ const GroceryTab = () => {
                       </Button>
                       <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleStoreActive(s.id, s.is_active)}>
                         {s.is_active ? "بند / Off" : "فعال / On"}
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "up")} disabled={stores.indexOf(s) === 0}>
+                        <ArrowUp className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "down")} disabled={stores.indexOf(s) === stores.length - 1}>
+                        <ArrowDown className="h-3 w-3" />
                       </Button>
                       <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteStore(s.id)}>
                         <Trash2 className="h-3 w-3" />

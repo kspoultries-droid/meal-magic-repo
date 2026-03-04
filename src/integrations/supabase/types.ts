@@ -222,6 +222,7 @@ export type Database = {
           name: string
           owner_id: string
           rating: number | null
+          sort_order: number | null
         }
         Insert: {
           category?: string
@@ -234,6 +235,7 @@ export type Database = {
           name: string
           owner_id: string
           rating?: number | null
+          sort_order?: number | null
         }
         Update: {
           category?: string
@@ -246,6 +248,7 @@ export type Database = {
           name?: string
           owner_id?: string
           rating?: number | null
+          sort_order?: number | null
         }
         Relationships: [
           {
