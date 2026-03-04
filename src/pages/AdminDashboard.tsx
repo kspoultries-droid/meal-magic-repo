@@ -42,16 +42,16 @@ const AdminDashboard = () => {
 
       <div className="p-6">
         <Tabs defaultValue="orders">
-          <TabsList className="mb-6 flex-wrap">
-            <TabsTrigger value="orders" className="gap-1"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
-            <TabsTrigger value="restaurants" className="gap-1"><Store className="h-4 w-4" /> ریسٹورنٹس</TabsTrigger>
-            <TabsTrigger value="riders" className="gap-1"><Bike className="h-4 w-4" /> رائیڈرز</TabsTrigger>
-            <TabsTrigger value="cities" className="gap-1"><MapPin className="h-4 w-4" /> شہر</TabsTrigger>
-            <TabsTrigger value="users" className="gap-1"><Users className="h-4 w-4" /> یوزرز</TabsTrigger>
-            <TabsTrigger value="grocery" className="gap-1"><ShoppingCart className="h-4 w-4" /> گروسری</TabsTrigger>
-            <TabsTrigger value="services" className="gap-1"><Wrench className="h-4 w-4" /> سروسز</TabsTrigger>
-            <TabsTrigger value="ads" className="gap-1"><Megaphone className="h-4 w-4" /> ایڈز</TabsTrigger>
-            <TabsTrigger value="photo-orders" className="gap-1"><FileImage className="h-4 w-4" /> فوٹو آرڈرز</TabsTrigger>
+          <TabsList className="mb-6 flex flex-wrap h-auto gap-1">
+            <TabsTrigger value="orders" className="gap-1 text-xs"><ShoppingBag className="h-3.5 w-3.5" /> آرڈرز</TabsTrigger>
+            <TabsTrigger value="restaurants" className="gap-1 text-xs"><Store className="h-3.5 w-3.5" /> ریسٹورنٹس</TabsTrigger>
+            <TabsTrigger value="riders" className="gap-1 text-xs"><Bike className="h-3.5 w-3.5" /> رائیڈرز</TabsTrigger>
+            <TabsTrigger value="cities" className="gap-1 text-xs"><MapPin className="h-3.5 w-3.5" /> شہر</TabsTrigger>
+            <TabsTrigger value="users" className="gap-1 text-xs"><Users className="h-3.5 w-3.5" /> یوزرز</TabsTrigger>
+            <TabsTrigger value="grocery" className="gap-1 text-xs"><ShoppingCart className="h-3.5 w-3.5" /> گروسری</TabsTrigger>
+            <TabsTrigger value="services" className="gap-1 text-xs"><Wrench className="h-3.5 w-3.5" /> سروسز</TabsTrigger>
+            <TabsTrigger value="ads" className="gap-1 text-xs"><Megaphone className="h-3.5 w-3.5" /> ایڈز</TabsTrigger>
+            <TabsTrigger value="photo-orders" className="gap-1 text-xs"><FileImage className="h-3.5 w-3.5" /> فوٹو آرڈرز</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders"><OrdersTab /></TabsContent>
