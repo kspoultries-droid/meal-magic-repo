@@ -72,19 +72,15 @@ const Wallet = () => {
       toast.error("Minimum Rs 10 / کم از کم 10 روپے");
       return;
     }
+    if (amt > 100000) {
+      toast.error("Maximum Rs 100,000 / زیادہ سے زیادہ 1 لاکھ");
+      return;
+    }
     setSubmitting(true);
 
-    // For JazzCash/EasyPaisa/Bank — in real scenario this would go through payment gateway
-    // For now, we create a pending transaction that admin approves
-    const { error } = await supabase.from("wallet_transactions").insert({
-      wallet_id: wallet.id,
-      user_id: user!.id,
-      type: "topup",
-      amount: amt,
-      balance_after: wallet.balance, // Will update when admin approves
-      description: `Top-up via ${topupMethod}`,
-      payment_method: topupMethod,
-      status: topupMethod === "cash" ? "pending" : "pending",
+    const { error } = await supabase.rpc("request_wallet_topup", {
+      _amount: amt,
+      _payment_method: topupMethod,
     });
 
     setSubmitting(false);
