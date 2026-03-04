@@ -1,4 +1,4 @@
-import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette } from "lucide-react";
+import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -111,167 +111,8 @@ const StoreBanner = ({
           </div>
         )}
 
-        {/* Overlay - only bottom gradient for text readability */}
+        {/* Overlay */}
         {theme.gradient && <div className={`absolute inset-0 bg-gradient-to-b ${theme.gradient}`} />}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-
-        {/* Store Info */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 z-10">
-          <div className="flex items-center gap-2">
-            <h1
-              className={`flex-1 drop-shadow-lg ${nameStyle.className} ${nameSize.className}`}
-              style={{ color: nameColor, textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
-            >
-              {store.name}
-            </h1>
-            {isOwner && (
-              <button className="text-white/70 hover:text-white" onClick={async () => {
-                const newName = prompt("دکان کا نام / Store Name:", store.name);
-                if (newName && newName.trim() && newName.trim() !== store.name) {
-                  await updateStore({ name: newName.trim() });
-                }
-              }}>
-                <Pencil className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-4 mt-1 text-sm text-white/80 flex-wrap">
-            <span className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400" /> {store.rating || "New"}</span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" /> {store.delivery_time}
-              {isOwner && (
-                <button className="text-white/60 hover:text-white ml-0.5" onClick={async () => {
-                  const val = prompt("ڈلیوری ٹائم / Delivery Time:", store.delivery_time);
-                  if (val && val.trim()) await updateStore({ delivery_time: val.trim() });
-                }}>
-                  <Pencil className="w-3 h-3" />
-                </button>
-              )}
-            </span>
-            <span className="font-semibold text-white flex items-center gap-1">
-              {store.category}
-              {isOwner && (
-                <button className="text-white/60 hover:text-white" onClick={async () => {
-                  const val = prompt("کیٹیگری / Category:\n" + groceryCategories.join(", "), store.category);
-                  if (val && val.trim()) await updateStore({ category: val.trim() });
-                }}>
-                  <Pencil className="w-3 h-3" />
-                </button>
-              )}
-            </span>
-          </div>
-
-          {isOwner && (
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
-              <span className="text-xs bg-white/20 text-white px-2 py-1 rounded-full font-bold backdrop-blur-sm">👑 آپ کی دکان</span>
-              
-              {/* Theme Picker */}
-              <Dialog open={showThemePicker} onOpenChange={setShowThemePicker}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs text-white bg-white/20 hover:bg-white/30">
-                    <Palette className="h-3 w-3 mr-1" /> تھیم
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-sm">
-                  <DialogHeader><DialogTitle>بینر تھیم / Banner Theme</DialogTitle></DialogHeader>
-                  <div className="space-y-4">
-                    {/* Overlay */}
-                    <div>
-                      <p className="text-sm font-medium mb-2">اوورلے / Overlay</p>
-                      <div className="flex gap-2">
-                        {Object.entries(BANNER_THEMES).map(([key, t]) => (
-                          <button
-                            key={key}
-                            onClick={() => updateStore({ banner_theme: key })}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
-                              store.banner_theme === key ? "border-primary ring-2 ring-primary/30" : "border-transparent"
-                            }`}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Name Size */}
-                    <div>
-                      <p className="text-sm font-medium mb-2">نام کا سائز / Name Size</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {Object.entries(NAME_SIZES).map(([key, s]) => (
-                          <button
-                            key={key}
-                            onClick={() => updateStore({ name_size: key })}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
-                              store.name_size === key ? "border-primary ring-2 ring-primary/30" : "border-transparent"
-                            }`}
-                          >
-                            {s.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Name Color */}
-                    <div>
-                      <p className="text-sm font-medium mb-2">نام کا رنگ / Name Color</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {["#ffffff", "#FFD700", "#00FF88", "#FF6B6B", "#87CEEB", "#FFA500", "#E0E0E0", "#FF69B4"].map(color => (
-                          <button
-                            key={color}
-                            onClick={() => updateStore({ name_color: color })}
-                            className={`w-8 h-8 rounded-full border-2 transition-all ${
-                              nameColor === color ? "border-primary ring-2 ring-primary/30 scale-110" : "border-muted"
-                            }`}
-                            style={{ backgroundColor: color }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Name Style */}
-                    <div>
-                      <p className="text-sm font-medium mb-2">نام کا اسٹائل / Name Style</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(NAME_STYLES).map(([key, s]) => (
-                          <button
-                            key={key}
-                            onClick={() => updateStore({ name_style: key })}
-                            className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${s.className} ${
-                              store.name_style === key ? "border-primary bg-primary/10" : "border-muted"
-                            }`}
-                          >
-                            {s.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              {/* Add Product */}
-              <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="h-7 text-xs"><Plus className="h-3 w-3 mr-1" /> پروڈکٹ شامل</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>نئی پروڈکٹ / New Product</DialogTitle></DialogHeader>
-                  <div className="space-y-3">
-                    <Input placeholder="نام / Name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-                    <Input placeholder="قیمت / Price (Rs)" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                    <Input placeholder="ڈسکاؤنٹ قیمت / Discount Price (optional)" type="number" value={newProduct.discount_price} onChange={(e) => setNewProduct({...newProduct, discount_price: e.target.value})} />
-                    <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>
-                      {groceryCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
-                    <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
-                    <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
-                    <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
-        </div>
 
         {/* Owner: Banner change & theme buttons */}
         {isOwner && (
@@ -292,11 +133,166 @@ const StoreBanner = ({
           </div>
         )}
       </div>
+
+      {/* Store Info - Below Banner */}
+      <div className="px-4 py-3 bg-card border-b">
+        <div className="flex items-center gap-2">
+          <h1
+            className={`flex-1 ${nameStyle.className} ${nameSize.className}`}
+            style={{ color: nameColor === "#ffffff" ? undefined : nameColor }}
+          >
+            {store.name}
+          </h1>
+          {isOwner && (
+            <button className="text-muted-foreground hover:text-foreground" onClick={async () => {
+              const newName = prompt("دکان کا نام / Store Name:", store.name);
+              if (newName && newName.trim() && newName.trim() !== store.name) {
+                await updateStore({ name: newName.trim() });
+              }
+            }}>
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
+          <span className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400" /> {store.rating || "New"}</span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-4 h-4" /> {store.delivery_time}
+            {isOwner && (
+              <button className="text-muted-foreground hover:text-foreground ml-0.5" onClick={async () => {
+                const val = prompt("ڈلیوری ٹائم / Delivery Time:", store.delivery_time);
+                if (val && val.trim()) await updateStore({ delivery_time: val.trim() });
+              }}>
+                <Pencil className="w-3 h-3" />
+              </button>
+            )}
+          </span>
+          <span className="font-semibold text-foreground flex items-center gap-1">
+            {store.category}
+            {isOwner && (
+              <button className="text-muted-foreground hover:text-foreground" onClick={async () => {
+                const val = prompt("کیٹیگری / Category:\n" + groceryCategories.join(", "), store.category);
+                if (val && val.trim()) await updateStore({ category: val.trim() });
+              }}>
+                <Pencil className="w-3 h-3" />
+              </button>
+            )}
+          </span>
+        </div>
+
+        {isOwner && (
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
+            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-bold">👑 آپ کی دکان</span>
+            
+            {/* Theme Picker */}
+            <Dialog open={showThemePicker} onOpenChange={setShowThemePicker}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="h-7 text-xs">
+                  <Palette className="h-3 w-3 mr-1" /> تھیم
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-sm">
+                <DialogHeader><DialogTitle>بینر تھیم / Banner Theme</DialogTitle></DialogHeader>
+                <div className="space-y-4">
+                  {/* Overlay */}
+                  <div>
+                    <p className="text-sm font-medium mb-2">اوورلے / Overlay</p>
+                    <div className="flex gap-2">
+                      {Object.entries(BANNER_THEMES).map(([key, t]) => (
+                        <button
+                          key={key}
+                          onClick={() => updateStore({ banner_theme: key })}
+                          className={`px-3 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
+                            store.banner_theme === key ? "border-primary ring-2 ring-primary/30" : "border-transparent"
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Name Size */}
+                  <div>
+                    <p className="text-sm font-medium mb-2">نام کا سائز / Name Size</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {Object.entries(NAME_SIZES).map(([key, s]) => (
+                        <button
+                          key={key}
+                          onClick={() => updateStore({ name_size: key })}
+                          className={`px-3 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
+                            store.name_size === key ? "border-primary ring-2 ring-primary/30" : "border-transparent"
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Name Color */}
+                  <div>
+                    <p className="text-sm font-medium mb-2">نام کا رنگ / Name Color</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {["#ffffff", "#FFD700", "#00FF88", "#FF6B6B", "#87CEEB", "#FFA500", "#E0E0E0", "#FF69B4"].map(color => (
+                        <button
+                          key={color}
+                          onClick={() => updateStore({ name_color: color })}
+                          className={`w-8 h-8 rounded-full border-2 transition-all ${
+                            nameColor === color ? "border-primary ring-2 ring-primary/30 scale-110" : "border-muted"
+                          }`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Name Style */}
+                  <div>
+                    <p className="text-sm font-medium mb-2">نام کا اسٹائل / Name Style</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(NAME_STYLES).map(([key, s]) => (
+                        <button
+                          key={key}
+                          onClick={() => updateStore({ name_style: key })}
+                          className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${s.className} ${
+                            store.name_style === key ? "border-primary bg-primary/10" : "border-muted"
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Add Product */}
+            <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="h-7 text-xs"><Plus className="h-3 w-3 mr-1" /> پروڈکٹ شامل</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>نئی پروڈکٹ / New Product</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <Input placeholder="نام / Name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                  <Input placeholder="قیمت / Price (Rs)" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                  <Input placeholder="ڈسکاؤنٹ قیمت / Discount Price (optional)" type="number" value={newProduct.discount_price} onChange={(e) => setNewProduct({...newProduct, discount_price: e.target.value})} />
+                  <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>
+                    {groceryCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  </select>
+                  <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
+                  <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                  <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
-
-// Need to import ArrowLeft
-import { ArrowLeft } from "lucide-react";
 
 export default StoreBanner;
