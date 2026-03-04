@@ -30,6 +30,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
   const [updating, setUpdating] = useState(false);
   const [uploadingBill, setUploadingBill] = useState(false);
   const billInputRef = useRef<HTMLInputElement>(null);
+  const galleryBillInputRef = useRef<HTMLInputElement>(null);
 
   const fetchOrders = async () => {
     setLoading(true);
