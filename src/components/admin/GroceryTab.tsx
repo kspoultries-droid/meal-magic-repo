@@ -237,6 +237,18 @@ const GroceryTab = () => {
                           <Pencil className="h-3 w-3" />
                         </button>
                       </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-[10px] text-muted-foreground">ایڈوانس: {s.advance_percent || 0}%</span>
+                        <button className="text-muted-foreground hover:text-foreground" onClick={() => {
+                          const pct = prompt("نئے کسٹمر سے ایڈوانس فیصد (0-100):", String(s.advance_percent || 0));
+                          if (pct !== null) {
+                            const val = Math.min(100, Math.max(0, Number(pct) || 0));
+                            supabase.from("grocery_stores").update({ advance_percent: val } as any).eq("id", s.id).then(() => { toast.success("ایڈوانس اپڈیٹ"); fetchData(); });
+                          }
+                        }}>
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      </div>
                       {s.fee_paid_until && <p className="text-[10px] text-muted-foreground">تک: {s.fee_paid_until}</p>}
                     </TableCell>
                     <TableCell>

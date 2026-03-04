@@ -10,9 +10,10 @@ import { toast } from "sonner";
 interface PhotoListOrderProps {
   storeId: string;
   storeName: string;
+  advancePercent?: number;
 }
 
-const PhotoListOrder = ({ storeId, storeName }: PhotoListOrderProps) => {
+const PhotoListOrder = ({ storeId, storeName, advancePercent = 0 }: PhotoListOrderProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -137,6 +138,15 @@ const PhotoListOrder = ({ storeId, storeName }: PhotoListOrderProps) => {
             <br />
             Shopkeeper will review & quote price, then you confirm
           </p>
+
+          {advancePercent > 0 && (
+            <div className="text-xs text-center bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-2.5 rounded-lg">
+              <p className="font-bold text-yellow-700 dark:text-yellow-400">⚠️ ایڈوانس فیس: {advancePercent}%</p>
+              <p className="text-yellow-600 dark:text-yellow-500 mt-0.5">
+                نئے کسٹمرز کو کل رقم کا {advancePercent}% ایڈوانس دینا ہوگا
+              </p>
+            </div>
+          )}
 
           <Button onClick={handleSubmit} disabled={submitting || !imageFile} className="w-full gap-2">
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
