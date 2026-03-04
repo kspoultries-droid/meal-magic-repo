@@ -60,12 +60,21 @@ const GroceryTab = () => {
     const idx = stores.findIndex(s => s.id === id);
     const swapIdx = direction === "up" ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= stores.length) return;
-    const currentOrder = stores[idx].sort_order ?? idx;
-    const swapOrder = stores[swapIdx].sort_order ?? swapIdx;
+
+    // Use index-based values to ensure unique sort_orders
+    const newOrderA = swapIdx;
+    const newOrderB = idx;
+
+    // Optimistic UI swap
+    const newStores = [...stores];
+    [newStores[idx], newStores[swapIdx]] = [newStores[swapIdx], newStores[idx]];
+    setStores(newStores);
+
     await Promise.all([
-      supabase.from("grocery_stores").update({ sort_order: swapOrder }).eq("id", stores[idx].id),
-      supabase.from("grocery_stores").update({ sort_order: currentOrder }).eq("id", stores[swapIdx].id),
+      supabase.from("grocery_stores").update({ sort_order: newOrderA }).eq("id", stores[idx].id),
+      supabase.from("grocery_stores").update({ sort_order: newOrderB }).eq("id", stores[swapIdx].id),
     ]);
+    // Re-fetch to ensure consistency
     fetchData();
   };
 
