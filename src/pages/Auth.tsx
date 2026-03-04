@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Mail, Lock, User, ArrowLeft, Phone, Fingerprint } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
+import { lovable } from "@/integrations/lovable/index";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
