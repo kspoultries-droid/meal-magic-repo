@@ -252,6 +252,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           name_color: string | null
+          name_size: string | null
           name_style: string | null
           owner_id: string
           rating: number | null
@@ -268,6 +269,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           name_color?: string | null
+          name_size?: string | null
           name_style?: string | null
           owner_id: string
           rating?: number | null
@@ -284,6 +286,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           name_color?: string | null
+          name_size?: string | null
           name_style?: string | null
           owner_id?: string
           rating?: number | null
