@@ -160,9 +160,9 @@ const Services = () => {
       <Navbar />
 
       {/* Header */}
-      <div className="bg-primary pt-4 pb-8 px-4">
-        <h1 className="text-2xl font-extrabold text-primary-foreground mb-1">Home Services / ہوم سروسز</h1>
-        <p className="text-primary-foreground/70 text-sm mb-4">Professional services at your doorstep / پروفیشنل سروسز آپ کی دہلیز پر 🏠</p>
+      <div className="bg-primary pt-3 pb-5 px-4">
+        <h1 className="text-lg font-extrabold text-primary-foreground mb-0.5">Home Services / ہوم سروسز</h1>
+        <p className="text-primary-foreground/70 text-xs mb-3">Professional services at your doorstep 🏠</p>
         <div className="flex bg-card rounded-2xl overflow-hidden shadow-lg">
           <div className="flex items-center gap-3 flex-1 px-4 py-3">
             <Search className="w-5 h-5 text-muted-foreground shrink-0" />
