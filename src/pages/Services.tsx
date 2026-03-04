@@ -177,27 +177,42 @@ const Services = () => {
         </div>
       </div>
 
-      {/* Promotional Ads */}
-      <PromotionalAds placement="home" />
+      {/* Promotional Ads - hide when category selected */}
+      {!activeCategory && <PromotionalAds placement="home" />}
 
       {/* Categories Grid */}
-      <div className="container mx-auto px-4 py-4">
-        <h2 className="text-lg font-extrabold text-foreground mb-3">Categories / کیٹیگریز</h2>
-        <div className="grid grid-cols-4 gap-2">
+      <div className="container mx-auto px-4 py-3">
+        {!activeCategory && <h2 className="text-lg font-extrabold text-foreground mb-3">Categories / کیٹیگریز</h2>}
+        <div className={`grid gap-2 ${activeCategory ? "grid-cols-6" : "grid-cols-4"}`}>
           {categories.map((cat) => {
             const Icon = iconMap[cat.icon] || Wrench;
             const isActive = activeCategory === cat.id;
+            // When a category is active, show all as small chips
+            if (activeCategory && !isActive) {
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg border bg-card hover:shadow-sm transition-all"
+                >
+                  <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-[8px] font-semibold text-muted-foreground text-center leading-tight truncate w-full">{cat.name}</span>
+                </button>
+              );
+            }
             return (
               <button
                 key={cat.id}
                 onClick={() => {
                   setActiveCategory(isActive ? null : cat.id);
                   if (!isActive) {
-                    setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
+                    setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
                   }
                 }}
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${
-                  isActive ? "bg-primary/10 border-primary shadow-md scale-105" : "bg-card hover:shadow-md"
+                  isActive 
+                    ? "bg-primary/10 border-primary shadow-md col-span-2" 
+                    : "bg-card hover:shadow-md"
                 }`}
               >
                 <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center`}>
