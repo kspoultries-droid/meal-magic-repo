@@ -112,6 +112,16 @@ const UsersTab = () => {
     fetchData();
   };
 
+  const quickAddRole = async (userId: string, role: string) => {
+    const existingRoles = getUserRoles(userId);
+    if (existingRoles.includes(role)) { toast.error("یہ رول پہلے سے موجود ہے"); return; }
+    const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
+    if (error) { toast.error(error.message); return; }
+    if (role === "rider") await supabase.from("riders").upsert({ id: userId });
+    toast.success(`${role} رول شامل ہو گیا!`);
+    fetchData();
+  };
+
   const removeRole = async (userId: string, role: string) => {
     await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
     toast.success("رول ہٹا دیا گیا");
@@ -168,6 +178,12 @@ const UsersTab = () => {
                             {r} ❌
                           </Button>
                         ))}
+                        {/* Quick role buttons */}
+                        {!userRoles.includes("restaurant_owner") && (
+                          <Button size="sm" variant="outline" className="h-6 text-xs px-2" onClick={() => quickAddRole(p.id, "restaurant_owner")}>
+                            🍽️ ریسٹورنٹ اونر
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -305,20 +321,43 @@ const OrdersTab = () => {
 // ─── Restaurants ────────────────────────────────
 const RestaurantsTab = () => {
   const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingOwner, setEditingOwner] = useState<string | null>(null);
+  const [ownerInput, setOwnerInput] = useState("");
 
   const fetchRests = async () => {
     setLoading(true);
-    const { data } = await supabase.from("restaurants").select("*").order("created_at", { ascending: false });
-    setRestaurants(data || []);
+    const [{ data: rests }, { data: profs }] = await Promise.all([
+      supabase.from("restaurants").select("*").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("id, full_name"),
+    ]);
+    setRestaurants(rests || []);
+    setAllProfiles(profs || []);
     setLoading(false);
   };
 
   useEffect(() => { fetchRests(); }, []);
 
+  const getOwnerName = (ownerId: string) => allProfiles.find((p) => p.id === ownerId)?.full_name || ownerId.slice(0, 8);
+
   const toggleActive = async (id: string, current: boolean) => {
     await supabase.from("restaurants").update({ is_active: !current }).eq("id", id);
     toast.success("اپڈیٹ ہو گیا");
+    fetchRests();
+  };
+
+  const changeOwner = async (restId: string) => {
+    if (!ownerInput.trim()) return;
+    const matchedProfile = allProfiles.find((p) => p.id === ownerInput);
+    if (!matchedProfile) { toast.error("یوزر نہیں ملا"); return; }
+    // Auto-assign restaurant_owner role
+    await supabase.from("user_roles").upsert({ user_id: matchedProfile.id, role: "restaurant_owner" as any }, { onConflict: "user_id,role" });
+    const { error } = await supabase.from("restaurants").update({ owner_id: matchedProfile.id }).eq("id", restId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`اونر تبدیل → ${matchedProfile.full_name || matchedProfile.id.slice(0, 8)}`);
+    setEditingOwner(null);
+    setOwnerInput("");
     fetchRests();
   };
 
@@ -327,7 +366,7 @@ const RestaurantsTab = () => {
     const { error } = await supabase.from("restaurants").delete().eq("id", id);
     if (error) {
       if (error.code === "23503") {
-        toast.error("یہ ریسٹورنٹ حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز منسلک ہیں\nCannot delete: restaurant has linked orders");
+        toast.error("یہ ریسٹورنٹ حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز منسلک ہیں");
       } else {
         toast.error(error.message);
       }
@@ -349,9 +388,8 @@ const RestaurantsTab = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>نام</TableHead>
+                <TableHead>اونر</TableHead>
                 <TableHead>ریٹنگ</TableHead>
-                <TableHead>ڈلیوری</TableHead>
-                <TableHead>کمیشن</TableHead>
                 <TableHead>ایکٹو</TableHead>
                 <TableHead>ایکشنز</TableHead>
               </TableRow>
@@ -360,9 +398,23 @@ const RestaurantsTab = () => {
               {restaurants.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium">{r.name}</TableCell>
-                  <TableCell>{r.rating}</TableCell>
-                  <TableCell>{r.delivery_time}</TableCell>
-                  <TableCell>{r.commission_rate}%</TableCell>
+                  <TableCell>
+                    {editingOwner === r.id ? (
+                      <div className="flex items-center gap-1">
+                        <select className="border rounded p-1 bg-background text-foreground text-xs max-w-[140px]" value={ownerInput} onChange={(e) => setOwnerInput(e.target.value)}>
+                          <option value="">یوزر منتخب کریں</option>
+                          {allProfiles.map((p) => <option key={p.id} value={p.id}>{p.full_name || p.id.slice(0, 8)}</option>)}
+                        </select>
+                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => changeOwner(r.id)}><Check className="h-3 w-3" /></Button>
+                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setEditingOwner(null)}><X className="h-3 w-3" /></Button>
+                      </div>
+                    ) : (
+                      <span className="cursor-pointer hover:text-primary text-xs" onClick={() => { setEditingOwner(r.id); setOwnerInput(r.owner_id); }}>
+                        {getOwnerName(r.owner_id)} <Pencil className="inline h-3 w-3 ml-1 text-muted-foreground" />
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>⭐ {r.rating}</TableCell>
                   <TableCell>
                     <Badge className={r.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
                       {r.is_active ? "ایکٹو" : "غیر ایکٹو"}
@@ -370,7 +422,7 @@ const RestaurantsTab = () => {
                   </TableCell>
                   <TableCell className="flex gap-1">
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(r.id, r.is_active)}>
-                      {r.is_active ? "بند کریں" : "فعال کریں"}
+                      {r.is_active ? "بند" : "فعال"}
                     </Button>
                     <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
                       <Trash2 className="h-3 w-3" />
@@ -378,7 +430,7 @@ const RestaurantsTab = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {restaurants.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی ریسٹورنٹ نہیں</TableCell></TableRow>}
+              {restaurants.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">کوئی ریسٹورنٹ نہیں</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
