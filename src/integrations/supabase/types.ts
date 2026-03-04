@@ -97,6 +97,8 @@ export type Database = {
       }
       grocery_list_orders: {
         Row: {
+          alternatives_note: string | null
+          bill_image_url: string | null
           created_at: string
           customer_id: string
           delivery_address: string | null
@@ -111,6 +113,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          alternatives_note?: string | null
+          bill_image_url?: string | null
           created_at?: string
           customer_id: string
           delivery_address?: string | null
@@ -125,6 +129,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          alternatives_note?: string | null
+          bill_image_url?: string | null
           created_at?: string
           customer_id?: string
           delivery_address?: string | null

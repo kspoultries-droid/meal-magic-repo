@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Check, X, FileImage, MapPin, Clock } from "lucide-react";
+import { Check, X, FileImage, MapPin, Clock, Receipt, AlertTriangle, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 
 interface CustomerListOrdersProps {
@@ -50,6 +50,8 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
         const updated = payload.new as any;
         if (updated.customer_id !== user.id) return;
         fetchOrders();
+        // Also update selectedOrder if it's the same
+        setSelectedOrder((prev: any) => prev?.id === updated.id ? updated : prev);
         if (updated.status === 'quoted') {
           toast(`💰 دکاندار نے قیمت بتائی: Rs ${updated.total_amount}`, { duration: 6000 });
         } else if (updated.status === 'delivering') {
@@ -69,6 +71,18 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
     if (error) toast.error(error.message);
     else {
       toast.success(accept ? "آرڈر تصدیق ہو گیا! / Order confirmed!" : "آرڈر منسوخ / Order cancelled");
+      setSelectedOrder(null);
+      fetchOrders();
+    }
+  };
+
+  const confirmReceived = async (orderId: string) => {
+    const { error } = await supabase.from("grocery_list_orders")
+      .update({ status: "completed" })
+      .eq("id", orderId);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("✅ سامان مل گیا! شکریہ! / Order received! Thank you!");
       setSelectedOrder(null);
       fetchOrders();
     }
@@ -103,17 +117,37 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
       </div>
 
       <Dialog open={!!selectedOrder} onOpenChange={(v) => !v && setSelectedOrder(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>📋 آرڈر تفصیل</DialogTitle></DialogHeader>
           {selectedOrder && (
             <div className="space-y-3">
               <img src={selectedOrder.image_url} alt="List" className="w-full rounded-xl border max-h-52 object-contain bg-secondary" />
               <p className="text-sm flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedOrder.delivery_address}</p>
 
+              {/* Shopkeeper notes */}
               {selectedOrder.shopkeeper_notes && (
                 <p className="text-sm bg-accent/50 p-2 rounded-lg"><strong>دکاندار:</strong> {selectedOrder.shopkeeper_notes}</p>
               )}
 
+              {/* Alternatives note */}
+              {selectedOrder.alternatives_note && (
+                <div className="text-sm bg-orange-50 border border-orange-200 p-3 rounded-xl">
+                  <p className="font-bold flex items-center gap-1 text-orange-700 mb-1">
+                    <AlertTriangle className="w-4 h-4" /> 🔄 متبادل اشیاء / Alternatives:
+                  </p>
+                  <p className="text-orange-800">{selectedOrder.alternatives_note}</p>
+                </div>
+              )}
+
+              {/* Bill Image */}
+              {selectedOrder.bill_image_url && (
+                <div className="space-y-1">
+                  <p className="text-xs font-bold flex items-center gap-1"><Receipt className="w-3 h-3" /> 🧾 بل / Bill:</p>
+                  <img src={selectedOrder.bill_image_url} alt="Bill" className="w-full rounded-xl border max-h-48 object-contain bg-secondary" />
+                </div>
+              )}
+
+              {/* Quoted: Accept/Reject */}
               {selectedOrder.status === "quoted" && (
                 <div className="space-y-3">
                   <div className="text-center p-4 bg-primary/10 rounded-xl">
@@ -134,9 +168,20 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
               {selectedOrder.status === "confirmed" && (
                 <p className="text-center text-sm text-primary font-bold bg-primary/10 p-3 rounded-xl">✅ تصدیق ہو گئی — ڈلیوری جلد ہوگی</p>
               )}
+
+              {/* Delivering: Confirm Received */}
               {selectedOrder.status === "delivering" && (
-                <p className="text-center text-sm text-orange-600 font-bold bg-orange-50 p-3 rounded-xl">🚴 ڈلیوری جاری ہے / Delivery in progress</p>
+                <div className="space-y-2">
+                  <p className="text-center text-sm text-orange-600 font-bold bg-orange-50 p-3 rounded-xl">🚴 ڈلیوری جاری ہے / Delivery in progress</p>
+                  <Button
+                    className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                    onClick={() => confirmReceived(selectedOrder.id)}
+                  >
+                    <PackageCheck className="w-5 h-5" /> سامان مل گیا / Order Received ✅
+                  </Button>
+                </div>
               )}
+
               {selectedOrder.status === "completed" && (
                 <p className="text-center text-sm text-green-600 font-bold bg-green-50 p-3 rounded-xl">✅ مکمل ہو گیا / Completed</p>
               )}
