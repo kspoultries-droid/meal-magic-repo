@@ -147,12 +147,23 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
         })}
       </div>
 
-      {/* Hidden bill input */}
+      {/* Hidden bill inputs - camera & gallery */}
       <input
         ref={billInputRef}
         type="file"
         accept="image/*"
         capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && selectedOrder) uploadBill(selectedOrder.id, file);
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={galleryBillInputRef}
+        type="file"
+        accept="image/*"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
