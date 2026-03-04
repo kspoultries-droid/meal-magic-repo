@@ -1,15 +1,14 @@
-import { useState } from "react";
-import { UtensilsCrossed, Pizza, Sandwich, Coffee, IceCreamCone, Salad, Beef, Fish } from "lucide-react";
+import { UtensilsCrossed, Pizza, Sandwich, Coffee, IceCreamCone, Salad, Beef, Flame } from "lucide-react";
 
 const categories = [
   { name: "All", icon: UtensilsCrossed },
+  { name: "Biryani", icon: Flame },
   { name: "Pizza", icon: Pizza },
   { name: "Burgers", icon: Sandwich },
-  { name: "Sushi", icon: Fish },
+  { name: "BBQ", icon: Beef },
   { name: "Coffee", icon: Coffee },
   { name: "Desserts", icon: IceCreamCone },
   { name: "Healthy", icon: Salad },
-  { name: "Steak", icon: Beef },
 ];
 
 interface CategoryChipsProps {
