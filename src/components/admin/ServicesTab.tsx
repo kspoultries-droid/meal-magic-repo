@@ -352,6 +352,7 @@ const CategoriesSection = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editIcon, setEditIcon] = useState("");
   const [editColor, setEditColor] = useState("");
+  const [editName, setEditName] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -378,12 +379,28 @@ const CategoriesSection = () => {
     setEditingId(cat.id);
     setEditIcon(cat.icon);
     setEditColor(cat.color);
+    setEditName(cat.name);
   };
 
   const saveEdit = async (id: string) => {
-    await supabase.from("service_categories").update({ icon: editIcon, color: editColor }).eq("id", id);
-    toast.success("آئیکن/رنگ اپڈیٹ ہو گیا / Icon/color updated");
+    if (!editName.trim()) { toast.error("نام درکار ہے"); return; }
+    await supabase.from("service_categories").update({ icon: editIcon, color: editColor, name: editName.trim() }).eq("id", id);
+    toast.success("کیٹیگری اپڈیٹ ہو گئی / Category updated");
     setEditingId(null);
+    fetchData();
+  };
+
+  const moveCategory = async (id: string, direction: "up" | "down") => {
+    const idx = categories.findIndex(c => c.id === id);
+    if ((direction === "up" && idx === 0) || (direction === "down" && idx === categories.length - 1)) return;
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    const currentOrder = categories[idx].sort_order ?? idx;
+    const swapOrder = categories[swapIdx].sort_order ?? swapIdx;
+    await Promise.all([
+      supabase.from("service_categories").update({ sort_order: swapOrder }).eq("id", categories[idx].id),
+      supabase.from("service_categories").update({ sort_order: currentOrder }).eq("id", categories[swapIdx].id),
+    ]);
+    toast.success("ترتیب تبدیل ہو گئی / Order changed");
     fetchData();
   };
 
@@ -442,6 +459,7 @@ const CategoriesSection = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>ترتیب</TableHead>
                 <TableHead>نام / Name</TableHead>
                 <TableHead>آئیکن / Icon</TableHead>
                 <TableHead>رنگ / Color</TableHead>
@@ -452,7 +470,23 @@ const CategoriesSection = () => {
             <TableBody>
               {categories.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.name}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => moveCategory(c.id, "up")} disabled={categories.indexOf(c) === 0}>
+                        <ArrowUp className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => moveCategory(c.id, "down")} disabled={categories.indexOf(c) === categories.length - 1}>
+                        <ArrowDown className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {editingId === c.id ? (
+                      <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-7 text-sm w-32" />
+                    ) : (
+                      c.name
+                    )}
+                  </TableCell>
                   <TableCell>
                     {editingId === c.id ? (
                       <select className="border rounded p-1 text-xs bg-background text-foreground" value={editIcon} onChange={e => setEditIcon(e.target.value)}>
@@ -502,7 +536,7 @@ const CategoriesSection = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {categories.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">کوئی کیٹیگری نہیں / No categories</TableCell></TableRow>}
+              {categories.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی کیٹیگری نہیں / No categories</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
