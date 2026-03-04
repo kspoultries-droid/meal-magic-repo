@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileImage, Check, X, Clock, Loader2, MapPin } from "lucide-react";
+import { FileImage, Check, X, Clock, Loader2, MapPin, Camera, Receipt, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ShopkeeperListOrdersProps {
@@ -25,7 +26,10 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [quoteAmount, setQuoteAmount] = useState("");
   const [shopNotes, setShopNotes] = useState("");
+  const [alternativesNote, setAlternativesNote] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [uploadingBill, setUploadingBill] = useState(false);
+  const billInputRef = useRef<HTMLInputElement>(null);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -40,7 +44,6 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
 
   useEffect(() => {
     fetchOrders();
-    // Realtime subscription for new/updated orders
     const channel = supabase
       .channel(`list-orders-${storeId}`)
       .on('postgres_changes', {
@@ -71,6 +74,28 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
     setUpdating(false);
   };
 
+  const uploadBill = async (orderId: string, file: File) => {
+    setUploadingBill(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `bills/${orderId}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("product-images").upload(path, file);
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+      const { error: dbErr } = await supabase.from("grocery_list_orders")
+        .update({ bill_image_url: urlData.publicUrl } as any)
+        .eq("id", orderId);
+      if (dbErr) throw dbErr;
+      toast.success("🧾 بل اپلوڈ ہو گیا / Bill uploaded!");
+      fetchOrders();
+      // Update selected order locally
+      setSelectedOrder((prev: any) => prev ? { ...prev, bill_image_url: urlData.publicUrl } : null);
+    } catch (err: any) {
+      toast.error(err.message || "بل اپلوڈ ناکام");
+    }
+    setUploadingBill(false);
+  };
+
   const pendingCount = orders.filter(o => o.status === "pending").length;
 
   if (loading) return null;
@@ -96,7 +121,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
           return (
             <button
               key={order.id}
-              onClick={() => { setSelectedOrder(order); setQuoteAmount(String(order.total_amount || "")); setShopNotes(order.shopkeeper_notes || ""); }}
+              onClick={() => { setSelectedOrder(order); setQuoteAmount(String(order.total_amount || "")); setShopNotes(order.shopkeeper_notes || ""); setAlternativesNote(order.alternatives_note || ""); }}
               className="w-full flex items-center gap-3 p-3 bg-secondary rounded-xl text-left hover:bg-accent transition-colors"
             >
               <img src={order.image_url} alt="List" className="w-14 h-14 rounded-lg object-cover border" />
@@ -122,9 +147,23 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
         })}
       </div>
 
+      {/* Hidden bill input */}
+      <input
+        ref={billInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && selectedOrder) uploadBill(selectedOrder.id, file);
+          e.target.value = "";
+        }}
+      />
+
       {/* Order Detail Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={(v) => !v && setSelectedOrder(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>📋 آرڈر تفصیل / Order Detail</DialogTitle>
           </DialogHeader>
@@ -137,12 +176,32 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
               )}
               <p className="text-sm flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedOrder.delivery_address}</p>
 
+              {/* Bill Image Section */}
+              {selectedOrder.bill_image_url && (
+                <div className="space-y-1">
+                  <p className="text-xs font-bold flex items-center gap-1"><Receipt className="w-3 h-3" /> 🧾 بل / Bill:</p>
+                  <img src={selectedOrder.bill_image_url} alt="Bill" className="w-full rounded-xl border max-h-48 object-contain bg-secondary" />
+                </div>
+              )}
+
+              {/* Pending: Quote + Alternatives */}
               {selectedOrder.status === "pending" && (
                 <div className="space-y-2">
                   <Input type="number" placeholder="کل قیمت / Total Price (Rs)" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} />
                   <Input placeholder="دکاندار نوٹ / Your notes (optional)" value={shopNotes} onChange={(e) => setShopNotes(e.target.value)} />
+                  <Textarea
+                    placeholder="🔄 متبادل اشیاء / Alternatives (e.g. Sufi oil nahi hai, Dalda chalegi?)"
+                    value={alternativesNote}
+                    onChange={(e) => setAlternativesNote(e.target.value)}
+                    className="text-sm min-h-[60px]"
+                  />
                   <div className="flex gap-2">
-                    <Button disabled={updating || !quoteAmount} className="flex-1 gap-1" onClick={() => updateOrder(selectedOrder.id, { status: "quoted", total_amount: Number(quoteAmount), shopkeeper_notes: shopNotes || null })}>
+                    <Button disabled={updating || !quoteAmount} className="flex-1 gap-1" onClick={() => updateOrder(selectedOrder.id, {
+                      status: "quoted",
+                      total_amount: Number(quoteAmount),
+                      shopkeeper_notes: shopNotes || null,
+                      alternatives_note: alternativesNote || null,
+                    })}>
                       {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} قیمت بھیجیں / Quote
                     </Button>
                     <Button variant="destructive" disabled={updating} onClick={() => updateOrder(selectedOrder.id, { status: "cancelled" })}>
@@ -152,22 +211,48 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
                 </div>
               )}
 
+              {/* Confirmed: Upload bill + Start delivery */}
               {selectedOrder.status === "confirmed" && (
-                <Button className="w-full" disabled={updating} onClick={() => updateOrder(selectedOrder.id, { status: "delivering" })}>
-                  ڈلیوری شروع / Start Delivery
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2"
+                    disabled={uploadingBill}
+                    onClick={() => billInputRef.current?.click()}
+                  >
+                    {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    🧾 بل کی تصویر لگائیں / Upload Bill
+                  </Button>
+                  <Button className="w-full" disabled={updating} onClick={() => updateOrder(selectedOrder.id, { status: "delivering" })}>
+                    ڈلیوری شروع / Start Delivery
+                  </Button>
+                </div>
               )}
 
+              {/* Delivering: Upload bill (if not done) + Complete */}
               {selectedOrder.status === "delivering" && (
-                <Button className="w-full bg-green-600 hover:bg-green-700" disabled={updating} onClick={() => updateOrder(selectedOrder.id, { status: "completed" })}>
-                  مکمل / Complete
-                </Button>
+                <div className="space-y-2">
+                  {!selectedOrder.bill_image_url && (
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      disabled={uploadingBill}
+                      onClick={() => billInputRef.current?.click()}
+                    >
+                      {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                      🧾 بل لگائیں / Upload Bill
+                    </Button>
+                  )}
+                  <p className="text-xs text-center text-muted-foreground">⏳ کسٹمر سامان وصول کرے گا / Waiting for customer to confirm receipt</p>
+                </div>
               )}
 
-              {(selectedOrder.status === "quoted" || selectedOrder.status === "confirmed") && (
-                <p className="text-xs text-center text-muted-foreground">
-                  {selectedOrder.status === "quoted" ? "⏳ کسٹمر کی تصدیق کا انتظار / Waiting for customer confirmation" : "✅ کسٹمر نے تصدیق کر دی"}
-                </p>
+              {(selectedOrder.status === "quoted") && (
+                <p className="text-xs text-center text-muted-foreground">⏳ کسٹمر کی تصدیق کا انتظار / Waiting for customer confirmation</p>
+              )}
+
+              {selectedOrder.status === "completed" && (
+                <p className="text-center text-sm text-green-600 font-bold bg-green-50 p-3 rounded-xl">✅ مکمل ہو گیا / Completed</p>
               )}
             </div>
           )}
