@@ -8,6 +8,7 @@ import RestaurantGrid from "@/components/RestaurantGrid";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
+import AppShareButton from "@/components/AppShareButton";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,6 +36,7 @@ const Index = () => {
       <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} />
       <Footer />
       <CartDrawer />
+      <AppShareButton section="food" />
       <BottomTabBar />
     </div>
   );

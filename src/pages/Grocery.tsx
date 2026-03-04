@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import CartDrawer from "@/components/CartDrawer";
+import AppShareButton from "@/components/AppShareButton";
 
 const groceryCategories = [
   { name: "All", nameUr: "سب", icon: ShoppingBasket, filter: null },
@@ -133,6 +134,7 @@ const Grocery = () => {
       </div>
 
       <CartDrawer />
+      <AppShareButton section="grocery" />
       <BottomTabBar />
     </div>
   );
