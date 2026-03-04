@@ -14,8 +14,8 @@ import {
   Sparkles, Paintbrush, Hammer, ArrowLeft, Calendar, MapPin, CreditCard, Car
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
-} from "@/components/ui/dialog";
+  Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription
+} from "@/components/ui/drawer";
 import HelplineSection from "@/components/services/HelplineSection";
 import FeedbackDialog from "@/components/services/FeedbackDialog";
 import PromotionalAds from "@/components/PromotionalAds";
@@ -312,13 +312,14 @@ const Services = () => {
         onSuccess={fetchMyBookings}
       />
 
-      {/* Booking Dialog */}
-      <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)}>
-        <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-extrabold">Book Now / بکنگ کریں</DialogTitle>
-            <DialogDescription>{selectedService?.name}</DialogDescription>
-          </DialogHeader>
+      {/* Booking Drawer */}
+      <Drawer open={!!selectedService} onOpenChange={() => setSelectedService(null)}>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="text-lg font-extrabold">Book Now / بکنگ کریں</DrawerTitle>
+            <DrawerDescription>{selectedService?.name}</DrawerDescription>
+          </DrawerHeader>
+          <div className="overflow-y-auto px-4 pb-6">
 
           {selectedService && (
             <div className="space-y-4">
@@ -457,8 +458,9 @@ const Services = () => {
               </Button>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <CartDrawer />
       <AppShareButton section="services" />
