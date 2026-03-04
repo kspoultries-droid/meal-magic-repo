@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera } from "lucide-react";
+import { Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera, Share2 } from "lucide-react";
 import StoreBanner from "@/components/grocery/StoreBanner";
 import PhotoListOrder from "@/components/grocery/PhotoListOrder";
 import CustomerListOrders from "@/components/grocery/CustomerListOrders";
@@ -187,6 +187,24 @@ const StandaloneStore = () => {
         addProduct={addProduct}
         onNavigateBack={() => {}} // No back in standalone mode
       />
+
+      {/* WhatsApp Share Button for Owner */}
+      {isOwner && (
+        <div className="px-4 pt-3">
+          <Button
+            className="w-full h-10 text-sm font-bold gap-2"
+            style={{ backgroundColor: "#25D366" }}
+            onClick={() => {
+              const storeUrl = `${window.location.origin}/store/${slug}`;
+              const msg = `السلام علیکم! 🛒\nہماری دکان "${store.name}" پر آرڈر کریں:\n${storeUrl}`;
+              window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+            }}
+          >
+            <Share2 className="w-4 h-4" />
+            واٹس ایپ پر لنک شیئر کریں / Share on WhatsApp
+          </Button>
+        </div>
+      )}
 
       {/* Category Chips */}
       <div className="px-4 pt-3 pb-3 overflow-x-auto">
