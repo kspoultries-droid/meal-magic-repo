@@ -56,6 +56,19 @@ const GroceryTab = () => {
 
   useEffect(() => { fetchData(); }, [selectedStore, activeCategory]);
 
+  const moveStore = async (id: string, direction: "up" | "down") => {
+    const idx = stores.findIndex(s => s.id === id);
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= stores.length) return;
+    const currentOrder = stores[idx].sort_order ?? idx;
+    const swapOrder = stores[swapIdx].sort_order ?? swapIdx;
+    await Promise.all([
+      supabase.from("grocery_stores").update({ sort_order: swapOrder }).eq("id", stores[idx].id),
+      supabase.from("grocery_stores").update({ sort_order: currentOrder }).eq("id", stores[swapIdx].id),
+    ]);
+    fetchData();
+  };
+
   const toggleStoreActive = async (id: string, current: boolean) => {
     await supabase.from("grocery_stores").update({ is_active: !current }).eq("id", id);
     toast.success("اپڈیٹ ہو گیا / Updated");
