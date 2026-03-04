@@ -247,9 +247,11 @@ export type Database = {
           city_id: string | null
           created_at: string | null
           delivery_time: string | null
+          fee_paid_until: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
+          monthly_fee: number | null
           name: string
           name_color: string | null
           name_size: string | null
@@ -258,6 +260,8 @@ export type Database = {
           rating: number | null
           slug: string | null
           sort_order: number | null
+          subscription_status: string | null
+          warning_message: string | null
         }
         Insert: {
           banner_theme?: string | null
@@ -265,9 +269,11 @@ export type Database = {
           city_id?: string | null
           created_at?: string | null
           delivery_time?: string | null
+          fee_paid_until?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          monthly_fee?: number | null
           name: string
           name_color?: string | null
           name_size?: string | null
@@ -276,6 +282,8 @@ export type Database = {
           rating?: number | null
           slug?: string | null
           sort_order?: number | null
+          subscription_status?: string | null
+          warning_message?: string | null
         }
         Update: {
           banner_theme?: string | null
@@ -283,9 +291,11 @@ export type Database = {
           city_id?: string | null
           created_at?: string | null
           delivery_time?: string | null
+          fee_paid_until?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          monthly_fee?: number | null
           name?: string
           name_color?: string | null
           name_size?: string | null
@@ -294,6 +304,8 @@ export type Database = {
           rating?: number | null
           slug?: string | null
           sort_order?: number | null
+          subscription_status?: string | null
+          warning_message?: string | null
         }
         Relationships: [
           {

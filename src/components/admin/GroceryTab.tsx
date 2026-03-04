@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown, AlertTriangle, PauseCircle, PlayCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -193,12 +193,13 @@ const GroceryTab = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>تصویر / Image</TableHead>
-                  <TableHead>نام / Name</TableHead>
-                  <TableHead>کیٹیگری / Category</TableHead>
-                  <TableHead>ڈلیوری / Delivery</TableHead>
-                  <TableHead>ایکٹو / Active</TableHead>
-                  <TableHead>ایکشنز / Actions</TableHead>
+                  <TableHead>تصویر</TableHead>
+                  <TableHead>نام</TableHead>
+                  <TableHead>کیٹیگری</TableHead>
+                  <TableHead>فیس</TableHead>
+                  <TableHead>حالت</TableHead>
+                  <TableHead>ایکٹو</TableHead>
+                  <TableHead>ایکشنز</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -213,74 +214,96 @@ const GroceryTab = () => {
                       <div className="flex items-center gap-1">
                         <span>{s.name}</span>
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
-                          const newName = prompt("نیا نام / New Name:", s.name);
+                          const newName = prompt("نیا نام:", s.name);
                           if (newName && newName.trim()) {
-                            supabase.from("grocery_stores").update({ name: newName.trim() }).eq("id", s.id).then(() => { toast.success("نام اپڈیٹ / Name updated"); fetchData(); });
+                            supabase.from("grocery_stores").update({ name: newName.trim() }).eq("id", s.id).then(() => { toast.success("نام اپڈیٹ"); fetchData(); });
                           }
                         }}>
                           <Pencil className="h-3 w-3" />
                         </button>
                       </div>
+                      {s.slug && <p className="text-[10px] text-muted-foreground">/store/{s.slug}</p>}
                     </TableCell>
+                    <TableCell>{s.category}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <span>{s.category}</span>
+                        <span className="font-semibold text-sm">Rs {s.monthly_fee || 0}</span>
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
-                          const newCat = prompt("نئی کیٹیگری / New Category:\n" + GROCERY_CATEGORIES.join(", "), s.category);
-                          if (newCat && newCat.trim()) {
-                            supabase.from("grocery_stores").update({ category: newCat.trim() }).eq("id", s.id).then(() => { toast.success("کیٹیگری اپڈیٹ / Category updated"); fetchData(); });
+                          const fee = prompt("ماہانہ فیس سیٹ کریں (Rs):", String(s.monthly_fee || 0));
+                          if (fee !== null) {
+                            supabase.from("grocery_stores").update({ monthly_fee: Number(fee) || 0 }).eq("id", s.id).then(() => { toast.success("فیس اپڈیٹ"); fetchData(); });
                           }
                         }}>
                           <Pencil className="h-3 w-3" />
                         </button>
                       </div>
+                      {s.fee_paid_until && <p className="text-[10px] text-muted-foreground">تک: {s.fee_paid_until}</p>}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <span>{s.delivery_time}</span>
-                        <button className="text-muted-foreground hover:text-foreground" onClick={() => {
-                          const newTime = prompt("ڈلیوری ٹائم / Delivery Time:", s.delivery_time);
-                          if (newTime && newTime.trim()) {
-                            supabase.from("grocery_stores").update({ delivery_time: newTime.trim() }).eq("id", s.id).then(() => { toast.success("ڈلیوری ٹائم اپڈیٹ / Delivery time updated"); fetchData(); });
-                          }
-                        }}>
-                          <Pencil className="h-3 w-3" />
-                        </button>
-                      </div>
+                      <Badge className={
+                        s.subscription_status === 'active' ? "bg-success text-success-foreground" :
+                        s.subscription_status === 'warned' ? "bg-yellow-500 text-white" :
+                        "bg-destructive text-destructive-foreground"
+                      }>
+                        {s.subscription_status === 'active' ? '✅ فعال' : s.subscription_status === 'warned' ? '⚠️ وارننگ' : '⏸️ معطل'}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={s.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
-                        {s.is_active ? "ایکٹو" : "غیر ایکٹو"}
+                        {s.is_active ? "ایکٹو" : "بند"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="flex gap-1 flex-wrap">
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setSelectedStore(selectedStore === s.id ? null : s.id)}>
-                        <Eye className="h-3 w-3 mr-1" /> پروڈکٹس
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => {
-                        const url = prompt("بینر تصویر URL / Banner Image URL:", s.image_url || "");
-                        if (url !== null) {
-                          supabase.from("grocery_stores").update({ image_url: url || null }).eq("id", s.id).then(() => { toast.success("بینر اپڈیٹ / Banner updated"); fetchData(); });
-                        }
-                      }}>
-                        <ImageIcon className="h-3 w-3 mr-1" /> بینر
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleStoreActive(s.id, s.is_active)}>
-                        {s.is_active ? "بند / Off" : "فعال / On"}
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "up")} disabled={stores.indexOf(s) === 0}>
-                        <ArrowUp className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "down")} disabled={stores.indexOf(s) === stores.length - 1}>
-                        <ArrowDown className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteStore(s.id)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setSelectedStore(selectedStore === s.id ? null : s.id)}>
+                          <Eye className="h-3 w-3 mr-1" /> پروڈکٹس
+                        </Button>
+                        {/* Subscription Actions */}
+                        {s.subscription_status === 'active' && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs text-yellow-600 border-yellow-300" onClick={() => {
+                            const msg = prompt("وارننگ پیغام لکھیں:", "ادائیگی واجب الادا ہے۔ براہ کرم جلد ادائیگی کریں۔");
+                            if (msg !== null) {
+                              supabase.from("grocery_stores").update({ subscription_status: 'warned', warning_message: msg }).eq("id", s.id).then(() => { toast.success("وارننگ بھیج دی"); fetchData(); });
+                            }
+                          }}>
+                            <AlertTriangle className="h-3 w-3 mr-0.5" /> وارننگ
+                          </Button>
+                        )}
+                        {(s.subscription_status === 'active' || s.subscription_status === 'warned') && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive/30" onClick={() => {
+                            if (!window.confirm("کیا واقعی اسٹور معطل کرنا ہے؟ کسٹمرز کو نظر نہیں آئے گا۔")) return;
+                            supabase.from("grocery_stores").update({ subscription_status: 'paused' }).eq("id", s.id).then(() => { toast.success("اسٹور معطل ہو گیا"); fetchData(); });
+                          }}>
+                            <PauseCircle className="h-3 w-3 mr-0.5" /> Pause
+                          </Button>
+                        )}
+                        {(s.subscription_status === 'warned' || s.subscription_status === 'paused') && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs text-green-600 border-green-300" onClick={() => {
+                            const paidUntil = prompt("ادائیگی کب تک ہے؟ (YYYY-MM-DD):", new Date(Date.now() + 30*86400000).toISOString().split("T")[0]);
+                            if (paidUntil) {
+                              supabase.from("grocery_stores").update({ subscription_status: 'active', warning_message: null, fee_paid_until: paidUntil }).eq("id", s.id).then(() => { toast.success("اسٹور فعال ہو گیا"); fetchData(); });
+                            }
+                          }}>
+                            <PlayCircle className="h-3 w-3 mr-0.5" /> فعال
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleStoreActive(s.id, s.is_active)}>
+                          {s.is_active ? "بند" : "فعال"}
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "up")} disabled={stores.indexOf(s) === 0}>
+                          <ArrowUp className="h-3 w-3" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "down")} disabled={stores.indexOf(s) === stores.length - 1}>
+                          <ArrowDown className="h-3 w-3" />
+                        </Button>
+                        <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteStore(s.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
-                {stores.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی اسٹور نہیں / No stores</TableCell></TableRow>}
+                {stores.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">کوئی اسٹور نہیں</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}
