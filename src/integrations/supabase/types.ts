@@ -212,6 +212,7 @@ export type Database = {
       }
       grocery_stores: {
         Row: {
+          banner_theme: string | null
           category: string
           city_id: string | null
           created_at: string | null
@@ -220,11 +221,14 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           name: string
+          name_color: string | null
+          name_style: string | null
           owner_id: string
           rating: number | null
           sort_order: number | null
         }
         Insert: {
+          banner_theme?: string | null
           category?: string
           city_id?: string | null
           created_at?: string | null
@@ -233,11 +237,14 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name: string
+          name_color?: string | null
+          name_style?: string | null
           owner_id: string
           rating?: number | null
           sort_order?: number | null
         }
         Update: {
+          banner_theme?: string | null
           category?: string
           city_id?: string | null
           created_at?: string | null
@@ -246,6 +253,8 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name?: string
+          name_color?: string | null
+          name_style?: string | null
           owner_id?: string
           rating?: number | null
           sort_order?: number | null
