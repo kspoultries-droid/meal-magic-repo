@@ -242,12 +242,11 @@ const Services = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {services.map((service, index) => (
+            {services.map((service) => (
               <button
                 key={service.id}
                 onClick={() => service.is_active && setSelectedService(service)}
-                style={{ animationDelay: `${index * 60}ms` }}
-                className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in opacity-0 [animation-fill-mode:forwards] ${
+                className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
                   service.is_active 
                     ? "bg-card hover:shadow-md" 
                     : "bg-muted/50 opacity-75 cursor-default"
