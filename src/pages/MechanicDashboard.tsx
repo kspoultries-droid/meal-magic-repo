@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { LogOut, Wrench, Phone, MapPin, Clock, CheckCircle, RefreshCw, User } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
+import NewOrderBanner from "@/components/NewOrderBanner";
 
 const statusMap: Record<string, { label: string; color: string }> = {
   pending: { label: "نئی بکنگ", color: "bg-warning text-warning-foreground" },
@@ -25,6 +27,7 @@ const MechanicDashboard = () => {
   const [fetching, setFetching] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [customerProfile, setCustomerProfile] = useState<any>(null);
+  const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   useEffect(() => {
     if (!loading && (!user || (!isMechanic && !isAdmin))) navigate("/auth");
@@ -52,7 +55,10 @@ const MechanicDashboard = () => {
   useEffect(() => {
     const channel = supabase
       .channel("mechanic-bookings")
-      .on("postgres_changes", { event: "*", schema: "public", table: "service_bookings" }, () => fetchData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "service_bookings" }, (payload) => {
+        fetchData();
+        if (payload.eventType === 'INSERT') triggerAlert();
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
@@ -81,6 +87,7 @@ const MechanicDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نئی سروس بکنگ! / New service booking!" />
       <header className="border-b bg-card px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Wrench className="w-6 h-6 text-primary" />

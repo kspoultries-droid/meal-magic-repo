@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
+import NewOrderBanner from "@/components/NewOrderBanner";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -354,6 +356,7 @@ const OwnerOrdersTab = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -372,7 +375,12 @@ const OwnerOrdersTab = () => {
   useEffect(() => {
     const channel = supabase
       .channel("owner-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchOrders())
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
+        fetchOrders();
+        if (payload.eventType === 'INSERT') {
+          triggerAlert();
+        }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
@@ -390,6 +398,7 @@ const OwnerOrdersTab = () => {
 
   return (
     <Card>
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نیا فوڈ آرڈر! / New food order!" />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>آرڈرز</CardTitle>
         <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>

@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FileImage, Check, X, Clock, Loader2, MapPin, Camera, Receipt, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
+import NewOrderBanner from "@/components/NewOrderBanner";
 
 interface ShopkeeperListOrdersProps {
   storeId: string;
@@ -31,6 +33,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
   const [uploadingBill, setUploadingBill] = useState(false);
   const billInputRef = useRef<HTMLInputElement>(null);
   const galleryBillInputRef = useRef<HTMLInputElement>(null);
+  const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -56,6 +59,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
         fetchOrders();
         if (payload.eventType === 'INSERT') {
           toast("📸 نئی راشن لسٹ آئی! / New ration list received!", { duration: 5000 });
+          triggerAlert();
         } else if (payload.eventType === 'UPDATE') {
           const newStatus = (payload.new as any)?.status;
           if (newStatus === 'confirmed') {
@@ -103,7 +107,9 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
   if (orders.length === 0) return null;
 
   return (
-    <div className="bg-card rounded-2xl border p-4 mb-4">
+    <div className="bg-card rounded-2xl border overflow-hidden mb-4">
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نئی فوٹو لسٹ آئی! / New photo list!" />
+      <div className="p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold text-foreground flex items-center gap-2">
           <FileImage className="w-5 h-5 text-primary" />
@@ -307,6 +313,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
           )}
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 };
