@@ -216,7 +216,11 @@ const Services = () => {
                   onClick={() => setActiveCategory(cat.id)}
                   className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg border bg-card hover:shadow-sm transition-all"
                 >
-                  <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+              {cat.image_url ? (
+                    <img src={cat.image_url} alt={cat.name} className="w-5 h-5 object-cover rounded" />
+                  ) : (
+                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
                   <span className="text-[8px] font-semibold text-muted-foreground text-center leading-tight truncate w-full">{cat.name}</span>
                 </button>
               );
@@ -236,8 +240,12 @@ const Services = () => {
                     : "bg-card hover:shadow-md"
                 }`}
               >
-                <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center`}>
-                  <Icon className="w-4 h-4" />
+              <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center overflow-hidden`}>
+                  {cat.image_url ? (
+                    <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Icon className="w-4 h-4" />
+                  )}
                 </div>
                 <span className="text-[10px] font-bold text-foreground text-center leading-tight">{cat.name}</span>
               </button>
