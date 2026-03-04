@@ -242,6 +242,7 @@ export type Database = {
       }
       grocery_stores: {
         Row: {
+          advance_percent: number | null
           banner_theme: string | null
           category: string
           city_id: string | null
@@ -264,6 +265,7 @@ export type Database = {
           warning_message: string | null
         }
         Insert: {
+          advance_percent?: number | null
           banner_theme?: string | null
           category?: string
           city_id?: string | null
@@ -286,6 +288,7 @@ export type Database = {
           warning_message?: string | null
         }
         Update: {
+          advance_percent?: number | null
           banner_theme?: string | null
           category?: string
           city_id?: string | null

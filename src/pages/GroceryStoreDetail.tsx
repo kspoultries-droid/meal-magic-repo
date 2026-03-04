@@ -327,7 +327,7 @@ const GroceryStoreDetail = () => {
               <ShopkeeperListOrders storeId={id!} />
             ) : (
               <div className="space-y-2">
-                <PhotoListOrder storeId={id!} storeName={store.name} />
+                <PhotoListOrder storeId={id!} storeName={store.name} advancePercent={store.advance_percent || 0} />
                 <CustomerListOrders storeId={id!} />
               </div>
             )}

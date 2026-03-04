@@ -1,4 +1,4 @@
-import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link } from "lucide-react";
+import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link, Share2, Copy, Download, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -299,6 +299,27 @@ const StoreBanner = ({
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Share Buttons */}
+            {store.slug && (
+              <div className="flex items-center gap-1.5">
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => {
+                  const storeUrl = `${window.location.origin}/store/${store.slug}`;
+                  const appUrl = `${window.location.origin}/install`;
+                  const msg = `🛒 *${store.name}* پر آرڈر کریں!\n\n📱 اسٹور لنک:\n${storeUrl}\n\n📥 ایپ ڈاؤنلوڈ کریں:\n${appUrl}`;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                }}>
+                  <MessageCircle className="h-3 w-3" /> واٹس ایپ
+                </Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => {
+                  const storeUrl = `${window.location.origin}/store/${store.slug}`;
+                  navigator.clipboard.writeText(storeUrl);
+                  toast.success("لنک کاپی ہو گیا / Link copied!");
+                }}>
+                  <Copy className="h-3 w-3" /> لنک کاپی
+                </Button>
+              </div>
+            )}
 
             {/* Add Product */}
             <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
