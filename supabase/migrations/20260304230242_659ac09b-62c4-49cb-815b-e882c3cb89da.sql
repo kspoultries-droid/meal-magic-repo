@@ -1,0 +1,4 @@
+UPDATE service_categories SET image_url = 'https://wczrhmqmpnpwsxhpjhev.supabase.co/storage/v1/object/public/service-icons/mistri-mazdoor.png' WHERE id = '3b4a7c7d-d557-4f14-911a-d73c3cec03d3';
+UPDATE service_categories SET image_url = 'https://wczrhmqmpnpwsxhpjhev.supabase.co/storage/v1/object/public/service-icons/mistri-mazdoor.png' WHERE id = 'd992e0ac-33b9-4310-982c-96d12eababc3';
+UPDATE service_categories SET image_url = 'https://wczrhmqmpnpwsxhpjhev.supabase.co/storage/v1/object/public/service-icons/ac-repair.png' WHERE id = 'b0385942-036a-47b5-9a28-78cece39f126';
+UPDATE service_categories SET image_url = 'https://wczrhmqmpnpwsxhpjhev.supabase.co/storage/v1/object/public/service-icons/water-supply.png' WHERE id = 'f9c11262-152d-4ab8-a38f-673e3aaa977d';
