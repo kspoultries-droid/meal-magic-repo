@@ -42,21 +42,23 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
     const channel = supabase
       .channel(`customer-list-${storeId}-${user.id}`)
       .on('postgres_changes', {
-        event: 'UPDATE',
+        event: '*',
         schema: 'public',
         table: 'grocery_list_orders',
         filter: `store_id=eq.${storeId}`,
       }, (payload) => {
-        const updated = payload.new as any;
-        if (updated.customer_id !== user.id) return;
+        const record = (payload.new as any);
+        if (record?.customer_id !== user.id) return;
         fetchOrders();
         // Also update selectedOrder if it's the same
-        setSelectedOrder((prev: any) => prev?.id === updated.id ? updated : prev);
-        if (updated.status === 'quoted') {
-          toast(`💰 دکاندار نے قیمت بتائی: Rs ${updated.total_amount}`, { duration: 6000 });
-        } else if (updated.status === 'delivering') {
+        if (payload.eventType === 'UPDATE') {
+          setSelectedOrder((prev: any) => prev?.id === record.id ? record : prev);
+        }
+        if (record.status === 'quoted') {
+          toast(`💰 دکاندار نے قیمت بتائی: Rs ${record.total_amount}`, { duration: 6000 });
+        } else if (record.status === 'delivering') {
           toast.success("🚴 ڈلیوری شروع ہو گئی! / Delivery started!");
-        } else if (updated.status === 'completed') {
+        } else if (record.status === 'completed') {
           toast.success("✅ آرڈر مکمل! / Order completed!");
         }
       })
