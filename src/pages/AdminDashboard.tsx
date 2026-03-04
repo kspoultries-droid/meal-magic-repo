@@ -69,13 +69,19 @@ const AdminDashboard = () => {
   );
 };
 
+// Primary app owner ID - hardcoded for UI protection
+const APP_OWNER_ID = "52634431-32e8-4bd7-b171-d92c2add25ff";
+
 // ─── Users / Roles ──────────────────────────────
 const UsersTab = () => {
+  const { user } = useAuth();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [roleEmail, setRoleEmail] = useState("");
   const [roleType, setRoleType] = useState("restaurant_owner");
+
+  const isAppOwner = user?.id === APP_OWNER_ID;
 
   const fetchData = async () => {
     setLoading(true);
@@ -100,6 +106,12 @@ const UsersTab = () => {
     const existingRoles = getUserRoles(matchedProfile.id);
     if (existingRoles.includes(roleType)) { toast.error("یہ رول پہلے سے موجود ہے"); return; }
 
+    // Secondary admins can't assign admin role
+    if (roleType === "admin" && !isAppOwner) {
+      toast.error("صرف ایپ اونر ہی ایڈمن رول دے سکتا ہے");
+      return;
+    }
+
     const { error } = await supabase.from("user_roles").insert({ user_id: matchedProfile.id, role: roleType as any });
     if (error) { toast.error(error.message); return; }
 
@@ -123,7 +135,21 @@ const UsersTab = () => {
   };
 
   const removeRole = async (userId: string, role: string) => {
-    await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
+    // Double protection: prevent removing admin from app owner in UI
+    if (userId === APP_OWNER_ID && role === "admin") {
+      toast.error("🔒 ایپ اونر کا ایڈمن رول کبھی نہیں ہٹایا جا سکتا!");
+      return;
+    }
+    // Secondary admins can't remove admin role from anyone
+    if (role === "admin" && !isAppOwner) {
+      toast.error("صرف ایپ اونر ہی ایڈمن رول ہٹا سکتا ہے");
+      return;
+    }
+    const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("رول ہٹا دیا گیا");
     fetchData();
   };
@@ -132,6 +158,9 @@ const UsersTab = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5" /> یوزرز اور رولز</CardTitle>
+        {isAppOwner && (
+          <p className="text-xs text-muted-foreground mt-1">👑 آپ ایپ اونر ہیں — آپ کا ایڈمن رول مستقل محفوظ ہے</p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2 flex-wrap">
@@ -141,7 +170,7 @@ const UsersTab = () => {
             <option value="rider">Rider</option>
             <option value="mechanic">Mechanic</option>
             <option value="support">Support</option>
-            <option value="admin">Admin</option>
+            {isAppOwner && <option value="admin">Admin</option>}
           </select>
           <Button onClick={addRole}><Plus className="h-4 w-4 mr-1" /> رول دیں</Button>
           <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className="h-4 w-4" /></Button>
@@ -161,23 +190,47 @@ const UsersTab = () => {
             <TableBody>
               {profiles.map((p) => {
                 const userRoles = getUserRoles(p.id);
+                const isOwner = p.id === APP_OWNER_ID;
                 return (
-                  <TableRow key={p.id}>
+                  <TableRow key={p.id} className={isOwner ? "bg-primary/5" : ""}>
                     <TableCell className="font-mono text-xs">{p.id.slice(0, 8)}</TableCell>
-                    <TableCell>{p.full_name || "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {p.full_name || "—"}
+                        {isOwner && <span title="App Owner">👑</span>}
+                      </div>
+                    </TableCell>
                     <TableCell>{p.phone || "—"}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
-                        {userRoles.map((r) => <Badge key={r} variant="outline" className="text-xs">{r}</Badge>)}
+                        {userRoles.map((r) => (
+                          <Badge key={r} variant="outline" className={`text-xs ${isOwner && r === "admin" ? "border-primary bg-primary/10 font-bold" : ""}`}>
+                            {isOwner && r === "admin" ? "🔒 " : ""}{r}
+                          </Badge>
+                        ))}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
-                        {userRoles.filter((r) => r !== "customer").map((r) => (
-                          <Button key={r} size="sm" variant="destructive" className="h-6 text-xs px-2" onClick={() => removeRole(p.id, r)}>
-                            {r} ❌
-                          </Button>
-                        ))}
+                        {userRoles.filter((r) => r !== "customer").map((r) => {
+                          // Don't show delete button for app owner's admin role
+                          if (isOwner && r === "admin") return (
+                            <Badge key={r} className="h-6 text-xs px-2 bg-primary/20 text-primary border border-primary/30">
+                              🔒 محفوظ
+                            </Badge>
+                          );
+                          // Secondary admins can't remove admin roles
+                          if (r === "admin" && !isAppOwner) return (
+                            <Badge key={r} className="h-6 text-xs px-2 bg-muted text-muted-foreground">
+                              admin 🔒
+                            </Badge>
+                          );
+                          return (
+                            <Button key={r} size="sm" variant="destructive" className="h-6 text-xs px-2" onClick={() => removeRole(p.id, r)}>
+                              {r} ❌
+                            </Button>
+                          );
+                        })}
                         {/* Quick role buttons */}
                         {!userRoles.includes("restaurant_owner") && (
                           <Button size="sm" variant="outline" className="h-6 text-xs px-2" onClick={() => quickAddRole(p.id, "restaurant_owner")}>
