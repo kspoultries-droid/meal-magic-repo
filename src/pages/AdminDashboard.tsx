@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage } from "lucide-react";
+import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import GroceryTab from "@/components/admin/GroceryTab";
 import ServicesTab from "@/components/admin/ServicesTab";
@@ -462,6 +462,8 @@ const CitiesTab = () => {
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [newFee, setNewFee] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editFee, setEditFee] = useState("");
 
   const fetchCities = async () => {
     setLoading(true);
@@ -482,12 +484,27 @@ const CitiesTab = () => {
     fetchCities();
   };
 
+  const updateFee = async (id: string) => {
+    const fee = Number(editFee);
+    if (isNaN(fee) || fee < 0) { toast.error("درست فیس درج کریں"); return; }
+    const { error } = await supabase.from("cities").update({ delivery_fee: fee }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("ڈلیوری فیس اپڈیٹ ہو گئی ✅");
+    setEditingId(null);
+    fetchCities();
+  };
+
+  const startEdit = (city: any) => {
+    setEditingId(city.id);
+    setEditFee(String(city.delivery_fee || 0));
+  };
+
   const deleteCity = async (id: string) => {
     if (!window.confirm("کیا آپ واقعی یہ شہر حذف کرنا چاہتے ہیں؟")) return;
     const { error } = await supabase.from("cities").delete().eq("id", id);
     if (error) {
       if (error.code === "23503") {
-        toast.error("یہ شہر حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز یا ریسٹورنٹس منسلک ہیں\nCannot delete: city has linked orders/restaurants");
+        toast.error("یہ شہر حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز یا ریسٹورنٹس منسلک ہیں");
       } else {
         toast.error(error.message);
       }
@@ -521,7 +538,30 @@ const CitiesTab = () => {
               {cities.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>{c.name}</TableCell>
-                  <TableCell>Rs {c.delivery_fee}</TableCell>
+                  <TableCell>
+                    {editingId === c.id ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          value={editFee}
+                          onChange={(e) => setEditFee(e.target.value)}
+                          className="h-7 w-24 text-sm"
+                          autoFocus
+                          onKeyDown={(e) => e.key === "Enter" && updateFee(c.id)}
+                        />
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => updateFee(c.id)}>
+                          <Check className="h-3 w-3 text-green-600" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingId(null)}>
+                          <X className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="cursor-pointer hover:text-primary" onClick={() => startEdit(c)}>
+                        Rs {c.delivery_fee} <Pencil className="inline h-3 w-3 ml-1 text-muted-foreground" />
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteCity(c.id)}>
                       <Trash2 className="h-3 w-3" />
