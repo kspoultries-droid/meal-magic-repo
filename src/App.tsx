@@ -25,6 +25,7 @@ import Services from "./pages/Services";
 import Wallet from "./pages/Wallet";
 import SupportDashboard from "./pages/SupportDashboard";
 import MechanicDashboard from "./pages/MechanicDashboard";
+import StandaloneStore from "./pages/StandaloneStore";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
                 <Route path="/wallet" element={<Wallet />} />
                 <Route path="/support-dashboard" element={<SupportDashboard />} />
                 <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+                <Route path="/store/:slug" element={<StandaloneStore />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
