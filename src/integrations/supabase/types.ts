@@ -246,6 +246,7 @@ export type Database = {
           banner_theme: string | null
           category: string
           city_id: string | null
+          closing_time: string | null
           created_at: string | null
           delivery_time: string | null
           fee_paid_until: string | null
@@ -258,6 +259,7 @@ export type Database = {
           name_color: string | null
           name_size: string | null
           name_style: string | null
+          opening_time: string | null
           owner_id: string
           rating: number | null
           slug: string | null
@@ -270,6 +272,7 @@ export type Database = {
           banner_theme?: string | null
           category?: string
           city_id?: string | null
+          closing_time?: string | null
           created_at?: string | null
           delivery_time?: string | null
           fee_paid_until?: string | null
@@ -282,6 +285,7 @@ export type Database = {
           name_color?: string | null
           name_size?: string | null
           name_style?: string | null
+          opening_time?: string | null
           owner_id: string
           rating?: number | null
           slug?: string | null
@@ -294,6 +298,7 @@ export type Database = {
           banner_theme?: string | null
           category?: string
           city_id?: string | null
+          closing_time?: string | null
           created_at?: string | null
           delivery_time?: string | null
           fee_paid_until?: string | null
@@ -306,6 +311,7 @@ export type Database = {
           name_color?: string | null
           name_size?: string | null
           name_style?: string | null
+          opening_time?: string | null
           owner_id?: string
           rating?: number | null
           slug?: string | null
@@ -677,6 +683,7 @@ export type Database = {
       restaurants: {
         Row: {
           city_id: string
+          closing_time: string | null
           commission_rate: number | null
           created_at: string | null
           cuisines: string[] | null
@@ -686,12 +693,14 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           name: string
+          opening_time: string | null
           owner_id: string
           rating: number | null
           updated_at: string | null
         }
         Insert: {
           city_id: string
+          closing_time?: string | null
           commission_rate?: number | null
           created_at?: string | null
           cuisines?: string[] | null
@@ -701,12 +710,14 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name: string
+          opening_time?: string | null
           owner_id: string
           rating?: number | null
           updated_at?: string | null
         }
         Update: {
           city_id?: string
+          closing_time?: string | null
           commission_rate?: number | null
           created_at?: string | null
           cuisines?: string[] | null
@@ -716,6 +727,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name?: string
+          opening_time?: string | null
           owner_id?: string
           rating?: number | null
           updated_at?: string | null

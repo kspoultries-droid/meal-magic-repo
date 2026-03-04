@@ -158,13 +158,51 @@ const MyRestaurantTab = () => {
                 <div className="flex-1">
                   <h3 className="font-bold text-foreground">{r.name}</h3>
                   <p className="text-sm text-muted-foreground">{r.description}</p>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-2 flex-wrap">
                     <Badge className={r.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
                       {r.is_active ? "ایکٹو" : "غیر ایکٹو"}
                     </Badge>
                     <Badge variant="outline">⭐ {r.rating}</Badge>
                     <Badge variant="outline">{r.delivery_time}</Badge>
                   </div>
+
+                  {/* Timing & Open/Close Toggle */}
+                  <div className="mt-2 flex items-center gap-2 flex-wrap bg-secondary/50 rounded-lg px-3 py-2">
+                    <span className="text-xs font-bold text-muted-foreground">🕐</span>
+                    <input
+                      type="time"
+                      className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
+                      defaultValue={(r as any).opening_time || "08:00"}
+                      onChange={async (e) => {
+                        await supabase.from("restaurants").update({ opening_time: e.target.value } as any).eq("id", r.id);
+                        toast.success("ٹائمنگ اپڈیٹ"); fetchAll();
+                      }}
+                    />
+                    <span className="text-xs text-muted-foreground">سے</span>
+                    <input
+                      type="time"
+                      className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
+                      defaultValue={(r as any).closing_time || "22:00"}
+                      onChange={async (e) => {
+                        await supabase.from("restaurants").update({ closing_time: e.target.value } as any).eq("id", r.id);
+                        toast.success("ٹائمنگ اپڈیٹ"); fetchAll();
+                      }}
+                    />
+                    <button
+                      onClick={async () => {
+                        await supabase.from("restaurants").update({ is_active: !r.is_active }).eq("id", r.id);
+                        toast.success(r.is_active ? "بند ہو گیا" : "کھل گیا"); fetchAll();
+                      }}
+                      className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
+                        r.is_active
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                      }`}
+                    >
+                      {r.is_active ? "🟢 کھلا / Open" : "🔴 بند / Closed"}
+                    </button>
+                  </div>
+
                   <Button size="sm" variant="destructive" className="mt-2 h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
                     <Trash2 className="h-3 w-3 mr-1" /> حذف کریں
                   </Button>

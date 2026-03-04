@@ -181,6 +181,61 @@ const StoreBanner = ({
           </span>
         </div>
 
+        {/* Shop Timing & Open/Close Toggle for Owner */}
+        {isOwner && (
+          <div className="mt-2 flex items-center gap-3 flex-wrap bg-secondary/50 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-muted-foreground">🕐 ٹائمنگ:</span>
+              <input
+                type="time"
+                className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
+                defaultValue={(store as any).opening_time || "08:00"}
+                onChange={async (e) => {
+                  await updateStore({ opening_time: e.target.value } as any);
+                }}
+              />
+              <span className="text-xs text-muted-foreground">سے</span>
+              <input
+                type="time"
+                className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
+                defaultValue={(store as any).closing_time || "22:00"}
+                onChange={async (e) => {
+                  await updateStore({ closing_time: e.target.value } as any);
+                }}
+              />
+            </div>
+            <button
+              onClick={() => updateStore({ is_active: !store.is_active })}
+              className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
+                store.is_active
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+              }`}
+            >
+              {store.is_active ? "🟢 کھلی ہے / Open" : "🔴 بند ہے / Closed"}
+            </button>
+          </div>
+        )}
+
+        {/* Show closed notice to customers */}
+        {!isOwner && !store.is_active && (
+          <div className="mt-2 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-bold px-3 py-2 rounded-lg text-center">
+            🔴 دکان ابھی بند ہے / Shop is currently closed
+            {(store as any).opening_time && (store as any).closing_time && (
+              <span className="block mt-0.5 font-normal">
+                ٹائمنگ: {(store as any).opening_time} - {(store as any).closing_time}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Show timing to customers when open */}
+        {!isOwner && store.is_active && (store as any).opening_time && (store as any).closing_time && (
+          <p className="text-[11px] text-muted-foreground mt-1">
+            🕐 ٹائمنگ: {(store as any).opening_time} - {(store as any).closing_time}
+          </p>
+        )}
+
         {isOwner && (
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-bold">👑 آپ کی دکان</span>
