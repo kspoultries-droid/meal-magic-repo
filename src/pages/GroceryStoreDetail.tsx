@@ -11,6 +11,7 @@ import ShopkeeperListOrders from "@/components/grocery/ShopkeeperListOrders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
 import { toast } from "sonner";
@@ -189,142 +190,149 @@ const GroceryStoreDetail = () => {
         </div>
       </div>
 
-      {/* Products Grid */}
-      {/* Photo List Order Section */}
-      <div className="container mx-auto px-4 pb-2">
-        {isOwner ? (
-          <ShopkeeperListOrders storeId={id!} />
-        ) : (
-          <div className="space-y-2">
-            <PhotoListOrder storeId={id!} storeName={store.name} />
-            <CustomerListOrders storeId={id!} />
-          </div>
-        )}
-      </div>
-
+      {/* Tabs: Products & Orders */}
       <div className="container mx-auto px-4 pb-6">
-        {filtered.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">اس کیٹیگری میں کوئی پروڈکٹ نہیں</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {filtered.map((product) => {
-              const qty = getCartQty(product.id);
-              const isEditing = editingId === product.id;
-              return (
-                <div key={product.id} className={`bg-card rounded-2xl border overflow-hidden relative ${!product.is_available && isOwner ? 'opacity-60' : ''}`}>
-                  {product.is_special_offer && product.discount_price && product.price > product.discount_price && (
-                    <div className="absolute top-2 left-2 z-10 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                      <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}% آفر
-                    </div>
-                  )}
-                  {isOwner && !product.is_available && (
-                    <div className="absolute top-2 right-2 z-10 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      غیر فعال / Hidden
-                    </div>
-                  )}
-                  <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative">
-                    {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
-                    )}
-                    {isOwner && (
-                      <div className="absolute bottom-1 right-1 flex gap-1">
-                        <label className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md" title="کیمرہ / Camera">
-                          <Camera className="w-3.5 h-3.5" />
-                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) uploadProductImage(product.id, file);
-                          }} />
-                        </label>
-                        <label className="w-7 h-7 rounded-full bg-accent text-foreground flex items-center justify-center cursor-pointer shadow-md" title="گیلری / Gallery">
-                          <Plus className="w-3.5 h-3.5" />
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) uploadProductImage(product.id, file);
-                          }} />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
-                    {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
+        <Tabs defaultValue="products" className="w-full">
+          <TabsList className="w-full mb-3">
+            <TabsTrigger value="products" className="flex-1">🛒 پروڈکٹس</TabsTrigger>
+            <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
+          </TabsList>
 
-                    {/* Price Edit Mode for Owner */}
-                    {isEditing ? (
-                      <div className="mt-2 space-y-1.5">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-muted-foreground w-12">قیمت:</span>
-                          <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="h-7 text-xs" />
+          <TabsContent value="products">
+            {filtered.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">اس کیٹیگری میں کوئی پروڈکٹ نہیں</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {filtered.map((product) => {
+                  const qty = getCartQty(product.id);
+                  const isEditing = editingId === product.id;
+                  return (
+                    <div key={product.id} className={`bg-card rounded-2xl border overflow-hidden relative ${!product.is_available && isOwner ? 'opacity-60' : ''}`}>
+                      {product.is_special_offer && product.discount_price && product.price > product.discount_price && (
+                        <div className="absolute top-2 left-2 z-10 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                          <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}% آفر
                         </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-muted-foreground w-12">ڈسکاؤنٹ:</span>
-                          <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder="خالی = بغیر ڈسکاؤنٹ" className="h-7 text-xs" />
+                      )}
+                      {isOwner && !product.is_available && (
+                        <div className="absolute top-2 right-2 z-10 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          غیر فعال / Hidden
                         </div>
-                        <div className="flex gap-1">
-                          <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
-                            <Check className="w-3 h-3 mr-0.5" /> محفوظ / Save
-                          </Button>
-                          <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setEditingId(null)}>
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between mt-2">
-                        <div>
-                          {product.discount_price ? (
-                            <>
-                              <span className="text-sm font-extrabold text-destructive">Rs {product.discount_price}</span>
-                              <span className="text-xs text-muted-foreground line-through ml-1">Rs {product.price}</span>
-                            </>
-                          ) : (
-                            <span className="text-sm font-extrabold text-primary">Rs {product.price}</span>
-                          )}
-                          {product.unit && <span className="text-xs text-muted-foreground">/{product.unit}</span>}
-                        </div>
-                        {isOwner ? (
-                          <div className="flex gap-0.5 flex-wrap">
-                            <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "up")} title="اوپر / Move Up">
-                              <ArrowUp className="w-3 h-3 text-foreground" />
-                            </button>
-                            <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "down")} title="نیچے / Move Down">
-                              <ArrowDown className="w-3 h-3 text-foreground" />
-                            </button>
-                            <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => startEdit(product)}>
-                              <Pencil className="w-3 h-3 text-foreground" />
-                            </button>
-                            <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => toggleAvailable(product.id, product.is_available)}>
-                              {product.is_available ? <X className="w-3 h-3 text-destructive" /> : <Check className="w-3 h-3 text-primary" />}
-                            </button>
-                            <button className="w-7 h-7 rounded-full bg-destructive/10 flex items-center justify-center" onClick={() => deleteProduct(product.id)}>
-                              <Trash2 className="w-3 h-3 text-destructive" />
-                            </button>
-                          </div>
-                        ) : qty === 0 ? (
-                          <Button size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => handleAdd(product)}>
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                      )}
+                      <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative">
+                        {product.image_url ? (
+                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="flex items-center gap-1">
-                            <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center" onClick={() => updateQuantity(product.id, qty - 1)}>
-                              <Minus className="w-3 h-3" />
-                            </button>
-                            <span className="text-sm font-bold w-5 text-center">{qty}</span>
-                            <button className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center" onClick={() => handleAdd(product)}>
-                              <Plus className="w-3 h-3" />
-                            </button>
+                          <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
+                        )}
+                        {isOwner && (
+                          <div className="absolute bottom-1 right-1 flex gap-1">
+                            <label className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md" title="کیمرہ / Camera">
+                              <Camera className="w-3.5 h-3.5" />
+                              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) uploadProductImage(product.id, file);
+                              }} />
+                            </label>
+                            <label className="w-7 h-7 rounded-full bg-accent text-foreground flex items-center justify-center cursor-pointer shadow-md" title="گیلری / Gallery">
+                              <Plus className="w-3.5 h-3.5" />
+                              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) uploadProductImage(product.id, file);
+                              }} />
+                            </label>
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                      <div className="p-3">
+                        <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
+                        {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
+
+                        {isEditing ? (
+                          <div className="mt-2 space-y-1.5">
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-muted-foreground w-12">قیمت:</span>
+                              <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="h-7 text-xs" />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-muted-foreground w-12">ڈسکاؤنٹ:</span>
+                              <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder="خالی = بغیر ڈسکاؤنٹ" className="h-7 text-xs" />
+                            </div>
+                            <div className="flex gap-1">
+                              <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
+                                <Check className="w-3 h-3 mr-0.5" /> محفوظ / Save
+                              </Button>
+                              <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setEditingId(null)}>
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between mt-2">
+                            <div>
+                              {product.discount_price ? (
+                                <>
+                                  <span className="text-sm font-extrabold text-destructive">Rs {product.discount_price}</span>
+                                  <span className="text-xs text-muted-foreground line-through ml-1">Rs {product.price}</span>
+                                </>
+                              ) : (
+                                <span className="text-sm font-extrabold text-primary">Rs {product.price}</span>
+                              )}
+                              {product.unit && <span className="text-xs text-muted-foreground">/{product.unit}</span>}
+                            </div>
+                            {isOwner ? (
+                              <div className="flex gap-0.5 flex-wrap">
+                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "up")} title="اوپر / Move Up">
+                                  <ArrowUp className="w-3 h-3 text-foreground" />
+                                </button>
+                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "down")} title="نیچے / Move Down">
+                                  <ArrowDown className="w-3 h-3 text-foreground" />
+                                </button>
+                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => startEdit(product)}>
+                                  <Pencil className="w-3 h-3 text-foreground" />
+                                </button>
+                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => toggleAvailable(product.id, product.is_available)}>
+                                  {product.is_available ? <X className="w-3 h-3 text-destructive" /> : <Check className="w-3 h-3 text-primary" />}
+                                </button>
+                                <button className="w-7 h-7 rounded-full bg-destructive/10 flex items-center justify-center" onClick={() => deleteProduct(product.id)}>
+                                  <Trash2 className="w-3 h-3 text-destructive" />
+                                </button>
+                              </div>
+                            ) : qty === 0 ? (
+                              <Button size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => handleAdd(product)}>
+                                <Plus className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center" onClick={() => updateQuantity(product.id, qty - 1)}>
+                                  <Minus className="w-3 h-3" />
+                                </button>
+                                <span className="text-sm font-bold w-5 text-center">{qty}</span>
+                                <button className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center" onClick={() => handleAdd(product)}>
+                                  <Plus className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="orders">
+            {isOwner ? (
+              <ShopkeeperListOrders storeId={id!} />
+            ) : (
+              <div className="space-y-2">
+                <PhotoListOrder storeId={id!} storeName={store.name} />
+                <CustomerListOrders storeId={id!} />
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <CartDrawer />
