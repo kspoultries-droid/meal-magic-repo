@@ -93,26 +93,23 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
   if (orders.length === 0) return null;
 
   return (
-    <div className="bg-card rounded-2xl border p-4 mb-4">
-      <h3 className="font-bold text-foreground flex items-center gap-2 mb-3">
-        <FileImage className="w-5 h-5 text-primary" />
-        📋 میری فوٹو لسٹ آرڈرز / My Photo Orders
+    <div className="bg-card rounded-xl border p-3 mb-3">
+      <h3 className="font-bold text-foreground flex items-center gap-2 mb-2 text-sm">
+        <FileImage className="w-4 h-4 text-primary" />
+        📋 فوٹو آرڈرز ({orders.length})
       </h3>
-      <div className="space-y-2">
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {orders.map((order) => {
           const status = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
           return (
             <button
               key={order.id}
               onClick={() => setSelectedOrder(order)}
-              className="w-full flex items-center gap-3 p-3 bg-secondary rounded-xl text-left hover:bg-accent transition-colors"
+              className="flex flex-col items-center gap-1 p-2 bg-secondary rounded-xl hover:bg-accent transition-colors shrink-0 min-w-[80px]"
             >
-              <img src={order.image_url} alt="List" className="w-12 h-12 rounded-lg object-cover border" />
-              <div className="flex-1">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${status.color}`}>{status.label}</span>
-                {order.total_amount > 0 && <span className="text-sm font-bold text-primary ml-2">Rs {order.total_amount}</span>}
-              </div>
-              <Clock className="w-4 h-4 text-muted-foreground" />
+              <img src={order.image_url} alt="List" className="w-10 h-10 rounded-lg object-cover border" />
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${status.color} whitespace-nowrap`}>{status.label}</span>
+              {order.total_amount > 0 && <span className="text-[10px] font-bold text-primary">Rs {order.total_amount}</span>}
             </button>
           );
         })}

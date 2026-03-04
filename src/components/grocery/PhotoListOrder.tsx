@@ -73,9 +73,9 @@ const PhotoListOrder = ({ storeId, storeName }: PhotoListOrderProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full gap-2 bg-gradient-to-r from-primary to-emerald-600 text-primary-foreground font-bold text-sm py-5 rounded-2xl shadow-lg">
-          <FileImage className="w-5 h-5" />
-          📸 راشن لسٹ کی تصویر بھیجیں / Send Ration List Photo
+        <Button className="w-full gap-2 bg-gradient-to-r from-primary to-emerald-600 text-primary-foreground font-bold text-xs py-3 rounded-xl shadow">
+          <FileImage className="w-4 h-4" />
+          📸 راشن لسٹ بھیجیں / Send List Photo
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
