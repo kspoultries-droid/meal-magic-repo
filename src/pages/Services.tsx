@@ -264,13 +264,15 @@ const Services = () => {
                       <Clock className="w-3 h-3" /> {service.duration}
                     </span>
                   </div>
-                  <span className={`text-sm font-extrabold ${service.is_active ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className={`text-sm font-extrabold ${service.is_active ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
+                    {service.is_active && (
+                      <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-bold animate-pulse">
+                        Book Now / بکنگ کریں →
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {service.is_active ? (
-                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                ) : (
-                  <Clock className="w-5 h-5 text-muted-foreground shrink-0" />
-                )}
               </button>
             ))}
           </div>
