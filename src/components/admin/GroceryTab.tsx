@@ -280,6 +280,17 @@ const GroceryTab = () => {
                           <Pencil className="h-3 w-3" />
                         </button>
                       </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-[10px] text-muted-foreground">کم از کم آرڈر: Rs {(s as any).minimum_order || 0}</span>
+                        <button className="text-muted-foreground hover:text-foreground" onClick={() => {
+                          const min = prompt("کم از کم آرڈر لمٹ (Rs):", String((s as any).minimum_order || 0));
+                          if (min !== null) {
+                            supabase.from("grocery_stores").update({ minimum_order: Number(min) || 0 } as any).eq("id", s.id).then(() => { toast.success("کم از کم آرڈر اپڈیٹ"); fetchData(); });
+                          }
+                        }}>
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      </div>
                       {s.fee_paid_until && <p className="text-[10px] text-muted-foreground">تک: {s.fee_paid_until}</p>}
                     </TableCell>
                     <TableCell>

@@ -1,0 +1,1 @@
+ALTER TABLE public.grocery_stores ADD COLUMN IF NOT EXISTS minimum_order numeric DEFAULT 0;

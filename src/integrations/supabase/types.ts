@@ -252,6 +252,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean | null
+          minimum_order: number | null
           monthly_fee: number | null
           name: string
           name_color: string | null
@@ -275,6 +276,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          minimum_order?: number | null
           monthly_fee?: number | null
           name: string
           name_color?: string | null
@@ -298,6 +300,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          minimum_order?: number | null
           monthly_fee?: number | null
           name?: string
           name_color?: string | null

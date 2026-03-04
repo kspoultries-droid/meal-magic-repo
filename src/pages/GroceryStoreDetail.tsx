@@ -156,8 +156,19 @@ const GroceryStoreDetail = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
   if (!store) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">اسٹور نہیں ملا</div>;
 
+  const minimumOrder = (store as any)?.minimum_order || 0;
+  const storeCartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
   return (
     <div className="min-h-screen bg-background pb-20">
+      {/* Minimum Order Notice */}
+      {minimumOrder > 0 && !isOwner && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2 text-center">
+          <p className="text-xs font-bold text-yellow-700 dark:text-yellow-400">
+            ⚠️ کم از کم آرڈر: Rs {minimumOrder} | Minimum Order: Rs {minimumOrder}
+          </p>
+        </div>
+      )}
       {/* Store Header */}
       <StoreBanner
         store={store}
@@ -311,6 +322,13 @@ const GroceryStoreDetail = () => {
                                   <Plus className="w-3 h-3" />
                                 </button>
                               </div>
+                            )}
+
+                            {/* Minimum order warning under product */}
+                            {minimumOrder > 0 && qty > 0 && storeCartTotal < minimumOrder && !isOwner && (
+                              <p className="text-[9px] text-destructive font-bold mt-1 col-span-full">
+                                Rs {minimumOrder - storeCartTotal} اور شامل کریں
+                              </p>
                             )}
                           </div>
                         )}
