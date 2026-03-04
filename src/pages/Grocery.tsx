@@ -1,4 +1,4 @@
-import { Search, Apple, Carrot, Milk, Egg, ShoppingBasket, Wheat, Star, Clock, ChevronRight, Drumstick } from "lucide-react";
+import { Search, Apple, Carrot, Milk, Egg, ShoppingBasket, Wheat, Star, Clock, ChevronRight, Drumstick, Gift, Cake, Flower2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,9 @@ const groceryCategories = [
   { name: "Fruits", nameUr: "پھل", icon: Apple, filter: "Fruits" },
   { name: "Dairy", nameUr: "دودھ", icon: Milk, filter: "Dairy" },
   { name: "Atta/Rice", nameUr: "آٹا چاول", icon: Wheat, filter: "Atta & Rice" },
+  { name: "Cake", nameUr: "کیک", icon: Cake, filter: "Cake" },
+  { name: "Flowers", nameUr: "پھول", icon: Flower2, filter: "Flowers" },
+  { name: "Gifts", nameUr: "گفٹ", icon: Gift, filter: "Gift" },
 ];
 
 const Grocery = () => {
