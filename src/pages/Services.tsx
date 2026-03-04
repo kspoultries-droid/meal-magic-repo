@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,6 +54,7 @@ const Services = () => {
   const [oilCompany, setOilCompany] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const servicesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -189,7 +190,12 @@ const Services = () => {
             return (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(isActive ? null : cat.id)}
+                onClick={() => {
+                  setActiveCategory(isActive ? null : cat.id);
+                  if (!isActive) {
+                    setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                  }
+                }}
                 className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${
                   isActive ? "bg-primary/10 border-primary shadow-md scale-105" : "bg-card hover:shadow-md"
                 }`}
@@ -205,7 +211,7 @@ const Services = () => {
       </div>
 
       {/* Services List */}
-      <div className="container mx-auto px-4 pb-6">
+      <div ref={servicesRef} className="container mx-auto px-4 pb-6">
         <h2 className="text-xl font-extrabold text-foreground mb-4">
           {activeCategory
             ? `${categories.find((c) => c.id === activeCategory)?.name || ""} Services / سروسز`
