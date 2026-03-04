@@ -382,6 +382,14 @@ const Services = () => {
                 <span className="text-lg font-extrabold text-primary">Rs {selectedService.price}</span>
               </div>
 
+              {/* Car Wash Station Note */}
+              {selectedService?.name?.toLowerCase().includes("car wash") && (
+                <div className="bg-blue-50 rounded-xl p-3 text-sm border border-blue-200">
+                  <p className="font-bold text-blue-700 mb-1">🏪 Station Visit / سٹیشن وزٹ</p>
+                  <p className="text-blue-600 text-xs">Appointment lein aur gaari service station par le kr aaein / اپائنٹمنٹ لیں اور گاڑی سروس سٹیشن پر لے کر آئیں</p>
+                </div>
+              )}
+
               {/* Car Model Selection - for car services */}
               {isCarService && (
                 <div>
