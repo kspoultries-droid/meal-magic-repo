@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { LogOut, Bike, ArrowLeft, RefreshCw, Wallet, TrendingUp, Package, Navigation } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
+import NewOrderBanner from "@/components/NewOrderBanner";
 
 const RiderDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -18,6 +20,7 @@ const RiderDashboard = () => {
   const [myOrders, setMyOrders] = useState<any[]>([]);
   const [availableOrders, setAvailableOrders] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -53,7 +56,10 @@ const RiderDashboard = () => {
     if (!hasRole || !user) return;
     const channel = supabase
       .channel("rider-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
+        fetchData();
+        if (payload.eventType === 'INSERT') triggerAlert();
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [hasRole, user]);
@@ -96,6 +102,7 @@ const RiderDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نیا آرڈر دستیاب! / New order available!" />
       <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
