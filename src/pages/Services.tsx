@@ -181,8 +181,8 @@ const Services = () => {
       <PromotionalAds placement="home" />
 
       {/* Categories Grid */}
-      <div className="container mx-auto px-4 py-6">
-        <h2 className="text-xl font-extrabold text-foreground mb-4">Categories / کیٹیگریز</h2>
+      <div className="container mx-auto px-4 py-4">
+        <h2 className="text-lg font-extrabold text-foreground mb-3">Categories / کیٹیگریز</h2>
         <div className="grid grid-cols-4 gap-2">
           {categories.map((cat) => {
             const Icon = iconMap[cat.icon] || Wrench;
@@ -211,8 +211,8 @@ const Services = () => {
       </div>
 
       {/* Services List */}
-      <div className="container mx-auto px-4 pb-6">
-        <h2 ref={servicesRef} className="text-xl font-extrabold text-foreground mb-4 scroll-mt-4">
+      <div className="container mx-auto px-4 pb-4">
+        <h2 ref={servicesRef} className="text-lg font-extrabold text-foreground mb-3 scroll-mt-2">
           {activeCategory
             ? `${categories.find((c) => c.id === activeCategory)?.name || ""} Services / سروسز`
             : "All Services / تمام سروسز"}
