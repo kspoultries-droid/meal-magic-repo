@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Eye, EyeOff, Calendar, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Eye, EyeOff, Calendar, Pencil, Check, X, ArrowUp, ArrowDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -134,13 +134,34 @@ const ServicesSection = () => {
   const fetchData = async () => {
     setLoading(true);
     const [{ data: s }, { data: c }] = await Promise.all([
-      supabase.from("services").select("*").order("name"),
+      supabase.from("services").select("*").order("sort_order").order("name"),
       supabase.from("service_categories").select("id, name"),
     ]);
     setServices(s || []);
     setCategories(c || []);
     if (!form.category_id && c?.length) setForm(f => ({ ...f, category_id: c[0].id }));
     setLoading(false);
+  };
+
+  const moveService = async (id: string, direction: "up" | "down") => {
+    const idx = services.findIndex(s => s.id === id);
+    if ((direction === "up" && idx === 0) || (direction === "down" && idx === services.length - 1)) return;
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    const currentOrder = services[idx].sort_order ?? idx;
+    const swapOrder = services[swapIdx].sort_order ?? swapIdx;
+    await Promise.all([
+      supabase.from("services").update({ sort_order: swapOrder }).eq("id", services[idx].id),
+      supabase.from("services").update({ sort_order: currentOrder }).eq("id", services[swapIdx].id),
+    ]);
+    toast.success("ترتیب تبدیل ہو گئی / Order changed");
+    fetchData();
+  };
+
+  const quickUpdateFee = async (id: string, newPrice: number) => {
+    if (isNaN(newPrice) || newPrice < 0) { toast.error("درست قیمت درکار ہے"); return; }
+    await supabase.from("services").update({ price: newPrice }).eq("id", id);
+    toast.success("فیس اپڈیٹ ہو گئی / Fee updated");
+    fetchData();
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -262,17 +283,41 @@ const ServicesSection = () => {
                 ) : (
                   <>
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div>
-                        <span className="font-bold text-foreground">{s.name}</span>
-                        <Badge className="ml-2 text-[10px]" variant="outline">{getCatName(s.category_id)}</Badge>
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-0.5">
+                          <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => moveService(s.id, "up")} disabled={services.indexOf(s) === 0}>
+                            <ArrowUp className="h-3 w-3" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => moveService(s.id, "down")} disabled={services.indexOf(s) === services.length - 1}>
+                            <ArrowDown className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div>
+                          <span className="font-bold text-foreground">{s.name}</span>
+                          <Badge className="ml-2 text-[10px]" variant="outline">{getCatName(s.category_id)}</Badge>
+                        </div>
                       </div>
                       <Badge className={s.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
                         {s.is_active ? "ایکٹو" : "غیر ایکٹو"}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
                       <span className="font-bold text-primary">Rs {s.price}</span>
                       <span>⏱ {s.duration}</span>
+                      <div className="flex items-center gap-1 ml-auto">
+                        <Input
+                          type="number"
+                          defaultValue={s.price}
+                          className="h-7 w-24 text-xs"
+                          placeholder="نئی فیس"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              quickUpdateFee(s.id, Number((e.target as HTMLInputElement).value));
+                            }
+                          }}
+                        />
+                        <span className="text-[10px] text-muted-foreground">Enter دبائیں</span>
+                      </div>
                     </div>
                     {s.description && <p className="text-xs text-muted-foreground">{s.description}</p>}
                     <div className="flex gap-1 flex-wrap pt-1">
