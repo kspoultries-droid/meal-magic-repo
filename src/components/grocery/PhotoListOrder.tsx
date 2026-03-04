@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,13 @@ const PhotoListOrder = ({ storeId, storeName }: PhotoListOrderProps) => {
   const [notes, setNotes] = useState("");
   const [address, setAddress] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (file: File | null) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Reset input so same file can be re-selected
+    e.target.value = "";
     if (!file) return;
     setImageFile(file);
     const reader = new FileReader();
@@ -36,7 +41,6 @@ const PhotoListOrder = ({ storeId, storeName }: PhotoListOrderProps) => {
 
     setSubmitting(true);
     try {
-      // Upload image
       const ext = imageFile.name.split('.').pop();
       const path = `list-orders/${user.id}/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage.from("product-images").upload(path, imageFile);
@@ -44,7 +48,6 @@ const PhotoListOrder = ({ storeId, storeName }: PhotoListOrderProps) => {
 
       const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
 
-      // Create order
       const { error } = await supabase.from("grocery_list_orders").insert({
         customer_id: user.id,
         store_id: storeId,
@@ -84,8 +87,11 @@ const PhotoListOrder = ({ storeId, storeName }: PhotoListOrderProps) => {
           </DialogTitle>
         </DialogHeader>
 
+        {/* Hidden file inputs - kept outside label to avoid Safari/mobile issues */}
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+        <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+
         <div className="space-y-4">
-          {/* Image Preview */}
           {imagePreview ? (
             <div className="relative rounded-xl overflow-hidden border-2 border-primary/30">
               <img src={imagePreview} alt="List preview" className="w-full max-h-52 object-contain bg-secondary" />
@@ -96,16 +102,22 @@ const PhotoListOrder = ({ storeId, storeName }: PhotoListOrderProps) => {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
-              <label className="flex flex-col items-center gap-2 p-6 bg-secondary rounded-xl cursor-pointer border-2 border-dashed border-primary/30 hover:border-primary transition-colors">
+              <button
+                type="button"
+                className="flex flex-col items-center gap-2 p-6 bg-secondary rounded-xl cursor-pointer border-2 border-dashed border-primary/30 hover:border-primary transition-colors"
+                onClick={() => { if (cameraInputRef.current) { cameraInputRef.current.value = ""; cameraInputRef.current.click(); } }}
+              >
                 <Camera className="w-8 h-8 text-primary" />
                 <span className="text-xs font-bold text-foreground">کیمرہ / Camera</span>
-                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0] || null)} />
-              </label>
-              <label className="flex flex-col items-center gap-2 p-6 bg-secondary rounded-xl cursor-pointer border-2 border-dashed border-primary/30 hover:border-primary transition-colors">
+              </button>
+              <button
+                type="button"
+                className="flex flex-col items-center gap-2 p-6 bg-secondary rounded-xl cursor-pointer border-2 border-dashed border-primary/30 hover:border-primary transition-colors"
+                onClick={() => { if (galleryInputRef.current) { galleryInputRef.current.value = ""; galleryInputRef.current.click(); } }}
+              >
                 <FileImage className="w-8 h-8 text-primary" />
                 <span className="text-xs font-bold text-foreground">گیلری / Gallery</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0] || null)} />
-              </label>
+              </button>
             </div>
           )}
 
