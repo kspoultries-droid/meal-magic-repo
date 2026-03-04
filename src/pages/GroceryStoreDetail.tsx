@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera } from "lucide-react";
+import StoreBanner from "@/components/grocery/StoreBanner";
 import PhotoListOrder from "@/components/grocery/PhotoListOrder";
 import CustomerListOrders from "@/components/grocery/CustomerListOrders";
 import ShopkeeperListOrders from "@/components/grocery/ShopkeeperListOrders";
