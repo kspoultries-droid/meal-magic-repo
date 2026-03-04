@@ -1,4 +1,4 @@
-import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft } from "lucide-react";
+import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -264,6 +264,37 @@ const StoreBanner = ({
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Slug / Store Link */}
+                  <div>
+                    <p className="text-sm font-medium mb-2">اسٹور لنک / Store Link</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">/store/</span>
+                      <Input
+                        className="h-8 text-sm flex-1"
+                        defaultValue={store.slug || ""}
+                        placeholder="my-store"
+                        onBlur={async (e) => {
+                          const val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+                          if (!val) { toast.error("لنک خالی نہیں ہو سکتا"); return; }
+                          if (val === store.slug) return;
+                          const { error } = await supabase.from("grocery_stores").update({ slug: val }).eq("id", storeId);
+                          if (error) {
+                            toast.error(error.message.includes("duplicate") ? "یہ لنک پہلے سے استعمال ہو رہا ہے" : error.message);
+                            return;
+                          }
+                          toast.success("لنک اپڈیٹ ہو گیا");
+                          onRefresh();
+                        }}
+                      />
+                    </div>
+                    {store.slug && (
+                      <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                        <Link className="w-3 h-3" />
+                        {window.location.origin}/store/{store.slug}
+                      </p>
+                    )}
                   </div>
                 </div>
               </DialogContent>
