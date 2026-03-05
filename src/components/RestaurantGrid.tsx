@@ -18,6 +18,7 @@ export interface Restaurant {
   cuisines: string[];
   discount?: string;
   menuItems: MenuItem[];
+  isActive: boolean;
 }
 
 interface RestaurantGridProps {
@@ -35,8 +36,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
       setLoading(true);
       const { data: rests } = await supabase
         .from("restaurants")
-        .select("id, name, image_url, rating, delivery_time, cuisines, is_active")
-        .eq("is_active", true);
+        .select("id, name, image_url, rating, delivery_time, cuisines, is_active");
 
       if (rests?.length) {
         // Fetch menu items for all restaurants
@@ -54,6 +54,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
           rating: r.rating || 0,
           deliveryTime: r.delivery_time || "30-45 min",
           cuisines: r.cuisines || [],
+          isActive: r.is_active !== false,
           menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).slice(0, 3).map((m) => ({ id: m.id, name: m.name, price: m.price })),
         }));
         setRestaurants(mapped);

@@ -8,16 +8,21 @@ interface RestaurantCardProps {
 }
 
 const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
-  const { name, image, rating, deliveryTime, cuisines, discount, menuItems } = restaurant;
+  const { name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
   const [showMenu, setShowMenu] = useState(false);
   const { addItem } = useCart();
 
   return (
-    <div className="group bg-card rounded-2xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300">
+    <div className={`group bg-card rounded-2xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300 ${!isActive ? 'opacity-60 grayscale' : ''}`}>
       {/* Image */}
-      <div className="relative h-44 overflow-hidden" onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}>
+      <div className="relative h-44 overflow-hidden" onClick={(e) => { e.stopPropagation(); if (isActive) setShowMenu(!showMenu); }}>
         <img src={image} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        {discount && (
+        {!isActive && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <span className="bg-destructive text-destructive-foreground text-sm font-bold px-4 py-2 rounded-lg">بند ہے / Closed</span>
+          </div>
+        )}
+        {discount && isActive && (
           <div className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1">
             <Tag className="w-3 h-3" />
             {discount}

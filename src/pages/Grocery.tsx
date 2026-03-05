@@ -44,7 +44,7 @@ const Grocery = () => {
   useEffect(() => {
     const fetchStores = async () => {
       setLoading(true);
-      let query = supabase.from("grocery_stores").select("*").eq("is_active", true).neq("subscription_status", "paused");
+      let query = supabase.from("grocery_stores").select("*").neq("subscription_status", "paused");
       if (activeCategory) query = query.eq("category", activeCategory);
       if (selectedCity) query = query.eq("city_id", selectedCity);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
@@ -184,13 +184,18 @@ const Grocery = () => {
               <button
                 key={store.id}
                 onClick={() => navigate(`/grocery/${store.id}`)}
-                className="bg-card rounded-2xl border overflow-hidden hover:shadow-md transition-shadow text-left"
+                className={`bg-card rounded-2xl border overflow-hidden hover:shadow-md transition-shadow text-left ${!store.is_active ? 'opacity-60 grayscale' : ''}`}
               >
                 <div className="w-full h-24 bg-secondary flex items-center justify-center overflow-hidden relative">
                   {store.image_url ? (
                     <img src={store.image_url} alt={store.name} className="w-full h-full object-cover" />
                   ) : (
                     <ShoppingBasket className="w-8 h-8 text-muted-foreground" />
+                  )}
+                  {!store.is_active && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-1 rounded-md">بند ہے / Closed</span>
+                    </div>
                   )}
                   {store.rating > 0 && (
                     <span className="absolute top-1.5 right-1.5 bg-background/80 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-bold flex items-center gap-0.5">
