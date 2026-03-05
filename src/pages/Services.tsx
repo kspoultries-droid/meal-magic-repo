@@ -229,25 +229,31 @@ const Services = () => {
               <button
                 key={cat.id}
                 onClick={() => {
+                  if (!cat.is_active) return; // Don't allow selecting inactive categories
                   setActiveCategory(isActive ? null : cat.id);
                   if (!isActive) {
                     setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
                   }
                 }}
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${
-                  isActive 
-                    ? "bg-primary/10 border-primary shadow-md col-span-2" 
-                    : "bg-card hover:shadow-md"
+                  !cat.is_active
+                    ? "bg-muted/50 opacity-60 grayscale cursor-default"
+                    : isActive 
+                      ? "bg-primary/10 border-primary shadow-md col-span-2" 
+                      : "bg-card hover:shadow-md"
                 }`}
               >
               <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center overflow-hidden`}>
                   {cat.image_url ? (
-                    <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
+                    <img src={cat.image_url} alt={cat.name} className={`w-full h-full object-cover ${!cat.is_active ? "grayscale" : ""}`} />
                   ) : (
                     <Icon className="w-4 h-4" />
                   )}
                 </div>
                 <span className="text-[10px] font-bold text-foreground text-center leading-tight">{cat.name}</span>
+                {!cat.is_active && (
+                  <span className="text-[7px] font-bold text-muted-foreground">جلد آ رہا ہے</span>
+                )}
               </button>
             );
           })}
