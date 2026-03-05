@@ -290,7 +290,9 @@ const Services = () => {
                     : "bg-muted/50 opacity-75 cursor-default"
                 }`}
               >
-                  service.is_active 
+                  effectivelyActive 
+                    ? "bg-card hover:shadow-md" 
+                    : "bg-muted/50 opacity-75 cursor-default"
                     ? "bg-card hover:shadow-md" 
                     : "bg-muted/50 opacity-75 cursor-default"
                 }`}
