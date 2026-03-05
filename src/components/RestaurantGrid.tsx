@@ -54,6 +54,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
           rating: r.rating || 0,
           deliveryTime: r.delivery_time || "30-45 min",
           cuisines: r.cuisines || [],
+          isActive: r.is_active !== false,
           menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).slice(0, 3).map((m) => ({ id: m.id, name: m.name, price: m.price })),
         }));
         setRestaurants(mapped);
