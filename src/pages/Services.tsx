@@ -61,7 +61,7 @@ const Services = () => {
       const { data } = await supabase
         .from("service_categories")
         .select("*")
-        .eq("is_active", true)
+        .order("is_active", { ascending: false })
         .order("sort_order");
       setCategories(data || []);
     };
@@ -71,12 +71,10 @@ const Services = () => {
   useEffect(() => {
     const fetchServices = async () => {
       setLoading(true);
-      let query = supabase.from("services").select("*, service_categories!inner(name, is_active)");
-      // Only show services from active categories
-      query = query.eq("service_categories.is_active", true);
+      let query = supabase.from("services").select("*, service_categories(name, is_active)");
       if (activeCategory) query = query.eq("category_id", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
-      const { data } = await query.order("is_active", { ascending: false }).order("created_at", { ascending: false });
+      const { data } = await query.order("is_active", { ascending: false }).order("sort_order").order("created_at", { ascending: false });
       setServices(data || []);
       setLoading(false);
     };
@@ -231,25 +229,31 @@ const Services = () => {
               <button
                 key={cat.id}
                 onClick={() => {
+                  if (!cat.is_active) return; // Don't allow selecting inactive categories
                   setActiveCategory(isActive ? null : cat.id);
                   if (!isActive) {
                     setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
                   }
                 }}
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${
-                  isActive 
-                    ? "bg-primary/10 border-primary shadow-md col-span-2" 
-                    : "bg-card hover:shadow-md"
+                  !cat.is_active
+                    ? "bg-muted/50 opacity-60 grayscale cursor-default"
+                    : isActive 
+                      ? "bg-primary/10 border-primary shadow-md col-span-2" 
+                      : "bg-card hover:shadow-md"
                 }`}
               >
               <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center overflow-hidden`}>
                   {cat.image_url ? (
-                    <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
+                    <img src={cat.image_url} alt={cat.name} className={`w-full h-full object-cover ${!cat.is_active ? "grayscale" : ""}`} />
                   ) : (
                     <Icon className="w-4 h-4" />
                   )}
                 </div>
                 <span className="text-[10px] font-bold text-foreground text-center leading-tight">{cat.name}</span>
+                {!cat.is_active && (
+                  <span className="text-[7px] font-bold text-muted-foreground">جلد آ رہا ہے</span>
+                )}
               </button>
             );
           })}
@@ -273,60 +277,64 @@ const Services = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {services.map((service) => (
-              <button
-                key={service.id}
-                onClick={() => service.is_active && setSelectedService(service)}
-                className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
-                  service.is_active 
-                    ? "bg-card hover:shadow-md" 
-                    : "bg-muted/50 opacity-75 cursor-default"
-                }`}
-              >
-                <div className={`w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${
-                  service.is_active ? "bg-secondary" : "bg-muted"
-                }`}>
-                  {service.image_url ? (
-                    <img src={service.image_url} alt={service.name} className={`w-full h-full object-cover ${!service.is_active ? "grayscale" : ""}`} />
-                  ) : (
-                    <Wrench className="w-8 h-8 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-foreground truncate">{service.name}</h3>
-                    {!service.is_active && (
-                      <span className="shrink-0 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
-                        🔄 جلد آ رہا ہے
-                      </span>
+            {services.map((service) => {
+              const categoryActive = service.service_categories?.is_active !== false;
+              const effectivelyActive = service.is_active && categoryActive;
+              return (
+                <button
+                  key={service.id}
+                  onClick={() => effectivelyActive && setSelectedService(service)}
+                  className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
+                    effectivelyActive 
+                      ? "bg-card hover:shadow-md" 
+                      : "bg-muted/50 opacity-75 cursor-default"
+                  }`}
+                >
+                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${
+                    effectivelyActive ? "bg-secondary" : "bg-muted"
+                  }`}>
+                    {service.image_url ? (
+                      <img src={service.image_url} alt={service.name} className={`w-full h-full object-cover ${!effectivelyActive ? "grayscale" : ""}`} />
+                    ) : (
+                      <Wrench className="w-8 h-8 text-muted-foreground" />
                     )}
                   </div>
-                  {service.is_active ? (
-                    service.description && (
-                      <p className="text-xs text-muted-foreground truncate">{service.description}</p>
-                    )
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Coming Soon — اپ ڈیٹ ہو رہی ہے ⏳</p>
-                  )}
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-yellow-500" /> {service.rating || "New / نیا"}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {service.duration}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className={`text-sm font-extrabold ${service.is_active ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
-                    {service.is_active && (
-                      <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-bold animate-pulse">
-                        Book Now / بکنگ کریں →
-                      </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-foreground truncate">{service.name}</h3>
+                      {!effectivelyActive && (
+                        <span className="shrink-0 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
+                          🔄 جلد آ رہا ہے
+                        </span>
+                      )}
+                    </div>
+                    {effectivelyActive ? (
+                      service.description && (
+                        <p className="text-xs text-muted-foreground truncate">{service.description}</p>
+                      )
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Coming Soon — اپ ڈیٹ ہو رہی ہے ⏳</p>
                     )}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3 h-3 text-yellow-500" /> {service.rating || "New / نیا"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> {service.duration}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className={`text-sm font-extrabold ${effectivelyActive ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
+                      {effectivelyActive && (
+                        <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-bold animate-pulse">
+                          Book Now / بکنگ کریں →
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
