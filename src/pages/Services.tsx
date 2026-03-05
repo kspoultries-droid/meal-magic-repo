@@ -74,7 +74,7 @@ const Services = () => {
       let query = supabase.from("services").select("*, service_categories(name, is_active)");
       if (activeCategory) query = query.eq("category_id", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
-      const { data } = await query.order("is_active", { ascending: false }).order("created_at", { ascending: false });
+      const { data } = await query.order("is_active", { ascending: false }).order("sort_order").order("created_at", { ascending: false });
       setServices(data || []);
       setLoading(false);
     };
