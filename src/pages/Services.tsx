@@ -71,9 +71,7 @@ const Services = () => {
   useEffect(() => {
     const fetchServices = async () => {
       setLoading(true);
-      let query = supabase.from("services").select("*, service_categories!inner(name, is_active)");
-      // Only show services from active categories
-      query = query.eq("service_categories.is_active", true);
+      let query = supabase.from("services").select("*, service_categories(name, is_active)");
       if (activeCategory) query = query.eq("category_id", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       const { data } = await query.order("is_active", { ascending: false }).order("created_at", { ascending: false });
