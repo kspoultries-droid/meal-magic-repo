@@ -281,66 +281,60 @@ const Services = () => {
               const categoryActive = service.service_categories?.is_active !== false;
               const effectivelyActive = service.is_active && categoryActive;
               return (
-              <button
-                key={service.id}
-                onClick={() => effectivelyActive && setSelectedService(service)}
-                className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
-                  effectivelyActive 
-                    ? "bg-card hover:shadow-md" 
-                    : "bg-muted/50 opacity-75 cursor-default"
-                }`}
-              >
-                  effectivelyActive 
-                    ? "bg-card hover:shadow-md" 
-                    : "bg-muted/50 opacity-75 cursor-default"
-                    ? "bg-card hover:shadow-md" 
-                    : "bg-muted/50 opacity-75 cursor-default"
-                }`}
-              >
-                <div className={`w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${
-                  service.is_active ? "bg-secondary" : "bg-muted"
-                }`}>
-                  {service.image_url ? (
-                    <img src={service.image_url} alt={service.name} className={`w-full h-full object-cover ${!service.is_active ? "grayscale" : ""}`} />
-                  ) : (
-                    <Wrench className="w-8 h-8 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-foreground truncate">{service.name}</h3>
-                    {!service.is_active && (
-                      <span className="shrink-0 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
-                        🔄 جلد آ رہا ہے
-                      </span>
+                <button
+                  key={service.id}
+                  onClick={() => effectivelyActive && setSelectedService(service)}
+                  className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
+                    effectivelyActive 
+                      ? "bg-card hover:shadow-md" 
+                      : "bg-muted/50 opacity-75 cursor-default"
+                  }`}
+                >
+                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${
+                    effectivelyActive ? "bg-secondary" : "bg-muted"
+                  }`}>
+                    {service.image_url ? (
+                      <img src={service.image_url} alt={service.name} className={`w-full h-full object-cover ${!effectivelyActive ? "grayscale" : ""}`} />
+                    ) : (
+                      <Wrench className="w-8 h-8 text-muted-foreground" />
                     )}
                   </div>
-                  {service.is_active ? (
-                    service.description && (
-                      <p className="text-xs text-muted-foreground truncate">{service.description}</p>
-                    )
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Coming Soon — اپ ڈیٹ ہو رہی ہے ⏳</p>
-                  )}
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-yellow-500" /> {service.rating || "New / نیا"}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {service.duration}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className={`text-sm font-extrabold ${service.is_active ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
-                    {service.is_active && (
-                      <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-bold animate-pulse">
-                        Book Now / بکنگ کریں →
-                      </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-foreground truncate">{service.name}</h3>
+                      {!effectivelyActive && (
+                        <span className="shrink-0 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
+                          🔄 جلد آ رہا ہے
+                        </span>
+                      )}
+                    </div>
+                    {effectivelyActive ? (
+                      service.description && (
+                        <p className="text-xs text-muted-foreground truncate">{service.description}</p>
+                      )
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Coming Soon — اپ ڈیٹ ہو رہی ہے ⏳</p>
                     )}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3 h-3 text-yellow-500" /> {service.rating || "New / نیا"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> {service.duration}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className={`text-sm font-extrabold ${effectivelyActive ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
+                      {effectivelyActive && (
+                        <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-bold animate-pulse">
+                          Book Now / بکنگ کریں →
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
