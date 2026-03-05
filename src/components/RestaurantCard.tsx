@@ -8,7 +8,7 @@ interface RestaurantCardProps {
 }
 
 const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
-  const { name, image, rating, deliveryTime, cuisines, discount, menuItems } = restaurant;
+  const { name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
   const [showMenu, setShowMenu] = useState(false);
   const { addItem } = useCart();
 
