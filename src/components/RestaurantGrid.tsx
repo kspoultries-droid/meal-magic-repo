@@ -35,8 +35,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
       setLoading(true);
       const { data: rests } = await supabase
         .from("restaurants")
-        .select("id, name, image_url, rating, delivery_time, cuisines, is_active")
-        .eq("is_active", true);
+        .select("id, name, image_url, rating, delivery_time, cuisines, is_active");
 
       if (rests?.length) {
         // Fetch menu items for all restaurants
