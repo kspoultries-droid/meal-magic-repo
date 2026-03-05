@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
+import { toast } from "sonner";
 
 export interface CartItem {
   id: string;
@@ -34,6 +35,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return prev.map((i) => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
       return [...prev, { ...item, quantity: 1 }];
+    });
+    toast.success(`${item.name} کارٹ میں شامل ہو گیا ✓`, {
+      id: "cart-add",
+      duration: 1500,
     });
   }, []);
 
