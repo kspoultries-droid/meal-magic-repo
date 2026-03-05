@@ -344,6 +344,7 @@ const Services = () => {
                     </div>
                   </div>
                 </button>
+                </div>
               );
             })}
           </div>
