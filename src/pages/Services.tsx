@@ -285,7 +285,14 @@ const Services = () => {
               const categoryActive = service.service_categories?.is_active !== false;
               const effectivelyActive = service.is_active && categoryActive;
               return (
-                <button
+                <div key={service.id}>
+                  {showCategoryHeader && categoryName && (
+                    <div className="flex items-center gap-2 pt-3 pb-1 first:pt-0">
+                      <h3 className="text-sm font-extrabold text-primary">{categoryName}</h3>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+                  )}
+                  <button
                   key={service.id}
                   onClick={() => effectivelyActive && setSelectedService(service)}
                   className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
