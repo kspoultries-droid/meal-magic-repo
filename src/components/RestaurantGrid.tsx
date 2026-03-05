@@ -18,6 +18,7 @@ export interface Restaurant {
   cuisines: string[];
   discount?: string;
   menuItems: MenuItem[];
+  isActive: boolean;
 }
 
 interface RestaurantGridProps {
