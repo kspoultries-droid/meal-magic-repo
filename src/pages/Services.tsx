@@ -277,11 +277,19 @@ const Services = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {services.map((service) => (
+            {services.map((service) => {
+              const categoryActive = service.service_categories?.is_active !== false;
+              const effectivelyActive = service.is_active && categoryActive;
+              return (
               <button
                 key={service.id}
-                onClick={() => service.is_active && setSelectedService(service)}
+                onClick={() => effectivelyActive && setSelectedService(service)}
                 className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
+                  effectivelyActive 
+                    ? "bg-card hover:shadow-md" 
+                    : "bg-muted/50 opacity-75 cursor-default"
+                }`}
+              >
                   service.is_active 
                     ? "bg-card hover:shadow-md" 
                     : "bg-muted/50 opacity-75 cursor-default"
