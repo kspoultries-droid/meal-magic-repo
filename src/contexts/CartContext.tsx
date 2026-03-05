@@ -36,6 +36,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return [...prev, { ...item, quantity: 1 }];
     });
+    toast.success(`${item.name} کارٹ میں شامل ہو گیا ✓`, {
+      id: "cart-add",
+      duration: 1500,
+    });
   }, []);
 
   const removeItem = useCallback((id: string) => {
