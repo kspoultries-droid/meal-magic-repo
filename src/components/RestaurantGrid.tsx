@@ -45,8 +45,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
           .from("menu_items")
           .select("id, name, price, restaurant_id")
           .in("restaurant_id", ids)
-          .eq("is_available", true)
-          .limit(3);
+          .eq("is_available", true);
 
         const mapped: Restaurant[] = rests.map((r) => ({
           id: r.id,
