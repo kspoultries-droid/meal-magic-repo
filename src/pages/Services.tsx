@@ -74,7 +74,7 @@ const Services = () => {
       let query = supabase.from("services").select("*, service_categories(name, is_active)");
       if (activeCategory) query = query.eq("category_id", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
-      const { data } = await query.order("is_active", { ascending: false }).order("sort_order").order("created_at", { ascending: false });
+      const { data } = await query.order("is_active", { ascending: false }).order("category_id").order("sort_order").order("created_at", { ascending: false });
       setServices(data || []);
       setLoading(false);
     };
@@ -277,11 +277,22 @@ const Services = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {services.map((service) => {
+            {services.map((service, index) => {
+              const showCategoryHeader = !activeCategory && (
+                index === 0 || service.category_id !== services[index - 1]?.category_id
+              );
+              const categoryName = service.service_categories?.name;
               const categoryActive = service.service_categories?.is_active !== false;
               const effectivelyActive = service.is_active && categoryActive;
               return (
-                <button
+                <div key={service.id}>
+                  {showCategoryHeader && categoryName && (
+                    <div className="flex items-center gap-2 pt-3 pb-1 first:pt-0">
+                      <h3 className="text-sm font-extrabold text-primary">{categoryName}</h3>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+                  )}
+                  <button
                   key={service.id}
                   onClick={() => effectivelyActive && setSelectedService(service)}
                   className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
@@ -333,6 +344,7 @@ const Services = () => {
                     </div>
                   </div>
                 </button>
+                </div>
               );
             })}
           </div>
