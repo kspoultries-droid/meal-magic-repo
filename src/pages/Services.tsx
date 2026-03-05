@@ -61,7 +61,7 @@ const Services = () => {
       const { data } = await supabase
         .from("service_categories")
         .select("*")
-        .eq("is_active", true)
+        .order("is_active", { ascending: false })
         .order("sort_order");
       setCategories(data || []);
     };
