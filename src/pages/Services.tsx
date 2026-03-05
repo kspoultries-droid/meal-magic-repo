@@ -277,7 +277,11 @@ const Services = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {services.map((service) => {
+            {services.map((service, index) => {
+              const showCategoryHeader = !activeCategory && (
+                index === 0 || service.category_id !== services[index - 1]?.category_id
+              );
+              const categoryName = service.service_categories?.name;
               const categoryActive = service.service_categories?.is_active !== false;
               const effectivelyActive = service.is_active && categoryActive;
               return (
