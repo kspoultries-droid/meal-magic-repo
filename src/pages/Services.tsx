@@ -281,9 +281,10 @@ const Services = () => {
               const showCategoryHeader = !activeCategory && (
                 index === 0 || service.category_id !== services[index - 1]?.category_id
               );
-              const categoryName = service.service_categories?.name;
-              const categoryActive = service.service_categories?.is_active !== false;
-              const effectivelyActive = service.is_active && categoryActive;
+              const parentCat = categories.find(c => c.id === service.category_id);
+              const categoryName = parentCat?.name || service.service_categories?.name;
+              const categoryActive = parentCat ? parentCat.is_active === true : true;
+              const effectivelyActive = service.is_active === true && categoryActive;
               return (
                 <div key={service.id}>
                   {showCategoryHeader && categoryName && (
