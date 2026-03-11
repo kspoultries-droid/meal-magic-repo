@@ -122,6 +122,32 @@ const Services = () => {
     }
   }, [user]);
 
+  // Realtime: listen for booking status changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('my-bookings')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'service_bookings',
+        filter: `customer_id=eq.${user.id}`,
+      }, (payload) => {
+        const newStatus = payload.new?.status;
+        if (newStatus === 'confirmed') {
+          toast.success("✅ آپ کی بکنگ تصدیق شدہ ہے! / Your booking is confirmed!");
+        } else if (newStatus === 'completed') {
+          toast.success("🎉 سروس مکمل ہو گئی! / Service completed!");
+        } else if (newStatus === 'cancelled') {
+          toast.error("❌ بکنگ منسوخ ہو گئی / Booking cancelled");
+        }
+        fetchAllBookings();
+        fetchMyBookings();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const advanceFee = selectedService ? Math.round(selectedService.price * 0.15) : 0;
 
   const isOilChange = selectedService?.name?.toLowerCase().includes("oil change") || selectedService?.name?.includes("آئل چینج");
