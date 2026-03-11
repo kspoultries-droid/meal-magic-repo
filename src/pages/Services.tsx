@@ -368,6 +368,50 @@ const Services = () => {
         )}
       </div>
 
+      {/* My Appointments / میری اپائنٹمنٹس */}
+      {user && allBookings.length > 0 && (
+        <div className="container mx-auto px-4 pb-6">
+          <h2 className="text-lg font-extrabold text-foreground mb-3">📋 My Appointments / میری اپائنٹمنٹس</h2>
+          <div className="space-y-2">
+            {allBookings.map((b) => {
+              const statusMap: Record<string, { label: string; color: string; emoji: string }> = {
+                pending: { label: "زیر غور / Pending", color: "text-yellow-600 bg-yellow-50", emoji: "⏳" },
+                confirmed: { label: "تصدیق شدہ / Confirmed ✅", color: "text-green-600 bg-green-50", emoji: "✅" },
+                in_progress: { label: "جاری ہے / In Progress", color: "text-blue-600 bg-blue-50", emoji: "🔧" },
+                completed: { label: "مکمل / Completed", color: "text-primary bg-primary/10", emoji: "🎉" },
+                cancelled: { label: "منسوخ / Cancelled", color: "text-destructive bg-destructive/10", emoji: "❌" },
+              };
+              const st = statusMap[b.status] || statusMap.pending;
+              return (
+                <div key={b.id} className="bg-card rounded-2xl p-4 border space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-bold text-foreground text-sm">{b.services?.name || "Service"}</p>
+                      <p className="text-xs text-muted-foreground">📅 {b.scheduled_date} — 🕐 {b.scheduled_time}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${st.color}`}>
+                      {st.emoji} {st.label}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-muted-foreground">📍 {b.address}</span>
+                    <span className="font-extrabold text-primary">Rs {b.total_amount}</span>
+                  </div>
+                  {b.status === "confirmed" && (
+                    <div className="bg-green-50 rounded-lg p-2 text-xs text-green-700 font-bold">
+                      ✅ آپ کی بکنگ تصدیق شدہ ہے! سروس پرووائیڈر مقررہ وقت پر آئے گا۔
+                    </div>
+                  )}
+                  {b.notes && (
+                    <p className="text-[10px] text-muted-foreground">📝 {b.notes}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* My Completed Bookings - Feedback */}
       {user && myBookings.length > 0 && (
         <div className="container mx-auto px-4 pb-6">
