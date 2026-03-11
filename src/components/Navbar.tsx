@@ -65,6 +65,14 @@ const Navbar = () => {
               <Wrench className="w-3.5 h-3.5" /> مکینک
             </button>
           )}
+          {isServiceManager && (
+            <button
+              onClick={() => navigate("/service-manager")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-700 hover:bg-teal-200 transition-colors"
+            >
+              <ClipboardList className="w-3.5 h-3.5" /> سروس مینیجر
+            </button>
+          )}
         </div>
 
         {/* Right side actions */}
