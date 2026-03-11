@@ -67,6 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsRider(false);
     setIsSupport(false);
     setIsMechanic(false);
+    setIsServiceManager(false);
   };
 
   useEffect(() => {
