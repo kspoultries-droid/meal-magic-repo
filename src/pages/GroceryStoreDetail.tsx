@@ -75,6 +75,8 @@ const GroceryStoreDetail = () => {
       restaurant: store?.name || "Grocery",
       price: effectivePrice,
       image: product.image_url || "",
+      source: "grocery",
+      sourceId: id,
     });
   };
 
