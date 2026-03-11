@@ -26,6 +26,7 @@ import Wallet from "./pages/Wallet";
 import SupportDashboard from "./pages/SupportDashboard";
 import MechanicDashboard from "./pages/MechanicDashboard";
 import StandaloneStore from "./pages/StandaloneStore";
+import ServiceManagerDashboard from "./pages/ServiceManagerDashboard";
 
 const queryClient = new QueryClient();
 
