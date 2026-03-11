@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   Search, Star, Clock, ChevronRight, AirVent, Wrench, Zap,
-  Sparkles, Paintbrush, Hammer, ArrowLeft, Calendar, MapPin, CreditCard, Car
+  Sparkles, Paintbrush, Hammer, ArrowLeft, Calendar, MapPin, CreditCard, Car,
+  LocateFixed, Users
 } from "lucide-react";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription
