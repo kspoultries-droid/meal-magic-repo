@@ -152,6 +152,63 @@ const Services = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
+  // Fetch nearby providers
+  const fetchNearbyProviders = async (catId?: string | null) => {
+    let query = supabase
+      .from("service_providers")
+      .select("*, service_categories(name)")
+      .eq("is_active", true)
+      .eq("is_available", true)
+      .order("rating", { ascending: false })
+      .limit(20);
+    if (catId) query = query.eq("category_id", catId);
+    const { data } = await query;
+    
+    let providers = data || [];
+    // Sort by distance if user location available
+    if (userLocation && providers.length > 0) {
+      providers = providers
+        .map(p => ({
+          ...p,
+          distance: p.latitude && p.longitude
+            ? getDistanceKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude)
+            : 999,
+        }))
+        .sort((a, b) => a.distance - b.distance);
+    }
+    setNearbyProviders(providers);
+  };
+
+  // Haversine distance
+  const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const getUserLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocatingUser(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocatingUser(false);
+        toast.success("📍 لوکیشن مل گئی!");
+      },
+      () => {
+        setLocatingUser(false);
+        toast.error("لوکیشن نہیں مل سکی");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  useEffect(() => {
+    fetchNearbyProviders(activeCategory);
+  }, [activeCategory, userLocation]);
+
   const advanceFee = selectedService ? Math.round(selectedService.price * 0.15) : 0;
 
   const isOilChange = selectedService?.name?.toLowerCase().includes("oil change") || selectedService?.name?.includes("آئل چینج");
