@@ -192,6 +192,7 @@ const Services = () => {
       setBookingNotes("");
       setCarModel("");
       setOilCompany("");
+      fetchAllBookings();
     }
   };
 
