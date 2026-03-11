@@ -1,14 +1,14 @@
-import { User, LogOut, Shield, Store, Bike, Menu, X, Headphones, Wrench } from "lucide-react";
+import { User, LogOut, Shield, Store, Bike, Menu, X, Headphones, Wrench, ClipboardList } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const Navbar = () => {
-  const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, signOut } = useAuth();
+  const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic;
+  const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic || isServiceManager;
 
   return (
     <nav className="sticky top-0 z-50 bg-primary pt-[env(safe-area-inset-top)]">
