@@ -103,6 +103,8 @@ const Checkout = () => {
     );
   }
 
+  const isGroceryOrder = items.some(i => i.source === "grocery");
+
   const placeOrder = async () => {
     if (!address.trim()) { toast.error("ڈلیوری ایڈریس درکار ہے"); return; }
     if (!selectedCity) { toast.error("شہر منتخب کریں"); return; }
@@ -110,30 +112,66 @@ const Checkout = () => {
     setSubmitting(true);
 
     try {
-      const restaurantName = items[0]?.restaurant;
-      const { data: restData } = await supabase.from("restaurants").select("id").eq("name", restaurantName).limit(1).single();
-      if (!restData) { toast.error("ریسٹورنٹ نہیں ملا"); setSubmitting(false); return; }
+      if (isGroceryOrder) {
+        // Grocery cart order flow
+        const storeId = items[0]?.sourceId;
+        if (!storeId) { toast.error("اسٹور کی معلومات نہیں ملیں"); setSubmitting(false); return; }
 
-      const menuItems = items.map((item) => ({ menu_item_id: item.id, quantity: item.quantity }));
+        const orderItems = items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+        }));
 
-      const { data: orderId, error: orderError } = await supabase.rpc("create_order", {
-        _restaurant_id: restData.id,
-        _city_id: selectedCity,
-        _delivery_address: address,
-        _notes: notes || "",
-        _payment_method: paymentMethod,
-        _menu_items: menuItems,
-        _receiver_name: isGift ? receiverName : null,
-        _receiver_phone: isGift ? receiverPhone : null,
-        _is_gift: isGift,
-        _delivery_lat: coords?.lat || null,
-        _delivery_lng: coords?.lng || null,
-      });
+        const { error } = await supabase.from("grocery_cart_orders").insert({
+          store_id: storeId,
+          customer_id: user!.id,
+          items: orderItems,
+          total_amount: totalPrice + deliveryFee,
+          delivery_address: address,
+          delivery_lat: coords?.lat || null,
+          delivery_lng: coords?.lng || null,
+          notes: notes || null,
+          payment_method: paymentMethod,
+          is_gift: isGift,
+          receiver_name: isGift ? receiverName : null,
+          receiver_phone: isGift ? receiverPhone : null,
+          city_id: selectedCity,
+        });
 
-      if (orderError) throw orderError;
-      toast.success("آرڈر کامیابی سے دیا گیا! 🎉");
-      clearCart();
-      navigate(`/order-tracking/${orderId}`);
+        if (error) throw error;
+        toast.success("گروسری آرڈر کامیابی سے دیا گیا! 🛒🎉");
+        clearCart();
+        navigate("/grocery");
+      } else {
+        // Restaurant order flow
+        const restaurantName = items[0]?.restaurant;
+        const { data: restData } = await supabase.from("restaurants").select("id").eq("name", restaurantName).limit(1).single();
+        if (!restData) { toast.error("ریسٹورنٹ نہیں ملا"); setSubmitting(false); return; }
+
+        const menuItems = items.map((item) => ({ menu_item_id: item.id, quantity: item.quantity }));
+
+        const { data: orderId, error: orderError } = await supabase.rpc("create_order", {
+          _restaurant_id: restData.id,
+          _city_id: selectedCity,
+          _delivery_address: address,
+          _notes: notes || "",
+          _payment_method: paymentMethod,
+          _menu_items: menuItems,
+          _receiver_name: isGift ? receiverName : null,
+          _receiver_phone: isGift ? receiverPhone : null,
+          _is_gift: isGift,
+          _delivery_lat: coords?.lat || null,
+          _delivery_lng: coords?.lng || null,
+        });
+
+        if (orderError) throw orderError;
+        toast.success("آرڈر کامیابی سے دیا گیا! 🎉");
+        clearCart();
+        navigate(`/order-tracking/${orderId}`);
+      }
     } catch (error: any) {
       toast.error(error.message || "آرڈر میں مسئلہ آ گیا");
     } finally {
