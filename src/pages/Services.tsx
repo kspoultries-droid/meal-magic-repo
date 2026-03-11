@@ -103,8 +103,23 @@ const Services = () => {
     setMyBookings(data || []);
   };
 
+  // Fetch ALL bookings for appointments view
+  const fetchAllBookings = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("service_bookings")
+      .select("*, services(name)")
+      .eq("customer_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setAllBookings(data || []);
+  };
+
   useEffect(() => {
-    if (user) fetchMyBookings();
+    if (user) {
+      fetchMyBookings();
+      fetchAllBookings();
+    }
   }, [user]);
 
   const advanceFee = selectedService ? Math.round(selectedService.price * 0.15) : 0;
