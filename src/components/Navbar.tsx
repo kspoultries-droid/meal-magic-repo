@@ -1,14 +1,14 @@
-import { User, LogOut, Shield, Store, Bike, Menu, X, Headphones, Wrench } from "lucide-react";
+import { User, LogOut, Shield, Store, Bike, Menu, X, Headphones, Wrench, ClipboardList } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const Navbar = () => {
-  const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, signOut } = useAuth();
+  const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic;
+  const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic || isServiceManager;
 
   return (
     <nav className="sticky top-0 z-50 bg-primary pt-[env(safe-area-inset-top)]">
@@ -63,6 +63,14 @@ const Navbar = () => {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors"
             >
               <Wrench className="w-3.5 h-3.5" /> مکینک
+            </button>
+          )}
+          {isServiceManager && (
+            <button
+              onClick={() => navigate("/service-manager")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-700 hover:bg-teal-200 transition-colors"
+            >
+              <ClipboardList className="w-3.5 h-3.5" /> سروس مینیجر
             </button>
           )}
         </div>
@@ -130,6 +138,14 @@ const Navbar = () => {
                             className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-orange-700 hover:bg-secondary transition-colors"
                           >
                             <Wrench className="w-4 h-4" /> مکینک ڈیش بورڈ
+                          </button>
+                        )}
+                        {isServiceManager && (
+                          <button
+                            onClick={() => { navigate("/service-manager"); setMenuOpen(false); }}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-teal-700 hover:bg-secondary transition-colors"
+                          >
+                            <ClipboardList className="w-4 h-4" /> سروس مینیجر
                           </button>
                         )}
                         <div className="border-t my-1" />

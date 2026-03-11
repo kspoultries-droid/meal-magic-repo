@@ -960,6 +960,35 @@ export type Database = {
         }
         Relationships: []
       }
+      service_manager_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_manager_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_providers: {
         Row: {
           address: string | null
@@ -1321,6 +1350,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      manages_category: {
+        Args: { _category_id: string; _user_id: string }
+        Returns: boolean
+      }
       owns_restaurant: {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
@@ -1338,6 +1371,7 @@ export type Database = {
         | "admin"
         | "support"
         | "mechanic"
+        | "service_manager"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1472,6 +1506,7 @@ export const Constants = {
         "admin",
         "support",
         "mechanic",
+        "service_manager",
       ],
     },
   },
