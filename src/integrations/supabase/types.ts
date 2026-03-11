@@ -110,6 +110,81 @@ export type Database = {
         }
         Relationships: []
       }
+      grocery_cart_orders: {
+        Row: {
+          city_id: string | null
+          created_at: string
+          customer_id: string
+          delivery_address: string | null
+          delivery_lat: number | null
+          delivery_lng: number | null
+          id: string
+          is_gift: boolean | null
+          items: Json
+          notes: string | null
+          payment_method: string | null
+          receiver_name: string | null
+          receiver_phone: string | null
+          status: string
+          store_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          city_id?: string | null
+          created_at?: string
+          customer_id: string
+          delivery_address?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
+          id?: string
+          is_gift?: boolean | null
+          items?: Json
+          notes?: string | null
+          payment_method?: string | null
+          receiver_name?: string | null
+          receiver_phone?: string | null
+          status?: string
+          store_id: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          city_id?: string | null
+          created_at?: string
+          customer_id?: string
+          delivery_address?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
+          id?: string
+          is_gift?: boolean | null
+          items?: Json
+          notes?: string | null
+          payment_method?: string | null
+          receiver_name?: string | null
+          receiver_phone?: string | null
+          status?: string
+          store_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_cart_orders_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grocery_cart_orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grocery_list_orders: {
         Row: {
           alternatives_note: string | null
