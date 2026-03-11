@@ -54,6 +54,9 @@ const Services = () => {
   const [allBookings, setAllBookings] = useState<any[]>([]);
   const [carModel, setCarModel] = useState("");
   const [oilCompany, setOilCompany] = useState("");
+  const [nearbyProviders, setNearbyProviders] = useState<any[]>([]);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locatingUser, setLocatingUser] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const servicesRef = useRef<HTMLDivElement>(null);
