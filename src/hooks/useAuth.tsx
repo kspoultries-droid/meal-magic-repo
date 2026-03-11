@@ -24,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   isRider: false,
   isSupport: false,
   isMechanic: false,
+  isServiceManager: false,
   signOut: async () => {},
 });
 
