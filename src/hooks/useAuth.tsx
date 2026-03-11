@@ -11,6 +11,7 @@ interface AuthContextType {
   isRider: boolean;
   isSupport: boolean;
   isMechanic: boolean;
+  isServiceManager: boolean;
   signOut: () => Promise<void>;
 }
 
