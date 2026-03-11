@@ -140,6 +140,14 @@ const Navbar = () => {
                             <Wrench className="w-4 h-4" /> مکینک ڈیش بورڈ
                           </button>
                         )}
+                        {isServiceManager && (
+                          <button
+                            onClick={() => { navigate("/service-manager"); setMenuOpen(false); }}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-teal-700 hover:bg-secondary transition-colors"
+                          >
+                            <ClipboardList className="w-4 h-4" /> سروس مینیجر
+                          </button>
+                        )}
                         <div className="border-t my-1" />
                         <button
                           onClick={async () => { await signOut(); navigate("/"); setMenuOpen(false); }}
