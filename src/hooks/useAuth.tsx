@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isRider, setIsRider] = useState(false);
   const [isSupport, setIsSupport] = useState(false);
   const [isMechanic, setIsMechanic] = useState(false);
+  const [isServiceManager, setIsServiceManager] = useState(false);
 
   const checkRoles = async (userId: string) => {
     try {
