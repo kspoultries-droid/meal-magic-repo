@@ -14,7 +14,11 @@ const SECTION_MESSAGES: Record<string, string> = {
 
 const AppShareButton = ({ section = "general" }: AppShareButtonProps) => {
   const handleShare = () => {
-    const appUrl = `${window.location.origin}/install`;
+    // Always use published URL, not preview URL
+    const publishedOrigin = window.location.origin.includes("preview--")
+      ? window.location.origin.replace(/id-preview--[^.]+/, "meal-magic-repo")
+      : window.location.origin;
+    const appUrl = `${publishedOrigin}/install`;
     const msg = `${SECTION_MESSAGES[section]}\n${appUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
