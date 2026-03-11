@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   Search, Star, Clock, ChevronRight, AirVent, Wrench, Zap,
-  Sparkles, Paintbrush, Hammer, ArrowLeft, Calendar, MapPin, CreditCard, Car
+  Sparkles, Paintbrush, Hammer, ArrowLeft, Calendar, MapPin, CreditCard, Car,
+  LocateFixed, Users
 } from "lucide-react";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription
@@ -53,6 +54,9 @@ const Services = () => {
   const [allBookings, setAllBookings] = useState<any[]>([]);
   const [carModel, setCarModel] = useState("");
   const [oilCompany, setOilCompany] = useState("");
+  const [nearbyProviders, setNearbyProviders] = useState<any[]>([]);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locatingUser, setLocatingUser] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const servicesRef = useRef<HTMLDivElement>(null);
@@ -147,6 +151,63 @@ const Services = () => {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
+
+  // Fetch nearby providers
+  const fetchNearbyProviders = async (catId?: string | null) => {
+    let query = supabase
+      .from("service_providers")
+      .select("*, service_categories(name)")
+      .eq("is_active", true)
+      .eq("is_available", true)
+      .order("rating", { ascending: false })
+      .limit(20);
+    if (catId) query = query.eq("category_id", catId);
+    const { data } = await query;
+    
+    let providers = data || [];
+    // Sort by distance if user location available
+    if (userLocation && providers.length > 0) {
+      providers = providers
+        .map(p => ({
+          ...p,
+          distance: p.latitude && p.longitude
+            ? getDistanceKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude)
+            : 999,
+        }))
+        .sort((a, b) => a.distance - b.distance);
+    }
+    setNearbyProviders(providers);
+  };
+
+  // Haversine distance
+  const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const getUserLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocatingUser(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocatingUser(false);
+        toast.success("📍 لوکیشن مل گئی!");
+      },
+      () => {
+        setLocatingUser(false);
+        toast.error("لوکیشن نہیں مل سکی");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  useEffect(() => {
+    fetchNearbyProviders(activeCategory);
+  }, [activeCategory, userLocation]);
 
   const advanceFee = selectedService ? Math.round(selectedService.price * 0.15) : 0;
 
@@ -460,6 +521,79 @@ const Services = () => {
           </div>
         </div>
       )}
+
+      {/* Nearby Service Providers / قریبی سروس پرووائیڈرز */}
+      <div className="container mx-auto px-4 pb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-extrabold text-foreground flex items-center gap-2">
+            <Users className="w-5 h-5 text-primary" /> Nearby Helpers / قریبی ہیلپرز
+          </h2>
+          <button
+            onClick={getUserLocation}
+            disabled={locatingUser}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors"
+          >
+            <LocateFixed className={`w-3.5 h-3.5 ${locatingUser ? "animate-spin" : ""}`} />
+            {userLocation ? "Update / تازہ" : "Locate Me / لوکیشن"}
+          </button>
+        </div>
+
+        {nearbyProviders.length === 0 ? (
+          <div className="bg-card rounded-2xl p-6 border text-center">
+            <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-40" />
+            <p className="text-sm text-muted-foreground font-medium">
+              ابھی کوئی ہیلپر دستیاب نہیں / No helpers available yet
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {nearbyProviders.map((provider) => (
+              <div key={provider.id} className="bg-card rounded-2xl p-4 border flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+                  {provider.image_url ? (
+                    <img src={provider.image_url} alt={provider.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Wrench className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-foreground text-sm truncate">{provider.name}</p>
+                    {provider.is_available && (
+                      <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {provider.service_categories?.name || "General"}
+                    {provider.bio && ` — ${provider.bio}`}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="flex items-center gap-0.5 text-xs">
+                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                      <span className="font-bold text-foreground">{Number(provider.rating).toFixed(1)}</span>
+                      <span className="text-muted-foreground">({provider.total_reviews})</span>
+                    </span>
+                    {provider.distance !== undefined && provider.distance < 999 && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                        <MapPin className="w-3 h-3" /> {provider.distance.toFixed(1)} km
+                      </span>
+                    )}
+                    {provider.phone && (
+                      <a
+                        href={`tel:${provider.phone}`}
+                        className="text-xs font-bold text-primary"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        📞 Call
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Helpline */}
       <HelplineSection />
