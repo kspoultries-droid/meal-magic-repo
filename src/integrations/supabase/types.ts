@@ -960,6 +960,81 @@ export type Database = {
         }
         Relationships: []
       }
+      service_providers: {
+        Row: {
+          address: string | null
+          bio: string | null
+          category_id: string | null
+          city_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_available: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          rating: number | null
+          total_reviews: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          bio?: string | null
+          category_id?: string | null
+          city_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_available?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          bio?: string | null
+          category_id?: string | null
+          city_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_available?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_providers_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_providers_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_reviews: {
         Row: {
           booking_id: string
@@ -967,6 +1042,7 @@ export type Database = {
           created_at: string
           customer_id: string
           id: string
+          provider_id: string | null
           rating: number
           service_id: string
         }
@@ -976,6 +1052,7 @@ export type Database = {
           created_at?: string
           customer_id: string
           id?: string
+          provider_id?: string | null
           rating: number
           service_id: string
         }
@@ -985,6 +1062,7 @@ export type Database = {
           created_at?: string
           customer_id?: string
           id?: string
+          provider_id?: string | null
           rating?: number
           service_id?: string
         }
@@ -994,6 +1072,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "service_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
           {
