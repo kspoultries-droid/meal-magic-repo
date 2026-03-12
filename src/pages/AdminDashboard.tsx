@@ -170,6 +170,7 @@ const UsersTab = () => {
             <option value="rider">Rider</option>
             <option value="mechanic">Mechanic</option>
             <option value="support">Support</option>
+            <option value="service_manager">Service Manager</option>
             {isAppOwner && <option value="admin">Admin</option>}
           </select>
           <Button onClick={addRole}><Plus className="h-4 w-4 mr-1" /> رول دیں</Button>
