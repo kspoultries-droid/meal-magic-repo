@@ -80,17 +80,25 @@ const UsersTab = () => {
   const [loading, setLoading] = useState(true);
   const [roleEmail, setRoleEmail] = useState("");
   const [roleType, setRoleType] = useState("restaurant_owner");
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [managerCategories, setManagerCategories] = useState<any[]>([]);
+  const [catDialogUser, setCatDialogUser] = useState<string | null>(null);
+  const [catDialogOpen, setCatDialogOpen] = useState(false);
 
   const isAppOwner = user?.id === APP_OWNER_ID;
 
   const fetchData = async () => {
     setLoading(true);
-    const [{ data: profs }, { data: rls }] = await Promise.all([
+    const [{ data: profs }, { data: rls }, { data: cats }, { data: mgrCats }] = await Promise.all([
       supabase.from("profiles").select("id, full_name, phone, created_at"),
       supabase.from("user_roles").select("*"),
+      supabase.from("service_categories").select("id, name").order("sort_order"),
+      supabase.from("service_manager_categories").select("*"),
     ]);
     setProfiles(profs || []);
     setRoles(rls || []);
+    setAllCategories(cats || []);
+    setManagerCategories(mgrCats || []);
     setLoading(false);
   };
 
@@ -154,6 +162,33 @@ const UsersTab = () => {
     fetchData();
   };
 
+  const getUserManagerCategories = (userId: string) => 
+    managerCategories.filter((mc) => mc.user_id === userId).map((mc) => mc.category_id);
+
+  const openCategoryDialog = (userId: string) => {
+    setCatDialogUser(userId);
+    setCatDialogOpen(true);
+  };
+
+  const toggleManagerCategory = async (userId: string, categoryId: string) => {
+    const existing = managerCategories.find((mc) => mc.user_id === userId && mc.category_id === categoryId);
+    if (existing) {
+      const { error } = await supabase.from("service_manager_categories").delete().eq("id", existing.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success("کیٹیگری ہٹا دی گئی");
+    } else {
+      const { error } = await supabase.from("service_manager_categories").insert({ user_id: userId, category_id: categoryId });
+      if (error) { toast.error(error.message); return; }
+      toast.success("کیٹیگری اسائن ہو گئی");
+    }
+    fetchData();
+  };
+
+  const copyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    toast.success("ID کاپی ہو گئی");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -194,7 +229,7 @@ const UsersTab = () => {
                 const isOwner = p.id === APP_OWNER_ID;
                 return (
                   <TableRow key={p.id} className={isOwner ? "bg-primary/5" : ""}>
-                    <TableCell className="font-mono text-xs">{p.id.slice(0, 8)}</TableCell>
+                    <TableCell className="font-mono text-xs cursor-pointer hover:text-primary" onClick={() => copyId(p.id)} title="کاپی کرنے کے لیے کلک کریں">{p.id.slice(0, 8)}…</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {p.full_name || "—"}
@@ -238,6 +273,12 @@ const UsersTab = () => {
                             🍽️ ریسٹورنٹ اونر
                           </Button>
                         )}
+                        {/* Category assignment for service managers */}
+                        {userRoles.includes("service_manager") && (
+                          <Button size="sm" variant="outline" className="h-6 text-xs px-2 border-primary text-primary" onClick={() => openCategoryDialog(p.id)}>
+                            📂 کیٹیگریز ({getUserManagerCategories(p.id).length})
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -246,6 +287,39 @@ const UsersTab = () => {
             </TableBody>
           </Table>
         )}
+
+        {/* Category Assignment Dialog */}
+        <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>سروس مینیجر کیٹیگریز اسائن کریں</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 mt-2">
+              {catDialogUser && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  یوزر: {profiles.find(p => p.id === catDialogUser)?.full_name || catDialogUser.slice(0, 8)}
+                </p>
+              )}
+              {allCategories.map((cat) => {
+                const isAssigned = catDialogUser ? getUserManagerCategories(catDialogUser).includes(cat.id) : false;
+                return (
+                  <Button
+                    key={cat.id}
+                    variant={isAssigned ? "default" : "outline"}
+                    className="w-full justify-between h-9 text-sm"
+                    onClick={() => catDialogUser && toggleManagerCategory(catDialogUser, cat.id)}
+                  >
+                    {cat.name}
+                    {isAssigned && <Check className="w-4 h-4" />}
+                  </Button>
+                );
+              })}
+              {allCategories.length === 0 && (
+                <p className="text-center text-muted-foreground py-4">کوئی سروس کیٹیگری نہیں ملی — پہلے سروسز ٹیب میں کیٹیگری بنائیں</p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
