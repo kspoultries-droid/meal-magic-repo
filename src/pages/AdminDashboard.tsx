@@ -89,12 +89,16 @@ const UsersTab = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [{ data: profs }, { data: rls }] = await Promise.all([
+    const [{ data: profs }, { data: rls }, { data: cats }, { data: mgrCats }] = await Promise.all([
       supabase.from("profiles").select("id, full_name, phone, created_at"),
       supabase.from("user_roles").select("*"),
+      supabase.from("service_categories").select("id, name").order("sort_order"),
+      supabase.from("service_manager_categories").select("*"),
     ]);
     setProfiles(profs || []);
     setRoles(rls || []);
+    setAllCategories(cats || []);
+    setManagerCategories(mgrCats || []);
     setLoading(false);
   };
 
