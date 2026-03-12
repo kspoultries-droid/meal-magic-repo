@@ -80,6 +80,10 @@ const UsersTab = () => {
   const [loading, setLoading] = useState(true);
   const [roleEmail, setRoleEmail] = useState("");
   const [roleType, setRoleType] = useState("restaurant_owner");
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [managerCategories, setManagerCategories] = useState<any[]>([]);
+  const [catDialogUser, setCatDialogUser] = useState<string | null>(null);
+  const [catDialogOpen, setCatDialogOpen] = useState(false);
 
   const isAppOwner = user?.id === APP_OWNER_ID;
 
