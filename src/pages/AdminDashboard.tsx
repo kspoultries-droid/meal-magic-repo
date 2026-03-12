@@ -273,6 +273,12 @@ const UsersTab = () => {
                             🍽️ ریسٹورنٹ اونر
                           </Button>
                         )}
+                        {/* Category assignment for service managers */}
+                        {userRoles.includes("service_manager") && (
+                          <Button size="sm" variant="outline" className="h-6 text-xs px-2 border-primary text-primary" onClick={() => openCategoryDialog(p.id)}>
+                            📂 کیٹیگریز ({getUserManagerCategories(p.id).length})
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -281,6 +287,39 @@ const UsersTab = () => {
             </TableBody>
           </Table>
         )}
+
+        {/* Category Assignment Dialog */}
+        <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>سروس مینیجر کیٹیگریز اسائن کریں</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 mt-2">
+              {catDialogUser && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  یوزر: {profiles.find(p => p.id === catDialogUser)?.full_name || catDialogUser.slice(0, 8)}
+                </p>
+              )}
+              {allCategories.map((cat) => {
+                const isAssigned = catDialogUser ? getUserManagerCategories(catDialogUser).includes(cat.id) : false;
+                return (
+                  <Button
+                    key={cat.id}
+                    variant={isAssigned ? "default" : "outline"}
+                    className="w-full justify-between h-9 text-sm"
+                    onClick={() => catDialogUser && toggleManagerCategory(catDialogUser, cat.id)}
+                  >
+                    {cat.name}
+                    {isAssigned && <Check className="w-4 h-4" />}
+                  </Button>
+                );
+              })}
+              {allCategories.length === 0 && (
+                <p className="text-center text-muted-foreground py-4">کوئی سروس کیٹیگری نہیں ملی — پہلے سروسز ٹیب میں کیٹیگری بنائیں</p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
