@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet } from "lucide-react";
+import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet, Copy } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Navbar from "@/components/Navbar";
@@ -90,6 +90,22 @@ const Profile = () => {
         <button onClick={() => setEditing(!editing)} className="text-sm text-muted-foreground hover:text-primary transition-colors">
           {editing ? "Cancel" : "View profile"}
         </button>
+        {/* User ID for sharing with admin */}
+        {user && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">آپ کی ID:</span>
+            <code className="text-xs font-mono bg-secondary px-2 py-0.5 rounded">{user.id.slice(0, 8)}</code>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(user.id.slice(0, 8));
+                toast.success("ID کاپی ہو گئی — ایڈمن کو بھیجیں");
+              }}
+              className="text-xs text-primary hover:text-primary/80 flex items-center gap-0.5"
+            >
+              <Copy className="w-3 h-3" /> کاپی
+            </button>
+          </div>
+        )}
         {editing && (
           <div className="mt-4 space-y-3">
             <Input placeholder="پورا نام" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
