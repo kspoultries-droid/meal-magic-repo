@@ -162,6 +162,33 @@ const UsersTab = () => {
     fetchData();
   };
 
+  const getUserManagerCategories = (userId: string) => 
+    managerCategories.filter((mc) => mc.user_id === userId).map((mc) => mc.category_id);
+
+  const openCategoryDialog = (userId: string) => {
+    setCatDialogUser(userId);
+    setCatDialogOpen(true);
+  };
+
+  const toggleManagerCategory = async (userId: string, categoryId: string) => {
+    const existing = managerCategories.find((mc) => mc.user_id === userId && mc.category_id === categoryId);
+    if (existing) {
+      const { error } = await supabase.from("service_manager_categories").delete().eq("id", existing.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success("کیٹیگری ہٹا دی گئی");
+    } else {
+      const { error } = await supabase.from("service_manager_categories").insert({ user_id: userId, category_id: categoryId });
+      if (error) { toast.error(error.message); return; }
+      toast.success("کیٹیگری اسائن ہو گئی");
+    }
+    fetchData();
+  };
+
+  const copyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    toast.success("ID کاپی ہو گئی");
+  };
+
   return (
     <Card>
       <CardHeader>
