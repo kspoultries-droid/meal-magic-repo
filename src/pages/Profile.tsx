@@ -90,6 +90,22 @@ const Profile = () => {
         <button onClick={() => setEditing(!editing)} className="text-sm text-muted-foreground hover:text-primary transition-colors">
           {editing ? "Cancel" : "View profile"}
         </button>
+        {/* User ID for sharing with admin */}
+        {user && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">آپ کی ID:</span>
+            <code className="text-xs font-mono bg-secondary px-2 py-0.5 rounded">{user.id.slice(0, 8)}</code>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(user.id.slice(0, 8));
+                toast.success("ID کاپی ہو گئی — ایڈمن کو بھیجیں");
+              }}
+              className="text-xs text-primary hover:text-primary/80 flex items-center gap-0.5"
+            >
+              <Copy className="w-3 h-3" /> کاپی
+            </button>
+          </div>
+        )}
         {editing && (
           <div className="mt-4 space-y-3">
             <Input placeholder="پورا نام" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
