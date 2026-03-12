@@ -229,7 +229,7 @@ const UsersTab = () => {
                 const isOwner = p.id === APP_OWNER_ID;
                 return (
                   <TableRow key={p.id} className={isOwner ? "bg-primary/5" : ""}>
-                    <TableCell className="font-mono text-xs">{p.id.slice(0, 8)}</TableCell>
+                    <TableCell className="font-mono text-xs cursor-pointer hover:text-primary" onClick={() => copyId(p.id)} title="کاپی کرنے کے لیے کلک کریں">{p.id.slice(0, 8)}…</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {p.full_name || "—"}
