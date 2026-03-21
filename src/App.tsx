@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,25 +8,26 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import AdminDashboard from "./pages/AdminDashboard";
-import RestaurantDetail from "./pages/RestaurantDetail";
-import RestaurantOwnerDashboard from "./pages/RestaurantOwnerDashboard";
-import RiderDashboard from "./pages/RiderDashboard";
-import Checkout from "./pages/Checkout";
-import Profile from "./pages/Profile";
-import NotFound from "./pages/NotFound";
-import Install from "./pages/Install";
-import Grocery from "./pages/Grocery";
-import GroceryStoreDetail from "./pages/GroceryStoreDetail";
-import OrderTracking from "./pages/OrderTracking";
-import SearchPage from "./pages/SearchPage";
-import Services from "./pages/Services";
-import Wallet from "./pages/Wallet";
-import SupportDashboard from "./pages/SupportDashboard";
-import MechanicDashboard from "./pages/MechanicDashboard";
-import StandaloneStore from "./pages/StandaloneStore";
-import ServiceManagerDashboard from "./pages/ServiceManagerDashboard";
+
+const Auth = lazy(() => import("./pages/Auth"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const RestaurantDetail = lazy(() => import("./pages/RestaurantDetail"));
+const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashboard"));
+const RiderDashboard = lazy(() => import("./pages/RiderDashboard"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const Profile = lazy(() => import("./pages/Profile"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Install = lazy(() => import("./pages/Install"));
+const Grocery = lazy(() => import("./pages/Grocery"));
+const GroceryStoreDetail = lazy(() => import("./pages/GroceryStoreDetail"));
+const OrderTracking = lazy(() => import("./pages/OrderTracking"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
+const Services = lazy(() => import("./pages/Services"));
+const Wallet = lazy(() => import("./pages/Wallet"));
+const SupportDashboard = lazy(() => import("./pages/SupportDashboard"));
+const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
+const StandaloneStore = lazy(() => import("./pages/StandaloneStore"));
+const ServiceManagerDashboard = lazy(() => import("./pages/ServiceManagerDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -52,29 +53,31 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-                <Route path="/restaurant-dashboard" element={<RestaurantOwnerDashboard />} />
-                <Route path="/rider-dashboard" element={<RiderDashboard />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/install" element={<Install />} />
-                <Route path="/grocery" element={<Grocery />} />
-                <Route path="/grocery/:id" element={<GroceryStoreDetail />} />
-                <Route path="/order-tracking/:id" element={<OrderTracking />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/wallet" element={<Wallet />} />
-                <Route path="/support-dashboard" element={<SupportDashboard />} />
-                <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
-                <Route path="/store/:slug" element={<StandaloneStore />} />
-                <Route path="/service-manager" element={<ServiceManagerDashboard />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<div className="min-h-screen bg-background" />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+                  <Route path="/restaurant-dashboard" element={<RestaurantOwnerDashboard />} />
+                  <Route path="/rider-dashboard" element={<RiderDashboard />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/install" element={<Install />} />
+                  <Route path="/grocery" element={<Grocery />} />
+                  <Route path="/grocery/:id" element={<GroceryStoreDetail />} />
+                  <Route path="/order-tracking/:id" element={<OrderTracking />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/wallet" element={<Wallet />} />
+                  <Route path="/support-dashboard" element={<SupportDashboard />} />
+                  <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+                  <Route path="/store/:slug" element={<StandaloneStore />} />
+                  <Route path="/service-manager" element={<ServiceManagerDashboard />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </GlobalErrorHandler>
         </TooltipProvider>
