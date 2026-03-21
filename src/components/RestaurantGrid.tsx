@@ -97,7 +97,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((r, i) => (
             <div key={r.id} className="animate-fade-in-up cursor-pointer" style={{ animationDelay: `${i * 80}ms` }} onClick={() => navigate(`/restaurant/${r.id}`)}>
-              <RestaurantCard restaurant={r} />
+              <RestaurantCard restaurant={r} index={i} />
             </div>
           ))}
         </div>
