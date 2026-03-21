@@ -5,6 +5,7 @@ import type { Restaurant } from "./RestaurantGrid";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
+  index?: number;
 }
 
 const optimizeImageUrl = (url: string): string => {
