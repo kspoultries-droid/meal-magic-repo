@@ -23,6 +23,7 @@ interface PromotionalAdsProps {
 
 const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
   const [ads, setAds] = useState<Ad[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const fetchAds = async () => {
@@ -41,11 +42,13 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
         (ad as any).placements?.some((p: string) => placements.includes(p))
       );
       setAds(filtered);
+      setLoaded(true);
     };
     fetchAds();
   }, [placement]);
 
-  if (ads.length === 0) return null;
+  if (loaded && ads.length === 0) return null;
+  if (!loaded) return <div className="min-h-[220px]" />;
 
   return (
     <section className={`px-3 py-3 ${className}`}>
