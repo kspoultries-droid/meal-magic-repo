@@ -7,16 +7,31 @@ interface RestaurantCardProps {
   restaurant: Restaurant;
 }
 
+const optimizeImageUrl = (url: string): string => {
+  if (!url) return url;
+  if (url.includes('images.unsplash.com')) {
+    const u = new URL(url);
+    u.searchParams.set('w', '400');
+    u.searchParams.set('h', '300');
+    u.searchParams.set('fit', 'crop');
+    u.searchParams.set('fm', 'webp');
+    u.searchParams.set('q', '75');
+    return u.toString();
+  }
+  return url;
+};
+
 const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
   const { name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
   const [showMenu, setShowMenu] = useState(false);
   const { addItem } = useCart();
+  const optimizedImage = optimizeImageUrl(image);
 
   return (
     <div className={`group bg-card rounded-2xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300 ${!isActive ? 'opacity-60 grayscale' : ''}`}>
       {/* Image */}
       <div className="relative h-44 overflow-hidden" onClick={(e) => { e.stopPropagation(); if (isActive) setShowMenu(!showMenu); }}>
-        <img src={image} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <img src={optimizedImage} alt={name} width={400} height={300} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         {!isActive && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <span className="bg-destructive text-destructive-foreground text-sm font-bold px-4 py-2 rounded-lg">بند ہے / Closed</span>
