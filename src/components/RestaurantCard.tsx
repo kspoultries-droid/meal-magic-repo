@@ -22,17 +22,26 @@ const optimizeImageUrl = (url: string): string => {
   return url;
 };
 
-const RestaurantCard = ({ restaurant }: RestaurantCardProps) => {
+const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
   const { name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
   const [showMenu, setShowMenu] = useState(false);
   const { addItem } = useCart();
   const optimizedImage = optimizeImageUrl(image);
+  const isAboveFold = index < 4;
 
   return (
     <div className={`group bg-card rounded-2xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300 ${!isActive ? 'opacity-60 grayscale' : ''}`}>
       {/* Image */}
       <div className="relative h-44 overflow-hidden" onClick={(e) => { e.stopPropagation(); if (isActive) setShowMenu(!showMenu); }}>
-        <img src={optimizedImage} alt={name} width={400} height={300} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <img
+          src={optimizedImage}
+          alt={name}
+          width={400}
+          height={300}
+          loading={isAboveFold ? "eager" : "lazy"}
+          {...(isAboveFold ? { fetchPriority: "high" as const } : {})}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
         {!isActive && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <span className="bg-destructive text-destructive-foreground text-sm font-bold px-4 py-2 rounded-lg">بند ہے / Closed</span>
