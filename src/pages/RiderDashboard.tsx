@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,10 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Bike, ArrowLeft, RefreshCw, Wallet, TrendingUp, Package, Navigation } from "lucide-react";
+import { LogOut, Bike, ArrowLeft, RefreshCw, Wallet, TrendingUp, Package, Navigation, MapPin } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
+
+// Haversine distance in km
+const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 const RiderDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -18,8 +28,10 @@ const RiderDashboard = () => {
   const [hasRole, setHasRole] = useState<boolean | null>(null);
   const [riderData, setRiderData] = useState<any>(null);
   const [myOrders, setMyOrders] = useState<any[]>([]);
-  const [availableOrders, setAvailableOrders] = useState<any[]>([]);
+  const [nearbyOrders, setNearbyOrders] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationStatus, setLocationStatus] = useState<string>("");
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   useEffect(() => {
@@ -33,6 +45,34 @@ const RiderDashboard = () => {
     }
   }, [user]);
 
+  // GPS location tracking
+  const updateLocation = useCallback(async (lat: number, lng: number) => {
+    if (!user) return;
+    setMyLocation({ lat, lng });
+    await supabase.from("riders").update({ current_lat: lat, current_lng: lng }).eq("id", user.id);
+  }, [user]);
+
+  useEffect(() => {
+    if (!hasRole || !user) return;
+    if (!navigator.geolocation) {
+      setLocationStatus("آپ کا براؤزر لوکیشن سپورٹ نہیں کرتا");
+      return;
+    }
+    setLocationStatus("لوکیشن حاصل ہو رہی ہے...");
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setLocationStatus("");
+        updateLocation(pos.coords.latitude, pos.coords.longitude);
+      },
+      (err) => {
+        setLocationStatus("لوکیشن اجازت دیں — GPS آن کریں");
+        console.error("Geolocation error:", err);
+      },
+      { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [hasRole, user, updateLocation]);
+
   const fetchData = async () => {
     if (!user) return;
     setLoadingData(true);
@@ -43,13 +83,27 @@ const RiderDashboard = () => {
     ]);
     setRiderData(rider);
     setMyOrders(assigned || []);
-    setAvailableOrders(available || []);
+
+    // Sort by distance and take nearest 5
+    const allAvailable = available || [];
+    if (myLocation && allAvailable.length > 0) {
+      const withDist = allAvailable.map(o => ({
+        ...o,
+        _distance: o.delivery_lat && o.delivery_lng
+          ? haversineKm(myLocation.lat, myLocation.lng, o.delivery_lat, o.delivery_lng)
+          : 9999,
+      }));
+      withDist.sort((a, b) => a._distance - b._distance);
+      setNearbyOrders(withDist.slice(0, 5));
+    } else {
+      setNearbyOrders(allAvailable.slice(0, 5));
+    }
     setLoadingData(false);
   };
 
   useEffect(() => {
     if (hasRole) fetchData();
-  }, [hasRole, user]);
+  }, [hasRole, user, myLocation]);
 
   // Realtime order updates
   useEffect(() => {
@@ -69,13 +123,6 @@ const RiderDashboard = () => {
     const { error } = await supabase.from("riders").update({ is_available: !riderData.is_available }).eq("id", user!.id);
     if (error) { toast.error(error.message); return; }
     toast.success(riderData.is_available ? "آپ آف لائن ہو گئے" : "آپ آن لائن ہو گئے");
-    fetchData();
-  };
-
-  const acceptOrder = async (orderId: string) => {
-    const { error } = await supabase.from("orders").update({ rider_id: user!.id }).eq("id", orderId);
-    if (error) { toast.error(error.message); return; }
-    toast.success("آرڈر قبول ہو گیا! 🏍️");
     fetchData();
   };
 
@@ -117,6 +164,14 @@ const RiderDashboard = () => {
       </header>
 
       <div className="p-6 space-y-6">
+        {/* Location Status */}
+        {locationStatus && (
+          <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-warning" />
+            <span className="text-sm text-warning">{locationStatus}</span>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
@@ -130,6 +185,9 @@ const RiderDashboard = () => {
                   <Switch checked={riderData?.is_available || false} onCheckedChange={toggleAvailability} />
                   <span className="font-bold">{riderData?.is_available ? "آن لائن" : "آف لائن"}</span>
                 </div>
+                {myLocation && (
+                  <p className="text-[10px] text-muted-foreground mt-1">📍 لوکیشن شیئر ہو رہی ہے</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -157,18 +215,19 @@ const RiderDashboard = () => {
           </Card>
         </div>
 
-        {/* Available Orders to Pick Up */}
+        {/* Nearby Orders (read-only - admin assigns) */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2"><Package className="w-5 h-5" /> دستیاب آرڈرز</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Package className="w-5 h-5" /> قریبی آرڈرز (5 قریب ترین)</CardTitle>
             <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent>
-            {availableOrders.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">ابھی کوئی دستیاب آرڈر نہیں</p>
+            <p className="text-xs text-muted-foreground mb-3">⚠️ آرڈر ایڈمن تفویض کرے گا — آپ کو اسائن ہونے پر "میرے آرڈرز" میں نظر آئے گا</p>
+            {nearbyOrders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">ابھی کوئی قریبی آرڈر نہیں</p>
             ) : (
               <div className="space-y-3">
-                {availableOrders.map((o) => (
+                {nearbyOrders.map((o) => (
                   <div key={o.id} className="bg-secondary/30 rounded-xl p-4 border space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
@@ -178,7 +237,9 @@ const RiderDashboard = () => {
                           {o.status === 'confirmed' ? '✅ تصدیق شدہ' : o.status === 'preparing' ? '🍳 تیاری جاری' : '📦 ڈلیوری کے لیے تیار'}
                         </Badge>
                       </div>
-                      <Button size="sm" onClick={() => acceptOrder(o.id)}>قبول کریں 🏍️</Button>
+                      {o._distance != null && o._distance < 9999 && (
+                        <Badge variant="outline" className="text-[10px]">📍 {o._distance.toFixed(1)} km</Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">📍 {o.delivery_address || "پتہ نہیں"}</p>
                     {o.delivery_address && (
