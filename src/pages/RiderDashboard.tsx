@@ -39,7 +39,7 @@ const RiderDashboard = () => {
     const [{ data: rider }, { data: assigned }, { data: available }] = await Promise.all([
       supabase.from("riders").select("*").eq("id", user.id).single(),
       supabase.from("orders").select("*, order_items(*)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("orders").select("*, order_items(*)").eq("status", "delivering").is("rider_id", null).order("created_at", { ascending: false }).limit(20),
+      supabase.from("orders").select("*, order_items(*)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).order("created_at", { ascending: false }).limit(20),
     ]);
     setRiderData(rider);
     setMyOrders(assigned || []);
