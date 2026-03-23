@@ -174,6 +174,9 @@ const RiderDashboard = () => {
                       <div>
                         <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
                         <p className="font-bold text-foreground">Rs {o.total_amount}</p>
+                        <Badge variant={o.status === 'confirmed' ? 'secondary' : o.status === 'preparing' ? 'outline' : 'default'} className="mt-1 text-[10px]">
+                          {o.status === 'confirmed' ? '✅ تصدیق شدہ' : o.status === 'preparing' ? '🍳 تیاری جاری' : '📦 ڈلیوری کے لیے تیار'}
+                        </Badge>
                       </div>
                       <Button size="sm" onClick={() => acceptOrder(o.id)}>قبول کریں 🏍️</Button>
                     </div>
