@@ -325,10 +325,21 @@ const UsersTab = () => {
   );
 };
 
+// ─── Haversine distance (km) ────────────────────
+const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
 // ─── Orders ─────────────────────────────────────
 const OrdersTab = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [riders, setRiders] = useState<any[]>([]);
+  const [riderProfiles, setRiderProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
@@ -336,10 +347,16 @@ const OrdersTab = () => {
     setLoading(true);
     const [{ data: ordersData }, { data: ridersData }] = await Promise.all([
       supabase.from("orders").select("*, order_items(*)").order("created_at", { ascending: false }).limit(50),
-      supabase.from("riders").select("id, is_available").eq("is_available", true),
+      supabase.from("riders").select("id, is_available, current_lat, current_lng"),
     ]);
     setOrders(ordersData || []);
-    setRiders(ridersData || []);
+    const allRiders = ridersData || [];
+    setRiders(allRiders);
+    // Fetch rider profiles for names
+    if (allRiders.length > 0) {
+      const { data: profs } = await supabase.from("profiles").select("id, full_name, phone").in("id", allRiders.map(r => r.id));
+      setRiderProfiles(profs || []);
+    }
     setLoading(false);
   };
 
@@ -367,6 +384,29 @@ const OrdersTab = () => {
     fetchOrders();
   };
 
+  const getRiderName = (riderId: string) => {
+    const prof = riderProfiles.find(p => p.id === riderId);
+    return prof?.full_name || riderId.slice(0, 8);
+  };
+
+  const getRiderPhone = (riderId: string) => {
+    const prof = riderProfiles.find(p => p.id === riderId);
+    return prof?.phone || "";
+  };
+
+  // Get nearest riders sorted by distance to order's delivery location
+  const getNearestRiders = (order: any) => {
+    const availableRiders = riders.filter(r => r.is_available && r.current_lat && r.current_lng);
+    if (!order.delivery_lat || !order.delivery_lng) return availableRiders.slice(0, 5);
+    return availableRiders
+      .map(r => ({
+        ...r,
+        distance: haversineKm(r.current_lat, r.current_lng, order.delivery_lat, order.delivery_lng),
+      }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 5);
+  };
+
   const statusColor = (s: string) => {
     const map: Record<string, string> = { pending: "bg-warning text-warning-foreground", confirmed: "bg-primary text-primary-foreground", preparing: "bg-accent text-accent-foreground", delivering: "bg-primary text-primary-foreground", delivered: "bg-success text-success-foreground", cancelled: "bg-destructive text-destructive-foreground" };
     return map[s] || "bg-muted text-muted-foreground";
@@ -382,63 +422,87 @@ const OrdersTab = () => {
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
           <div className="space-y-3">
             {orders.length === 0 && <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>}
-            {orders.map((o) => (
-              <div key={o.id} className="border rounded-xl p-4 space-y-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-                    <span className="ml-3 font-bold">Rs {o.total_amount}</span>
+            {orders.map((o) => {
+              const nearestRiders = getNearestRiders(o);
+              const needsRider = ["confirmed", "preparing", "delivering"].includes(o.status) && !o.rider_id;
+              return (
+                <div key={o.id} className="border rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
+                      <span className="ml-3 font-bold">Rs {o.total_amount}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className={statusColor(o.status)}>{o.status}</Badge>
+                      <span className="text-xs text-muted-foreground">{o.payment_method}</span>
+                      <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge className={statusColor(o.status)}>{o.status}</Badge>
-                    <span className="text-xs text-muted-foreground">{o.payment_method}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
-                  </div>
-                </div>
 
-                {/* Order Items */}
-                <button className="text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
-                  {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
-                </button>
-                {expandedOrder === o.id && o.order_items?.length > 0 && (
-                  <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
-                    {o.order_items.map((item: any) => (
-                      <div key={item.id} className="flex justify-between text-sm">
-                        <span>{item.name} × {item.quantity}</span>
-                        <span className="font-bold">Rs {item.price * item.quantity}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Address */}
-                {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
-
-                {/* Rider Assignment */}
-                {o.status === "delivering" && !o.rider_id && riders.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-muted-foreground">رائیڈر تفویض:</span>
-                    {riders.map((r) => (
-                      <Button key={r.id} size="sm" variant="outline" className="h-7 text-xs" onClick={() => assignRider(o.id, r.id)}>
-                        🏍️ {r.id.slice(0, 6)}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-                {o.rider_id && <p className="text-xs text-muted-foreground">🏍️ رائیڈر: {o.rider_id.slice(0, 8)}</p>}
-
-                {/* Status Actions */}
-                <div className="flex gap-1 flex-wrap">
-                  {["confirmed", "preparing", "delivering", "delivered", "cancelled"].map((s) =>
-                    s !== o.status ? (
-                      <Button key={s} size="sm" variant="ghost" className="text-xs h-7 px-2" onClick={() => updateStatus(o.id, s)}>
-                        {s}
-                      </Button>
-                    ) : null
+                  {/* Order Items */}
+                  <button className="text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
+                    {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
+                  </button>
+                  {expandedOrder === o.id && o.order_items?.length > 0 && (
+                    <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
+                      {o.order_items.map((item: any) => (
+                        <div key={item.id} className="flex justify-between text-sm">
+                          <span>{item.name} × {item.quantity}</span>
+                          <span className="font-bold">Rs {item.price * item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
                   )}
+
+                  {/* Address */}
+                  {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
+
+                  {/* Rider Assignment - show for confirmed/preparing/delivering without rider */}
+                  {needsRider && (
+                    <div className="bg-secondary/20 rounded-lg p-3 space-y-2">
+                      <p className="text-xs font-bold text-foreground">🏍️ قریب ترین رائیڈرز — تفویض کریں:</p>
+                      {nearestRiders.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">کوئی آن لائن رائیڈر نہیں (لوکیشن شیئر نہیں کی)</p>
+                      ) : (
+                        <div className="space-y-1">
+                          {nearestRiders.map((r: any) => (
+                            <div key={r.id} className="flex items-center justify-between bg-background rounded-lg px-3 py-2 border">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold truncate">{getRiderName(r.id)}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {getRiderPhone(r.id) && `📞 ${getRiderPhone(r.id)} · `}
+                                  {r.distance != null ? `📍 ${r.distance.toFixed(1)} km دور` : "📍 فاصلہ نامعلوم"}
+                                </p>
+                              </div>
+                              <Button size="sm" className="h-7 text-xs ml-2" onClick={() => assignRider(o.id, r.id)}>
+                                تفویض کریں
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {o.rider_id && (
+                    <p className="text-xs text-muted-foreground">
+                      🏍️ رائیڈر: <span className="font-bold">{getRiderName(o.rider_id)}</span>
+                      {getRiderPhone(o.rider_id) && ` · 📞 ${getRiderPhone(o.rider_id)}`}
+                    </p>
+                  )}
+
+                  {/* Status Actions */}
+                  <div className="flex gap-1 flex-wrap">
+                    {["confirmed", "preparing", "delivering", "delivered", "cancelled"].map((s) =>
+                      s !== o.status ? (
+                        <Button key={s} size="sm" variant="ghost" className="text-xs h-7 px-2" onClick={() => updateStatus(o.id, s)}>
+                          {s}
+                        </Button>
+                      ) : null
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>
