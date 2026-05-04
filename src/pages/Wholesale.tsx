@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Store, Star, Truck, MapPin, Package } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -11,12 +12,15 @@ const Wholesale = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [stores, setStores] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
+    (supabase.from("wholesale_categories" as any).select("*").eq("is_active", true).order("sort_order") as any).then(({ data }: any) => setCategories(data || []));
   }, []);
 
   useEffect(() => {
@@ -28,6 +32,7 @@ const Wholesale = () => {
         .eq("store_type", "wholesale")
         .neq("subscription_status", "paused");
       if (selectedCity) query = query.eq("city_id", selectedCity);
+      if (activeCategory && activeCategory !== "All") query = query.eq("category", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       query = query.order("sort_order").order("created_at", { ascending: false });
       const { data } = await query;
@@ -35,7 +40,7 @@ const Wholesale = () => {
       setLoading(false);
     };
     fetchStores();
-  }, [searchQuery, selectedCity]);
+  }, [searchQuery, selectedCity, activeCategory]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
