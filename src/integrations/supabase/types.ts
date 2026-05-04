@@ -113,11 +113,13 @@ export type Database = {
       grocery_cart_orders: {
         Row: {
           city_id: string | null
+          courier_name: string | null
           created_at: string
           customer_id: string
           delivery_address: string | null
           delivery_lat: number | null
           delivery_lng: number | null
+          delivery_method: string
           id: string
           is_gift: boolean | null
           items: Json
@@ -128,15 +130,18 @@ export type Database = {
           status: string
           store_id: string
           total_amount: number
+          tracking_number: string | null
           updated_at: string
         }
         Insert: {
           city_id?: string | null
+          courier_name?: string | null
           created_at?: string
           customer_id: string
           delivery_address?: string | null
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_method?: string
           id?: string
           is_gift?: boolean | null
           items?: Json
@@ -147,15 +152,18 @@ export type Database = {
           status?: string
           store_id: string
           total_amount?: number
+          tracking_number?: string | null
           updated_at?: string
         }
         Update: {
           city_id?: string | null
+          courier_name?: string | null
           created_at?: string
           customer_id?: string
           delivery_address?: string | null
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_method?: string
           id?: string
           is_gift?: boolean | null
           items?: Json
@@ -166,6 +174,7 @@ export type Database = {
           status?: string
           store_id?: string
           total_amount?: number
+          tracking_number?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -261,6 +270,8 @@ export type Database = {
       }
       grocery_products: {
         Row: {
+          bulk_tier_price: number | null
+          bulk_tier_qty: number | null
           category: string | null
           created_at: string | null
           description: string | null
@@ -269,13 +280,17 @@ export type Database = {
           image_url: string | null
           is_available: boolean | null
           is_special_offer: boolean | null
+          min_order_qty: number
           name: string
           price: number
           sort_order: number | null
           store_id: string
           unit: string | null
+          wholesale_price: number | null
         }
         Insert: {
+          bulk_tier_price?: number | null
+          bulk_tier_qty?: number | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -284,13 +299,17 @@ export type Database = {
           image_url?: string | null
           is_available?: boolean | null
           is_special_offer?: boolean | null
+          min_order_qty?: number
           name: string
           price: number
           sort_order?: number | null
           store_id: string
           unit?: string | null
+          wholesale_price?: number | null
         }
         Update: {
+          bulk_tier_price?: number | null
+          bulk_tier_qty?: number | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -299,11 +318,13 @@ export type Database = {
           image_url?: string | null
           is_available?: boolean | null
           is_special_offer?: boolean | null
+          min_order_qty?: number
           name?: string
           price?: number
           sort_order?: number | null
           store_id?: string
           unit?: string | null
+          wholesale_price?: number | null
         }
         Relationships: [
           {
@@ -322,6 +343,7 @@ export type Database = {
           category: string
           city_id: string | null
           closing_time: string | null
+          courier_partners: string | null
           created_at: string | null
           delivery_time: string | null
           fee_paid_until: string | null
@@ -337,8 +359,10 @@ export type Database = {
           opening_time: string | null
           owner_id: string
           rating: number | null
+          ships_nationwide: boolean
           slug: string | null
           sort_order: number | null
+          store_type: string
           subscription_status: string | null
           warning_message: string | null
         }
@@ -348,6 +372,7 @@ export type Database = {
           category?: string
           city_id?: string | null
           closing_time?: string | null
+          courier_partners?: string | null
           created_at?: string | null
           delivery_time?: string | null
           fee_paid_until?: string | null
@@ -363,8 +388,10 @@ export type Database = {
           opening_time?: string | null
           owner_id: string
           rating?: number | null
+          ships_nationwide?: boolean
           slug?: string | null
           sort_order?: number | null
+          store_type?: string
           subscription_status?: string | null
           warning_message?: string | null
         }
@@ -374,6 +401,7 @@ export type Database = {
           category?: string
           city_id?: string | null
           closing_time?: string | null
+          courier_partners?: string | null
           created_at?: string | null
           delivery_time?: string | null
           fee_paid_until?: string | null
@@ -389,8 +417,10 @@ export type Database = {
           opening_time?: string | null
           owner_id?: string
           rating?: number | null
+          ships_nationwide?: boolean
           slug?: string | null
           sort_order?: number | null
+          store_type?: string
           subscription_status?: string | null
           warning_message?: string | null
         }

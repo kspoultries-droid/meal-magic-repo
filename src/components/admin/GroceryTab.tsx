@@ -25,7 +25,7 @@ const GroceryTab = () => {
   const [showAddStore, setShowAddStore] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg" });
-  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "" });
+  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false });
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editProductPrice, setEditProductPrice] = useState("");
   const [editProductDiscount, setEditProductDiscount] = useState("");
@@ -100,10 +100,12 @@ const GroceryTab = () => {
       delivery_time: newStore.delivery_time,
       image_url: newStore.image_url || null,
       owner_id: user.id,
-    });
+      store_type: newStore.store_type,
+      ships_nationwide: newStore.ships_nationwide,
+    } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("اسٹور شامل ہو گیا / Store added");
-    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "" });
+    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false });
     setShowAddStore(false);
     fetchData();
   };
@@ -162,6 +164,19 @@ const GroceryTab = () => {
                   </div>
                   <Input placeholder="ڈلیوری ٹائم / Delivery Time" value={newStore.delivery_time} onChange={(e) => setNewStore({...newStore, delivery_time: e.target.value})} />
                   <Input placeholder="بینر تصویر URL / Banner Image URL" value={newStore.image_url} onChange={(e) => setNewStore({...newStore, image_url: e.target.value})} />
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">قسم / Store Type</label>
+                    <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newStore.store_type} onChange={(e) => setNewStore({...newStore, store_type: e.target.value})}>
+                      <option value="retail">🛒 Retail (گروسری/Food)</option>
+                      <option value="wholesale">📦 Wholesale (ہول سیل بازار)</option>
+                    </select>
+                  </div>
+                  {newStore.store_type === "wholesale" && (
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={newStore.ships_nationwide} onChange={(e) => setNewStore({...newStore, ships_nationwide: e.target.checked})} />
+                      پورے پاکستان میں شپنگ / Ships nationwide (TCS/Leopards)
+                    </label>
+                  )}
                   <Button onClick={addStore} className="w-full">شامل کریں / Add</Button>
                 </div>
               </DialogContent>

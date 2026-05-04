@@ -44,7 +44,7 @@ const Grocery = () => {
   useEffect(() => {
     const fetchStores = async () => {
       setLoading(true);
-      let query = supabase.from("grocery_stores").select("*").neq("subscription_status", "paused");
+      let query = supabase.from("grocery_stores").select("*").neq("subscription_status", "paused").or("store_type.is.null,store_type.eq.retail");
       if (activeCategory) query = query.eq("category", activeCategory);
       if (selectedCity) query = query.eq("city_id", selectedCity);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
