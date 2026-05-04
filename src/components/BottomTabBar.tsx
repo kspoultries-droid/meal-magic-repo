@@ -1,10 +1,11 @@
-import { UtensilsCrossed, Store, ShoppingBag, User, Wrench } from "lucide-react";
+import { UtensilsCrossed, Store, ShoppingBag, User, Wrench, Package } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 
 const tabs = [
   { name: "Food", icon: UtensilsCrossed, path: "/" },
   { name: "Grocery", icon: Store, path: "/grocery" },
+  { name: "Bazar", icon: Package, path: "/wholesale" },
   { name: "Services", icon: Wrench, path: "/services" },
   { name: "Cart", icon: ShoppingBag, path: "cart" },
   { name: "Account", icon: User, path: "/profile" },
