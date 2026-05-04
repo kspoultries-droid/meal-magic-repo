@@ -46,53 +46,57 @@ const CartDrawer = () => {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
-        <SheetHeader className="px-6 pt-6 pb-2">
-          <SheetTitle className="flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5 text-primary" />
-            کارٹ
+      <SheetContent className="w-full sm:max-w-md flex flex-col p-0 bg-gradient-to-b from-background via-background to-secondary/30 border-l border-border/50">
+        <SheetHeader className="px-6 pt-6 pb-3 bg-gradient-hero text-primary-foreground shadow-glow">
+          <SheetTitle className="flex items-center gap-2 text-primary-foreground">
+            <div className="w-9 h-9 rounded-full glass flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4" />
+            </div>
+            <span className="text-lg font-extrabold">آپ کا کارٹ</span>
           </SheetTitle>
         </SheetHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="mx-6 grid grid-cols-2">
-            <TabsTrigger value="cart" className="gap-1.5">
+          <TabsList className="mx-4 mt-3 grid grid-cols-2 glass border border-border/50 p-1 h-11">
+            <TabsTrigger value="cart" className="gap-1.5 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow rounded-md">
               <ShoppingBag className="w-4 h-4" /> کارٹ ({totalItems})
             </TabsTrigger>
-            <TabsTrigger value="orders" className="gap-1.5">
+            <TabsTrigger value="orders" className="gap-1.5 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow rounded-md">
               <History className="w-4 h-4" /> آرڈرز
             </TabsTrigger>
           </TabsList>
 
           {/* Cart Tab */}
-          <TabsContent value="cart" className="flex-1 flex flex-col overflow-hidden px-6 mt-0">
+          <TabsContent value="cart" className="flex-1 flex flex-col overflow-hidden px-4 mt-0">
             {items.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-                <ShoppingBag className="w-16 h-16 mb-4 opacity-30" />
-                <p className="text-lg font-semibold">کارٹ خالی ہے</p>
-                <p className="text-sm">ریسٹورنٹ سے آئٹمز شامل کریں</p>
+              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground animate-fade-in">
+                <div className="w-24 h-24 rounded-full glass flex items-center justify-center mb-4 shadow-card">
+                  <ShoppingBag className="w-12 h-12 opacity-40" />
+                </div>
+                <p className="text-lg font-bold text-foreground">کارٹ خالی ہے</p>
+                <p className="text-sm mt-1">آئٹمز شامل کرنا شروع کریں 🛒</p>
               </div>
             ) : (
               <>
-                <div className="flex-1 overflow-y-auto space-y-3 py-4">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex gap-3 bg-secondary/50 rounded-xl p-3">
-                      <img src={item.image} alt={item.name} className="w-16 h-16 rounded-lg object-cover" />
+                <div className="flex-1 overflow-y-auto space-y-2.5 py-4">
+                  {items.map((item, idx) => (
+                    <div key={item.id} style={{ animationDelay: `${idx * 40}ms` }} className="flex gap-3 glass border border-border/50 rounded-2xl p-3 shadow-card animate-fade-in hover:shadow-elegant transition-shadow">
+                      <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover ring-1 ring-border/50" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground text-sm truncate">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{item.restaurant}</p>
-                        <p className="text-sm font-bold text-primary mt-1">Rs. {item.price}</p>
+                        <p className="font-bold text-foreground text-sm truncate">{item.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{item.restaurant}</p>
+                        <p className="text-sm font-extrabold text-primary mt-1">Rs. {item.price}</p>
                       </div>
                       <div className="flex flex-col items-end justify-between">
-                        <button onClick={() => removeItem(item.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <button onClick={() => removeItem(item.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1 -m-1">
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-7 h-7 rounded-full bg-card border flex items-center justify-center hover:bg-accent transition-colors">
+                        <div className="flex items-center gap-1.5 bg-background/80 rounded-full p-0.5 border border-border/50">
+                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-6 h-6 rounded-full hover:bg-secondary flex items-center justify-center transition-colors">
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity">
+                          <span className="text-xs font-extrabold w-4 text-center">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-6 h-6 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-110 transition-transform">
                             <Plus className="w-3 h-3" />
                           </button>
                         </div>
@@ -101,19 +105,19 @@ const CartDrawer = () => {
                   ))}
                 </div>
 
-                <div className="border-t pt-4 pb-4 space-y-3">
+                <div className="glass border-t border-border/50 -mx-4 px-4 pt-4 pb-5 space-y-3 shadow-elegant rounded-t-3xl">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">سب ٹوٹل</span>
                     <span className="font-bold text-foreground">Rs. {totalPrice}</span>
                   </div>
-                  <div className="flex justify-between text-base border-t pt-3">
-                    <span className="font-bold text-foreground">کل</span>
-                    <span className="font-extrabold text-primary">Rs. {totalPrice}</span>
+                  <div className="flex justify-between items-baseline border-t border-dashed pt-3">
+                    <span className="font-bold text-foreground">کل قیمت</span>
+                    <span className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">Rs. {totalPrice}</span>
                   </div>
-                  <Button className="w-full h-12 text-base font-bold" onClick={() => { setIsOpen(false); navigate("/checkout"); }}>
-                    چیک آؤٹ — Rs. {totalPrice}
+                  <Button className="w-full h-12 text-base font-bold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" onClick={() => { setIsOpen(false); navigate("/checkout"); }}>
+                    چیک آؤٹ کریں — Rs. {totalPrice}
                   </Button>
-                  <button onClick={clearCart} className="w-full text-sm text-muted-foreground hover:text-destructive transition-colors">
+                  <button onClick={clearCart} className="w-full text-xs text-muted-foreground hover:text-destructive transition-colors">
                     کارٹ خالی کریں
                   </button>
                 </div>
