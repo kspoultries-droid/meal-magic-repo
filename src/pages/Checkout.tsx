@@ -125,7 +125,7 @@ const Checkout = () => {
           image: item.image,
         }));
 
-        const { error } = await supabase.from("grocery_cart_orders").insert({
+        const { data: inserted, error } = await supabase.from("grocery_cart_orders").insert({
           store_id: storeId,
           customer_id: user!.id,
           items: orderItems,
@@ -139,12 +139,12 @@ const Checkout = () => {
           receiver_name: isGift ? receiverName : null,
           receiver_phone: isGift ? receiverPhone : null,
           city_id: selectedCity,
-        });
+        }).select("id").single();
 
         if (error) throw error;
         toast.success("گروسری آرڈر کامیابی سے دیا گیا! 🛒🎉");
         clearCart();
-        navigate("/grocery");
+        navigate(`/order-confirmation/grocery/${inserted.id}`);
       } else {
         // Restaurant order flow
         const restaurantName = items[0]?.restaurant;
@@ -170,7 +170,7 @@ const Checkout = () => {
         if (orderError) throw orderError;
         toast.success("آرڈر کامیابی سے دیا گیا! 🎉");
         clearCart();
-        navigate(`/order-tracking/${orderId}`);
+        navigate(`/order-confirmation/food/${orderId}`);
       }
     } catch (error: any) {
       toast.error(error.message || "آرڈر میں مسئلہ آ گیا");

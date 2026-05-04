@@ -29,6 +29,7 @@ const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
 const StandaloneStore = lazy(() => import("./pages/StandaloneStore"));
 const ServiceManagerDashboard = lazy(() => import("./pages/ServiceManagerDashboard"));
 const Wholesale = lazy(() => import("./pages/Wholesale"));
+const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const App = () => (
                   <Route path="/store/:slug" element={<StandaloneStore />} />
                   <Route path="/service-manager" element={<ServiceManagerDashboard />} />
                   <Route path="/wholesale" element={<Wholesale />} />
+                  <Route path="/order-confirmation/:type/:id" element={<OrderConfirmation />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
