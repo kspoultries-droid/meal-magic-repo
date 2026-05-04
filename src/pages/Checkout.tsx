@@ -170,7 +170,7 @@ const Checkout = () => {
         if (orderError) throw orderError;
         toast.success("آرڈر کامیابی سے دیا گیا! 🎉");
         clearCart();
-        navigate(`/order-tracking/${orderId}`);
+        navigate(`/order-confirmation/food/${orderId}`);
       }
     } catch (error: any) {
       toast.error(error.message || "آرڈر میں مسئلہ آ گیا");
