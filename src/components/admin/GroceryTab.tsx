@@ -100,10 +100,12 @@ const GroceryTab = () => {
       delivery_time: newStore.delivery_time,
       image_url: newStore.image_url || null,
       owner_id: user.id,
-    });
+      store_type: newStore.store_type,
+      ships_nationwide: newStore.ships_nationwide,
+    } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("اسٹور شامل ہو گیا / Store added");
-    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "" });
+    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false });
     setShowAddStore(false);
     fetchData();
   };
