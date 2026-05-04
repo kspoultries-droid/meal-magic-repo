@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X } from "lucide-react";
+import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import GroceryTab from "@/components/admin/GroceryTab";
 import ServicesTab from "@/components/admin/ServicesTab";
 import AdsTab from "@/components/admin/AdsTab";
 import PhotoOrdersTab from "@/components/admin/PhotoOrdersTab";
+import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
