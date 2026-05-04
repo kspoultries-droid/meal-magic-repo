@@ -75,6 +75,7 @@ const App = () => (
                   <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
                   <Route path="/store/:slug" element={<StandaloneStore />} />
                   <Route path="/service-manager" element={<ServiceManagerDashboard />} />
+                  <Route path="/wholesale" element={<Wholesale />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
