@@ -11,14 +11,14 @@ const Navbar = () => {
   const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic || isServiceManager;
 
   return (
-    <nav className="sticky top-0 z-50 bg-primary pt-[env(safe-area-inset-top)]">
+    <nav className="sticky top-0 z-50 bg-gradient-hero pt-[env(safe-area-inset-top)] shadow-elegant">
       <div className="container mx-auto flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4">
         {/* Logo */}
-        <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => navigate("/")}>
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-foreground/20 flex items-center justify-center">
+        <div className="flex items-center gap-2 cursor-pointer shrink-0 group" onClick={() => navigate("/")}>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center transition-transform group-hover:scale-105 group-hover:rotate-3 shadow-glow">
             <span className="text-primary-foreground font-extrabold text-base sm:text-lg">fp</span>
           </div>
-          <span className="text-lg sm:text-xl font-extrabold text-primary-foreground hidden sm:block">
+          <span className="text-lg sm:text-xl font-extrabold text-primary-foreground hidden sm:block tracking-tight">
             food<span className="text-primary-foreground/80">panda</span>
           </span>
         </div>

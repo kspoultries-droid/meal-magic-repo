@@ -34,8 +34,8 @@ const BottomTabBar = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-      <div className="flex items-center justify-around h-14">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 pb-[env(safe-area-inset-bottom)] shadow-card">
+      <div className="flex items-center justify-around h-16 max-w-md mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const active = isActive(tab.path);
@@ -43,17 +43,20 @@ const BottomTabBar = () => {
             <button
               key={tab.name}
               onClick={() => handleTab(tab)}
-              className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full relative transition-colors"
+              className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full relative transition-all active:scale-95"
             >
-              <div className="relative">
-                <Icon className={`w-5 h-5 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                {tab.path === "/cart" && totalItems > 0 && (
-                  <span className="absolute -top-1.5 -right-2 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+              {active && (
+                <span className="absolute top-1 w-10 h-1 rounded-full bg-gradient-primary shadow-glow" />
+              )}
+              <div className={`relative transition-all duration-300 ${active ? "scale-110 -translate-y-0.5" : ""}`}>
+                <Icon className={`w-5 h-5 transition-colors ${active ? "text-primary" : "text-muted-foreground"}`} strokeWidth={active ? 2.5 : 2} />
+                {tab.path === "cart" && totalItems > 0 && (
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-gradient-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-glow animate-scale-in">
                     {totalItems}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}>
+              <span className={`text-[10px] font-semibold transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
                 {tab.name}
               </span>
             </button>
