@@ -179,113 +179,145 @@ const Checkout = () => {
     }
   };
 
+  const grandTotal = totalPrice + deliveryFee;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-secondary/20 to-background pb-32">
       <Navbar />
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> واپس
-        </Button>
 
-        <h1 className="text-2xl font-extrabold text-foreground mb-6">چیک آؤٹ</h1>
+      {/* Hero Header */}
+      <div className="bg-gradient-hero text-primary-foreground px-4 pt-4 pb-8 shadow-glow relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,white,transparent_60%)]" />
+        <div className="container mx-auto max-w-2xl relative">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-primary-foreground/90 hover:text-primary-foreground text-sm mb-3 transition-colors">
+            <ArrowLeft className="h-4 w-4" /> واپس
+          </button>
+          <h1 className="text-2xl font-extrabold flex items-center gap-2">
+            <ShoppingBag className="w-6 h-6" /> چیک آؤٹ
+          </h1>
+          <p className="text-xs text-primary-foreground/80 mt-1">{items.length} آئٹمز • Rs {grandTotal}</p>
+        </div>
+      </div>
 
-        {/* Order Summary */}
-        <Card className="mb-4">
-          <CardHeader><CardTitle className="text-base">آرڈر کی تفصیل</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
+      <div className="container mx-auto px-4 max-w-2xl -mt-5 space-y-4">
+
+        {/* Order Summary - Glass */}
+        <div className="glass rounded-2xl p-5 border border-border/50 shadow-elegant animate-fade-in">
+          <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-1.5">
+            <span className="w-1 h-4 bg-gradient-primary rounded-full" /> آرڈر کی تفصیل
+          </h2>
+          <div className="space-y-2">
             {items.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
-                <span>{item.name} × {item.quantity}</span>
-                <span className="font-bold">Rs {item.price * item.quantity}</span>
+                <span className="text-foreground/90 truncate pr-2">{item.name} <span className="text-muted-foreground">× {item.quantity}</span></span>
+                <span className="font-bold shrink-0">Rs {item.price * item.quantity}</span>
               </div>
             ))}
-            <div className="border-t pt-2 flex justify-between text-sm">
-              <span className="text-muted-foreground">سب ٹوٹل</span>
-              <span>Rs {totalPrice}</span>
+            <div className="border-t border-dashed pt-2.5 mt-2.5 space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">سب ٹوٹل</span>
+                <span className="font-semibold">Rs {totalPrice}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">ڈلیوری فیس</span>
+                <span className="font-semibold">Rs {deliveryFee}</span>
+              </div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">ڈلیوری فیس</span>
-              <span>Rs {deliveryFee}</span>
+            <div className="border-t pt-3 flex justify-between items-baseline">
+              <span className="font-extrabold text-foreground">کل قابل ادائیگی</span>
+              <span className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">Rs {grandTotal}</span>
             </div>
-            <div className="border-t pt-2 flex justify-between font-extrabold text-primary">
-              <span>کل</span>
-              <span>Rs {totalPrice + deliveryFee}</span>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Delivery Info */}
-        <Card className="mb-4">
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><MapPin className="w-4 h-4" /> ڈلیوری کی معلومات</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            <select className="w-full border rounded-md p-2.5 bg-background text-foreground" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
+        {/* Delivery Info - Glass */}
+        <div className="glass rounded-2xl p-5 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "60ms" }}>
+          <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
+              <MapPin className="w-3.5 h-3.5" />
+            </div>
+            ڈلیوری کی معلومات
+          </h2>
+          <div className="space-y-3">
+            <select className="w-full border rounded-xl p-3 bg-background/80 text-foreground text-sm" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
               {cities.map((c) => <option key={c.id} value={c.id}>{c.name} (ڈلیوری: Rs {c.delivery_fee})</option>)}
             </select>
             <div className="flex gap-2">
-              <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => setAddress(e.target.value)} required className="flex-1" />
-              <Button variant="outline" size="sm" onClick={getCurrentLocation} disabled={locating} className="shrink-0 h-10 px-3">
-                <LocateFixed className={`h-4 w-4 ${locating ? "animate-spin" : ""}`} />
+              <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => setAddress(e.target.value)} required className="flex-1 h-11 rounded-xl bg-background/80" />
+              <Button variant="outline" onClick={getCurrentLocation} disabled={locating} className="shrink-0 h-11 px-3 rounded-xl glass border-primary/30 hover:bg-primary/10">
+                <LocateFixed className={`h-4 w-4 text-primary ${locating ? "animate-spin" : ""}`} />
               </Button>
             </div>
             {coords && (
-              <p className="text-xs text-muted-foreground">📍 GPS: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>
+              <p className="text-xs text-primary font-semibold">📍 GPS: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>
             )}
-            <Input placeholder="کوئی خاص ہدایات (اختیاری)" value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </CardContent>
-        </Card>
+            <Input placeholder="کوئی خاص ہدایات (اختیاری)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background/80" />
+          </div>
+        </div>
 
-        {/* Gift Delivery */}
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Gift className="w-4 h-4" /> کسی اور کو بھیجیں / گفٹ
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <label className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${isGift ? "border-primary bg-accent" : "hover:bg-secondary"}`}>
-              <input type="checkbox" checked={isGift} onChange={(e) => setIsGift(e.target.checked)} className="accent-primary w-4 h-4" />
-              <span className="font-medium text-sm">کسی اور کو ڈلیور کریں / Gift Delivery 🎁</span>
-            </label>
-            {isGift && (
-              <div className="space-y-3 pl-2 border-l-2 border-primary/30 ml-2">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <Input placeholder="وصول کنندہ کا نام" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <Input placeholder="وصول کنندہ کا فون نمبر *" value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} required />
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Payment */}
-        <Card className="mb-6">
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><CreditCard className="w-4 h-4" /> ادائیگی کا طریقہ</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {[
-                { value: "cod", label: "کیش آن ڈلیوری (COD)" },
-                { value: "jazzcash", label: "JazzCash" },
-                { value: "easypaisa", label: "EasyPaisa" },
-              ].map((pm) => (
-                <label key={pm.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${paymentMethod === pm.value ? "border-primary bg-accent" : "hover:bg-secondary"}`}>
-                  <input type="radio" name="payment" value={pm.value} checked={paymentMethod === pm.value} onChange={(e) => setPaymentMethod(e.target.value)} className="accent-primary" />
-                  <span className="font-medium">{pm.label}</span>
-                </label>
-              ))}
+        {/* Gift Delivery - Glass */}
+        <div className="glass rounded-2xl p-5 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "120ms" }}>
+          <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-500 to-purple-500 text-white flex items-center justify-center shadow-md">
+              <Gift className="w-3.5 h-3.5" />
             </div>
-          </CardContent>
-        </Card>
+            گفٹ ڈلیوری
+          </h2>
+          <label className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${isGift ? "border-primary bg-primary/10 shadow-glow" : "border-border hover:border-primary/30"}`}>
+            <input type="checkbox" checked={isGift} onChange={(e) => setIsGift(e.target.checked)} className="accent-primary w-4 h-4" />
+            <span className="font-semibold text-sm">کسی اور کو ڈلیور کریں 🎁</span>
+          </label>
+          {isGift && (
+            <div className="space-y-3 mt-3 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                <Input placeholder="وصول کنندہ کا نام" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} className="h-11 rounded-xl bg-background/80" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+                <Input placeholder="وصول کنندہ کا فون نمبر *" value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} required className="h-11 rounded-xl bg-background/80" />
+              </div>
+            </div>
+          )}
+        </div>
 
-        {/* Sponsored Ads */}
+        {/* Payment - Glass */}
+        <div className="glass rounded-2xl p-5 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "180ms" }}>
+          <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
+              <CreditCard className="w-3.5 h-3.5" />
+            </div>
+            ادائیگی کا طریقہ
+          </h2>
+          <div className="grid gap-2">
+            {[
+              { value: "cod", label: "کیش آن ڈلیوری", icon: "💵" },
+              { value: "jazzcash", label: "JazzCash", icon: "📱" },
+              { value: "easypaisa", label: "EasyPaisa", icon: "💚" },
+            ].map((pm) => (
+              <label key={pm.value} className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === pm.value ? "border-primary bg-primary/10 shadow-glow" : "border-border hover:border-primary/30"}`}>
+                <input type="radio" name="payment" value={pm.value} checked={paymentMethod === pm.value} onChange={(e) => setPaymentMethod(e.target.value)} className="accent-primary" />
+                <span className="text-lg">{pm.icon}</span>
+                <span className="font-semibold text-sm">{pm.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
         <PromotionalAds placement="checkout" className="!px-0" />
+      </div>
 
-        <Button className="w-full h-12 text-base font-bold" disabled={submitting} onClick={placeOrder}>
-          {submitting ? "آرڈر دیا جا رہا ہے..." : `آرڈر دیں — Rs ${totalPrice + deliveryFee}`}
-        </Button>
+      {/* Sticky Bottom CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 glass border-t border-border/50 px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-elegant">
+        <div className="container mx-auto max-w-2xl flex items-center gap-3">
+          <div className="flex-1">
+            <p className="text-[10px] text-muted-foreground">کل قابل ادائیگی</p>
+            <p className="text-lg font-extrabold bg-gradient-primary bg-clip-text text-transparent leading-tight">Rs {grandTotal}</p>
+          </div>
+          <Button className="flex-[2] h-12 text-base font-extrabold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" disabled={submitting} onClick={placeOrder}>
+            {submitting ? "بھیجا جا رہا ہے..." : "آرڈر کی تصدیق کریں ✓"}
+          </Button>
+        </div>
       </div>
     </div>
   );
