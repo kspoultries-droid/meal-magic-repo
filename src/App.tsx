@@ -29,6 +29,7 @@ const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
 const StandaloneStore = lazy(() => import("./pages/StandaloneStore"));
 const ServiceManagerDashboard = lazy(() => import("./pages/ServiceManagerDashboard"));
 const Wholesale = lazy(() => import("./pages/Wholesale"));
+const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 
 const queryClient = new QueryClient();
 
