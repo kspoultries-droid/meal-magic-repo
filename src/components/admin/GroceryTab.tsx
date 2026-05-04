@@ -25,7 +25,7 @@ const GroceryTab = () => {
   const [showAddStore, setShowAddStore] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg" });
-  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "" });
+  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false });
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editProductPrice, setEditProductPrice] = useState("");
   const [editProductDiscount, setEditProductDiscount] = useState("");
