@@ -53,6 +53,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="services" className="gap-1 text-xs"><Wrench className="h-3.5 w-3.5" /> سروسز</TabsTrigger>
             <TabsTrigger value="ads" className="gap-1 text-xs"><Megaphone className="h-3.5 w-3.5" /> ایڈز</TabsTrigger>
             <TabsTrigger value="photo-orders" className="gap-1 text-xs"><FileImage className="h-3.5 w-3.5" /> فوٹو آرڈرز</TabsTrigger>
+            <TabsTrigger value="wholesale-cats" className="gap-1 text-xs"><Package className="h-3.5 w-3.5" /> بازار کیٹ</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders"><OrdersTab /></TabsContent>
@@ -64,6 +65,7 @@ const AdminDashboard = () => {
           <TabsContent value="services"><ServicesTab /></TabsContent>
           <TabsContent value="ads"><AdsTab /></TabsContent>
           <TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent>
+          <TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
         </Tabs>
       </div>
     </div>
