@@ -1340,6 +1340,36 @@ export type Database = {
         }
         Relationships: []
       }
+      wholesale_categories: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ur: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ur?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ur?: string | null
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

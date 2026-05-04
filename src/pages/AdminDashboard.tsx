@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X } from "lucide-react";
+import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import GroceryTab from "@/components/admin/GroceryTab";
 import ServicesTab from "@/components/admin/ServicesTab";
 import AdsTab from "@/components/admin/AdsTab";
 import PhotoOrdersTab from "@/components/admin/PhotoOrdersTab";
+import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -52,6 +53,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="services" className="gap-1 text-xs"><Wrench className="h-3.5 w-3.5" /> سروسز</TabsTrigger>
             <TabsTrigger value="ads" className="gap-1 text-xs"><Megaphone className="h-3.5 w-3.5" /> ایڈز</TabsTrigger>
             <TabsTrigger value="photo-orders" className="gap-1 text-xs"><FileImage className="h-3.5 w-3.5" /> فوٹو آرڈرز</TabsTrigger>
+            <TabsTrigger value="wholesale-cats" className="gap-1 text-xs"><Package className="h-3.5 w-3.5" /> بازار کیٹ</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders"><OrdersTab /></TabsContent>
@@ -63,6 +65,7 @@ const AdminDashboard = () => {
           <TabsContent value="services"><ServicesTab /></TabsContent>
           <TabsContent value="ads"><AdsTab /></TabsContent>
           <TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent>
+          <TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
         </Tabs>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Store, Star, Truck, MapPin, Package } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -11,12 +12,15 @@ const Wholesale = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [stores, setStores] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
+    (supabase.from("wholesale_categories" as any).select("*").eq("is_active", true).order("sort_order") as any).then(({ data }: any) => setCategories(data || []));
   }, []);
 
   useEffect(() => {
@@ -28,6 +32,7 @@ const Wholesale = () => {
         .eq("store_type", "wholesale")
         .neq("subscription_status", "paused");
       if (selectedCity) query = query.eq("city_id", selectedCity);
+      if (activeCategory && activeCategory !== "All") query = query.eq("category", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       query = query.order("sort_order").order("created_at", { ascending: false });
       const { data } = await query;
@@ -35,7 +40,7 @@ const Wholesale = () => {
       setLoading(false);
     };
     fetchStores();
-  }, [searchQuery, selectedCity]);
+  }, [searchQuery, selectedCity, activeCategory]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -67,6 +72,33 @@ const Wholesale = () => {
           💡 ہول سیل ریٹ پر سامان • کم از کم مقدار (MOQ) ہر پروڈکٹ پر • کراچی local delivery، باہر TCS/Leopards courier
         </p>
       </div>
+
+      {/* Category Chips */}
+      {categories.length > 0 && (
+        <section className="container mx-auto px-4 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {categories.map((cat) => {
+              const Icon = (LucideIcons as any)[cat.icon] || Package;
+              const isActive = activeCategory === cat.name || (cat.name === "All" && !activeCategory);
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.name === "All" ? null : cat.name)}
+                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 min-w-[64px] ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-md scale-105"
+                      : "bg-card text-foreground border hover:bg-accent"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{cat.name}</span>
+                  {cat.name_ur && <span className="text-[8px] opacity-70">{cat.name_ur}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* City Filter */}
       {cities.length > 0 && (
