@@ -37,7 +37,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-background/10 pt-6 text-center text-sm">
-          <p>© 2026 foodpanda. All rights reserved.</p>
+          <p>© 2026 EasyLife. All rights reserved.</p>
         </div>
       </div>
     </footer>
