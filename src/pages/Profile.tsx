@@ -246,7 +246,7 @@ const Profile = () => {
           <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
             <div className="flex items-center gap-3">
               <Gift className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Panda Rewards</span>
+              <span className="text-sm font-semibold text-foreground">EasyLife Rewards</span>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
