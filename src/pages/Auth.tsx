@@ -96,17 +96,24 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-primary-foreground/10 blur-3xl" />
+      <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-primary-foreground/10 blur-3xl" />
+
+      <Card className="w-full max-w-md glass border-white/20 shadow-elegant animate-scale-in relative z-10">
         <CardHeader className="text-center relative">
           <Button variant="ghost" size="sm" className="absolute left-4 top-4" onClick={() => navigate("/")}>
             <ArrowLeft className="h-4 w-4 mr-1" /> واپس
           </Button>
-          <CardTitle className="text-2xl font-bold text-primary">
-            {isLogin ? "لاگ ان" : "سائن اپ"}
+          <div className="w-16 h-16 mx-auto mb-2 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow">
+            <span className="text-primary-foreground font-extrabold text-2xl">EL</span>
+          </div>
+          <CardTitle className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">
+            {isLogin ? "خوش آمدید / Welcome" : "نیا اکاؤنٹ / Sign Up"}
           </CardTitle>
           <CardDescription>
-            {isLogin ? "اپنے اکاؤنٹ میں لاگ ان کریں" : "نیا اکاؤنٹ بنائیں"}
+            {isLogin ? "EasyLife میں لاگ ان کریں" : "EasyLife پر نیا اکاؤنٹ بنائیں"}
           </CardDescription>
         </CardHeader>
         <CardContent>
