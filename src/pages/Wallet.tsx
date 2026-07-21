@@ -136,24 +136,28 @@ const Wallet = () => {
     <div className="min-h-screen bg-background pb-20">
       <Navbar />
 
-      {/* Wallet Balance Card */}
-      <div className="bg-gradient-to-br from-primary to-primary/80 mx-4 mt-4 rounded-2xl p-6 text-primary-foreground shadow-lg">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center">
-            <WalletIcon className="w-6 h-6" />
+      {/* Premium Wallet Balance Card */}
+      <div className="bg-gradient-hero mx-4 mt-4 rounded-3xl p-6 text-primary-foreground shadow-elegant relative overflow-hidden animate-scale-in">
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center shadow-glow">
+              <WalletIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs opacity-80 tracking-wide">MY WALLET / میرا والیٹ</p>
+              <h1 className="text-4xl font-extrabold tracking-tight">Rs {wallet?.balance?.toFixed(0) || 0}</h1>
+            </div>
           </div>
-          <div>
-            <p className="text-sm opacity-80">My Wallet / میرا والیٹ</p>
-            <h1 className="text-3xl font-extrabold">Rs {wallet?.balance?.toFixed(0) || 0}</h1>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setTopupOpen(true)}
+              className="flex-1 bg-white/20 hover:bg-white/30 backdrop-blur text-primary-foreground border-0 rounded-xl font-bold h-11"
+            >
+              <Plus className="w-4 h-4 mr-2" /> Add Money / رقم ڈالیں
+            </Button>
           </div>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            onClick={() => setTopupOpen(true)}
-            className="flex-1 bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border-0 rounded-xl font-bold"
-          >
-            <Plus className="w-4 h-4 mr-2" /> Add Money / رقم ڈالیں
-          </Button>
         </div>
       </div>
 

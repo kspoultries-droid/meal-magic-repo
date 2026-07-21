@@ -29,7 +29,24 @@ const RestaurantDetail = () => {
     if (id) fetchData();
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="h-56 md:h-72 bg-gradient-to-r from-muted via-muted/60 to-muted animate-pulse" />
+      <div className="container mx-auto px-4 py-8 space-y-4">
+        {[1,2,3].map(i => (
+          <div key={i} className="flex gap-4 bg-card rounded-xl p-4 border">
+            <div className="w-20 h-20 rounded-lg bg-muted animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
+              <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+              <div className="h-3 w-1/4 rounded bg-muted animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
   if (!restaurant) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">ریسٹورنٹ نہیں ملا</div>;
 
   const categories = [...new Set(menuItems.map((m) => m.category || "Main"))];
@@ -44,33 +61,56 @@ const RestaurantDetail = () => {
         <img
           src={restaurant.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=400&fit=crop"}
           alt={restaurant.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover animate-scale-in"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <Button variant="ghost" size="sm" className="mb-2 text-foreground" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> واپس
-          </Button>
-          <h1 className="text-3xl font-extrabold text-foreground">{restaurant.name}</h1>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 w-10 h-10 rounded-full glass shadow-card flex items-center justify-center hover:scale-105 transition-transform"
+          aria-label="Back"
+        >
+          <ArrowLeft className="h-5 w-5 text-foreground" />
+        </button>
+        <div className="absolute bottom-0 left-0 right-0 p-6 animate-slide-up">
+          <h1 className="text-3xl font-extrabold text-foreground drop-shadow">{restaurant.name}</h1>
           <div className="flex items-center gap-3 mt-2">
-            <Badge className="bg-success text-success-foreground gap-1">
+            <Badge className="bg-success text-success-foreground gap-1 shadow-glow">
               <Star className="w-3 h-3 fill-current" /> {restaurant.rating || "New"}
             </Badge>
-            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1 text-sm text-muted-foreground bg-card/70 backdrop-blur px-2 py-0.5 rounded-full">
               <Clock className="w-4 h-4" /> {restaurant.delivery_time || "30-45 min"}
             </span>
           </div>
           {restaurant.cuisines?.length > 0 && (
             <p className="text-sm text-muted-foreground mt-1">{restaurant.cuisines.join(" · ")}</p>
           )}
-          {restaurant.description && <p className="text-sm text-muted-foreground mt-1">{restaurant.description}</p>}
+          {restaurant.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{restaurant.description}</p>}
         </div>
       </div>
+
+      {/* Sticky category tabs */}
+      {categories.length > 1 && (
+        <div className="sticky top-14 z-30 bg-background/95 backdrop-blur border-b border-border/60">
+          <div className="container mx-auto px-4">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide py-2">
+              {categories.map((cat) => (
+                <a
+                  key={cat}
+                  href={`#cat-${cat}`}
+                  className="px-3 py-1.5 rounded-full bg-secondary text-foreground text-xs font-semibold whitespace-nowrap hover:bg-primary hover:text-primary-foreground transition-colors shrink-0"
+                >
+                  {cat}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Menu */}
       <div className="container mx-auto px-4 py-8">
         {categories.map((cat) => (
-          <div key={cat} className="mb-8">
+          <div key={cat} id={`cat-${cat}`} className="mb-8 scroll-mt-32">
             <h2 className="text-xl font-bold text-foreground mb-4 border-b pb-2">{cat}</h2>
             <div className="grid gap-3">
               {menuItems
