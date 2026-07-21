@@ -186,15 +186,17 @@ const GroceryStoreDetail = () => {
         onNavigateBack={() => navigate("/grocery")}
       />
 
-      {/* Category Chips */}
-      <div className="px-4 pt-3 pb-3 overflow-x-auto">
+      {/* Category Chips - Sticky */}
+      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-md border-b border-border/50 px-4 py-3 overflow-x-auto shadow-sm">
         <div className="flex gap-2">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
-                activeCategory === cat ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-200 ${
+                activeCategory === cat
+                  ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/30 scale-105"
+                  : "bg-secondary/70 text-foreground hover:bg-secondary"
               }`}
             >
               {cat}
