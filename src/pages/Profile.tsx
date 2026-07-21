@@ -77,37 +77,48 @@ const Profile = () => {
       <CartDrawer />
 
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-card border-b px-4 h-14 flex items-center justify-between">
+      <div className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b px-4 h-14 flex items-center justify-between">
         <h1 className="text-lg font-extrabold text-foreground">Account</h1>
         <button className="p-2 rounded-full hover:bg-secondary">
           <Settings className="w-5 h-5 text-muted-foreground" />
         </button>
       </div>
 
-      {/* User Name & Profile Link */}
-      <div className="px-4 pt-6 pb-4 border-b">
-        <h2 className="text-2xl font-extrabold text-foreground">{profile?.full_name || user?.email?.split("@")[0] || "User"}</h2>
-        <button onClick={() => setEditing(!editing)} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-          {editing ? "Cancel" : "View profile"}
-        </button>
-        {/* User ID for sharing with admin */}
-        {user && (
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">آپ کی ID:</span>
-            <code className="text-xs font-mono bg-secondary px-2 py-0.5 rounded">{user.id.slice(0, 8)}</code>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(user.id.slice(0, 8));
-                toast.success("ID کاپی ہو گئی — ایڈمن کو بھیجیں");
-              }}
-              className="text-xs text-primary hover:text-primary/80 flex items-center gap-0.5"
-            >
-              <Copy className="w-3 h-3" /> کاپی
-            </button>
+      {/* Profile Hero — Premium gradient card */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/70 px-4 pt-6 pb-8">
+        <div className="absolute -top-12 -right-8 w-44 h-44 rounded-full bg-primary-foreground/10 blur-2xl" />
+        <div className="absolute -bottom-16 -left-10 w-52 h-52 rounded-full bg-primary-foreground/5 blur-3xl" />
+        <div className="relative flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-primary-foreground/20 backdrop-blur-md ring-2 ring-primary-foreground/30 flex items-center justify-center shadow-xl">
+            <span className="text-2xl font-extrabold text-primary-foreground">
+              {(profile?.full_name || user?.email || "U").charAt(0).toUpperCase()}
+            </span>
           </div>
-        )}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-extrabold text-primary-foreground truncate">{profile?.full_name || user?.email?.split("@")[0] || "User"}</h2>
+            <button onClick={() => setEditing(!editing)} className="text-xs text-primary-foreground/80 hover:text-primary-foreground underline underline-offset-2">
+              {editing ? "Cancel" : "View / edit profile"}
+            </button>
+            {user && (
+              <div className="mt-1.5 flex items-center gap-2">
+                <code className="text-[10px] font-mono bg-primary-foreground/15 text-primary-foreground px-2 py-0.5 rounded-full backdrop-blur-sm">
+                  ID: {user.id.slice(0, 8)}
+                </code>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(user.id.slice(0, 8));
+                    toast.success("ID کاپی ہو گئی — ایڈمن کو بھیجیں");
+                  }}
+                  className="text-[10px] text-primary-foreground/90 hover:text-primary-foreground flex items-center gap-0.5"
+                >
+                  <Copy className="w-3 h-3" /> کاپی
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
         {editing && (
-          <div className="mt-4 space-y-3">
+          <div className="relative mt-4 space-y-3 bg-card/95 backdrop-blur-md rounded-2xl p-4 shadow-xl">
             <Input placeholder="پورا نام" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
             <Input placeholder="فون نمبر" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             <Input placeholder="پتہ" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />

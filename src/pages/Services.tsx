@@ -263,13 +263,15 @@ const Services = () => {
     <div className="min-h-screen bg-background pb-20">
       <Navbar />
 
-      {/* Header */}
-      <div className="bg-primary pt-3 pb-5 px-4">
-        <h1 className="text-lg font-extrabold text-primary-foreground mb-0.5">Home Services / ہوم سروسز</h1>
-        <p className="text-primary-foreground/70 text-xs mb-3">Professional services at your doorstep 🏠</p>
-        <div className="flex bg-card rounded-2xl overflow-hidden shadow-lg">
-          <div className="flex items-center gap-3 flex-1 px-4 py-3">
-            <Search className="w-5 h-5 text-muted-foreground shrink-0" />
+      {/* Header - Premium gradient */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 pt-4 pb-6 px-4">
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary-foreground/10 blur-2xl" />
+        <div className="absolute -bottom-16 -left-10 w-52 h-52 rounded-full bg-primary-foreground/5 blur-3xl" />
+        <div className="relative">
+          <h1 className="text-xl font-extrabold text-primary-foreground mb-0.5 tracking-tight">Home Services / ہوم سروسز</h1>
+          <p className="text-primary-foreground/80 text-xs mb-3">Professional services at your doorstep 🏠</p>
+          <div className="flex items-center gap-3 bg-card/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl ring-1 ring-primary-foreground/20">
+            <Search className="w-5 h-5 text-primary shrink-0" />
             <input
               type="text"
               value={searchQuery}
