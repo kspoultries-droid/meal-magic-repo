@@ -39,9 +39,26 @@ const OrderConfirmation = () => {
 
   return (
     <div className="min-h-screen bg-background pb-10">
-      {/* Hero */}
+      {/* Hero with confetti */}
       <div className="bg-gradient-hero text-primary-foreground px-4 pt-10 pb-12 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top,white,transparent_70%)]" />
+        {/* Confetti dots */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 18 }).map((_, i) => (
+            <span
+              key={i}
+              className="absolute block w-1.5 h-3 rounded-sm animate-slide-up"
+              style={{
+                left: `${(i * 5.5) % 100}%`,
+                top: `${(i * 13) % 90}%`,
+                background: ["#fde68a", "#fca5a5", "#a7f3d0", "#bfdbfe", "#fbcfe8"][i % 5],
+                transform: `rotate(${(i * 37) % 360}deg)`,
+                animationDelay: `${(i % 6) * 100}ms`,
+                opacity: 0.85,
+              }}
+            />
+          ))}
+        </div>
         <div className="relative animate-scale-in">
           <div className="w-20 h-20 mx-auto bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-3 shadow-glow">
             <CheckCircle2 className="w-12 h-12" strokeWidth={2.5} />

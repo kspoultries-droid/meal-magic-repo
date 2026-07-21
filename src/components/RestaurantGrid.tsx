@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import RestaurantCard from "./RestaurantCard";
+import { RestaurantGridSkeleton } from "./ui/skeleton-card";
 
 export interface MenuItem {
   id: string;
@@ -75,7 +76,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
   if (loading) {
     return (
       <section className="container mx-auto px-4 pb-16">
-        <div className="text-center py-16 text-muted-foreground">لوڈ ہو رہا ہے...</div>
+        <RestaurantGridSkeleton count={6} />
       </section>
     );
   }

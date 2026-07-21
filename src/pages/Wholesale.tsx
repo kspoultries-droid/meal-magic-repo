@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
 import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
+import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 
 const Wholesale = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -125,11 +126,7 @@ const Wholesale = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-40 rounded-2xl bg-muted animate-pulse" />
-            ))}
-          </div>
+          <StoreGridSkeleton count={6} />
         ) : stores.length === 0 ? (
           <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-6 text-center">
             <Package className="w-10 h-10 text-primary-foreground mx-auto mb-2" />

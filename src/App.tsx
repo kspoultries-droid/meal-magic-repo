@@ -31,7 +31,16 @@ const ServiceManagerDashboard = lazy(() => import("./pages/ServiceManagerDashboa
 const Wholesale = lazy(() => import("./pages/Wholesale"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,
+      gcTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const GlobalErrorHandler = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
