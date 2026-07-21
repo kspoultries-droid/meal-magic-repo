@@ -17,15 +17,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <Navbar />
-      {/* Compact search bar */}
-      <div className="bg-primary px-4 pb-4">
-        <div className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5 shadow">
-          <Search className="w-5 h-5 text-muted-foreground shrink-0" />
+      {/* Premium search bar */}
+      <div className="bg-gradient-hero px-4 pb-5 pt-1">
+        <div className="flex items-center gap-3 bg-card/95 backdrop-blur rounded-full px-4 py-3 shadow-elegant border border-white/20">
+          <Search className="w-5 h-5 text-primary shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for restaurants and groceries"
+            placeholder="ریسٹورنٹ، گروسری یا ڈش تلاش کریں..."
             className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
           />
         </div>

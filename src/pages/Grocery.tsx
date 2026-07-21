@@ -7,6 +7,7 @@ import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
+import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 
 const groceryCategories = [
   { name: "All", nameUr: "سب", icon: ShoppingBasket, filter: null },
@@ -167,11 +168,7 @@ const Grocery = () => {
           <span className="text-xs text-muted-foreground">{storeCount} stores</span>
         </div>
         {loading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="h-36 rounded-2xl bg-muted animate-pulse" />
-            ))}
-          </div>
+          <StoreGridSkeleton count={6} />
         ) : stores.length === 0 ? (
           <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-6 text-center">
             <ShoppingBasket className="w-10 h-10 text-primary-foreground mx-auto mb-2" />
