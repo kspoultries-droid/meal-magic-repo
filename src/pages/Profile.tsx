@@ -30,18 +30,39 @@ const Profile = () => {
   }, [user, authLoading, navigate]);
 
   const fetchData = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    const [{ data: prof }, { data: ords }, { data: userRoles }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("orders").select("*, order_items(*)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("user_roles").select("role").eq("user_id", user.id),
-    ]);
-    setProfile(prof);
-    setOrders(ords || []);
-    setRoles((userRoles || []).map((r: any) => r.role));
-    if (prof) setForm({ full_name: prof.full_name || "", phone: prof.phone || "", address: prof.address || "" });
-    setLoading(false);
+    try {
+      const fallbackProfile = {
+        id: user.id,
+        full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "",
+        phone: "",
+        address: "",
+      };
+      const [{ data: prof, error: profileError }, { data: ords }, { data: userRoles }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase.from("orders").select("*, order_items(*)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("user_roles").select("role").eq("user_id", user.id),
+      ]);
+      if (profileError) console.error("Profile load error:", profileError);
+      const nextProfile = prof || fallbackProfile;
+      setProfile(nextProfile);
+      setOrders(ords || []);
+      setRoles((userRoles || []).map((r: any) => r.role));
+      setForm({
+        full_name: nextProfile.full_name || "",
+        phone: nextProfile.phone || "",
+        address: nextProfile.address || "",
+      });
+    } catch (error) {
+      console.error("Profile data load error:", error);
+      toast.error("اکاؤنٹ ڈیٹا لوڈ نہیں ہوا، دوبارہ کوشش کریں۔");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, [user]);
@@ -56,7 +77,8 @@ const Profile = () => {
   }, [user]);
 
   const updateProfile = async () => {
-    const { error } = await supabase.from("profiles").update(form).eq("id", user!.id);
+    if (!user) return;
+    const { error } = await supabase.from("profiles").upsert({ id: user.id, ...form }, { onConflict: "id" });
     if (error) { toast.error(error.message); return; }
     toast.success("پروفائل اپڈیٹ ہو گیا!");
     setEditing(false);

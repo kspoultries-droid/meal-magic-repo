@@ -31,7 +31,8 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+  const [rolesLoading, setRolesLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isRestaurantOwner, setIsRestaurantOwner] = useState(false);
   const [isRider, setIsRider] = useState(false);
@@ -39,9 +40,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isMechanic, setIsMechanic] = useState(false);
   const [isServiceManager, setIsServiceManager] = useState(false);
 
+  const loading = !authReady || rolesLoading;
+
   const checkRoles = async (userId: string) => {
     try {
-      const [adminRes, ownerRes, riderRes, supportRes, mechanicRes, smRes] = await Promise.all([
+      const roleChecks = Promise.all([
         supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
         supabase.rpc("has_role", { _user_id: userId, _role: "restaurant_owner" }),
         supabase.rpc("has_role", { _user_id: userId, _role: "rider" }),
@@ -49,6 +52,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         supabase.rpc("has_role", { _user_id: userId, _role: "mechanic" }),
         supabase.rpc("has_role", { _user_id: userId, _role: "service_manager" }),
       ]);
+      const timeout = new Promise<never>((_, reject) => {
+        window.setTimeout(() => reject(new Error("Role check timed out")), 8000);
+      });
+      const [adminRes, ownerRes, riderRes, supportRes, mechanicRes, smRes] = await Promise.race([roleChecks, timeout]);
       setIsAdmin(!!adminRes.data);
       setIsRestaurantOwner(!!ownerRes.data);
       setIsRider(!!riderRes.data);
@@ -70,29 +77,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsServiceManager(false);
   };
 
-  const syncAuthState = async (nextSession: Session | null) => {
-    setLoading(true);
+  const syncAuthState = (nextSession: Session | null) => {
     setSession(nextSession);
     setUser(nextSession?.user ?? null);
-
-    if (nextSession?.user) {
-      await checkRoles(nextSession.user.id);
-    } else {
-      clearRoles();
-    }
-
-    setLoading(false);
+    setAuthReady(true);
   };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      void syncAuthState(nextSession);
+      syncAuthState(nextSession);
     });
 
-    void supabase.auth.getSession().then(({ data: { session } }) => syncAuthState(session));
+    void supabase.auth.getSession()
+      .then(({ data: { session } }) => syncAuthState(session))
+      .catch((error) => {
+        console.error("Error loading session:", error);
+        syncAuthState(null);
+      });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!authReady) return;
+    if (!user) {
+      clearRoles();
+      setRolesLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setRolesLoading(true);
+    checkRoles(user.id).finally(() => {
+      if (!cancelled) setRolesLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, user?.id]);
 
   const signOut = async () => {
     await supabase.auth.signOut();

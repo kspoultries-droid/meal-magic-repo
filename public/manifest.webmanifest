@@ -1,0 +1,29 @@
+{
+  "name": "EasyLife — Food, Grocery, Bazar & Services",
+  "short_name": "EasyLife",
+  "description": "EasyLife — Food, Grocery, Wholesale Bazar aur Home Services ki home delivery.",
+  "theme_color": "#1FA971",
+  "background_color": "#F5F8F5",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

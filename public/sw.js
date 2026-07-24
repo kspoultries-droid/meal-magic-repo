@@ -1,0 +1,23 @@
+// One-release cleanup worker: removes old app-shell caches, then unregisters.
+function isAppShellCache(name) {
+  const looksLikeWorkbox = /(^|-)precache-v\d+-|(^|-)runtime-|(^|-)googleAnalytics-/.test(name);
+  return looksLikeWorkbox && name.endsWith(self.registration.scope);
+}
+
+self.addEventListener("install", () => self.skipWaiting());
+
+self.addEventListener("activate", (event) =>
+  event.waitUntil(
+    (async () => {
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.allSettled(cacheNames.filter(isAppShellCache).map((name) => caches.delete(name)));
+        await self.clients.claim();
+        const clients = await self.clients.matchAll({ type: "window" });
+        await Promise.allSettled(clients.map((client) => client.navigate(client.url)));
+      } finally {
+        await self.registration.unregister();
+      }
+    })(),
+  ),
+);
