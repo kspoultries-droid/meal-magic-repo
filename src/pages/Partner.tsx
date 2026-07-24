@@ -33,7 +33,10 @@ const Partner = () => {
   const [form, setForm] = useState({
     business_name: "", owner_name: "", phone: "", whatsapp: "",
     cnic: "", email: "", city_id: "", address: "", category: "",
+    referral_code: "",
   });
+  const [cnicFile, setCnicFile] = useState<File | null>(null);
+  const [shopFile, setShopFile] = useState<File | null>(null);
 
   useEffect(() => {
     supabase.from("cities").select("id,name").order("name").then(({ data }) => setCities(data || []));
