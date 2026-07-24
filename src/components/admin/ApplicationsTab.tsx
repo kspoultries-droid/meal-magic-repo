@@ -7,7 +7,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Phone, MapPin, RefreshCw } from "lucide-react";
+import { Check, X, Phone, MapPin, RefreshCw, FileImage, MessageCircle } from "lucide-react";
+
+const APP_URL = "https://easylife.apnahub.online";
+
+const openWA = (phone: string, message: string) => {
+  const clean = phone.replace(/\D/g, "").replace(/^0/, "92");
+  window.open(`https://wa.me/${clean}?text=${encodeURIComponent(message)}`, "_blank");
+};
+
+const signedDocUrl = async (path: string) => {
+  const { data } = await supabase.storage.from("partner-documents").createSignedUrl(path, 3600);
+  return data?.signedUrl || null;
+};
 
 const ApplicationsTab = () => {
   const [apps, setApps] = useState<any[]>([]);
@@ -28,20 +40,36 @@ const ApplicationsTab = () => {
 
   useEffect(() => { fetchApps(); }, []);
 
-  const approve = async (id: string) => {
-    const { error } = await supabase.rpc("approve_partner_application", { _application_id: id });
+
+  const approve = async (app: any) => {
+    const { error } = await supabase.rpc("approve_partner_application", { _application_id: app.id });
     if (error) return toast.error(error.message);
     toast.success("منظور ہو گیا! رول assign ہو گیا۔");
+    if (app.whatsapp || app.phone) {
+      openWA(app.whatsapp || app.phone,
+        `السلام علیکم ${app.owner_name}،\n\nآپ کی EasyLife پارٹنر درخواست منظور ہو گئی ہے! 🎉\n\nAb aap login karke apna dashboard use kar sakte hain:\n${APP_URL}\n\n— EasyLife Team`);
+    }
     fetchApps();
   };
 
   const reject = async () => {
     if (!rejectId || !rejectReason.trim()) return toast.error("وجہ لکھیں");
+    const app = apps.find(a => a.id === rejectId);
     const { error } = await supabase.rpc("reject_partner_application", { _application_id: rejectId, _reason: rejectReason });
     if (error) return toast.error(error.message);
     toast.success("مسترد کر دیا");
+    if (app && (app.whatsapp || app.phone)) {
+      openWA(app.whatsapp || app.phone,
+        `السلام علیکم ${app.owner_name}،\n\nمعذرت، فی الحال آپ کی EasyLife پارٹنر درخواست منظور نہیں ہو سکی۔\n\nوجہ: ${rejectReason}\n\nمزید معلومات کے لیے رابطہ کریں۔\n— EasyLife Team`);
+    }
     setRejectId(null); setRejectReason("");
     fetchApps();
+  };
+
+  const viewDoc = async (path: string) => {
+    const url = await signedDocUrl(path);
+    if (url) window.open(url, "_blank");
+    else toast.error("فائل نہیں کھلی");
   };
 
   const filtered = apps.filter(a => a.status === filter);
@@ -88,12 +116,26 @@ const ApplicationsTab = () => {
                     </div>
                     {app.address && <p className="text-xs mt-1">📍 {app.address}</p>}
                     {app.cnic && <p className="text-xs">CNIC: {app.cnic}</p>}
+                    {(app.cnic_image_url || app.shop_image_url) && (
+                      <div className="flex gap-2 mt-2">
+                        {app.cnic_image_url && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(app.cnic_image_url)}>
+                            <FileImage className="w-3 h-3 mr-1" /> CNIC
+                          </Button>
+                        )}
+                        {app.shop_image_url && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(app.shop_image_url)}>
+                            <FileImage className="w-3 h-3 mr-1" /> دکان/گاڑی
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     {app.admin_notes && <p className="text-xs text-destructive mt-1">Note: {app.admin_notes}</p>}
                   </div>
 
                   {app.status === "pending" && (
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => approve(app.id)} className="bg-green-600 hover:bg-green-700">
+                      <Button size="sm" onClick={() => approve(app)} className="bg-green-600 hover:bg-green-700">
                         <Check className="w-4 h-4 mr-1" /> منظور
                       </Button>
                       <Dialog open={rejectId === app.id} onOpenChange={(o) => !o && setRejectId(null)}>
@@ -109,6 +151,12 @@ const ApplicationsTab = () => {
                         </DialogContent>
                       </Dialog>
                     </div>
+                  )}
+                  {app.status !== "pending" && (app.whatsapp || app.phone) && (
+                    <Button size="sm" variant="outline" className="h-8 text-xs text-green-700 border-green-600"
+                      onClick={() => openWA(app.whatsapp || app.phone, `السلام علیکم ${app.owner_name}،\n\nEasyLife ٹیم کی طرف سے رابطہ۔`)}>
+                      <MessageCircle className="w-3 h-3 mr-1" /> WhatsApp
+                    </Button>
                   )}
                 </div>
               </CardContent>

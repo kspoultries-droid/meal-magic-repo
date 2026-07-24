@@ -33,7 +33,10 @@ const Partner = () => {
   const [form, setForm] = useState({
     business_name: "", owner_name: "", phone: "", whatsapp: "",
     cnic: "", email: "", city_id: "", address: "", category: "",
+    referral_code: "",
   });
+  const [cnicFile, setCnicFile] = useState<File | null>(null);
+  const [shopFile, setShopFile] = useState<File | null>(null);
 
   useEffect(() => {
     supabase.from("cities").select("id,name").order("name").then(({ data }) => setCities(data || []));
@@ -44,6 +47,14 @@ const Partner = () => {
     supabase.from("partner_applications").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
       .then(({ data }) => setMyApps(data || []));
   }, [user]);
+
+  const uploadDoc = async (file: File, prefix: string): Promise<string | null> => {
+    if (!user) return null;
+    const path = `${user.id}/${prefix}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+    const { error } = await supabase.storage.from("partner-documents").upload(path, file, { upsert: true });
+    if (error) { toast.error("فائل اپلوڈ ناکام: " + error.message); return null; }
+    return path;
+  };
 
   const submit = async () => {
     if (!form.business_name || !form.owner_name || !form.phone) {
@@ -56,18 +67,36 @@ const Partner = () => {
       return;
     }
     setSubmitting(true);
+
+    let cnic_image_url: string | null = null;
+    let shop_image_url: string | null = null;
+    if (cnicFile) cnic_image_url = await uploadDoc(cnicFile, "cnic");
+    if (shopFile) shop_image_url = await uploadDoc(shopFile, "shop");
+
+    // Resolve referral code -> referrer user id (optional)
+    let referred_by: string | null = null;
+    if (form.referral_code.trim()) {
+      const { data: ref } = await supabase.from("profiles").select("id")
+        .eq("referral_code", form.referral_code.trim().toUpperCase()).maybeSingle();
+      if (ref?.id) referred_by = ref.id;
+    }
+
+    const { business_name, owner_name, phone, whatsapp, cnic, email, city_id, address, category } = form;
     const { error } = await supabase.from("partner_applications").insert({
       user_id: user.id,
       applicant_type: tab,
-      email: form.email || user.email,
-      ...form,
-      city_id: form.city_id || null,
+      business_name, owner_name, phone, whatsapp, cnic, address, category,
+      email: email || user.email,
+      city_id: city_id || null,
+      cnic_image_url,
+      shop_image_url,
+      extra: referred_by ? { referred_by } : {},
     });
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("درخواست جمع ہو گئی! ایڈمن جلد رابطہ کرے گا۔");
-    setForm({ business_name: "", owner_name: "", phone: "", whatsapp: "", cnic: "", email: "", city_id: "", address: "", category: "" });
-    // refresh
+    setForm({ business_name: "", owner_name: "", phone: "", whatsapp: "", cnic: "", email: "", city_id: "", address: "", category: "", referral_code: "" });
+    setCnicFile(null); setShopFile(null);
     const { data } = await supabase.from("partner_applications").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     setMyApps(data || []);
   };
@@ -135,6 +164,22 @@ const Partner = () => {
                 </div>
                 <Textarea placeholder="مکمل پتہ" value={form.address}
                   onChange={e => setForm({ ...form, address: e.target.value })} rows={2} />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="text-xs space-y-1">
+                    <span className="text-muted-foreground">CNIC تصویر (اختیاری)</span>
+                    <Input type="file" accept="image/*" onChange={e => setCnicFile(e.target.files?.[0] || null)} />
+                    {cnicFile && <span className="text-[10px] text-primary">✓ {cnicFile.name}</span>}
+                  </label>
+                  <label className="text-xs space-y-1">
+                    <span className="text-muted-foreground">{tab === "rider" ? "بائیک/گاڑی تصویر" : "دکان تصویر"} (اختیاری)</span>
+                    <Input type="file" accept="image/*" onChange={e => setShopFile(e.target.files?.[0] || null)} />
+                    {shopFile && <span className="text-[10px] text-primary">✓ {shopFile.name}</span>}
+                  </label>
+                </div>
+
+                <Input placeholder="ریفرل کوڈ (اگر کسی نے دیا ہو)" value={form.referral_code}
+                  onChange={e => setForm({ ...form, referral_code: e.target.value.toUpperCase() })} maxLength={6} />
 
                 <Button className="w-full h-11" onClick={submit} disabled={submitting}>
                   {submitting ? "جمع ہو رہا ہے..." : "درخواست جمع کریں"}
