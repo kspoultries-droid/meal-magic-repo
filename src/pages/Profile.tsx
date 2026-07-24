@@ -298,6 +298,13 @@ const Profile = () => {
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
+          <button onClick={() => navigate("/partner")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors border-t">
+            <div className="flex items-center gap-3">
+              <Crown className="w-5 h-5 text-primary" />
+              <span className="text-sm font-semibold text-foreground">🤝 پارٹنر بنیں / Become a Partner</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
           <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
             <div className="flex items-center gap-3">
               <Crown className="w-5 h-5 text-purple-500" />
