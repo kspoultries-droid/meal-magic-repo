@@ -135,6 +135,8 @@ const RestaurantDetail = () => {
                           restaurant: restaurant.name,
                           price: item.price,
                           image: item.image_url || restaurant.image_url || "",
+                          source: "restaurant",
+                          sourceId: restaurant.id,
                         })
                       }
                     >

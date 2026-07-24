@@ -103,9 +103,12 @@ const Checkout = () => {
     );
   }
 
-  const isGroceryOrder = items.some(i => i.source === "grocery");
+  const isGroceryOrder = items.every(i => i.source === "grocery");
+  const isRestaurantOrder = items.every(i => (i.source || "restaurant") === "restaurant");
+  const isMixed = !isGroceryOrder && !isRestaurantOrder;
 
   const placeOrder = async () => {
+    if (isMixed) { toast.error("کارٹ میں مختلف شاپس کے آئٹمز ہیں — ایک شاپ کا آرڈر الگ سے دیں"); return; }
     if (!address.trim()) { toast.error("ڈلیوری ایڈریس درکار ہے"); return; }
     if (!selectedCity) { toast.error("شہر منتخب کریں"); return; }
     if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
@@ -113,14 +116,9 @@ const Checkout = () => {
 
     try {
       if (isGroceryOrder) {
-        // Grocery cart order flow (server computes total)
         const storeId = items[0]?.sourceId;
         if (!storeId) { toast.error("اسٹور کی معلومات نہیں ملیں"); setSubmitting(false); return; }
-
-        const orderItems = items.map(item => ({
-          id: item.id,
-          quantity: item.quantity,
-        }));
+        const orderItems = items.map(item => ({ id: item.id, quantity: item.quantity }));
 
         const { data: newId, error } = await supabase.rpc("create_grocery_cart_order", {
           _store_id: storeId,
@@ -141,15 +139,19 @@ const Checkout = () => {
         clearCart();
         navigate(`/order-confirmation/grocery/${newId}`);
       } else {
-        // Restaurant order flow
-        const restaurantName = items[0]?.restaurant;
-        const { data: restData } = await supabase.from("restaurants").select("id").eq("name", restaurantName).limit(1).single();
-        if (!restData) { toast.error("ریسٹورنٹ نہیں ملا"); setSubmitting(false); return; }
+        // Restaurant order — lookup by sourceId first, fallback to name
+        let restaurantId = items[0]?.sourceId;
+        if (!restaurantId) {
+          const restaurantName = items[0]?.restaurant;
+          const { data: restData } = await supabase.from("restaurants").select("id").eq("name", restaurantName).limit(1).maybeSingle();
+          if (!restData) { toast.error("ریسٹورنٹ نہیں ملا — دوبارہ کارٹ سے آئٹم شامل کریں"); setSubmitting(false); return; }
+          restaurantId = restData.id;
+        }
 
         const menuItems = items.map((item) => ({ menu_item_id: item.id, quantity: item.quantity }));
 
         const { data: orderId, error: orderError } = await supabase.rpc("create_order", {
-          _restaurant_id: restData.id,
+          _restaurant_id: restaurantId,
           _city_id: selectedCity,
           _delivery_address: address,
           _notes: notes || "",
