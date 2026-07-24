@@ -16,6 +16,7 @@ import ServicesTab from "@/components/admin/ServicesTab";
 import AdsTab from "@/components/admin/AdsTab";
 import PhotoOrdersTab from "@/components/admin/PhotoOrdersTab";
 import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
+import ApplicationsTab from "@/components/admin/ApplicationsTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -33,6 +34,7 @@ const AdminDashboard = () => {
       <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-primary">ایڈمن ڈیش بورڈ</h1>
         <div className="flex items-center gap-3">
+          <Button variant="default" size="sm" onClick={() => navigate("/operations")}>🎛️ Operations</Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠 ہوم</Button>
           <span className="text-sm text-muted-foreground">{user?.email}</span>
           <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
@@ -54,6 +56,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="ads" className="gap-1 text-xs"><Megaphone className="h-3.5 w-3.5" /> ایڈز</TabsTrigger>
             <TabsTrigger value="photo-orders" className="gap-1 text-xs"><FileImage className="h-3.5 w-3.5" /> فوٹو آرڈرز</TabsTrigger>
             <TabsTrigger value="wholesale-cats" className="gap-1 text-xs"><Package className="h-3.5 w-3.5" /> بازار کیٹ</TabsTrigger>
+            <TabsTrigger value="applications" className="gap-1 text-xs"><Users className="h-3.5 w-3.5" /> پارٹنر درخواستیں</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders"><OrdersTab /></TabsContent>

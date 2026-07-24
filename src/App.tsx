@@ -55,6 +55,8 @@ const StandaloneStore = lazyWithRetry(() => import("./pages/StandaloneStore"));
 const ServiceManagerDashboard = lazyWithRetry(() => import("./pages/ServiceManagerDashboard"));
 const Wholesale = lazyWithRetry(() => import("./pages/Wholesale"));
 const OrderConfirmation = lazyWithRetry(() => import("./pages/OrderConfirmation"));
+const Partner = lazyWithRetry(() => import("./pages/Partner"));
+const Operations = lazyWithRetry(() => import("./pages/Operations"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -112,6 +114,8 @@ const App = () => (
                   <Route path="/service-manager" element={<ServiceManagerDashboard />} />
                   <Route path="/wholesale" element={<Wholesale />} />
                   <Route path="/order-confirmation/:type/:id" element={<OrderConfirmation />} />
+                  <Route path="/partner" element={<Partner />} />
+                  <Route path="/operations" element={<Operations />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
