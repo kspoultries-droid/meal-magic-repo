@@ -39,7 +39,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           width={400}
           height={300}
           loading={isAboveFold ? "eager" : "lazy"}
-          {...(isAboveFold ? { fetchPriority: "high" as const } : {})}
+          {...(isAboveFold ? { fetchpriority: "high" } : {})}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {!isActive && (
