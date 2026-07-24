@@ -477,13 +477,42 @@ const OwnerOrdersTab = () => {
                 {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
                 {o.notes && <p className="text-xs text-muted-foreground">📝 {o.notes}</p>}
 
-                {/* Status Actions */}
-                <div className="flex gap-1 flex-wrap">
-                  {o.status === "pending" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "confirmed")}>✅ تصدیق</Button>}
-                  {o.status === "confirmed" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "preparing")}>👨‍🍳 تیاری شروع</Button>}
-                  {o.status === "preparing" && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateStatus(o.id, "delivering")}>🏍️ بھیج دیا</Button>}
+                {/* Stage Progress Buttons — all stages visible, current highlighted */}
+                <div className="pt-2">
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[
+                      { key: "confirmed", label: "✅ تصدیق", from: "pending" },
+                      { key: "preparing", label: "👨‍🍳 تیاری", from: "confirmed" },
+                      { key: "delivering", label: "🏍️ بھیجا", from: "preparing" },
+                      { key: "delivered", label: "📦 پہنچا", from: "delivering" },
+                    ].map((step) => {
+                      const order = ["pending", "confirmed", "preparing", "delivering", "delivered"];
+                      const currentIdx = order.indexOf(o.status);
+                      const stepIdx = order.indexOf(step.key);
+                      const isDone = currentIdx >= stepIdx;
+                      const isNext = o.status === step.from;
+                      return (
+                        <button
+                          key={step.key}
+                          disabled={!isNext || o.status === "cancelled"}
+                          onClick={() => updateStatus(o.id, step.key)}
+                          className={`text-[11px] font-bold px-2 py-2 rounded-lg border-2 transition-all ${
+                            isDone
+                              ? "bg-success/20 border-success text-success"
+                              : isNext
+                                ? "bg-primary text-primary-foreground border-primary shadow-glow animate-pulse cursor-pointer"
+                                : "bg-muted border-border text-muted-foreground opacity-60 cursor-not-allowed"
+                          }`}
+                        >
+                          {step.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                   {o.status !== "cancelled" && o.status !== "delivered" && (
-                    <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => updateStatus(o.id, "cancelled")}>❌ منسوخ</Button>
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-destructive mt-2" onClick={() => updateStatus(o.id, "cancelled")}>
+                      ❌ آرڈر منسوخ کریں
+                    </Button>
                   )}
                 </div>
               </div>

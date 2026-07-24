@@ -82,22 +82,34 @@ const OrderTracking = () => {
         <h1 className="text-lg font-extrabold text-foreground">آرڈر ٹریکنگ</h1>
       </div>
 
-      {/* Map area (placeholder for Google Maps) */}
-      <div className="h-56 bg-secondary relative flex items-center justify-center">
-        {rider?.current_lat && rider?.current_lng ? (
-          <div className="text-center">
-            <Bike className="w-12 h-12 text-primary mx-auto mb-2 animate-bounce" />
-            <p className="text-sm font-bold text-foreground">رائیڈر آپ کے قریب ہے</p>
-            <p className="text-xs text-muted-foreground">
-              📍 {rider.current_lat.toFixed(4)}, {rider.current_lng.toFixed(4)}
-            </p>
-          </div>
+      {/* Map area */}
+      <div className="h-64 bg-secondary relative">
+        {(order.delivery_lat && order.delivery_lng) ? (
+          <iframe
+            title="delivery-map"
+            className="w-full h-full border-0"
+            src={`https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}&hl=ur&z=16&output=embed`}
+            loading="lazy"
+          />
+        ) : order.delivery_address ? (
+          <iframe
+            title="delivery-map-addr"
+            className="w-full h-full border-0"
+            src={`https://www.google.com/maps?q=${encodeURIComponent(order.delivery_address)}&hl=ur&z=15&output=embed`}
+            loading="lazy"
+          />
         ) : (
-          <div className="text-center">
-            <MapPin className="w-12 h-12 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">
-              {order.status === "delivering" ? "رائیڈر کی لوکیشن جلد دستیاب ہوگی" : "نقشہ ڈلیوری شروع ہونے پر دکھائی دے گا"}
-            </p>
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-12 h-12 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">لوکیشن دستیاب نہیں</p>
+            </div>
+          </div>
+        )}
+        {rider?.current_lat && rider?.current_lng && (
+          <div className="absolute top-2 right-2 bg-card/95 backdrop-blur px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5 text-xs font-bold">
+            <Bike className="w-3.5 h-3.5 text-primary animate-bounce" />
+            رائیڈر قریب
           </div>
         )}
       </div>
