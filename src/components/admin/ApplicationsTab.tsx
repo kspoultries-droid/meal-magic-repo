@@ -7,7 +7,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Check, X, Phone, MapPin, RefreshCw } from "lucide-react";
+import { Check, X, Phone, MapPin, RefreshCw, FileImage, MessageCircle } from "lucide-react";
+
+const APP_URL = "https://easylife.apnahub.online";
+
+const openWA = (phone: string, message: string) => {
+  const clean = phone.replace(/\D/g, "").replace(/^0/, "92");
+  window.open(`https://wa.me/${clean}?text=${encodeURIComponent(message)}`, "_blank");
+};
+
+const signedDocUrl = async (path: string) => {
+  const { data } = await supabase.storage.from("partner-documents").createSignedUrl(path, 3600);
+  return data?.signedUrl || null;
+};
 
 const ApplicationsTab = () => {
   const [apps, setApps] = useState<any[]>([]);
