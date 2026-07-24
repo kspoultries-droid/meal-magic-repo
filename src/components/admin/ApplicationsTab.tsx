@@ -47,13 +47,35 @@ const ApplicationsTab = () => {
     fetchApps();
   };
 
+  const approve = async (app: any) => {
+    const { error } = await supabase.rpc("approve_partner_application", { _application_id: app.id });
+    if (error) return toast.error(error.message);
+    toast.success("منظور ہو گیا! رول assign ہو گیا۔");
+    if (app.whatsapp || app.phone) {
+      openWA(app.whatsapp || app.phone,
+        `السلام علیکم ${app.owner_name}،\n\nآپ کی EasyLife پارٹنر درخواست منظور ہو گئی ہے! 🎉\n\nAb aap login karke apna dashboard use kar sakte hain:\n${APP_URL}\n\n— EasyLife Team`);
+    }
+    fetchApps();
+  };
+
   const reject = async () => {
     if (!rejectId || !rejectReason.trim()) return toast.error("وجہ لکھیں");
+    const app = apps.find(a => a.id === rejectId);
     const { error } = await supabase.rpc("reject_partner_application", { _application_id: rejectId, _reason: rejectReason });
     if (error) return toast.error(error.message);
     toast.success("مسترد کر دیا");
+    if (app && (app.whatsapp || app.phone)) {
+      openWA(app.whatsapp || app.phone,
+        `السلام علیکم ${app.owner_name}،\n\nمعذرت، فی الحال آپ کی EasyLife پارٹنر درخواست منظور نہیں ہو سکی۔\n\nوجہ: ${rejectReason}\n\nمزید معلومات کے لیے رابطہ کریں۔\n— EasyLife Team`);
+    }
     setRejectId(null); setRejectReason("");
     fetchApps();
+  };
+
+  const viewDoc = async (path: string) => {
+    const url = await signedDocUrl(path);
+    if (url) window.open(url, "_blank");
+    else toast.error("فائل نہیں کھلی");
   };
 
   const filtered = apps.filter(a => a.status === filter);
