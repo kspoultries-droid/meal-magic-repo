@@ -116,12 +116,26 @@ const ApplicationsTab = () => {
                     </div>
                     {app.address && <p className="text-xs mt-1">📍 {app.address}</p>}
                     {app.cnic && <p className="text-xs">CNIC: {app.cnic}</p>}
+                    {(app.cnic_image_url || app.shop_image_url) && (
+                      <div className="flex gap-2 mt-2">
+                        {app.cnic_image_url && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(app.cnic_image_url)}>
+                            <FileImage className="w-3 h-3 mr-1" /> CNIC
+                          </Button>
+                        )}
+                        {app.shop_image_url && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(app.shop_image_url)}>
+                            <FileImage className="w-3 h-3 mr-1" /> دکان/گاڑی
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     {app.admin_notes && <p className="text-xs text-destructive mt-1">Note: {app.admin_notes}</p>}
                   </div>
 
                   {app.status === "pending" && (
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => approve(app.id)} className="bg-green-600 hover:bg-green-700">
+                      <Button size="sm" onClick={() => approve(app)} className="bg-green-600 hover:bg-green-700">
                         <Check className="w-4 h-4 mr-1" /> منظور
                       </Button>
                       <Dialog open={rejectId === app.id} onOpenChange={(o) => !o && setRejectId(null)}>
@@ -137,6 +151,12 @@ const ApplicationsTab = () => {
                         </DialogContent>
                       </Dialog>
                     </div>
+                  )}
+                  {app.status !== "pending" && (app.whatsapp || app.phone) && (
+                    <Button size="sm" variant="outline" className="h-8 text-xs text-green-700 border-green-600"
+                      onClick={() => openWA(app.whatsapp || app.phone, `السلام علیکم ${app.owner_name}،\n\nEasyLife ٹیم کی طرف سے رابطہ۔`)}>
+                      <MessageCircle className="w-3 h-3 mr-1" /> WhatsApp
+                    </Button>
                   )}
                 </div>
               </CardContent>
