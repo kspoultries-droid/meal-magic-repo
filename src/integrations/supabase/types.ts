@@ -601,6 +601,92 @@ export type Database = {
           },
         ]
       }
+      partner_applications: {
+        Row: {
+          address: string | null
+          admin_notes: string | null
+          applicant_type: Database["public"]["Enums"]["partner_type"]
+          business_name: string
+          category: string | null
+          city_id: string | null
+          cnic: string | null
+          cnic_image_url: string | null
+          created_at: string
+          email: string | null
+          extra: Json | null
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          owner_name: string
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          shop_image_url: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          updated_at: string
+          user_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          applicant_type: Database["public"]["Enums"]["partner_type"]
+          business_name: string
+          category?: string | null
+          city_id?: string | null
+          cnic?: string | null
+          cnic_image_url?: string | null
+          created_at?: string
+          email?: string | null
+          extra?: Json | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          owner_name: string
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shop_image_url?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: string | null
+          applicant_type?: Database["public"]["Enums"]["partner_type"]
+          business_name?: string
+          category?: string | null
+          city_id?: string | null
+          cnic?: string | null
+          cnic_image_url?: string | null
+          created_at?: string
+          email?: string | null
+          extra?: Json | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          owner_name?: string
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shop_image_url?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_applications_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payout_settings: {
         Row: {
           account_number: string | null
@@ -1375,6 +1461,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_partner_application: {
+        Args: { _application_id: string }
+        Returns: undefined
+      }
       create_grocery_cart_order: {
         Args: {
           _city_id: string
@@ -1444,6 +1534,10 @@ export type Database = {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
       }
+      reject_partner_application: {
+        Args: { _application_id: string; _reason: string }
+        Returns: undefined
+      }
       request_wallet_topup: {
         Args: { _amount: number; _payment_method: string }
         Returns: string
@@ -1458,6 +1552,13 @@ export type Database = {
         | "support"
         | "mechanic"
         | "service_manager"
+      application_status: "pending" | "approved" | "rejected"
+      partner_type:
+        | "restaurant"
+        | "grocery"
+        | "wholesale"
+        | "service_provider"
+        | "rider"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1593,6 +1694,14 @@ export const Constants = {
         "support",
         "mechanic",
         "service_manager",
+      ],
+      application_status: ["pending", "approved", "rejected"],
+      partner_type: [
+        "restaurant",
+        "grocery",
+        "wholesale",
+        "service_provider",
+        "rider",
       ],
     },
   },

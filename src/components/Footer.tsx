@@ -15,8 +15,8 @@ const Footer = () => {
             <h4 className="text-background font-bold mb-4">Contact</h4>
             <ul className="space-y-2 text-sm">
               <li><a href="#" className="hover:text-background transition-colors">Help center</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Partner with us</a></li>
-              <li><a href="#" className="hover:text-background transition-colors">Ride with us</a></li>
+              <li><a href="/partner" className="hover:text-background transition-colors">🤝 Partner with us / پارٹنر بنیں</a></li>
+              <li><a href="/partner" className="hover:text-background transition-colors">🏍️ Ride with us / رائیڈر بنیں</a></li>
             </ul>
           </div>
           <div>
