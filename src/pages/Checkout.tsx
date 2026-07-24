@@ -113,38 +113,33 @@ const Checkout = () => {
 
     try {
       if (isGroceryOrder) {
-        // Grocery cart order flow
+        // Grocery cart order flow (server computes total)
         const storeId = items[0]?.sourceId;
         if (!storeId) { toast.error("اسٹور کی معلومات نہیں ملیں"); setSubmitting(false); return; }
 
         const orderItems = items.map(item => ({
           id: item.id,
-          name: item.name,
-          price: item.price,
           quantity: item.quantity,
-          image: item.image,
         }));
 
-        const { data: inserted, error } = await supabase.from("grocery_cart_orders").insert({
-          store_id: storeId,
-          customer_id: user!.id,
-          items: orderItems,
-          total_amount: totalPrice + deliveryFee,
-          delivery_address: address,
-          delivery_lat: coords?.lat || null,
-          delivery_lng: coords?.lng || null,
-          notes: notes || null,
-          payment_method: paymentMethod,
-          is_gift: isGift,
-          receiver_name: isGift ? receiverName : null,
-          receiver_phone: isGift ? receiverPhone : null,
-          city_id: selectedCity,
-        }).select("id").single();
+        const { data: newId, error } = await supabase.rpc("create_grocery_cart_order", {
+          _store_id: storeId,
+          _city_id: selectedCity,
+          _delivery_address: address,
+          _notes: notes || null,
+          _payment_method: paymentMethod,
+          _items: orderItems,
+          _receiver_name: isGift ? receiverName : null,
+          _receiver_phone: isGift ? receiverPhone : null,
+          _is_gift: isGift,
+          _delivery_lat: coords?.lat || null,
+          _delivery_lng: coords?.lng || null,
+        });
 
         if (error) throw error;
         toast.success("گروسری آرڈر کامیابی سے دیا گیا! 🛒🎉");
         clearCart();
-        navigate(`/order-confirmation/grocery/${inserted.id}`);
+        navigate(`/order-confirmation/grocery/${newId}`);
       } else {
         // Restaurant order flow
         const restaurantName = items[0]?.restaurant;
