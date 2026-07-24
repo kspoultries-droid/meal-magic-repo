@@ -32,16 +32,17 @@ const Operations = () => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const iso = today.toISOString();
 
+    const sb: any = supabase;
     const results: any[] = await Promise.all([
-      supabase.from("orders").select("id", { count: "exact", head: true }).gte("created_at", iso),
-      supabase.from("grocery_cart_orders").select("id", { count: "exact", head: true }).gte("created_at", iso),
-      supabase.from("service_bookings").select("id", { count: "exact", head: true }).gte("created_at", iso),
-      supabase.from("orders").select("id,total_amount,status,delivery_address,created_at,restaurant_id,rider_id,customer_id,restaurants(name)")
+      sb.from("orders").select("id", { count: "exact", head: true }).gte("created_at", iso),
+      sb.from("grocery_cart_orders").select("id", { count: "exact", head: true }).gte("created_at", iso),
+      sb.from("service_bookings").select("id", { count: "exact", head: true }).gte("created_at", iso),
+      sb.from("orders").select("id,total_amount,status,delivery_address,created_at,restaurant_id,rider_id,customer_id,restaurants(name)")
         .not("status", "in", "(delivered,cancelled)").order("created_at", { ascending: false }).limit(30),
-      supabase.from("riders").select("id,full_name,phone,is_online,city_id").eq("is_online", true),
-      supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("orders").select("total_amount").gte("created_at", iso).eq("status", "delivered"),
-    ] as any);
+      sb.from("riders").select("id,full_name,phone,is_online,city_id").eq("is_online", true),
+      sb.from("partner_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
+      sb.from("orders").select("total_amount").gte("created_at", iso).eq("status", "delivered"),
+    ]);
     const ordersToday = results[0].count;
     const groceryToday = results[1].count;
     const servicesToday = results[2].count;
