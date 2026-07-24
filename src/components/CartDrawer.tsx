@@ -46,7 +46,7 @@ const CartDrawer = () => {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0 bg-gradient-to-b from-background via-background to-secondary/30 border-l border-border/50">
+      <SheetContent className="w-full sm:max-w-md flex flex-col p-0 bg-gradient-to-b from-background via-background to-secondary/30 border-l border-border/50 h-[calc(100dvh-4rem-env(safe-area-inset-bottom))] top-0 bottom-auto">
         <SheetHeader className="px-6 pt-6 pb-3 bg-gradient-hero text-primary-foreground shadow-glow">
           <SheetTitle className="flex items-center gap-2 text-primary-foreground">
             <div className="w-9 h-9 rounded-full glass flex items-center justify-center">

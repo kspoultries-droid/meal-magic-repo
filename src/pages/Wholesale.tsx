@@ -53,7 +53,9 @@ const Wholesale = () => {
           <h1 className="text-xl font-extrabold flex items-center justify-center gap-1.5">
             <Package className="w-5 h-5" /> ہول سیل بازار
           </h1>
-          <p className="text-xs opacity-90">Wholesale Bazar — کراچی سدر اور پورا پاکستان</p>
+          <p className="text-[11px] opacity-95 mt-1 leading-relaxed">
+            بولٹن مارکیٹ کراچی صدر • شاہ عالمی مارکیٹ لاہور • کارخانہ بازار فیصل آباد
+          </p>
         </div>
         <div className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5 shadow">
           <Search className="w-5 h-5 text-muted-foreground shrink-0" />
@@ -67,12 +69,7 @@ const Wholesale = () => {
         </div>
       </div>
 
-      {/* Info Strip */}
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2">
-        <p className="text-[11px] font-semibold text-yellow-800 dark:text-yellow-300 text-center">
-          💡 ہول سیل ریٹ پر سامان • کم از کم مقدار (MOQ) ہر پروڈکٹ پر • کراچی local delivery، باہر TCS/Leopards courier
-        </p>
-      </div>
+
 
       {/* Category Chips */}
       {categories.length > 0 && (
