@@ -40,7 +40,7 @@ const Operations = () => {
       supabase.from("orders").select("id", { count: "exact", head: true }).gte("created_at", iso),
       supabase.from("grocery_cart_orders").select("id", { count: "exact", head: true }).gte("created_at", iso),
       supabase.from("service_bookings").select("id", { count: "exact", head: true }).gte("created_at", iso),
-      supabase.from("orders").select("id,total_amount,status,delivery_address,created_at,restaurant_id,rider_id,restaurants(name),profiles!orders_customer_id_fkey(full_name,phone)")
+      (supabase.from("orders").select("id,total_amount,status,delivery_address,created_at,restaurant_id,rider_id,customer_id,restaurants(name)") as any)
         .not("status", "in", "(delivered,cancelled)").order("created_at", { ascending: false }).limit(30),
       supabase.from("riders").select("id,full_name,phone,is_online,city_id").eq("is_online", true),
       supabase.from("partner_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
