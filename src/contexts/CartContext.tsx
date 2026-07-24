@@ -32,16 +32,26 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addItem = useCallback((item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
+      // Prevent mixing food + grocery + different restaurants/stores
+      const first = prev[0];
+      if (first) {
+        const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
+        const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
+        if (!sameSource || !sameShop) {
+          toast.error("کارٹ صرف ایک شاپ سے ہو سکتا ہے — پرانا صاف کر کے نیا شامل کیا گیا", {
+            id: "cart-swap",
+            duration: 2500,
+          });
+          return [{ ...item, quantity: 1 }];
+        }
+      }
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
         return prev.map((i) => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
       return [...prev, { ...item, quantity: 1 }];
     });
-    toast.success(`${item.name} کارٹ میں شامل ہو گیا ✓`, {
-      id: "cart-add",
-      duration: 1500,
-    });
+    toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 });
   }, []);
 
   const removeItem = useCallback((id: string) => {
