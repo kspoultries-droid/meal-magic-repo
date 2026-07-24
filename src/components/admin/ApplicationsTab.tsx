@@ -40,12 +40,6 @@ const ApplicationsTab = () => {
 
   useEffect(() => { fetchApps(); }, []);
 
-  const approve = async (id: string) => {
-    const { error } = await supabase.rpc("approve_partner_application", { _application_id: id });
-    if (error) return toast.error(error.message);
-    toast.success("منظور ہو گیا! رول assign ہو گیا۔");
-    fetchApps();
-  };
 
   const approve = async (app: any) => {
     const { error } = await supabase.rpc("approve_partner_application", { _application_id: app.id });
