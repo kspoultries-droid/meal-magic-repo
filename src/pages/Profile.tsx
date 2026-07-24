@@ -165,6 +165,35 @@ const Profile = () => {
         </button>
       </div>
 
+      {/* Referral Card */}
+      {profile?.referral_code && (
+        <div className="px-4 pb-2">
+          <div className="rounded-2xl p-4 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">اپنا ریفرل کوڈ شیئر کریں</p>
+                <p className="font-mono text-2xl font-extrabold text-primary tracking-widest">{profile.referral_code}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">دوست join کریں گے تو دونوں کو بونس ملے گا</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button size="sm" variant="outline" onClick={() => {
+                  navigator.clipboard.writeText(profile.referral_code);
+                  toast.success("کوڈ کاپی ہو گیا");
+                }}>
+                  <Copy className="w-4 h-4 mr-1" /> کاپی
+                </Button>
+                <Button size="sm" onClick={() => {
+                  const msg = `EasyLife app join کریں اور بہترین آفرز پائیں! میرا ریفرل کوڈ: ${profile.referral_code}\n\nhttps://easylife.apnahub.online`;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+                }} className="bg-green-600 hover:bg-green-700">
+                  WhatsApp
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Orders Section (collapsible) */}
       {showOrders && (
         <div className="px-4 pb-4">
