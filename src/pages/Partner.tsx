@@ -48,6 +48,14 @@ const Partner = () => {
       .then(({ data }) => setMyApps(data || []));
   }, [user]);
 
+  const uploadDoc = async (file: File, prefix: string): Promise<string | null> => {
+    if (!user) return null;
+    const path = `${user.id}/${prefix}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+    const { error } = await supabase.storage.from("partner-documents").upload(path, file, { upsert: true });
+    if (error) { toast.error("فائل اپلوڈ ناکام: " + error.message); return null; }
+    return path;
+  };
+
   const submit = async () => {
     if (!form.business_name || !form.owner_name || !form.phone) {
       toast.error("نام، مالک اور فون ضروری ہے");
@@ -59,18 +67,36 @@ const Partner = () => {
       return;
     }
     setSubmitting(true);
+
+    let cnic_image_url: string | null = null;
+    let shop_image_url: string | null = null;
+    if (cnicFile) cnic_image_url = await uploadDoc(cnicFile, "cnic");
+    if (shopFile) shop_image_url = await uploadDoc(shopFile, "shop");
+
+    // Resolve referral code -> referrer user id (optional)
+    let referred_by: string | null = null;
+    if (form.referral_code.trim()) {
+      const { data: ref } = await supabase.from("profiles").select("id")
+        .eq("referral_code", form.referral_code.trim().toUpperCase()).maybeSingle();
+      if (ref?.id) referred_by = ref.id;
+    }
+
+    const { business_name, owner_name, phone, whatsapp, cnic, email, city_id, address, category } = form;
     const { error } = await supabase.from("partner_applications").insert({
       user_id: user.id,
       applicant_type: tab,
-      email: form.email || user.email,
-      ...form,
-      city_id: form.city_id || null,
+      business_name, owner_name, phone, whatsapp, cnic, address, category,
+      email: email || user.email,
+      city_id: city_id || null,
+      cnic_image_url,
+      shop_image_url,
+      extra: referred_by ? { referred_by } : {},
     });
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("درخواست جمع ہو گئی! ایڈمن جلد رابطہ کرے گا۔");
-    setForm({ business_name: "", owner_name: "", phone: "", whatsapp: "", cnic: "", email: "", city_id: "", address: "", category: "" });
-    // refresh
+    setForm({ business_name: "", owner_name: "", phone: "", whatsapp: "", cnic: "", email: "", city_id: "", address: "", category: "", referral_code: "" });
+    setCnicFile(null); setShopFile(null);
     const { data } = await supabase.from("partner_applications").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     setMyApps(data || []);
   };
