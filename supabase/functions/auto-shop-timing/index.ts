@@ -1,6 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 Deno.serve(async (req) => {
+  // Require shared secret so only the trusted scheduler can invoke this function
+  const expected = Deno.env.get("AUTO_SHOP_TIMING_SECRET");
+  const provided = req.headers.get("x-scheduler-secret");
+  if (!expected || provided !== expected) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -10,9 +20,6 @@ Deno.serve(async (req) => {
   const now = new Date();
   const pkt = new Date(now.getTime() + 5 * 60 * 60 * 1000);
   const currentTime = pkt.toISOString().slice(11, 16); // "HH:MM"
-
-  // Auto-open: stores where current time >= opening_time AND current time < closing_time but is_active = false
-  // Auto-close: stores where current time >= closing_time OR current time < opening_time but is_active = true
 
   // Grocery stores - open
   await supabase

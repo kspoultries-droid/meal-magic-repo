@@ -231,15 +231,12 @@ const Services = () => {
     setSubmitting(true);
     const carInfo = isOilChange ? `Car: ${carModel} | Oil: ${oilCompany}` : isCarService && carModel ? `Car: ${carModel}` : "";
     const fullNotes = [carInfo, bookingNotes].filter(Boolean).join(" | ");
-    const { error } = await supabase.from("service_bookings").insert({
-      service_id: selectedService.id,
-      customer_id: user.id,
-      address: bookingAddress,
-      scheduled_date: bookingDate,
-      scheduled_time: bookingTime,
-      notes: fullNotes || null,
-      total_amount: selectedService.price,
-      advance_fee: advanceFee,
+    const { error } = await supabase.rpc("create_service_booking", {
+      _service_id: selectedService.id,
+      _address: bookingAddress,
+      _scheduled_date: bookingDate,
+      _scheduled_time: bookingTime,
+      _notes: fullNotes || null,
     });
     setSubmitting(false);
     if (error) {

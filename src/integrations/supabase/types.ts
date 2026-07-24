@@ -1375,6 +1375,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_grocery_cart_order: {
+        Args: {
+          _city_id: string
+          _delivery_address: string
+          _delivery_lat?: number
+          _delivery_lng?: number
+          _is_gift?: boolean
+          _items: Json
+          _notes: string
+          _payment_method: string
+          _receiver_name?: string
+          _receiver_phone?: string
+          _store_id: string
+        }
+        Returns: string
+      }
       create_order:
         | {
             Args: {
@@ -1403,6 +1419,16 @@ export type Database = {
             }
             Returns: string
           }
+      create_service_booking: {
+        Args: {
+          _address: string
+          _notes: string
+          _scheduled_date: string
+          _scheduled_time: string
+          _service_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
