@@ -9,27 +9,52 @@ import { CartProvider } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import Index from "./pages/Index";
 
-const Auth = lazy(() => import("./pages/Auth"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const RestaurantDetail = lazy(() => import("./pages/RestaurantDetail"));
-const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashboard"));
-const RiderDashboard = lazy(() => import("./pages/RiderDashboard"));
-const Checkout = lazy(() => import("./pages/Checkout"));
-const Profile = lazy(() => import("./pages/Profile"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const Install = lazy(() => import("./pages/Install"));
-const Grocery = lazy(() => import("./pages/Grocery"));
-const GroceryStoreDetail = lazy(() => import("./pages/GroceryStoreDetail"));
-const OrderTracking = lazy(() => import("./pages/OrderTracking"));
-const SearchPage = lazy(() => import("./pages/SearchPage"));
-const Services = lazy(() => import("./pages/Services"));
-const Wallet = lazy(() => import("./pages/Wallet"));
-const SupportDashboard = lazy(() => import("./pages/SupportDashboard"));
-const MechanicDashboard = lazy(() => import("./pages/MechanicDashboard"));
-const StandaloneStore = lazy(() => import("./pages/StandaloneStore"));
-const ServiceManagerDashboard = lazy(() => import("./pages/ServiceManagerDashboard"));
-const Wholesale = lazy(() => import("./pages/Wholesale"));
-const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
+// Auto-reload once when a lazy chunk fails to load (typically after a redeploy
+// invalidates old hashed filenames). Prevents blank-screen from stale chunks.
+const lazyWithRetry = <T extends { default: React.ComponentType<any> }>(
+  factory: () => Promise<T>
+) =>
+  lazy(async () => {
+    const RELOAD_KEY = "lovable:chunk-reloaded";
+    try {
+      return await factory();
+    } catch (err: any) {
+      const msg = String(err?.message || "");
+      const isChunkErr =
+        msg.includes("Failed to fetch dynamically imported module") ||
+        msg.includes("Importing a module script failed") ||
+        msg.includes("error loading dynamically imported module");
+      if (isChunkErr && !sessionStorage.getItem(RELOAD_KEY)) {
+        sessionStorage.setItem(RELOAD_KEY, "1");
+        window.location.reload();
+        // Return an empty component while the page reloads.
+        return { default: () => null } as unknown as T;
+      }
+      throw err;
+    }
+  });
+
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
+const RestaurantDetail = lazyWithRetry(() => import("./pages/RestaurantDetail"));
+const RestaurantOwnerDashboard = lazyWithRetry(() => import("./pages/RestaurantOwnerDashboard"));
+const RiderDashboard = lazyWithRetry(() => import("./pages/RiderDashboard"));
+const Checkout = lazyWithRetry(() => import("./pages/Checkout"));
+const Profile = lazyWithRetry(() => import("./pages/Profile"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const Install = lazyWithRetry(() => import("./pages/Install"));
+const Grocery = lazyWithRetry(() => import("./pages/Grocery"));
+const GroceryStoreDetail = lazyWithRetry(() => import("./pages/GroceryStoreDetail"));
+const OrderTracking = lazyWithRetry(() => import("./pages/OrderTracking"));
+const SearchPage = lazyWithRetry(() => import("./pages/SearchPage"));
+const Services = lazyWithRetry(() => import("./pages/Services"));
+const Wallet = lazyWithRetry(() => import("./pages/Wallet"));
+const SupportDashboard = lazyWithRetry(() => import("./pages/SupportDashboard"));
+const MechanicDashboard = lazyWithRetry(() => import("./pages/MechanicDashboard"));
+const StandaloneStore = lazyWithRetry(() => import("./pages/StandaloneStore"));
+const ServiceManagerDashboard = lazyWithRetry(() => import("./pages/ServiceManagerDashboard"));
+const Wholesale = lazyWithRetry(() => import("./pages/Wholesale"));
+const OrderConfirmation = lazyWithRetry(() => import("./pages/OrderConfirmation"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
