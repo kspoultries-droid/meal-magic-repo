@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Store, ShoppingCart, Package, Wrench, Bike, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Store, ShoppingCart, Package, Wrench, Bike, CheckCircle2, ExternalLink } from "lucide-react";
 
 type PartnerType = "restaurant" | "grocery" | "wholesale" | "service_provider" | "rider";
 
@@ -22,9 +22,17 @@ const TYPES: { value: PartnerType; label: string; urdu: string; icon: any; desc:
   { value: "rider", label: "Rider", urdu: "رائیڈر", icon: Bike, desc: "ڈیلیوری بوائے" },
 ];
 
+const dashboardLabel: Record<PartnerType, string> = {
+  restaurant: "ریسٹورنٹ ڈیش بورڈ کھولیں",
+  grocery: "اپنا اسٹور کھولیں",
+  wholesale: "ہول سیل اسٹور کھولیں",
+  service_provider: "سروس ڈیش بورڈ کھولیں",
+  rider: "رائیڈر ڈیش بورڈ کھولیں",
+};
+
 const Partner = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshRoles } = useAuth();
   const [tab, setTab] = useState<PartnerType>("restaurant");
   const [cities, setCities] = useState<any[]>([]);
   const [myApps, setMyApps] = useState<any[]>([]);
@@ -128,6 +136,40 @@ const Partner = () => {
   };
 
   const active = TYPES.find(t => t.value === tab)!;
+
+  const openApprovedDashboard = async (app: any) => {
+    await refreshRoles();
+
+    if (app.applicant_type === "rider") {
+      navigate("/rider-dashboard");
+      return;
+    }
+    if (app.applicant_type === "service_provider") {
+      navigate("/mechanic-dashboard");
+      return;
+    }
+    if (app.applicant_type === "restaurant") {
+      navigate("/restaurant-dashboard");
+      return;
+    }
+
+    const storeType = app.applicant_type === "wholesale" ? "wholesale" : "retail";
+    const { data: store } = await supabase
+      .from("grocery_stores")
+      .select("id")
+      .eq("owner_id", app.user_id)
+      .eq("store_type", storeType)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (store?.id) {
+      navigate(`/grocery/${store.id}`);
+      return;
+    }
+
+    navigate(app.applicant_type === "wholesale" ? "/wholesale" : "/grocery");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-hero py-8 px-4">
@@ -258,15 +300,25 @@ const Partner = () => {
             <CardHeader><CardTitle className="text-lg">میری درخواستیں</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {myApps.map(app => (
-                <div key={app.id} className="flex items-center justify-between p-3 rounded-lg bg-card/50">
+                <div key={app.id} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-card/50">
                   <div>
                     <p className="font-semibold text-sm">{app.business_name}</p>
                     <p className="text-xs text-muted-foreground">{app.applicant_type}</p>
+                    {app.status === "approved" && (
+                      <p className="text-[11px] text-primary mt-1">منظوری مکمل — اب نیچے والا بٹن دبا کر کام شروع کریں</p>
+                    )}
                   </div>
-                  <Badge variant={app.status === "approved" ? "default" : app.status === "rejected" ? "destructive" : "secondary"}>
-                    {app.status === "approved" ? <><CheckCircle2 className="w-3 h-3 mr-1" /> منظور</> :
-                     app.status === "rejected" ? "مسترد" : "زیر جائزہ"}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <Badge variant={app.status === "approved" ? "default" : app.status === "rejected" ? "destructive" : "secondary"}>
+                      {app.status === "approved" ? <><CheckCircle2 className="w-3 h-3 mr-1" /> منظور</> :
+                       app.status === "rejected" ? "مسترد" : "زیر جائزہ"}
+                    </Badge>
+                    {app.status === "approved" && (
+                      <Button size="sm" className="h-8 text-xs" onClick={() => openApprovedDashboard(app)}>
+                        <ExternalLink className="w-3 h-3 mr-1" /> {dashboardLabel[app.applicant_type as PartnerType] || "ڈیش بورڈ"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </CardContent>
