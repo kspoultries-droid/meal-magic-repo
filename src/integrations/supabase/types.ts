@@ -893,6 +893,9 @@ export type Database = {
           name: string
           opening_time: string | null
           owner_id: string
+          pickup_address: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
           rating: number | null
           updated_at: string | null
         }
@@ -911,6 +914,9 @@ export type Database = {
           name: string
           opening_time?: string | null
           owner_id: string
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           rating?: number | null
           updated_at?: string | null
         }
@@ -929,6 +935,9 @@ export type Database = {
           name?: string
           opening_time?: string | null
           owner_id?: string
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           rating?: number | null
           updated_at?: string | null
         }
