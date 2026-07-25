@@ -37,6 +37,8 @@ const Partner = () => {
   });
   const [cnicFile, setCnicFile] = useState<File | null>(null);
   const [shopFile, setShopFile] = useState<File | null>(null);
+  const [platefile, setPlateFile] = useState<File | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
 
   useEffect(() => {
     supabase.from("cities").select("id,name").order("name").then(({ data }) => setCities(data || []));
