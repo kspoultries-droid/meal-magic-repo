@@ -73,15 +73,41 @@ const RiderDashboard = () => {
     return () => navigator.geolocation.clearWatch(watchId);
   }, [hasRole, user, updateLocation]);
 
-  const fetchData = async () => {
+  const ensureRiderProfile = async () => {
+    if (!user) return null;
+    const { data: approvedApp } = await supabase
+      .from("partner_applications")
+      .select("city_id")
+      .eq("user_id", user.id)
+      .eq("applicant_type", "rider")
+      .eq("status", "approved")
+      .order("reviewed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const { data, error } = await supabase
+      .from("riders")
+      .insert({ id: user.id, city_id: approvedApp?.city_id || null, is_available: false })
+      .select("*")
+      .maybeSingle();
+
+    if (error) {
+      toast.error("رائیڈر پروفائل نہیں بنی: " + error.message);
+      return null;
+    }
+    return data;
+  };
+
+  const fetchData = async (showLoader = true) => {
     if (!user) return;
-    setLoadingData(true);
+    if (showLoader) setLoadingData(true);
     const [{ data: rider }, { data: assigned }, { data: available }] = await Promise.all([
-      supabase.from("riders").select("*").eq("id", user.id).single(),
+      supabase.from("riders").select("*").eq("id", user.id).maybeSingle(),
       supabase.from("orders").select("*, order_items(*)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("orders").select("*, order_items(*)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).order("created_at", { ascending: false }).limit(20),
     ]);
-    setRiderData(rider);
+    const nextRider = rider || await ensureRiderProfile();
+    setRiderData(nextRider);
     setMyOrders(assigned || []);
 
     // Sort by distance and take nearest 5
@@ -102,7 +128,7 @@ const RiderDashboard = () => {
   };
 
   useEffect(() => {
-    if (hasRole) fetchData();
+    if (hasRole) fetchData(!riderData);
   }, [hasRole, user, myLocation]);
 
   // Realtime order updates
@@ -119,10 +145,12 @@ const RiderDashboard = () => {
   }, [hasRole, user]);
 
   const toggleAvailability = async () => {
-    if (!riderData) return;
-    const { error } = await supabase.from("riders").update({ is_available: !riderData.is_available }).eq("id", user!.id);
+    if (!user) return;
+    const currentRider = riderData || await ensureRiderProfile();
+    if (!currentRider) return;
+    const { error } = await supabase.from("riders").update({ is_available: !currentRider.is_available }).eq("id", user.id);
     if (error) { toast.error(error.message); return; }
-    toast.success(riderData.is_available ? "آپ آف لائن ہو گئے" : "آپ آن لائن ہو گئے");
+    toast.success(currentRider.is_available ? "آپ آف لائن ہو گئے" : "آپ آن لائن ہو گئے");
     fetchData();
   };
 
