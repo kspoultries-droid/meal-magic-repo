@@ -202,9 +202,14 @@ const Partner = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {availableTypes.length === 0 ? (
+              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-900 text-center">
+                آپ پہلے سے پارٹنر ہیں۔ ایک بندہ بیک وقت رائیڈر اور دکاندار نہیں ہو سکتا۔ نیچے اپنی موجودہ درخواستیں دیکھیں۔
+              </div>
+            ) : (
             <Tabs value={tab} onValueChange={(v) => setTab(v as PartnerType)}>
-              <TabsList className="grid grid-cols-5 h-auto mb-4">
-                {TYPES.map(t => (
+              <TabsList className="grid h-auto mb-4" style={{ gridTemplateColumns: `repeat(${availableTypes.length}, minmax(0, 1fr))` }}>
+                {availableTypes.map(t => (
                   <TabsTrigger key={t.value} value={t.value} className="flex-col gap-1 py-2 text-[10px]">
                     <t.icon className="w-4 h-4" />
                     {t.urdu}
