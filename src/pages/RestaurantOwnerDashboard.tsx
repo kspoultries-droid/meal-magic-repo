@@ -203,6 +203,24 @@ const MyRestaurantTab = () => {
                     </button>
                   </div>
 
+                  {/* Delivery Mode */}
+                  <div className="mt-2 flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
+                    <span className="text-xs font-bold text-muted-foreground">🚚 ڈلیوری:</span>
+                    <select
+                      className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
+                      value={(r as any).delivery_mode || "platform"}
+                      onChange={async (e) => {
+                        await supabase.from("restaurants").update({ delivery_mode: e.target.value } as any).eq("id", r.id);
+                        toast.success("ڈلیوری موڈ اپڈیٹ"); fetchAll();
+                      }}
+                    >
+                      <option value="platform">EasyLife رائیڈرز (پلیٹ فارم فیس)</option>
+                      <option value="self">میں خود ڈلیوری کروں گا (مفت — بغیر رائیڈر)</option>
+                      <option value="both">دونوں (رائیڈر یا خود)</option>
+                    </select>
+                  </div>
+
+
                   <Button size="sm" variant="destructive" className="mt-2 h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
                     <Trash2 className="h-3 w-3 mr-1" /> حذف کریں
                   </Button>
