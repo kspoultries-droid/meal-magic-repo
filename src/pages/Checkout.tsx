@@ -261,6 +261,11 @@ const Checkout = () => {
               <p className="text-xs text-primary font-semibold">📍 GPS: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>
             )}
             <Input placeholder="کوئی خاص ہدایات (اختیاری)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background/80" />
+            {restaurantDeliveryMode === "self" && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
+                🚚 مفت ڈلیوری — ریسٹورنٹ خود ڈلیور کرے گا
+              </div>
+            )}
           </div>
         </div>
 
