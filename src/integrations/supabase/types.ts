@@ -443,8 +443,10 @@ export type Database = {
           image_url: string | null
           is_available: boolean | null
           name: string
+          option_groups: Json
           price: number
           restaurant_id: string
+          variants: Json
         }
         Insert: {
           category?: string | null
@@ -454,8 +456,10 @@ export type Database = {
           image_url?: string | null
           is_available?: boolean | null
           name: string
+          option_groups?: Json
           price: number
           restaurant_id: string
+          variants?: Json
         }
         Update: {
           category?: string | null
@@ -465,8 +469,10 @@ export type Database = {
           image_url?: string | null
           is_available?: boolean | null
           name?: string
+          option_groups?: Json
           price?: number
           restaurant_id?: string
+          variants?: Json
         }
         Relationships: [
           {
@@ -483,25 +489,37 @@ export type Database = {
           id: string
           menu_item_id: string
           name: string
+          options: Json
           order_id: string
           price: number
           quantity: number
+          unit_price: number | null
+          variant_id: string | null
+          variant_label: string | null
         }
         Insert: {
           id?: string
           menu_item_id: string
           name: string
+          options?: Json
           order_id: string
           price: number
           quantity?: number
+          unit_price?: number | null
+          variant_id?: string | null
+          variant_label?: string | null
         }
         Update: {
           id?: string
           menu_item_id?: string
           name?: string
+          options?: Json
           order_id?: string
           price?: number
           quantity?: number
+          unit_price?: number | null
+          variant_id?: string | null
+          variant_label?: string | null
         }
         Relationships: [
           {
