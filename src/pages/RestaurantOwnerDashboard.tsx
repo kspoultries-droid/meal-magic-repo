@@ -319,11 +319,14 @@ const MenuTab = () => {
       price: Number(form.price),
       category: form.category || "Main",
       image_url: form.image_url,
-    });
+      variants: sanitizeVariants(formVariants) as any,
+      option_groups: sanitizeGroups(formGroups) as any,
+    } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("آئٹم شامل ہو گئی!");
     setShowAdd(false);
     setForm({ name: "", description: "", price: "", category: "Main", image_url: "" });
+    setFormVariants([]); setFormGroups([]);
     fetchMenu();
   };
 
@@ -348,6 +351,8 @@ const MenuTab = () => {
       category: item.category || "Main",
       image_url: item.image_url || "",
     });
+    setEditVariants((item.variants || []) as VariantRow[]);
+    setEditGroups((item.option_groups || []) as OptionGroupRow[]);
   };
 
   const saveEdit = async () => {
@@ -358,7 +363,9 @@ const MenuTab = () => {
       price: Number(editForm.price),
       category: editForm.category,
       image_url: editForm.image_url,
-    }).eq("id", editItem.id);
+      variants: sanitizeVariants(editVariants) as any,
+      option_groups: sanitizeGroups(editGroups) as any,
+    } as any).eq("id", editItem.id);
     if (error) { toast.error(error.message); return; }
     toast.success("آئٹم اپڈیٹ ہو گئی!");
     setEditItem(null);
