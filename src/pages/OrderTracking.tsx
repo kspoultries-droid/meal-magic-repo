@@ -21,6 +21,8 @@ const OrderTracking = () => {
   const [order, setOrder] = useState<any>(null);
   const [rider, setRider] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [hasReview, setHasReview] = useState(false);
 
   const fetchOrder = async () => {
     if (!id) return;
