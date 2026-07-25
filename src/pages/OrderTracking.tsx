@@ -47,6 +47,13 @@ const OrderTracking = () => {
     fetchOrder();
   }, [id]);
 
+  // Check existing review
+  useEffect(() => {
+    if (!id || !user) return;
+    supabase.from("order_reviews").select("id").eq("order_id", id).eq("customer_id", user.id).maybeSingle()
+      .then(({ data }) => setHasReview(!!data));
+  }, [id, user, reviewOpen]);
+
   // Realtime updates
   useEffect(() => {
     if (!id) return;
