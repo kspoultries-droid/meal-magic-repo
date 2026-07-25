@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil } from "lucide-react";
+import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil, Bike } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
@@ -419,8 +419,15 @@ const OwnerOrdersTab = () => {
     const { data: rests } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id);
     if (rests?.length) {
       const ids = rests.map((r) => r.id);
-      const { data } = await supabase.from("orders").select("*, order_items(*)").in("restaurant_id", ids).order("created_at", { ascending: false }).limit(50);
+      const { data } = await supabase
+        .from("orders")
+        .select("*, order_items(*), restaurants(name, delivery_mode)")
+        .in("restaurant_id", ids)
+        .order("created_at", { ascending: false })
+        .limit(50);
       setOrders(data || []);
+    } else {
+      setOrders([]);
     }
     setLoading(false);
   };
@@ -441,8 +448,24 @@ const OwnerOrdersTab = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  const updateStatus = async (id: string, status: string) => {
-    await supabase.from("orders").update({ status }).eq("id", id);
+  const updateStatus = async (order: any, status: string) => {
+    if (["delivered", "completed", "cancelled"].includes(order.status)) {
+      toast.error("یہ آرڈر بند ہو چکا ہے — اسے واپس پچھلے مرحلے میں نہیں لے جا سکتے");
+      return;
+    }
+    const allowedNext: Record<string, string[]> = {
+      pending: ["confirmed", "cancelled"],
+      confirmed: ["preparing", "cancelled"],
+      preparing: ["delivering", "cancelled"],
+      delivering: ["delivered"],
+    };
+    if (!allowedNext[order.status]?.includes(status)) {
+      toast.error("سٹیٹس صرف اگلے مرحلے پر جا سکتا ہے");
+      return;
+    }
+
+    const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
+    if (error) { toast.error(error.message); return; }
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
     fetchOrders();
   };
@@ -464,8 +487,14 @@ const OwnerOrdersTab = () => {
           <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>
         ) : (
           <div className="space-y-3">
-            {orders.map((o) => (
-              <div key={o.id} className="border rounded-xl p-4 space-y-2">
+            {orders.map((o) => {
+              const deliveryMode = o.restaurants?.delivery_mode || "platform";
+              const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
+              const needsPlatformRider = deliveryMode === "platform";
+              const canSend = o.status === "preparing" && (!needsPlatformRider || o.rider_id);
+              const restaurantCanFinish = o.status === "delivering" && (deliveryMode === "self" || (deliveryMode === "both" && !o.rider_id));
+              return (
+              <div key={o.id} className="border rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
@@ -473,6 +502,8 @@ const OwnerOrdersTab = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className={statusColor(o.status)}>{o.status}</Badge>
+                    {deliveryMode === "self" && <Badge variant="outline">خود ڈلیوری</Badge>}
+                    {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="gap-1"><Bike className="w-3 h-3" /> رائیڈر اسائن</Badge>}
                     <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
                   </div>
                 </div>
@@ -495,46 +526,55 @@ const OwnerOrdersTab = () => {
                 {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
                 {o.notes && <p className="text-xs text-muted-foreground">📝 {o.notes}</p>}
 
-                {/* Stage Progress Buttons — all stages visible, current highlighted */}
+                {/* Restaurant-owned workflow */}
                 <div className="pt-2">
                   <div className="grid grid-cols-4 gap-1.5">
                     {[
-                      { key: "confirmed", label: "✅ تصدیق", from: "pending" },
-                      { key: "preparing", label: "👨‍🍳 تیاری", from: "confirmed" },
-                      { key: "delivering", label: "🏍️ بھیجا", from: "preparing" },
-                      { key: "delivered", label: "📦 پہنچا", from: "delivering" },
+                      { key: "confirmed", label: "✅ قبول", active: o.status === "pending", disabledReason: "" },
+                      { key: "preparing", label: "👨‍🍳 تیاری", active: o.status === "confirmed", disabledReason: "" },
+                      { key: "delivering", label: "🏍️ بھیجا", active: canSend, disabledReason: needsPlatformRider && !o.rider_id ? "پہلے ایڈمن رائیڈر اسائن کرے" : "" },
+                      { key: "delivered", label: "📦 پہنچا", active: restaurantCanFinish, disabledReason: o.rider_id ? "یہ کام رائیڈر کرے گا" : "" },
                     ].map((step) => {
                       const order = ["pending", "confirmed", "preparing", "delivering", "delivered"];
                       const currentIdx = order.indexOf(o.status);
                       const stepIdx = order.indexOf(step.key);
                       const isDone = currentIdx >= stepIdx;
-                      const isNext = o.status === step.from;
                       return (
-                        <button
+                        <Button
                           key={step.key}
-                          disabled={!isNext || o.status === "cancelled"}
-                          onClick={() => updateStatus(o.id, step.key)}
-                          className={`text-[11px] font-bold px-2 py-2 rounded-lg border-2 transition-all ${
+                          type="button"
+                          variant="outline"
+                          disabled={!step.active || isClosed}
+                          title={step.disabledReason}
+                          onClick={() => updateStatus(o, step.key)}
+                          className={`h-auto min-h-10 text-[11px] font-bold px-2 py-2 rounded-lg border-2 transition-all ${
                             isDone
                               ? "bg-success/20 border-success text-success"
-                              : isNext
+                              : step.active
                                 ? "bg-primary text-primary-foreground border-primary shadow-glow animate-pulse cursor-pointer"
                                 : "bg-muted border-border text-muted-foreground opacity-60 cursor-not-allowed"
                           }`}
                         >
                           {step.label}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
-                  {o.status !== "cancelled" && o.status !== "delivered" && (
-                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-destructive mt-2" onClick={() => updateStatus(o.id, "cancelled")}>
+                  {needsPlatformRider && o.status === "preparing" && !o.rider_id && (
+                    <p className="text-[11px] text-muted-foreground mt-2">🏍️ رائیڈر اسائن ہوتے ہی “بھیجا” فعال ہو جائے گا۔</p>
+                  )}
+                  {o.status === "delivering" && o.rider_id && (
+                    <p className="text-[11px] text-primary mt-2">✅ کھانا رائیڈر کے حوالے ہو گیا — اب “Delivered” رائیڈر کرے گا۔</p>
+                  )}
+                  {!isClosed && o.status !== "delivering" && (
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-destructive mt-2" onClick={() => updateStatus(o, "cancelled")}>
                       ❌ آرڈر منسوخ کریں
                     </Button>
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

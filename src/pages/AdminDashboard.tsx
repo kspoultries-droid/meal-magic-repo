@@ -353,7 +353,7 @@ const OrdersTab = () => {
   const fetchOrders = async () => {
     setLoading(true);
     const [{ data: ordersData }, { data: ridersData }] = await Promise.all([
-      supabase.from("orders").select("*, order_items(*)").order("created_at", { ascending: false }).limit(50),
+      supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)").order("created_at", { ascending: false }).limit(50),
       supabase.from("riders").select("id, is_available, current_lat, current_lng"),
     ]);
     setOrders(ordersData || []);
@@ -378,8 +378,17 @@ const OrdersTab = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const updateStatus = async (id: string, status: string) => {
-    await supabase.from("orders").update({ status }).eq("id", id);
+  const updateStatus = async (order: any, status: string) => {
+    if (["delivered", "completed", "cancelled"].includes(order.status)) {
+      toast.error("یہ آرڈر بند ہو چکا ہے — اسے واپس نہیں بدلا جا سکتا");
+      return;
+    }
+    if (status !== "cancelled") {
+      toast.error("ایڈمن صرف rider assign یا emergency cancel کرے گا؛ status ریسٹورنٹ/رائیڈر چلائیں گے");
+      return;
+    }
+    const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
+    if (error) { toast.error(error.message); return; }
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
     fetchOrders();
   };
@@ -430,8 +439,10 @@ const OrdersTab = () => {
           <div className="space-y-3">
             {orders.length === 0 && <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>}
             {orders.map((o) => {
+              const deliveryMode = o.restaurants?.delivery_mode || "platform";
               const nearestRiders = getNearestRiders(o);
-              const needsRider = ["confirmed", "preparing", "delivering"].includes(o.status) && !o.rider_id;
+              const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
+              const needsRider = deliveryMode !== "self" && ["confirmed", "preparing", "delivering"].includes(o.status) && !o.rider_id;
               return (
                 <div key={o.id} className="border rounded-xl p-4 space-y-2">
                   <div className="flex items-center justify-between flex-wrap gap-2">
@@ -441,6 +452,7 @@ const OrdersTab = () => {
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge className={statusColor(o.status)}>{o.status}</Badge>
+                      {deliveryMode === "self" && <Badge variant="outline">خود ڈلیوری</Badge>}
                       <span className="text-xs text-muted-foreground">{o.payment_method}</span>
                       <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
                     </div>
@@ -462,7 +474,10 @@ const OrdersTab = () => {
                   )}
 
                   {/* Address */}
-                  {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
+                  <div className="grid gap-1 text-xs text-muted-foreground">
+                    <p>🏪 Pickup: <span className="font-bold text-foreground">{o.restaurants?.name || "ریسٹورنٹ"}</span>{o.restaurants?.description ? ` — ${o.restaurants.description}` : ""}</p>
+                    {o.delivery_address && <p>📍 Dropoff: {o.delivery_address}</p>}
+                  </div>
 
                   {/* Rider Assignment - show for confirmed/preparing/delivering without rider */}
                   {needsRider && (
@@ -497,14 +512,13 @@ const OrdersTab = () => {
                     </p>
                   )}
 
-                  {/* Status Actions */}
-                  <div className="flex gap-1 flex-wrap">
-                    {["confirmed", "preparing", "delivering", "delivered", "cancelled"].map((s) =>
-                      s !== o.status ? (
-                        <Button key={s} size="sm" variant="ghost" className="text-xs h-7 px-2" onClick={() => updateStatus(o.id, s)}>
-                          {s}
-                        </Button>
-                      ) : null
+                  {/* Admin scope: assignment only, no cooking/delivery workflow */}
+                  <div className="flex gap-2 flex-wrap items-center">
+                    <Badge variant="secondary" className="text-[10px]">Status ریسٹورنٹ/رائیڈر سے اپڈیٹ ہوگا</Badge>
+                    {!isClosed && o.status !== "delivering" && (
+                      <Button size="sm" variant="ghost" className="text-xs h-7 px-2 text-destructive" onClick={() => updateStatus(o, "cancelled")}>
+                        Emergency cancel
+                      </Button>
                     )}
                   </div>
                 </div>
