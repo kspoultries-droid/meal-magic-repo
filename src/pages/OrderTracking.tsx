@@ -179,7 +179,29 @@ const OrderTracking = () => {
             </div>
           ))}
         </div>
+
+        {/* Review CTA — only after delivered/completed */}
+        {["delivered", "completed"].includes(order.status) && user && order.customer_id === user.id && order.restaurant_id && (
+          <Button
+            onClick={() => setReviewOpen(true)}
+            className="w-full mt-4 h-12 font-extrabold rounded-xl bg-gradient-primary shadow-glow gap-2"
+          >
+            <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" />
+            {hasReview ? "اپنی رائے اپڈیٹ کریں" : "ریسٹورنٹ کو ریٹنگ دیں"}
+          </Button>
+        )}
       </div>
+
+      {order && user && order.restaurant_id && (
+        <OrderReviewDialog
+          open={reviewOpen}
+          onOpenChange={setReviewOpen}
+          orderId={order.id}
+          restaurantId={order.restaurant_id}
+          customerId={user.id}
+          onSubmitted={() => setHasReview(true)}
+        />
+      )}
     </div>
   );
 };
