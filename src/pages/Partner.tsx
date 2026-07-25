@@ -32,11 +32,25 @@ const dashboardLabel: Record<PartnerType, string> = {
 
 const Partner = () => {
   const navigate = useNavigate();
-  const { user, refreshRoles } = useAuth();
-  const [tab, setTab] = useState<PartnerType>("restaurant");
+  const { user, isRider, isRestaurantOwner, isMechanic, refreshRoles } = useAuth();
+
+  // Role-conflict aware: rider can't apply as vendor; vendor can't apply as rider
+  const availableTypes = TYPES.filter(t => {
+    if (isRider) return t.value === "rider"; // rider stays rider
+    if (isRestaurantOwner || isMechanic) return t.value !== "rider"; // vendors can't become riders
+    return true;
+  });
+
+  const [tab, setTab] = useState<PartnerType>(availableTypes[0]?.value || "restaurant");
   const [cities, setCities] = useState<any[]>([]);
   const [myApps, setMyApps] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!availableTypes.find(t => t.value === tab) && availableTypes[0]) {
+      setTab(availableTypes[0].value);
+    }
+  }, [isRider, isRestaurantOwner, isMechanic]);
 
   const [form, setForm] = useState({
     business_name: "", owner_name: "", phone: "", whatsapp: "",
@@ -188,9 +202,14 @@ const Partner = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {availableTypes.length === 0 ? (
+              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-900 text-center">
+                آپ پہلے سے پارٹنر ہیں۔ ایک بندہ بیک وقت رائیڈر اور دکاندار نہیں ہو سکتا۔ نیچے اپنی موجودہ درخواستیں دیکھیں۔
+              </div>
+            ) : (
             <Tabs value={tab} onValueChange={(v) => setTab(v as PartnerType)}>
-              <TabsList className="grid grid-cols-5 h-auto mb-4">
-                {TYPES.map(t => (
+              <TabsList className="grid h-auto mb-4" style={{ gridTemplateColumns: `repeat(${availableTypes.length}, minmax(0, 1fr))` }}>
+                {availableTypes.map(t => (
                   <TabsTrigger key={t.value} value={t.value} className="flex-col gap-1 py-2 text-[10px]">
                     <t.icon className="w-4 h-4" />
                     {t.urdu}
@@ -292,6 +311,7 @@ const Partner = () => {
                 )}
               </TabsContent>
             </Tabs>
+            )}
           </CardContent>
         </Card>
 

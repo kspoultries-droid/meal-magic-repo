@@ -24,6 +24,7 @@ const Checkout = () => {
   const [submitting, setSubmitting] = useState(false);
   const [locating, setLocating] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [restaurantDeliveryMode, setRestaurantDeliveryMode] = useState<string>("platform");
 
   // Gift / receiver fields
   const [isGift, setIsGift] = useState(false);
@@ -55,8 +56,19 @@ const Checkout = () => {
 
   useEffect(() => {
     const city = cities.find((c) => c.id === selectedCity);
-    setDeliveryFee(city?.delivery_fee || 0);
-  }, [selectedCity, cities]);
+    const baseFee = city?.delivery_fee || 0;
+    setDeliveryFee(restaurantDeliveryMode === "self" ? 0 : baseFee);
+  }, [selectedCity, cities, restaurantDeliveryMode]);
+
+  // Detect restaurant delivery mode
+  useEffect(() => {
+    const isRest = items.length > 0 && items.every(i => (i.source || "restaurant") === "restaurant");
+    if (!isRest) { setRestaurantDeliveryMode("platform"); return; }
+    const rid = items[0]?.sourceId;
+    if (!rid) return;
+    supabase.from("restaurants").select("delivery_mode").eq("id", rid).maybeSingle()
+      .then(({ data }) => setRestaurantDeliveryMode(data?.delivery_mode || "platform"));
+  }, [items]);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -249,6 +261,11 @@ const Checkout = () => {
               <p className="text-xs text-primary font-semibold">📍 GPS: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>
             )}
             <Input placeholder="کوئی خاص ہدایات (اختیاری)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background/80" />
+            {restaurantDeliveryMode === "self" && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
+                🚚 مفت ڈلیوری — ریسٹورنٹ خود ڈلیور کرے گا
+              </div>
+            )}
           </div>
         </div>
 

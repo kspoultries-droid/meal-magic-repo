@@ -104,7 +104,7 @@ const RiderDashboard = () => {
     const [{ data: rider }, { data: assigned }, { data: available }] = await Promise.all([
       supabase.from("riders").select("*").eq("id", user.id).maybeSingle(),
       supabase.from("orders").select("*, order_items(*)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("orders").select("*, order_items(*)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).order("created_at", { ascending: false }).limit(20),
+      supabase.from("orders").select("*, order_items(*), restaurants!inner(delivery_mode)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).neq("restaurants.delivery_mode", "self").order("created_at", { ascending: false }).limit(20),
     ]);
     const nextRider = rider || await ensureRiderProfile();
     setRiderData(nextRider);
