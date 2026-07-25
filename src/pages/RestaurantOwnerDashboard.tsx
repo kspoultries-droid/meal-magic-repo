@@ -387,14 +387,16 @@ const MenuTab = () => {
           <DialogTrigger asChild>
             <Button size="sm"><Plus className="h-4 w-4 mr-1" /> نئی آئٹم</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>نئی مینو آئٹم</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <Input placeholder="آئٹم کا نام" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <Input placeholder="تفصیل" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              <Input placeholder="قیمت" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+              <Input placeholder="بنیادی قیمت (اگر variants نہیں تو)" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
               <Input placeholder="کیٹگری (مثلاً Main, Drinks)" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
               <Input placeholder="تصویر URL" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              <VariantsEditor value={formVariants} onChange={setFormVariants} />
+              <OptionGroupsEditor value={formGroups} onChange={setFormGroups} />
               <Button className="w-full" onClick={addItem}>شامل کریں</Button>
             </div>
           </DialogContent>
@@ -443,14 +445,16 @@ const MenuTab = () => {
 
         {/* Edit Dialog */}
         <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>آئٹم ایڈٹ کریں</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <Input placeholder="آئٹم کا نام" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
               <Input placeholder="تفصیل" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
-              <Input placeholder="قیمت" type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+              <Input placeholder="بنیادی قیمت" type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
               <Input placeholder="کیٹگری" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
               <Input placeholder="تصویر URL" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} />
+              <VariantsEditor value={editVariants} onChange={setEditVariants} />
+              <OptionGroupsEditor value={editGroups} onChange={setEditGroups} />
               <Button className="w-full" onClick={saveEdit}>اپڈیٹ کریں</Button>
             </div>
           </DialogContent>
