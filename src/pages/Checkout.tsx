@@ -130,7 +130,7 @@ const Checkout = () => {
       if (isGroceryOrder) {
         const storeId = items[0]?.sourceId;
         if (!storeId) { toast.error("اسٹور کی معلومات نہیں ملیں"); setSubmitting(false); return; }
-        const orderItems = items.map(item => ({ id: item.id, quantity: item.quantity }));
+        const orderItems = items.map(item => ({ id: item.menu_item_id, quantity: item.quantity }));
 
         const { data: newId, error } = await supabase.rpc("create_grocery_cart_order", {
           _store_id: storeId,
@@ -160,7 +160,12 @@ const Checkout = () => {
           restaurantId = restData.id;
         }
 
-        const menuItems = items.map((item) => ({ menu_item_id: item.id, quantity: item.quantity }));
+        const menuItems = items.map((item) => ({
+          menu_item_id: item.menu_item_id,
+          quantity: item.quantity,
+          variant_id: item.variant_id || null,
+          option_ids: item.option_ids || [],
+        }));
 
         const { data: orderId, error: orderError } = await supabase.rpc("create_order", {
           _restaurant_id: restaurantId,
