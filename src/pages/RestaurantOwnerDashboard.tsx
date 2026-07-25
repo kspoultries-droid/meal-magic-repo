@@ -220,6 +220,47 @@ const MyRestaurantTab = () => {
                     </select>
                   </div>
 
+                  {/* Pickup Address (for riders) */}
+                  <div className="mt-2 bg-secondary/40 border border-border/60 rounded-lg px-3 py-2 space-y-2">
+                    <p className="text-xs font-bold text-muted-foreground">📍 پک اپ لوکیشن (رائیڈر یہاں آئے گا)</p>
+                    <input
+                      type="text"
+                      placeholder="مکمل پتہ — مثلاً شاپ #12، مین بازار، رحیم یار خان"
+                      className="w-full h-8 text-xs border rounded-md px-2 bg-background text-foreground"
+                      defaultValue={(r as any).pickup_address || ""}
+                      onBlur={async (e) => {
+                        if (e.target.value === ((r as any).pickup_address || "")) return;
+                        await supabase.from("restaurants").update({ pickup_address: e.target.value } as any).eq("id", r.id);
+                        toast.success("پک اپ ایڈریس اپڈیٹ"); fetchAll();
+                      }}
+                    />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        className="h-7 px-2 text-xs font-bold rounded-md bg-primary text-primary-foreground hover:opacity-90"
+                        onClick={() => {
+                          if (!navigator.geolocation) { toast.error("GPS دستیاب نہیں"); return; }
+                          navigator.geolocation.getCurrentPosition(async (pos) => {
+                            await supabase.from("restaurants").update({
+                              pickup_lat: pos.coords.latitude,
+                              pickup_lng: pos.coords.longitude,
+                            } as any).eq("id", r.id);
+                            toast.success("GPS محفوظ ہو گیا 📍"); fetchAll();
+                          }, () => toast.error("GPS نہیں مل سکا"), { enableHighAccuracy: true, timeout: 10000 });
+                        }}
+                      >
+                        📍 موجودہ GPS محفوظ کریں
+                      </button>
+                      {(r as any).pickup_lat && (r as any).pickup_lng && (
+                        <span className="text-[10px] text-primary font-semibold">
+                          GPS: {Number((r as any).pickup_lat).toFixed(4)}, {Number((r as any).pickup_lng).toFixed(4)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+
+
 
                   <Button size="sm" variant="destructive" className="mt-2 h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
                     <Trash2 className="h-3 w-3 mr-1" /> حذف کریں
