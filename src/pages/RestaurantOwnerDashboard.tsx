@@ -13,6 +13,7 @@ import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, A
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
+import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, type VariantRow, type OptionGroupRow } from "@/components/menu/MenuOptionsEditor";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -283,8 +284,12 @@ const MenuTab = () => {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", price: "", category: "Main", image_url: "" });
+  const [formVariants, setFormVariants] = useState<VariantRow[]>([]);
+  const [formGroups, setFormGroups] = useState<OptionGroupRow[]>([]);
   const [editItem, setEditItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: "", description: "", price: "", category: "", image_url: "" });
+  const [editVariants, setEditVariants] = useState<VariantRow[]>([]);
+  const [editGroups, setEditGroups] = useState<OptionGroupRow[]>([]);
 
   useEffect(() => {
     supabase.from("restaurants").select("id,name").eq("owner_id", user!.id).then(({ data }) => {
