@@ -25,8 +25,9 @@ export interface CartItem {
   options?: CartItemOption[];
 }
 
-export type AddItemInput = Omit<CartItem, "quantity" | "id"> & {
+export type AddItemInput = Omit<CartItem, "quantity" | "id" | "menu_item_id"> & {
   id?: string;
+  menu_item_id?: string;
   quantity?: number;
 };
 
