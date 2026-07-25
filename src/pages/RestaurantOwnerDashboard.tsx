@@ -572,11 +572,17 @@ const OwnerOrdersTab = () => {
                 {expandedOrder === o.id && o.order_items?.length > 0 && (
                   <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
                     {o.order_items.map((item: any) => (
-                      <div key={item.id} className="flex justify-between text-sm">
-                        <span>{item.name} × {item.quantity}</span>
-                        <span className="font-bold">Rs {item.price * item.quantity}</span>
+                      <div key={item.id} className="text-sm">
+                        <div className="flex justify-between">
+                          <span>{item.name}{item.variant_label ? ` — ${item.variant_label}` : ""} × {item.quantity}</span>
+                          <span className="font-bold">Rs {item.price * item.quantity}</span>
+                        </div>
+                        {Array.isArray(item.options) && item.options.length > 0 && (
+                          <p className="text-[11px] text-muted-foreground pr-2">
+                            {item.options.map((o: any) => o.choice).join(" • ")}
+                          </p>
+                        )}
                       </div>
-                    ))}
                   </div>
                 )}
 
