@@ -12,6 +12,7 @@ interface AuthContextType {
   isSupport: boolean;
   isMechanic: boolean;
   isServiceManager: boolean;
+  refreshRoles: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   isSupport: false,
   isMechanic: false,
   isServiceManager: false,
+  refreshRoles: async () => {},
   signOut: async () => {},
 });
 
@@ -121,8 +123,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const refreshRoles = async () => {
+    if (!user) {
+      clearRoles();
+      return;
+    }
+    setRolesLoading(true);
+    try {
+      await checkRoles(user.id);
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, refreshRoles, signOut }}>
       {children}
     </AuthContext.Provider>
   );

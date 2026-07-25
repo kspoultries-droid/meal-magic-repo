@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet, Copy, Plus, Trash2, Navigation, Star } from "lucide-react";
+import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet, Copy, Plus, Trash2, Navigation, Star, Store, Bike, Package, RefreshCw } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,7 +15,7 @@ import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
 
 const Profile = () => {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
@@ -29,6 +29,7 @@ const Profile = () => {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [newAddr, setNewAddr] = useState({ label: "Home", address: "", lat: null as number | null, lng: null as number | null });
   const [locBusy, setLocBusy] = useState(false);
+  const [partnerAssets, setPartnerAssets] = useState({ restaurants: [] as any[], stores: [] as any[], serviceProvider: null as any, rider: null as any });
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -47,16 +48,34 @@ const Profile = () => {
         phone: "",
         address: "",
       };
-      const [{ data: prof, error: profileError }, { data: ords }, { data: userRoles }] = await Promise.all([
+      const [
+        { data: prof, error: profileError },
+        { data: ords },
+        { data: userRoles },
+        { data: ownedRestaurants },
+        { data: ownedStores },
+        { data: serviceProvider },
+        { data: riderProfile },
+      ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("orders").select("*, order_items(*)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
         supabase.from("user_roles").select("role").eq("user_id", user.id),
+        supabase.from("restaurants").select("id,name,is_active").eq("owner_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("grocery_stores").select("id,name,store_type,is_active").eq("owner_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("service_providers").select("id,name,is_available,is_active").eq("user_id", user.id).maybeSingle(),
+        supabase.from("riders").select("id,is_available").eq("id", user.id).maybeSingle(),
       ]);
       if (profileError) console.error("Profile load error:", profileError);
       const nextProfile = prof || fallbackProfile;
       setProfile(nextProfile);
       setOrders(ords || []);
       setRoles((userRoles || []).map((r: any) => r.role));
+      setPartnerAssets({
+        restaurants: ownedRestaurants || [],
+        stores: ownedStores || [],
+        serviceProvider: serviceProvider || null,
+        rider: riderProfile || null,
+      });
       setForm({
         full_name: nextProfile.full_name || "",
         phone: nextProfile.phone || "",
@@ -160,6 +179,12 @@ const Profile = () => {
   };
 
   const statusLabel: Record<string, string> = { pending: "زیر التواء", confirmed: "تصدیق شدہ", preparing: "تیاری جاری", delivering: "ڈلیوری جاری", delivered: "مکمل ✅", cancelled: "منسوخ ❌" };
+
+  const refreshPartnerAccess = async () => {
+    await refreshRoles();
+    await fetchData();
+    toast.success("پارٹنر access تازہ ہو گیا");
+  };
 
   if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
 
@@ -364,13 +389,66 @@ const Profile = () => {
 
       {/* Perks Section */}
       <div className="px-4 py-2">
-        <h3 className="text-lg font-extrabold text-foreground mb-3">Perks for you</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-extrabold text-foreground">کام کا ڈیش بورڈ</h3>
+          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={refreshPartnerAccess}>
+            <RefreshCw className="w-3 h-3 mr-1" /> تازہ کریں
+          </Button>
+        </div>
         <div className="bg-card rounded-2xl border divide-y">
+          {partnerAssets.rider && (
+            <button onClick={() => navigate("/rider-dashboard")} className="flex items-center justify-between w-full px-4 py-4 bg-primary/5 hover:bg-primary/10 transition-colors">
+              <div className="flex items-center gap-3 text-left">
+                <Bike className="w-5 h-5 text-primary" />
+                <div>
+                  <span className="text-sm font-bold text-foreground block">رائیڈر کام شروع کریں</span>
+                  <span className="text-[11px] text-muted-foreground">ڈیش بورڈ کھولیں، GPS اجازت دیں، پھر Online کریں</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+          {partnerAssets.restaurants.map((restaurant) => (
+            <button key={restaurant.id} onClick={() => navigate("/restaurant-dashboard")} className="flex items-center justify-between w-full px-4 py-4 bg-primary/5 hover:bg-primary/10 transition-colors">
+              <div className="flex items-center gap-3 text-left">
+                <Store className="w-5 h-5 text-primary" />
+                <div>
+                  <span className="text-sm font-bold text-foreground block">{restaurant.name}</span>
+                  <span className="text-[11px] text-muted-foreground">مینو، قیمتیں، timings اور آرڈرز manage کریں</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          ))}
+          {partnerAssets.stores.map((store) => (
+            <button key={store.id} onClick={() => navigate(`/grocery/${store.id}`)} className="flex items-center justify-between w-full px-4 py-4 bg-primary/5 hover:bg-primary/10 transition-colors">
+              <div className="flex items-center gap-3 text-left">
+                <Package className="w-5 h-5 text-primary" />
+                <div>
+                  <span className="text-sm font-bold text-foreground block">{store.name}</span>
+                  <span className="text-[11px] text-muted-foreground">{store.store_type === "wholesale" ? "ہول سیل" : "گروسری"} پروڈکٹس، آفرز اور آرڈرز manage کریں</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          ))}
+          {partnerAssets.serviceProvider && (
+            <button onClick={() => navigate("/mechanic-dashboard")} className="flex items-center justify-between w-full px-4 py-4 bg-primary/5 hover:bg-primary/10 transition-colors">
+              <div className="flex items-center gap-3 text-left">
+                <Wrench className="w-5 h-5 text-primary" />
+                <div>
+                  <span className="text-sm font-bold text-foreground block">{partnerAssets.serviceProvider.name}</span>
+                  <span className="text-[11px] text-muted-foreground">سروس بکنگز قبول کریں اور status update کریں</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
           {roles.includes("restaurant_owner") && (
             <button onClick={() => navigate("/restaurant-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
               <div className="flex items-center gap-3">
                 <Pencil className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Restaurant Dashboard</span>
+                <span className="text-sm font-semibold text-foreground">Restaurant Dashboard / دکانیں</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -379,7 +457,7 @@ const Profile = () => {
             <button onClick={() => navigate("/rider-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
               <div className="flex items-center gap-3">
                 <Crown className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Rider Dashboard</span>
+                <span className="text-sm font-semibold text-foreground">Rider Dashboard / Online کریں</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
