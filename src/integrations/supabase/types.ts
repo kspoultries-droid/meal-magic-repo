@@ -884,6 +884,7 @@ export type Database = {
           commission_rate: number | null
           created_at: string | null
           cuisines: string[] | null
+          delivery_mode: string
           delivery_time: string | null
           description: string | null
           id: string
@@ -901,6 +902,7 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string | null
           cuisines?: string[] | null
+          delivery_mode?: string
           delivery_time?: string | null
           description?: string | null
           id?: string
@@ -918,6 +920,7 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string | null
           cuisines?: string[] | null
+          delivery_mode?: string
           delivery_time?: string | null
           description?: string | null
           id?: string
