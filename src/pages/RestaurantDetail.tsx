@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Star, Clock, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Star, Clock, Plus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
+import MenuItemSheet from "@/components/menu/MenuItemSheet";
 
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ const RestaurantDetail = () => {
   const [restaurant, setRestaurant] = useState<any>(null);
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sheetItem, setSheetItem] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,17 +130,22 @@ const RestaurantDetail = () => {
                     <Button
                       size="sm"
                       className="rounded-full h-10 w-10 p-0"
-                      onClick={() =>
-                        addItem({
-                          id: item.id,
-                          name: item.name,
-                          restaurant: restaurant.name,
-                          price: item.price,
-                          image: item.image_url || restaurant.image_url || "",
-                          source: "restaurant",
-                          sourceId: restaurant.id,
-                        })
-                      }
+                      onClick={() => {
+                        const hasChoices = (item.variants?.length || 0) > 0 || (item.option_groups?.length || 0) > 0;
+                        if (hasChoices) {
+                          setSheetItem(item);
+                        } else {
+                          addItem({
+                            menu_item_id: item.id,
+                            name: item.name,
+                            restaurant: restaurant.name,
+                            price: item.price,
+                            image: item.image_url || restaurant.image_url || "",
+                            source: "restaurant",
+                            sourceId: restaurant.id,
+                          });
+                        }
+                      }}
                     >
                       <Plus className="w-5 h-5" />
                     </Button>
@@ -151,6 +158,12 @@ const RestaurantDetail = () => {
           <p className="text-center text-muted-foreground py-16">ابھی اس ریسٹورنٹ کا مینو دستیاب نہیں ہے</p>
         )}
       </div>
+
+      <MenuItemSheet
+        item={sheetItem}
+        restaurant={restaurant ? { id: restaurant.id, name: restaurant.name, image_url: restaurant.image_url } : null}
+        onClose={() => setSheetItem(null)}
+      />
     </div>
   );
 };

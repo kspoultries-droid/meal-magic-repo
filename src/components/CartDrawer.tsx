@@ -85,6 +85,11 @@ const CartDrawer = () => {
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-foreground text-sm truncate">{item.name}</p>
                         <p className="text-[11px] text-muted-foreground truncate">{item.restaurant}</p>
+                        {item.options && item.options.length > 0 && (
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {item.options.map((o) => o.choice).join(" • ")}
+                          </p>
+                        )}
                         <p className="text-sm font-extrabold text-primary mt-1">Rs. {item.price}</p>
                       </div>
                       <div className="flex flex-col items-end justify-between">

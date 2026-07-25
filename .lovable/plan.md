@@ -1,136 +1,64 @@
-# EasyLife — Partner System + Operations Console
+# Menu Variants & Flavors System
 
-Aap ka request bara hai. Main isay **3 phases** mein deliver karoon ga taake koi cheez toote na aur aap step-by-step samajh saken.
+## Problem
+ابھی menu item کے ساتھ صرف ایک price ہے۔ "مٹن 1kg" اور "مٹن آدھا kg" کے لیے الگ item بنانا پڑتا ہے، اور "ہری مرچ / لال مرچ / مکس" جیسے flavors کا کوئی intake نہیں۔
 
----
+## Solution (Foodpanda-style, minimum complexity)
 
-## Phase 1 — Partner Application System (Option 1)
+ہر menu item کے ساتھ دو optional چیزیں:
 
-Har provider khud apply kare, admin approve kare, role automatically mile.
+1. **Variants** (ایک لازمی انتخاب — size/weight)
+   Example: `1 kg` = 2500, `آدھا kg` = 1300, `پاؤ (250g)` = 700
+   - Radio selection، ایک لازم
+   - Variant منتخب کرتے ہی base price replace ہوتا ہے
 
-### Naya database table: `partner_applications`
-- `applicant_type`: restaurant / grocery / wholesale / service_provider / rider
-- `business_name`, `owner_name`, `phone`, `whatsapp`, `cnic`
-- `city_id`, `address`, `location_lat/lng`
-- `category` (services/wholesale ke liye)
-- `documents` (CNIC image, shop photo — storage bucket)
-- `status`: pending / approved / rejected
-- `admin_notes`, `reviewed_by`, `reviewed_at`
-- RLS: user apni application dekhe; admin sab dekhe/edit kare
+2. **Option groups** (0 یا زیادہ — flavors/extras)
+   Example گروپ "مرچ" (single choice): ہری مرچ / لال مرچ / مکس / بغیر مرچ (سب +0)
+   Example گروپ "ایکسٹرا" (multi choice): رائتہ +80، نان +30
+   - ہر گروپ کا نام + `min/max` choices + choices list (name, price_delta)
 
-### Nayi public page: `/partner`
-5 tabs ke saath ek hi form:
-1. Restaurant Partner
-2. Grocery Store Partner
-3. Wholesale Vendor (Karachi Sadar + nationwide)
-4. Service Provider (mechanic/plumber/etc)
-5. Rider
+Owner جہاں item add/edit کرتا ہے وہاں دو نئے sections add کریں۔ Customer کے سامنے item کھلنے پر ایک bottom-sheet آئے جس میں variant + groups + quantity + "Add to cart Rs XXX" ہو۔
 
-Form submit → application `pending` state mein jati hai → applicant ko WhatsApp/email confirmation.
+## Data model
 
-### Admin ke liye: "Partner Applications" tab
-- Pending queue (badge count ke saath)
-- Har application: full details + documents preview
-- **Approve** button → automatically:
-  - Role assign (`restaurant_owner` / `rider` / etc.)
-  - Corresponding record create (restaurant/grocery_store/service_provider/rider row)
-  - Applicant ko notification
-- **Reject** button → reason ke saath
+بغیر migration کے JSON columns میں store کرتے ہیں تاکہ کم سے کم schema disruption ہو:
 
-### Navbar/Footer link
-"Partner banain / Become a Partner" — sab public pages par visible.
+- `menu_items.variants jsonb` — `[{id, label, price}]` (nullable — اگر خالی تو صرف base price)
+- `menu_items.option_groups jsonb` — `[{id, name, min, max, choices:[{id, label, price_delta}]}]`
+- `order_items.variant_label text` — snapshot (e.g. "آدھا kg")
+- `order_items.options jsonb` — snapshot `[{group, choice, price_delta}]`
+- `order_items.unit_price numeric` — final unit price (variant + options delta)
 
----
+Server-side `create_order` RPC کو update کریں تاکہ:
+- ہر cart item کے ساتھ آنے والا variant_id + option choice ids کو DB سے validate کرے (price server سے re-compute)
+- `order_items` میں snapshot لکھے
 
-## Phase 2 — Operations Command Center (`/operations`)
+Cart context (`CartContext`) میں item کی identity `menu_item_id + variant_id + sorted(option_ids)` بنے تاکہ ایک ہی dish کے دو مختلف combinations الگ lines بنیں۔
 
-Ek **permanent page** jahan se aap pora app control karein. Sirf admin & support role ke liye.
+## Files to change
 
-### Layout: Single-page dashboard with live sections
+Frontend
+- `src/pages/RestaurantOwnerDashboard.tsx` — item dialog میں "Variants" اور "Option groups" editors (add/remove rows)
+- `src/pages/RestaurantDetail.tsx` — item پر click → نیا `MenuItemSheet` کھلے
+- `src/components/menu/MenuItemSheet.tsx` (نیا) — variant radio + option groups (radio/checkbox) + qty + total
+- `src/contexts/CartContext.tsx` — line identity، unit_price، variant/options snapshot
+- `src/components/CartDrawer.tsx` — line کے نیچے variant + selected options دکھائیں
+- `src/pages/Checkout.tsx` — RPC کو variant_id + option_ids بھیجیں
 
-**Top bar (live counters):**
-- Aaj ke orders (food / grocery / wholesale / services)
-- Pending deliveries
-- Available riders (city-wise)
-- Revenue today
-- New partner applications
+Backend
+- Migration: `menu_items` میں دو jsonb columns، `order_items` میں variant_label/options/unit_price
+- `create_order` RPC اپڈیٹ: server-side variant/option validation + total recompute
+- `RestaurantOwnerDashboard` اور Support dashboards میں display update (variant + options nazar aayen)
 
-**Left column — Live Orders Feed:**
-- Realtime list of all active orders (Supabase realtime)
-- Filter: city, type, status, urgency
-- Color-coded: red (delayed >30min), amber (in progress), green (delivered)
-- Click → order details drawer with customer, shop, rider info + quick actions
+## Out of scope
+- Variant-per-image
+- Stock/inventory per variant
+- Time-based pricing
 
-**Center — Delivery Map (optional Phase 2b):**
-- Live rider positions
-- Pending pickup pins
-- Manual rider assignment ke liye "nearest rider" suggestion (Haversine — already built)
+## Migration نوٹ
+یہ change purani menu items کو نہیں توڑے گا: `variants` NULL/empty ہو تو item صرف base price سے چلے گا (backward compatible)۔
 
-**Right column — Quick Actions:**
-- Assign rider to order
-- Call customer / shop / rider (tel: links)
-- Mark order issue / refund
-- Pause/resume shop
-- Emergency broadcast (WhatsApp link)
-
-**Bottom tabs:**
-- **Partners**: shops/riders/service providers ka health status (online/offline, last order, rating)
-- **Cities**: har city ki performance — orders, delivery time, active riders
-- **Alerts**: stuck orders, low-rated shops, complaints
-- **Applications**: naye partners ka queue (Phase 1 se link)
-
-### Aap kaise operate karein ge (daily workflow)
-1. Subah `/operations` kholain
-2. Applications queue check karein → approve/reject
-3. Live orders feed dekhain — koi order 30min se stuck ho to intervene
-4. Cities tab se dekhain kis shehar mein riders kam hain
-5. Alerts tab se complaints handle karein
-
-Main is page par **step-by-step Urdu guide** bhi likh doon ga — "Kaise use karain" section, taake aap ya aap ki team foran seekh sake.
-
----
-
-## Phase 3 — Scale Analysis (kitne users possible hain?)
-
-### Current stack: Lovable Cloud (Supabase) + Vite React PWA
-
-**Realistic limits with current setup (no code changes):**
-| Metric | Comfortable | Max before upgrade needed |
-|---|---|---|
-| Total registered users | 50,000 | ~200,000 |
-| Daily active users (DAU) | 5,000 | ~15,000 |
-| Concurrent users (peak) | 500 | ~2,000 |
-| Orders per day | 2,000–3,000 | ~10,000 |
-| Cities | 5–10 | 20+ |
-
-**Bottlenecks aap ko yeh milen ge (order mein):**
-1. **Realtime channels** (~500 concurrent subscribers ka soft limit) — order tracking bahut users ek saath dekhen to slow
-2. **Database connections** — peak par slow queries
-3. **Storage bandwidth** — bahut images
-4. **Rider GPS updates** — har rider har 10s pe location bhejta hai
-
-**Jab aap in limits ke qareeb aayen, main yeh optimize karoon ga:**
-- Compute upgrade (1-click Cloud setting)
-- Realtime ko poll-based fallback ke saath mix karna
-- Image CDN + WebP conversion (kuch pehle se ho chuka hai)
-- Database indexing audit
-- Rider location update frequency dynamic karna
-
-**Bottom line:** Aap ka current app **Rahim Yar Khan + Karachi Sadar launch** ke liye kaafi hai. 5–10,000 daily users tak koi issue nahi. Us ke baad hum incremental upgrades karain ge.
-
----
-
-## Delivery order (main is tarteeb se banaoon ga)
-
-1. **Step 1** — `partner_applications` table + RLS + storage bucket
-2. **Step 2** — `/partner` public page (5-tab form)
-3. **Step 3** — Admin "Applications" tab with approve/reject workflow
-4. **Step 4** — `/operations` command center page (live orders, counters, quick actions)
-5. **Step 5** — In-page Urdu operating guide (permanent reference)
-6. **Step 6** — Navbar/Footer links + role-based access
-
-Har step ke baad main aap ko batata hoon "yeh ho gaya, test karo, aage badhoon?"
-
----
-
-**Kya main Step 1 se shuru karoon?**
+## Confirm before building
+1. کیا "variant لازمی" رکھنا ہے جب owner نے variants define کیے ہوں، یا "کوئی نہیں / base" بھی option رہے؟
+2. Option groups میں کیا price_delta منفی بھی ہو سکتا ہے (e.g. "بغیر نان −30")، یا صرف 0 یا +؟
+3. Grocery items کے لیے بھی یہی چاہیے، یا صرف restaurant menu کے لیے؟
