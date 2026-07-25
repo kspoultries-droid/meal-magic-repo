@@ -24,6 +24,7 @@ const Checkout = () => {
   const [submitting, setSubmitting] = useState(false);
   const [locating, setLocating] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [restaurantDeliveryMode, setRestaurantDeliveryMode] = useState<string>("platform");
 
   // Gift / receiver fields
   const [isGift, setIsGift] = useState(false);
