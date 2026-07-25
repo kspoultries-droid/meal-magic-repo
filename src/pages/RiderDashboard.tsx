@@ -102,8 +102,9 @@ const RiderDashboard = () => {
     if (showLoader) setLoadingData(true);
     const [{ data: rider }, { data: assigned }, { data: available }] = await Promise.all([
       supabase.from("riders").select("*").eq("id", user.id).maybeSingle(),
-      supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("orders").select("*, order_items(*), restaurants!inner(name, description, delivery_mode)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).neq("restaurants.delivery_mode", "self").order("created_at", { ascending: false }).limit(20),
+      supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode, pickup_address, pickup_lat, pickup_lng)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("orders").select("*, order_items(*), restaurants!inner(name, description, delivery_mode, pickup_address, pickup_lat, pickup_lng)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).neq("restaurants.delivery_mode", "self").order("created_at", { ascending: false }).limit(20),
+
     ]);
     const nextRider = rider || await ensureRiderProfile();
     setRiderData(nextRider);
