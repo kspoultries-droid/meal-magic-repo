@@ -37,6 +37,8 @@ const Partner = () => {
   });
   const [cnicFile, setCnicFile] = useState<File | null>(null);
   const [shopFile, setShopFile] = useState<File | null>(null);
+  const [platefile, setPlateFile] = useState<File | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
 
   useEffect(() => {
     supabase.from("cities").select("id,name").order("name").then(({ data }) => setCities(data || []));
@@ -57,8 +59,13 @@ const Partner = () => {
   };
 
   const submit = async () => {
-    if (!form.business_name || !form.owner_name || !form.phone) {
-      toast.error("نام، مالک اور فون ضروری ہے");
+    const isRider = tab === "rider";
+    if (!form.business_name || !form.phone) {
+      toast.error(isRider ? "نام اور فون ضروری ہے" : "کاروبار کا نام، مالک اور فون ضروری ہے");
+      return;
+    }
+    if (!isRider && !form.owner_name) {
+      toast.error("مالک کا نام ضروری ہے");
       return;
     }
     if (!user) {
@@ -66,12 +73,24 @@ const Partner = () => {
       navigate("/auth");
       return;
     }
+    if (isRider) {
+      if (!form.cnic.trim()) { toast.error("شناختی کارڈ نمبر ضروری ہے"); return; }
+      if (!form.city_id) { toast.error("شہر منتخب کریں"); return; }
+      if (!cnicFile) { toast.error("CNIC کی تصویر لازمی ہے"); return; }
+      if (!shopFile) { toast.error("بائیک/گاڑی کی تصویر لازمی ہے"); return; }
+      if (!platefile) { toast.error("نمبر پلیٹ کی تصویر لازمی ہے"); return; }
+      if (!selfieFile) { toast.error("سیلفی لازمی ہے"); return; }
+    }
     setSubmitting(true);
 
     let cnic_image_url: string | null = null;
     let shop_image_url: string | null = null;
+    let numberplate_url: string | null = null;
+    let selfie_url: string | null = null;
     if (cnicFile) cnic_image_url = await uploadDoc(cnicFile, "cnic");
     if (shopFile) shop_image_url = await uploadDoc(shopFile, "shop");
+    if (platefile) numberplate_url = await uploadDoc(platefile, "plate");
+    if (selfieFile) selfie_url = await uploadDoc(selfieFile, "selfie");
 
     // Resolve referral code -> referrer user id (optional)
     let referred_by: string | null = null;
@@ -82,21 +101,28 @@ const Partner = () => {
     }
 
     const { business_name, owner_name, phone, whatsapp, cnic, email, city_id, address, category } = form;
+    const extra: Record<string, any> = {};
+    if (referred_by) extra.referred_by = referred_by;
+    if (numberplate_url) extra.numberplate_url = numberplate_url;
+    if (selfie_url) extra.selfie_url = selfie_url;
+
     const { error } = await supabase.from("partner_applications").insert({
       user_id: user.id,
       applicant_type: tab,
-      business_name, owner_name, phone, whatsapp, cnic, address, category,
+      business_name,
+      owner_name: isRider ? business_name : owner_name,
+      phone, whatsapp, cnic, address, category,
       email: email || user.email,
       city_id: city_id || null,
       cnic_image_url,
       shop_image_url,
-      extra: referred_by ? { referred_by } : {},
+      extra,
     });
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("درخواست جمع ہو گئی! ایڈمن جلد رابطہ کرے گا۔");
     setForm({ business_name: "", owner_name: "", phone: "", whatsapp: "", cnic: "", email: "", city_id: "", address: "", category: "", referral_code: "" });
-    setCnicFile(null); setShopFile(null);
+    setCnicFile(null); setShopFile(null); setPlateFile(null); setSelfieFile(null);
     const { data } = await supabase.from("partner_applications").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     setMyApps(data || []);
   };
@@ -141,18 +167,20 @@ const Partner = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <Input placeholder={tab === "rider" ? "پورا نام" : "کاروبار / دکان کا نام"}
                     value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })} />
-                  <Input placeholder="مالک کا نام" value={form.owner_name}
-                    onChange={e => setForm({ ...form, owner_name: e.target.value })} />
+                  {tab !== "rider" && (
+                    <Input placeholder="مالک کا نام" value={form.owner_name}
+                      onChange={e => setForm({ ...form, owner_name: e.target.value })} />
+                  )}
                   <Input placeholder="فون نمبر" value={form.phone}
                     onChange={e => setForm({ ...form, phone: e.target.value })} />
                   <Input placeholder="WhatsApp" value={form.whatsapp}
                     onChange={e => setForm({ ...form, whatsapp: e.target.value })} />
-                  <Input placeholder="CNIC (اختیاری)" value={form.cnic}
+                  <Input placeholder={tab === "rider" ? "شناختی کارڈ نمبر *" : "CNIC (اختیاری)"} value={form.cnic}
                     onChange={e => setForm({ ...form, cnic: e.target.value })} />
                   <Input placeholder="ای میل" value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })} />
                   <Select value={form.city_id} onValueChange={(v) => setForm({ ...form, city_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="شہر منتخب کریں" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={tab === "rider" ? "شہر منتخب کریں *" : "شہر منتخب کریں"} /></SelectTrigger>
                     <SelectContent>
                       {cities.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                     </SelectContent>
@@ -165,18 +193,48 @@ const Partner = () => {
                 <Textarea placeholder="مکمل پتہ" value={form.address}
                   onChange={e => setForm({ ...form, address: e.target.value })} rows={2} />
 
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="text-xs space-y-1">
-                    <span className="text-muted-foreground">CNIC تصویر (اختیاری)</span>
-                    <Input type="file" accept="image/*" onChange={e => setCnicFile(e.target.files?.[0] || null)} />
-                    {cnicFile && <span className="text-[10px] text-primary">✓ {cnicFile.name}</span>}
-                  </label>
-                  <label className="text-xs space-y-1">
-                    <span className="text-muted-foreground">{tab === "rider" ? "بائیک/گاڑی تصویر" : "دکان تصویر"} (اختیاری)</span>
-                    <Input type="file" accept="image/*" onChange={e => setShopFile(e.target.files?.[0] || null)} />
-                    {shopFile && <span className="text-[10px] text-primary">✓ {shopFile.name}</span>}
-                  </label>
-                </div>
+                {tab === "rider" ? (
+                  <div className="space-y-3">
+                    <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+                      رائیڈر کے لیے تمام دستاویزات لازمی ہیں (تصدیق کے لیے)
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="text-xs space-y-1">
+                        <span className="text-muted-foreground">CNIC تصویر *</span>
+                        <Input type="file" accept="image/*" onChange={e => setCnicFile(e.target.files?.[0] || null)} />
+                        {cnicFile && <span className="text-[10px] text-primary">✓ {cnicFile.name}</span>}
+                      </label>
+                      <label className="text-xs space-y-1">
+                        <span className="text-muted-foreground">بائیک/گاڑی تصویر *</span>
+                        <Input type="file" accept="image/*" onChange={e => setShopFile(e.target.files?.[0] || null)} />
+                        {shopFile && <span className="text-[10px] text-primary">✓ {shopFile.name}</span>}
+                      </label>
+                      <label className="text-xs space-y-1">
+                        <span className="text-muted-foreground">نمبر پلیٹ تصویر *</span>
+                        <Input type="file" accept="image/*" onChange={e => setPlateFile(e.target.files?.[0] || null)} />
+                        {platefile && <span className="text-[10px] text-primary">✓ {platefile.name}</span>}
+                      </label>
+                      <label className="text-xs space-y-1">
+                        <span className="text-muted-foreground">سیلفی (چہرہ) *</span>
+                        <Input type="file" accept="image/*" capture="user" onChange={e => setSelfieFile(e.target.files?.[0] || null)} />
+                        {selfieFile && <span className="text-[10px] text-primary">✓ {selfieFile.name}</span>}
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="text-xs space-y-1">
+                      <span className="text-muted-foreground">CNIC تصویر (اختیاری)</span>
+                      <Input type="file" accept="image/*" onChange={e => setCnicFile(e.target.files?.[0] || null)} />
+                      {cnicFile && <span className="text-[10px] text-primary">✓ {cnicFile.name}</span>}
+                    </label>
+                    <label className="text-xs space-y-1">
+                      <span className="text-muted-foreground">دکان تصویر (اختیاری)</span>
+                      <Input type="file" accept="image/*" onChange={e => setShopFile(e.target.files?.[0] || null)} />
+                      {shopFile && <span className="text-[10px] text-primary">✓ {shopFile.name}</span>}
+                    </label>
+                  </div>
+                )}
 
                 <Input placeholder="ریفرل کوڈ (اگر کسی نے دیا ہو)" value={form.referral_code}
                   onChange={e => setForm({ ...form, referral_code: e.target.value.toUpperCase() })} maxLength={6} />

@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet, Copy } from "lucide-react";
+import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet, Copy, Plus, Trash2, Navigation, Star } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -21,9 +22,13 @@ const Profile = () => {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ full_name: "", phone: "", address: "" });
+  const [form, setForm] = useState({ full_name: "", phone: "", address: "", email: "" });
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [showOrders, setShowOrders] = useState(false);
+  const [showAddresses, setShowAddresses] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [newAddr, setNewAddr] = useState({ label: "Home", address: "", lat: null as number | null, lng: null as number | null });
+  const [locBusy, setLocBusy] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -56,6 +61,7 @@ const Profile = () => {
         full_name: nextProfile.full_name || "",
         phone: nextProfile.phone || "",
         address: nextProfile.address || "",
+        email: user.email || "",
       });
     } catch (error) {
       console.error("Profile data load error:", error);
@@ -78,11 +84,74 @@ const Profile = () => {
 
   const updateProfile = async () => {
     if (!user) return;
-    const { error } = await supabase.from("profiles").upsert({ id: user.id, ...form }, { onConflict: "id" });
+    const { email, ...profileFields } = form;
+    const { error } = await supabase.from("profiles").upsert({ id: user.id, ...profileFields }, { onConflict: "id" });
     if (error) { toast.error(error.message); return; }
+    if (email && email !== user.email) {
+      const { error: eErr } = await supabase.auth.updateUser({ email });
+      if (eErr) { toast.error("ای میل: " + eErr.message); }
+      else toast.success("ای میل تصدیقی لنک بھیج دیا گیا");
+    }
     toast.success("پروفائل اپڈیٹ ہو گیا!");
     setEditing(false);
     fetchData();
+  };
+
+  const fetchAddresses = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("user_addresses").select("*").eq("user_id", user.id).order("is_default", { ascending: false }).order("created_at", { ascending: false });
+    setAddresses(data || []);
+  };
+
+  const openAddresses = () => { setShowAddresses(true); fetchAddresses(); };
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) { toast.error("Geolocation not supported"); return; }
+    setLocBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        let addr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const j = await r.json();
+          if (j?.display_name) addr = j.display_name;
+        } catch {}
+        setNewAddr({ ...newAddr, address: addr, lat: latitude, lng: longitude });
+        setLocBusy(false);
+        toast.success("لوکیشن مل گئی");
+      },
+      (err) => { setLocBusy(false); toast.error("لوکیشن نہیں ملی: " + err.message); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const saveAddress = async () => {
+    if (!user) return;
+    if (!newAddr.address.trim()) { toast.error("پتہ لکھیں"); return; }
+    const isFirst = addresses.length === 0;
+    const { error } = await supabase.from("user_addresses").insert({
+      user_id: user.id, label: newAddr.label || "Home",
+      address: newAddr.address, lat: newAddr.lat, lng: newAddr.lng,
+      is_default: isFirst,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("پتہ محفوظ ہو گیا");
+    setNewAddr({ label: "Home", address: "", lat: null, lng: null });
+    fetchAddresses();
+  };
+
+  const deleteAddress = async (id: string) => {
+    const { error } = await supabase.from("user_addresses").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    fetchAddresses();
+  };
+
+  const makeDefault = async (id: string) => {
+    if (!user) return;
+    await supabase.from("user_addresses").update({ is_default: false }).eq("user_id", user.id);
+    await supabase.from("user_addresses").update({ is_default: true }).eq("id", id);
+    fetchAddresses();
   };
 
   const statusColor = (s: string) => {
@@ -143,7 +212,9 @@ const Profile = () => {
           <div className="relative mt-4 space-y-3 bg-card/95 backdrop-blur-md rounded-2xl p-4 shadow-xl">
             <Input placeholder="پورا نام" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
             <Input placeholder="فون نمبر" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <Input type="email" placeholder="ای میل" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             <Input placeholder="پتہ" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <p className="text-[11px] text-muted-foreground">ای میل تبدیل کرنے پر تصدیقی لنک آپ کے نئے ای میل پر جائے گا</p>
             <Button onClick={updateProfile} className="w-full">محفوظ کریں</Button>
           </div>
         )}
@@ -159,11 +230,60 @@ const Profile = () => {
           <Heart className="w-6 h-6 text-muted-foreground" />
           <span className="text-xs font-semibold text-foreground">Favourites</span>
         </button>
-        <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-md transition-shadow">
-          <MapPin className="w-6 h-6 text-muted-foreground" />
+        <button onClick={openAddresses} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-md transition-shadow">
+          <MapPin className="w-6 h-6 text-primary" />
           <span className="text-xs font-semibold text-foreground">Addresses</span>
         </button>
       </div>
+
+      {/* Addresses Dialog */}
+      <Dialog open={showAddresses} onOpenChange={setShowAddresses}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>محفوظ پتے / Saved Addresses</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            {addresses.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">ابھی کوئی محفوظ پتہ نہیں</p>
+            ) : addresses.map((a) => (
+              <div key={a.id} className="p-3 rounded-xl border bg-card space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    <span className="font-semibold text-sm">{a.label}</span>
+                    {a.is_default && <Badge className="text-[10px]">ڈیفالٹ</Badge>}
+                  </div>
+                  <div className="flex gap-1">
+                    {!a.is_default && (
+                      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => makeDefault(a.id)}>
+                        <Star className="w-3 h-3" />
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive" onClick={() => deleteAddress(a.id)}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">{a.address}</p>
+                {a.lat && <p className="text-[10px] text-muted-foreground font-mono">📍 {a.lat.toFixed(4)}, {a.lng.toFixed(4)}</p>}
+              </div>
+            ))}
+
+            <div className="border-t pt-3 space-y-2">
+              <p className="text-sm font-semibold">نیا پتہ شامل کریں</p>
+              <Input placeholder="Label (Home / Office / Other)" value={newAddr.label} onChange={(e) => setNewAddr({ ...newAddr, label: e.target.value })} />
+              <Input placeholder="مکمل پتہ" value={newAddr.address} onChange={(e) => setNewAddr({ ...newAddr, address: e.target.value })} />
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={useMyLocation} disabled={locBusy} className="flex-1">
+                  <Navigation className="w-4 h-4 mr-1" /> {locBusy ? "..." : "میری لوکیشن استعمال کریں"}
+                </Button>
+                <Button onClick={saveAddress} className="flex-1">
+                  <Plus className="w-4 h-4 mr-1" /> محفوظ کریں
+                </Button>
+              </div>
+              {newAddr.lat && <p className="text-[10px] text-primary font-mono">📍 {newAddr.lat.toFixed(4)}, {newAddr.lng.toFixed(4)}</p>}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Referral Card */}
       {profile?.referral_code && (
