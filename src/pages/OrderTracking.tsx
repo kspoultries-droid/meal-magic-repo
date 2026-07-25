@@ -69,7 +69,8 @@ const OrderTracking = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
   if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">آرڈر نہیں ملا</div>;
 
-  const currentStepIndex = orderSteps.findIndex((s) => s.key === order.status);
+  const normalizedStatus = order.status === "completed" ? "delivered" : order.status;
+  const currentStepIndex = orderSteps.findIndex((s) => s.key === normalizedStatus);
   const isCancelled = order.status === "cancelled";
 
   return (

@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { LogOut, Bike, ArrowLeft, RefreshCw, Wallet, TrendingUp, Package, Navigation, MapPin } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
