@@ -532,6 +532,139 @@ const OwnerOrdersTab = () => {
     return map[s] || "bg-muted text-muted-foreground";
   };
 
+  const activeOrders = orders.filter((o) => !["delivered", "completed", "cancelled"].includes(o.status));
+  const doneOrders = orders.filter((o) => ["delivered", "completed", "cancelled"].includes(o.status));
+
+  const renderActive = (o: any) => {
+    const deliveryMode = o.restaurants?.delivery_mode || "platform";
+    const needsPlatformRider = deliveryMode === "platform";
+    const canSend = o.status === "preparing" && (!needsPlatformRider || o.rider_id);
+    const restaurantCanFinish = o.status === "delivering" && (deliveryMode === "self" || (deliveryMode === "both" && !o.rider_id));
+    return (
+      <div key={o.id} className="border rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
+            <span className="ml-3 font-bold">Rs {o.total_amount}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge className={statusColor(o.status)}>{o.status}</Badge>
+            {deliveryMode === "self" && <Badge variant="outline">خود ڈلیوری</Badge>}
+            {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="gap-1"><Bike className="w-3 h-3" /> رائیڈر اسائن</Badge>}
+            <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+          </div>
+        </div>
+
+        <button className="text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
+          {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
+        </button>
+        {expandedOrder === o.id && o.order_items?.length > 0 && (
+          <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
+            {o.order_items.map((item: any) => (
+              <div key={item.id} className="text-sm">
+                <div className="flex justify-between">
+                  <span>{item.name}{item.variant_label ? ` — ${item.variant_label}` : ""} × {item.quantity}</span>
+                  <span className="font-bold">Rs {item.price * item.quantity}</span>
+                </div>
+                {Array.isArray(item.options) && item.options.length > 0 && (
+                  <p className="text-[11px] text-muted-foreground pr-2">
+                    {item.options.map((o: any) => o.choice).join(" • ")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
+        {o.notes && <p className="text-xs text-muted-foreground">📝 {o.notes}</p>}
+
+        <div className="pt-2">
+          <div className="grid grid-cols-4 gap-1.5">
+            {[
+              { key: "confirmed", label: "✅ قبول", active: o.status === "pending", disabledReason: "" },
+              { key: "preparing", label: "👨‍🍳 تیاری", active: o.status === "confirmed", disabledReason: "" },
+              { key: "delivering", label: "🏍️ بھیجا", active: canSend, disabledReason: needsPlatformRider && !o.rider_id ? "پہلے ایڈمن رائیڈر اسائن کرے" : "" },
+              { key: "delivered", label: "📦 پہنچا", active: restaurantCanFinish, disabledReason: o.rider_id ? "یہ کام رائیڈر کرے گا" : "" },
+            ].map((step) => {
+              const order = ["pending", "confirmed", "preparing", "delivering", "delivered"];
+              const currentIdx = order.indexOf(o.status);
+              const stepIdx = order.indexOf(step.key);
+              const isDone = currentIdx >= stepIdx;
+              return (
+                <Button
+                  key={step.key}
+                  type="button"
+                  variant="outline"
+                  disabled={!step.active}
+                  title={step.disabledReason}
+                  onClick={() => updateStatus(o, step.key)}
+                  className={`h-auto min-h-10 text-[11px] font-bold px-2 py-2 rounded-lg border-2 transition-all ${
+                    isDone
+                      ? "bg-success/20 border-success text-success"
+                      : step.active
+                        ? "bg-primary text-primary-foreground border-primary shadow-glow animate-pulse cursor-pointer"
+                        : "bg-muted border-border text-muted-foreground opacity-60 cursor-not-allowed"
+                  }`}
+                >
+                  {step.label}
+                </Button>
+              );
+            })}
+          </div>
+          {needsPlatformRider && o.status === "preparing" && !o.rider_id && (
+            <p className="text-[11px] text-muted-foreground mt-2">🏍️ رائیڈر اسائن ہوتے ہی "بھیجا" فعال ہو جائے گا۔</p>
+          )}
+          {o.status === "delivering" && o.rider_id && (
+            <p className="text-[11px] text-primary mt-2">✅ کھانا رائیڈر کے حوالے ہو گیا — اب "Delivered" رائیڈر کرے گا۔</p>
+          )}
+          {o.status !== "delivering" && (
+            <Button size="sm" variant="ghost" className="h-6 text-[10px] text-destructive mt-2" onClick={() => updateStatus(o, "cancelled")}>
+              ❌ آرڈر منسوخ کریں
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDone = (o: any) => {
+    const isOpen = expandedOrder === o.id;
+    const itemsSummary = (o.order_items || []).map((i: any) => `${i.name}${i.variant_label ? ` — ${i.variant_label}` : ""} ×${i.quantity}`).join("، ");
+    return (
+      <div key={o.id} className="border rounded-lg bg-secondary/20">
+        <button
+          onClick={() => setExpandedOrder(isOpen ? null : o.id)}
+          className="w-full flex items-center justify-between gap-3 px-3 py-2 text-right"
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Badge className={statusColor(o.status)}>{o.status}</Badge>
+            <span className="text-sm font-semibold truncate">{itemsSummary || `#${o.id.slice(0, 8)}`}</span>
+          </div>
+          <span className="text-sm font-extrabold text-primary shrink-0">Rs {o.total_amount}</span>
+          <span className="text-xs text-muted-foreground shrink-0">{isOpen ? "▲" : "▼"}</span>
+        </button>
+        {isOpen && (
+          <div className="px-3 pb-3 space-y-2 border-t pt-2">
+            <p className="text-[11px] text-muted-foreground font-mono">#{o.id.slice(0, 8)} • {new Date(o.created_at).toLocaleString("ur-PK")}</p>
+            {o.order_items?.map((item: any) => (
+              <div key={item.id} className="text-sm">
+                <div className="flex justify-between">
+                  <span>{item.name}{item.variant_label ? ` — ${item.variant_label}` : ""} × {item.quantity}</span>
+                  <span className="font-bold">Rs {item.price * item.quantity}</span>
+                </div>
+                {Array.isArray(item.options) && item.options.length > 0 && (
+                  <p className="text-[11px] text-muted-foreground">{item.options.map((x: any) => x.choice).join(" • ")}</p>
+                )}
+              </div>
+            ))}
+            {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Card>
       <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نیا فوڈ آرڈر! / New food order!" />
@@ -543,102 +676,28 @@ const OwnerOrdersTab = () => {
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : orders.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>
         ) : (
-          <div className="space-y-3">
-            {orders.map((o) => {
-              const deliveryMode = o.restaurants?.delivery_mode || "platform";
-              const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
-              const needsPlatformRider = deliveryMode === "platform";
-              const canSend = o.status === "preparing" && (!needsPlatformRider || o.rider_id);
-              const restaurantCanFinish = o.status === "delivering" && (deliveryMode === "self" || (deliveryMode === "both" && !o.rider_id));
-              return (
-              <div key={o.id} className="border rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-                    <span className="ml-3 font-bold">Rs {o.total_amount}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={statusColor(o.status)}>{o.status}</Badge>
-                    {deliveryMode === "self" && <Badge variant="outline">خود ڈلیوری</Badge>}
-                    {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="gap-1"><Bike className="w-3 h-3" /> رائیڈر اسائن</Badge>}
-                    <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
-                  </div>
-                </div>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-extrabold mb-2 flex items-center gap-2">
+                🔔 نئے / جاری آرڈرز
+                <Badge className="bg-primary text-primary-foreground">{activeOrders.length}</Badge>
+              </h3>
+              {activeOrders.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">ابھی کوئی نیا آرڈر نہیں</p>
+              ) : (
+                <div className="space-y-3">{activeOrders.map(renderActive)}</div>
+              )}
+            </div>
 
-                {/* Order Items */}
-                <button className="text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
-                  {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
-                </button>
-                {expandedOrder === o.id && o.order_items?.length > 0 && (
-                  <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
-                    {o.order_items.map((item: any) => (
-                      <div key={item.id} className="text-sm">
-                        <div className="flex justify-between">
-                          <span>{item.name}{item.variant_label ? ` — ${item.variant_label}` : ""} × {item.quantity}</span>
-                          <span className="font-bold">Rs {item.price * item.quantity}</span>
-                        </div>
-                        {Array.isArray(item.options) && item.options.length > 0 && (
-                          <p className="text-[11px] text-muted-foreground pr-2">
-                            {item.options.map((o: any) => o.choice).join(" • ")}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
-                {o.notes && <p className="text-xs text-muted-foreground">📝 {o.notes}</p>}
-
-                {/* Restaurant-owned workflow */}
-                <div className="pt-2">
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {[
-                      { key: "confirmed", label: "✅ قبول", active: o.status === "pending", disabledReason: "" },
-                      { key: "preparing", label: "👨‍🍳 تیاری", active: o.status === "confirmed", disabledReason: "" },
-                      { key: "delivering", label: "🏍️ بھیجا", active: canSend, disabledReason: needsPlatformRider && !o.rider_id ? "پہلے ایڈمن رائیڈر اسائن کرے" : "" },
-                      { key: "delivered", label: "📦 پہنچا", active: restaurantCanFinish, disabledReason: o.rider_id ? "یہ کام رائیڈر کرے گا" : "" },
-                    ].map((step) => {
-                      const order = ["pending", "confirmed", "preparing", "delivering", "delivered"];
-                      const currentIdx = order.indexOf(o.status);
-                      const stepIdx = order.indexOf(step.key);
-                      const isDone = currentIdx >= stepIdx;
-                      return (
-                        <Button
-                          key={step.key}
-                          type="button"
-                          variant="outline"
-                          disabled={!step.active || isClosed}
-                          title={step.disabledReason}
-                          onClick={() => updateStatus(o, step.key)}
-                          className={`h-auto min-h-10 text-[11px] font-bold px-2 py-2 rounded-lg border-2 transition-all ${
-                            isDone
-                              ? "bg-success/20 border-success text-success"
-                              : step.active
-                                ? "bg-primary text-primary-foreground border-primary shadow-glow animate-pulse cursor-pointer"
-                                : "bg-muted border-border text-muted-foreground opacity-60 cursor-not-allowed"
-                          }`}
-                        >
-                          {step.label}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                  {needsPlatformRider && o.status === "preparing" && !o.rider_id && (
-                    <p className="text-[11px] text-muted-foreground mt-2">🏍️ رائیڈر اسائن ہوتے ہی “بھیجا” فعال ہو جائے گا۔</p>
-                  )}
-                  {o.status === "delivering" && o.rider_id && (
-                    <p className="text-[11px] text-primary mt-2">✅ کھانا رائیڈر کے حوالے ہو گیا — اب “Delivered” رائیڈر کرے گا۔</p>
-                  )}
-                  {!isClosed && o.status !== "delivering" && (
-                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-destructive mt-2" onClick={() => updateStatus(o, "cancelled")}>
-                      ❌ آرڈر منسوخ کریں
-                    </Button>
-                  )}
-                </div>
+            {doneOrders.length > 0 && (
+              <div>
+                <h3 className="text-sm font-extrabold mb-2 flex items-center gap-2 text-muted-foreground">
+                  ✅ مکمل / منسوخ شدہ
+                  <Badge variant="outline">{doneOrders.length}</Badge>
+                </h3>
+                <div className="space-y-1.5">{doneOrders.map(renderDone)}</div>
               </div>
-              );
-            })}
+            )}
           </div>
         )}
       </CardContent>
