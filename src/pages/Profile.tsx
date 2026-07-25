@@ -22,9 +22,13 @@ const Profile = () => {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ full_name: "", phone: "", address: "" });
+  const [form, setForm] = useState({ full_name: "", phone: "", address: "", email: "" });
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [showOrders, setShowOrders] = useState(false);
+  const [showAddresses, setShowAddresses] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [newAddr, setNewAddr] = useState({ label: "Home", address: "", lat: null as number | null, lng: null as number | null });
+  const [locBusy, setLocBusy] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
