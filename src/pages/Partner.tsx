@@ -32,11 +32,25 @@ const dashboardLabel: Record<PartnerType, string> = {
 
 const Partner = () => {
   const navigate = useNavigate();
-  const { user, refreshRoles } = useAuth();
-  const [tab, setTab] = useState<PartnerType>("restaurant");
+  const { user, isRider, isRestaurantOwner, isMechanic, refreshRoles } = useAuth();
+
+  // Role-conflict aware: rider can't apply as vendor; vendor can't apply as rider
+  const availableTypes = TYPES.filter(t => {
+    if (isRider) return t.value === "rider"; // rider stays rider
+    if (isRestaurantOwner || isMechanic) return t.value !== "rider"; // vendors can't become riders
+    return true;
+  });
+
+  const [tab, setTab] = useState<PartnerType>(availableTypes[0]?.value || "restaurant");
   const [cities, setCities] = useState<any[]>([]);
   const [myApps, setMyApps] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!availableTypes.find(t => t.value === tab) && availableTypes[0]) {
+      setTab(availableTypes[0].value);
+    }
+  }, [isRider, isRestaurantOwner, isMechanic]);
 
   const [form, setForm] = useState({
     business_name: "", owner_name: "", phone: "", whatsapp: "",
