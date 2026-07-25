@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package, Star } from "lucide-react";
+import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 
 const orderSteps = [
   { key: "pending", label: "آرڈر موصول ہوا", icon: Package, urdu: "آپ کا آرڈر موصول ہو گیا" },
@@ -20,6 +21,8 @@ const OrderTracking = () => {
   const [order, setOrder] = useState<any>(null);
   const [rider, setRider] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [hasReview, setHasReview] = useState(false);
 
   const fetchOrder = async () => {
     if (!id) return;
@@ -43,6 +46,13 @@ const OrderTracking = () => {
   useEffect(() => {
     fetchOrder();
   }, [id]);
+
+  // Check existing review
+  useEffect(() => {
+    if (!id || !user) return;
+    supabase.from("order_reviews").select("id").eq("order_id", id).eq("customer_id", user.id).maybeSingle()
+      .then(({ data }) => setHasReview(!!data));
+  }, [id, user, reviewOpen]);
 
   // Realtime updates
   useEffect(() => {
@@ -169,7 +179,29 @@ const OrderTracking = () => {
             </div>
           ))}
         </div>
+
+        {/* Review CTA — only after delivered/completed */}
+        {["delivered", "completed"].includes(order.status) && user && order.customer_id === user.id && order.restaurant_id && (
+          <Button
+            onClick={() => setReviewOpen(true)}
+            className="w-full mt-4 h-12 font-extrabold rounded-xl bg-gradient-primary shadow-glow gap-2"
+          >
+            <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" />
+            {hasReview ? "اپنی رائے اپڈیٹ کریں" : "ریسٹورنٹ کو ریٹنگ دیں"}
+          </Button>
+        )}
       </div>
+
+      {order && user && order.restaurant_id && (
+        <OrderReviewDialog
+          open={reviewOpen}
+          onOpenChange={setReviewOpen}
+          orderId={order.id}
+          restaurantId={order.restaurant_id}
+          customerId={user.id}
+          onSubmitted={() => setHasReview(true)}
+        />
+      )}
     </div>
   );
 };
