@@ -61,6 +61,7 @@ const Profile = () => {
         full_name: nextProfile.full_name || "",
         phone: nextProfile.phone || "",
         address: nextProfile.address || "",
+        email: user.email || "",
       });
     } catch (error) {
       console.error("Profile data load error:", error);
