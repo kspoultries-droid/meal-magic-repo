@@ -47,7 +47,8 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const buildLineId = (item: AddItemInput) => {
   const opts = [...(item.option_ids || [])].sort().join(",");
-  return [item.menu_item_id, item.variant_id || "", opts].join("|");
+  const mid = item.menu_item_id || item.id || "";
+  return [mid, item.variant_id || "", opts].join("|");
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -55,10 +56,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isOpen, setIsOpen] = useState(false);
 
   const addItem = useCallback((raw: AddItemInput) => {
-    const lineId = raw.id || buildLineId(raw);
+    const menuItemId = raw.menu_item_id || raw.id || "";
+    const lineId = buildLineId({ ...raw, menu_item_id: menuItemId });
     const qty = raw.quantity ?? 1;
     const item: CartItem = {
       ...raw,
+      menu_item_id: menuItemId,
       id: lineId,
       quantity: qty,
       option_ids: raw.option_ids || [],
