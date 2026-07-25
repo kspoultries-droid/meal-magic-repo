@@ -84,11 +84,74 @@ const Profile = () => {
 
   const updateProfile = async () => {
     if (!user) return;
-    const { error } = await supabase.from("profiles").upsert({ id: user.id, ...form }, { onConflict: "id" });
+    const { email, ...profileFields } = form;
+    const { error } = await supabase.from("profiles").upsert({ id: user.id, ...profileFields }, { onConflict: "id" });
     if (error) { toast.error(error.message); return; }
+    if (email && email !== user.email) {
+      const { error: eErr } = await supabase.auth.updateUser({ email });
+      if (eErr) { toast.error("ای میل: " + eErr.message); }
+      else toast.success("ای میل تصدیقی لنک بھیج دیا گیا");
+    }
     toast.success("پروفائل اپڈیٹ ہو گیا!");
     setEditing(false);
     fetchData();
+  };
+
+  const fetchAddresses = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("user_addresses").select("*").eq("user_id", user.id).order("is_default", { ascending: false }).order("created_at", { ascending: false });
+    setAddresses(data || []);
+  };
+
+  const openAddresses = () => { setShowAddresses(true); fetchAddresses(); };
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) { toast.error("Geolocation not supported"); return; }
+    setLocBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        let addr = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const j = await r.json();
+          if (j?.display_name) addr = j.display_name;
+        } catch {}
+        setNewAddr({ ...newAddr, address: addr, lat: latitude, lng: longitude });
+        setLocBusy(false);
+        toast.success("لوکیشن مل گئی");
+      },
+      (err) => { setLocBusy(false); toast.error("لوکیشن نہیں ملی: " + err.message); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const saveAddress = async () => {
+    if (!user) return;
+    if (!newAddr.address.trim()) { toast.error("پتہ لکھیں"); return; }
+    const isFirst = addresses.length === 0;
+    const { error } = await supabase.from("user_addresses").insert({
+      user_id: user.id, label: newAddr.label || "Home",
+      address: newAddr.address, lat: newAddr.lat, lng: newAddr.lng,
+      is_default: isFirst,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("پتہ محفوظ ہو گیا");
+    setNewAddr({ label: "Home", address: "", lat: null, lng: null });
+    fetchAddresses();
+  };
+
+  const deleteAddress = async (id: string) => {
+    const { error } = await supabase.from("user_addresses").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    fetchAddresses();
+  };
+
+  const makeDefault = async (id: string) => {
+    if (!user) return;
+    await supabase.from("user_addresses").update({ is_default: false }).eq("user_id", user.id);
+    await supabase.from("user_addresses").update({ is_default: true }).eq("id", id);
+    fetchAddresses();
   };
 
   const statusColor = (s: string) => {
