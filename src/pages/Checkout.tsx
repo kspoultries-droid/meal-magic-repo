@@ -56,8 +56,19 @@ const Checkout = () => {
 
   useEffect(() => {
     const city = cities.find((c) => c.id === selectedCity);
-    setDeliveryFee(city?.delivery_fee || 0);
-  }, [selectedCity, cities]);
+    const baseFee = city?.delivery_fee || 0;
+    setDeliveryFee(restaurantDeliveryMode === "self" ? 0 : baseFee);
+  }, [selectedCity, cities, restaurantDeliveryMode]);
+
+  // Detect restaurant delivery mode
+  useEffect(() => {
+    const isRest = items.length > 0 && items.every(i => (i.source || "restaurant") === "restaurant");
+    if (!isRest) { setRestaurantDeliveryMode("platform"); return; }
+    const rid = items[0]?.sourceId;
+    if (!rid) return;
+    supabase.from("restaurants").select("delivery_mode").eq("id", rid).maybeSingle()
+      .then(({ data }) => setRestaurantDeliveryMode(data?.delivery_mode || "platform"));
+  }, [items]);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
