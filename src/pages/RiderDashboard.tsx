@@ -319,7 +319,8 @@ const RiderDashboard = () => {
             ) : (
               <div className="space-y-3">
                 {myOrders.map((o) => {
-                  const pickupMap = o.restaurants?.description ? mapLink(o.restaurants.description) : "";
+                  const pickupAddr = o.restaurants?.pickup_address || o.restaurants?.description || "";
+                  const pickupMap = mapLink(pickupAddr, o.restaurants?.pickup_lat, o.restaurants?.pickup_lng);
                   const dropoffMap = mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng);
                   const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
                   return (
@@ -338,13 +339,14 @@ const RiderDashboard = () => {
                         <div className="rounded-lg bg-background/70 border p-3">
                           <p className="text-xs font-bold text-muted-foreground mb-1">Pickup / ریسٹورنٹ</p>
                           <p className="font-bold text-foreground">{o.restaurants?.name || "ریسٹورنٹ"}</p>
-                          {o.restaurants?.description && <p className="text-xs text-muted-foreground mt-0.5">{o.restaurants.description}</p>}
+                          {pickupAddr && <p className="text-xs text-muted-foreground mt-0.5">{pickupAddr}</p>}
                           {pickupMap && (
                             <a href={pickupMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline mt-2">
                               <Navigation className="w-3 h-3" /> Pickup map
                             </a>
                           )}
                         </div>
+
                         <div className="rounded-lg bg-background/70 border p-3">
                           <p className="text-xs font-bold text-muted-foreground mb-1">Dropoff / کسٹمر</p>
                           <p className="text-foreground">{o.delivery_address || "پتہ نہیں"}</p>
