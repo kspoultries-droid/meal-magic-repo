@@ -311,6 +311,7 @@ const Partner = () => {
                 )}
               </TabsContent>
             </Tabs>
+            )}
           </CardContent>
         </Card>
 
