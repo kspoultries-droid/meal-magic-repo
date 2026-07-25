@@ -103,8 +103,8 @@ const RiderDashboard = () => {
     if (showLoader) setLoadingData(true);
     const [{ data: rider }, { data: assigned }, { data: available }] = await Promise.all([
       supabase.from("riders").select("*").eq("id", user.id).maybeSingle(),
-      supabase.from("orders").select("*, order_items(*)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("orders").select("*, order_items(*), restaurants!inner(delivery_mode)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).neq("restaurants.delivery_mode", "self").order("created_at", { ascending: false }).limit(20),
+      supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("orders").select("*, order_items(*), restaurants!inner(name, description, delivery_mode)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).neq("restaurants.delivery_mode", "self").order("created_at", { ascending: false }).limit(20),
     ]);
     const nextRider = rider || await ensureRiderProfile();
     setRiderData(nextRider);
@@ -154,10 +154,21 @@ const RiderDashboard = () => {
     fetchData();
   };
 
-  const updateOrderStatus = async (id: string, status: string) => {
-    await supabase.from("orders").update({ status }).eq("id", id);
+  const updateOrderStatus = async (order: any, status: string) => {
+    if (order.status !== "delivering" || status !== "delivered") {
+      toast.error("رائیڈر صرف assigned delivery کو Delivered کر سکتا ہے");
+      return;
+    }
+    const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
+    if (error) { toast.error(error.message); return; }
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
     fetchData();
+  };
+
+  const mapLink = (address?: string | null, lat?: number | null, lng?: number | null) => {
+    if (lat && lng) return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    if (address) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    return "";
   };
 
   if (loading || hasRole === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
@@ -269,15 +280,18 @@ const RiderDashboard = () => {
                         <Badge variant="outline" className="text-[10px]">📍 {o._distance.toFixed(1)} km</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">📍 {o.delivery_address || "پتہ نہیں"}</p>
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <p>🏪 Pickup: <span className="font-bold text-foreground">{o.restaurants?.name || "ریسٹورنٹ"}</span>{o.restaurants?.description ? ` — ${o.restaurants.description}` : ""}</p>
+                      <p>📍 Dropoff: {o.delivery_address || "پتہ نہیں"}</p>
+                    </div>
                     {o.delivery_address && (
                       <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.delivery_address)}`}
+                        href={mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline"
                       >
-                        <Navigation className="w-3 h-3" /> نقشے میں دیکھیں
+                        <Navigation className="w-3 h-3" /> کسٹمر لوکیشن
                       </a>
                     )}
                     {o.order_items?.length > 0 && (
@@ -303,50 +317,65 @@ const RiderDashboard = () => {
             {loadingData ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : myOrders.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">ابھی کوئی آرڈر نہیں</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>آئٹمز</TableHead>
-                    <TableHead>ٹوٹل</TableHead>
-                    <TableHead>سٹیٹس</TableHead>
-                    <TableHead>پتہ</TableHead>
-                    <TableHead>ایکشنز</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {myOrders.map((o) => (
-                    <TableRow key={o.id}>
-                      <TableCell className="font-mono text-xs">{o.id.slice(0, 8)}</TableCell>
-                      <TableCell className="text-xs">
-                        {o.order_items?.map((item: any) => `${item.name}×${item.quantity}`).join(", ") || "—"}
-                      </TableCell>
-                      <TableCell>Rs {o.total_amount}</TableCell>
-                      <TableCell><Badge>{o.status}</Badge></TableCell>
-                      <TableCell className="text-sm max-w-[200px] truncate">
-                        {o.delivery_address || "—"}
-                        {o.delivery_address && (
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.delivery_address)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-2 inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline"
-                          >
-                            <Navigation className="w-3 h-3" /> نقشہ
-                          </a>
-                        )}
-                      </TableCell>
-                      <TableCell className="space-y-1">
-                        {o.status === "delivering" && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateOrderStatus(o.id, "delivered")}>
-                            ڈلیور ہو گیا ✅
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-3">
+                {myOrders.map((o) => {
+                  const pickupMap = o.restaurants?.description ? mapLink(o.restaurants.description) : "";
+                  const dropoffMap = mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng);
+                  const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
+                  return (
+                    <div key={o.id} className="rounded-xl border bg-secondary/20 p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div>
+                          <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                          <p className="font-extrabold text-foreground">Rs {o.total_amount}</p>
+                        </div>
+                        <Badge className={o.status === "delivered" || o.status === "completed" ? "bg-success text-success-foreground" : o.status === "cancelled" ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}>
+                          {o.status === "confirmed" ? "ریسٹورنٹ نے قبول کیا" : o.status === "preparing" ? "تیار ہو رہا ہے" : o.status === "delivering" ? "ڈلیوری جاری" : o.status === "delivered" || o.status === "completed" ? "مکمل" : o.status}
+                        </Badge>
+                      </div>
+
+                      <div className="grid gap-2 text-sm">
+                        <div className="rounded-lg bg-background/70 border p-3">
+                          <p className="text-xs font-bold text-muted-foreground mb-1">Pickup / ریسٹورنٹ</p>
+                          <p className="font-bold text-foreground">{o.restaurants?.name || "ریسٹورنٹ"}</p>
+                          {o.restaurants?.description && <p className="text-xs text-muted-foreground mt-0.5">{o.restaurants.description}</p>}
+                          {pickupMap && (
+                            <a href={pickupMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline mt-2">
+                              <Navigation className="w-3 h-3" /> Pickup map
+                            </a>
+                          )}
+                        </div>
+                        <div className="rounded-lg bg-background/70 border p-3">
+                          <p className="text-xs font-bold text-muted-foreground mb-1">Dropoff / کسٹمر</p>
+                          <p className="text-foreground">{o.delivery_address || "پتہ نہیں"}</p>
+                          {dropoffMap && (
+                            <a href={dropoffMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline mt-2">
+                              <Navigation className="w-3 h-3" /> Customer map
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {o.order_items?.length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          {o.order_items.map((item: any) => (
+                            <span key={item.id} className="mr-2">{item.name} ×{item.quantity}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      {o.status === "delivering" && (
+                        <Button size="sm" className="w-full" onClick={() => updateOrderStatus(o, "delivered")}>
+                          کسٹمر کو ڈلیور ہو گیا ✅
+                        </Button>
+                      )}
+                      {!isClosed && o.status !== "delivering" && (
+                        <p className="text-[11px] text-muted-foreground">ریسٹورنٹ “بھیجا” کرے گا تو Delivered بٹن یہاں فعال ہو گا۔</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </CardContent>
         </Card>
