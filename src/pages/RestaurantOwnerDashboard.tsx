@@ -583,6 +583,7 @@ const OwnerOrdersTab = () => {
                           </p>
                         )}
                       </div>
+                    ))}
                   </div>
                 )}
 
