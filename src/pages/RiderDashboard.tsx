@@ -247,7 +247,7 @@ const RiderDashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2"><Package className="w-5 h-5" /> قریبی آرڈرز (5 قریب ترین)</CardTitle>
-            <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => fetchData()}><RefreshCw className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground mb-3">⚠️ آرڈر ایڈمن تفویض کرے گا — آپ کو اسائن ہونے پر "میرے آرڈرز" میں نظر آئے گا</p>
