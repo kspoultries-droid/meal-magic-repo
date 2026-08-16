@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const quickCategories = [
-  { name: "Offers", icon: Percent, color: "bg-primary/10 text-primary", action: "offers" },
-  { name: "New", icon: Sparkles, color: "bg-warning/10 text-warning", action: "new" },
-  { name: "Pick-up", icon: ShoppingBag, color: "bg-primary/10 text-primary", action: "pickup" },
-  { name: "Homechefs", icon: ChefHat, color: "bg-accent text-accent-foreground", action: "homechefs" },
-  { name: "Top Rated", icon: Award, color: "bg-warning/10 text-warning", action: "top-rated" },
+  { name: "Offers", ur: "آفرز", icon: Percent, tint: "bg-gradient-primary text-primary-foreground", action: "offers" },
+  { name: "New", ur: "نئے", icon: Sparkles, tint: "bg-warning/15 text-warning", action: "new" },
+  { name: "Pick-up", ur: "پک اپ", icon: ShoppingBag, tint: "bg-accent text-accent-foreground", action: "pickup" },
+  { name: "Homechefs", ur: "ہوم شیف", icon: ChefHat, tint: "bg-success/15 text-success", action: "homechefs" },
+  { name: "Top Rated", ur: "ٹاپ ریٹڈ", icon: Award, tint: "bg-primary/10 text-primary", action: "top-rated" },
 ];
 
 const QuickCategories = () => {
@@ -34,23 +34,24 @@ const QuickCategories = () => {
   };
 
   return (
-    <section className="bg-gradient-to-b from-primary/5 to-transparent py-4">
+    <section className="py-4">
       <div className="container mx-auto px-4">
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-          {quickCategories.map((cat) => {
+        <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
+          {quickCategories.map((cat, i) => {
             const Icon = cat.icon;
             return (
               <button
                 key={cat.name}
                 onClick={() => handleClick(cat.action)}
-                className="flex flex-col items-center gap-2 shrink-0 min-w-[72px] group"
+                style={{ animationDelay: `${i * 50}ms` }}
+                className="animate-fade-in flex flex-col items-center gap-1.5 shrink-0 min-w-[64px] group active:scale-95 transition-transform"
               >
-                <div className={`w-14 h-14 rounded-2xl ${cat.color} flex items-center justify-center group-hover:scale-105 transition-transform`}>
+                <div
+                  className={`w-14 h-14 rounded-2xl ${cat.tint} flex items-center justify-center shadow-soft ring-1 ring-border/50 group-hover:shadow-elegant group-hover:-translate-y-0.5 transition-all`}
+                >
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-semibold text-foreground text-center leading-tight">
-                  {cat.name}
-                </span>
+                <span className="text-[11px] font-bold text-foreground text-center leading-tight">{cat.ur}</span>
               </button>
             );
           })}
