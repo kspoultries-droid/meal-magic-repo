@@ -289,7 +289,25 @@ const GroceryTab = () => {
                         </button>
                       )}
                     </TableCell>
-                    <TableCell>{s.category}</TableCell>
+                    <TableCell>
+                      {s.category}
+                      {s.store_type === "wholesale" && (
+                        <select
+                          className="mt-1 block w-full border rounded-md p-1 bg-background text-foreground text-[11px]"
+                          value={s.shop_category || ""}
+                          onChange={(e) => {
+                            supabase.from("grocery_stores").update({ shop_category: e.target.value || null } as any).eq("id", s.id).then(({ error }) => {
+                              if (error) { toast.error(error.message); return; }
+                              toast.success("دکان کی قسم اپڈیٹ"); fetchData();
+                            });
+                          }}
+                        >
+                          <option value="">دکان کی قسم —</option>
+                          {shopCats.map((c) => <option key={c.id} value={c.name}>{c.name_ur ? `${c.name_ur} / ${c.name}` : c.name}</option>)}
+                        </select>
+                      )}
+                    </TableCell>
+
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <span className="font-semibold text-sm">Rs {s.monthly_fee || 0}</span>
