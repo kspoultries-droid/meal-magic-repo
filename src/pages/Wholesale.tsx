@@ -14,34 +14,43 @@ const Wholesale = () => {
   const [stores, setStores] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [shopCategories, setShopCategories] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeShopCategory, setActiveShopCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
-    (supabase.from("wholesale_categories" as any).select("*").eq("is_active", true).order("sort_order") as any).then(({ data }: any) => setCategories(data || []));
+    (supabase.from("wholesale_categories" as any).select("*").eq("is_active", true).order("sort_order") as any).then(({ data }: any) => {
+      const all = data || [];
+      setCategories(all.filter((c: any) => (c.kind ?? "item") === "item"));
+      setShopCategories(all.filter((c: any) => c.kind === "shop"));
+    });
   }, []);
 
   useEffect(() => {
     const fetchStores = async () => {
       setLoading(true);
-      let query = supabase
+      let query: any = supabase
         .from("grocery_stores")
         .select("*")
         .eq("store_type", "wholesale")
         .neq("subscription_status", "paused");
       if (selectedCity) query = query.eq("city_id", selectedCity);
       if (activeCategory && activeCategory !== "All") query = query.eq("category", activeCategory);
+      if (activeShopCategory) query = query.eq("shop_category", activeShopCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       query = query.order("sort_order").order("created_at", { ascending: false });
+
       const { data } = await query;
       setStores(data || []);
       setLoading(false);
     };
     fetchStores();
-  }, [searchQuery, selectedCity, activeCategory]);
+  }, [searchQuery, selectedCity, activeCategory, activeShopCategory]);
+
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -69,9 +78,44 @@ const Wholesale = () => {
         </div>
       </div>
 
+      {/* Shop-wise Categories */}
+      {shopCategories.length > 0 && (
+        <section className="container mx-auto px-4 pt-3">
+          <h2 className="text-xs font-extrabold text-foreground mb-2">دکان کی قسم / Shop Type</h2>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <button
+              onClick={() => setActiveShopCategory(null)}
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 min-w-[64px] ${
+                !activeShopCategory ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-card text-foreground border hover:bg-accent"
+              }`}
+            >
+              <Store className="w-5 h-5" />
+              <span>All</span>
+              <span className="text-[8px] opacity-70">سب</span>
+            </button>
+            {shopCategories.map((cat) => {
+              const Icon = (LucideIcons as any)[cat.icon] || Store;
+              const isActive = activeShopCategory === cat.name;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveShopCategory(isActive ? null : cat.name)}
+                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 min-w-[64px] ${
+                    isActive ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-card text-foreground border hover:bg-accent"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{cat.name}</span>
+                  {cat.name_ur && <span className="text-[8px] opacity-70">{cat.name_ur}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
+      {/* Item Category Chips */}
 
-      {/* Category Chips */}
       {categories.length > 0 && (
         <section className="container mx-auto px-4 py-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">

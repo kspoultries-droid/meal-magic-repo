@@ -25,7 +25,14 @@ const GroceryTab = () => {
   const [showAddStore, setShowAddStore] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg" });
-  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false });
+  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false, shop_category: "" });
+  const [shopCats, setShopCats] = useState<any[]>([]);
+
+  useEffect(() => {
+    (supabase.from("wholesale_categories" as any).select("id,name,name_ur").eq("kind", "shop").eq("is_active", true).order("sort_order") as any)
+      .then(({ data }: any) => setShopCats(data || []));
+  }, []);
+
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editProductPrice, setEditProductPrice] = useState("");
   const [editProductDiscount, setEditProductDiscount] = useState("");
@@ -102,10 +109,12 @@ const GroceryTab = () => {
       owner_id: user.id,
       store_type: newStore.store_type,
       ships_nationwide: newStore.ships_nationwide,
+      shop_category: newStore.store_type === "wholesale" ? (newStore.shop_category || null) : null,
     } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("اسٹور شامل ہو گیا / Store added");
-    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false });
+    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false, shop_category: "" });
+
     setShowAddStore(false);
     fetchData();
   };
@@ -172,11 +181,21 @@ const GroceryTab = () => {
                     </select>
                   </div>
                   {newStore.store_type === "wholesale" && (
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={newStore.ships_nationwide} onChange={(e) => setNewStore({...newStore, ships_nationwide: e.target.checked})} />
-                      پورے پاکستان میں شپنگ / Ships nationwide (TCS/Leopards)
-                    </label>
+                    <>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">دکان کی قسم / Shop Category</label>
+                        <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newStore.shop_category} onChange={(e) => setNewStore({...newStore, shop_category: e.target.value})}>
+                          <option value="">— منتخب کریں —</option>
+                          {shopCats.map((c) => <option key={c.id} value={c.name}>{c.name_ur ? `${c.name_ur} / ${c.name}` : c.name}</option>)}
+                        </select>
+                      </div>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" checked={newStore.ships_nationwide} onChange={(e) => setNewStore({...newStore, ships_nationwide: e.target.checked})} />
+                        پورے پاکستان میں شپنگ / Ships nationwide (TCS/Leopards)
+                      </label>
+                    </>
                   )}
+
                   <Button onClick={addStore} className="w-full">شامل کریں / Add</Button>
                 </div>
               </DialogContent>
@@ -270,7 +289,25 @@ const GroceryTab = () => {
                         </button>
                       )}
                     </TableCell>
-                    <TableCell>{s.category}</TableCell>
+                    <TableCell>
+                      {s.category}
+                      {s.store_type === "wholesale" && (
+                        <select
+                          className="mt-1 block w-full border rounded-md p-1 bg-background text-foreground text-[11px]"
+                          value={s.shop_category || ""}
+                          onChange={(e) => {
+                            supabase.from("grocery_stores").update({ shop_category: e.target.value || null } as any).eq("id", s.id).then(({ error }) => {
+                              if (error) { toast.error(error.message); return; }
+                              toast.success("دکان کی قسم اپڈیٹ"); fetchData();
+                            });
+                          }}
+                        >
+                          <option value="">دکان کی قسم —</option>
+                          {shopCats.map((c) => <option key={c.id} value={c.name}>{c.name_ur ? `${c.name_ur} / ${c.name}` : c.name}</option>)}
+                        </select>
+                      )}
+                    </TableCell>
+
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <span className="font-semibold text-sm">Rs {s.monthly_fee || 0}</span>

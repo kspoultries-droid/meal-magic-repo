@@ -360,6 +360,7 @@ export type Database = {
           owner_id: string
           rating: number | null
           ships_nationwide: boolean
+          shop_category: string | null
           slug: string | null
           sort_order: number | null
           store_type: string
@@ -389,6 +390,7 @@ export type Database = {
           owner_id: string
           rating?: number | null
           ships_nationwide?: boolean
+          shop_category?: string | null
           slug?: string | null
           sort_order?: number | null
           store_type?: string
@@ -418,6 +420,7 @@ export type Database = {
           owner_id?: string
           rating?: number | null
           ships_nationwide?: boolean
+          shop_category?: string | null
           slug?: string | null
           sort_order?: number | null
           store_type?: string
@@ -1552,6 +1555,7 @@ export type Database = {
           icon: string
           id: string
           is_active: boolean | null
+          kind: string
           name: string
           name_ur: string | null
           sort_order: number | null
@@ -1561,6 +1565,7 @@ export type Database = {
           icon?: string
           id?: string
           is_active?: boolean | null
+          kind?: string
           name: string
           name_ur?: string | null
           sort_order?: number | null
@@ -1570,6 +1575,7 @@ export type Database = {
           icon?: string
           id?: string
           is_active?: boolean | null
+          kind?: string
           name?: string
           name_ur?: string | null
           sort_order?: number | null
