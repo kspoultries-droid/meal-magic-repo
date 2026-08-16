@@ -14,19 +14,20 @@ interface Cat {
   icon: string;
   sort_order: number;
   is_active: boolean;
+  kind?: string;
 }
 
 const WholesaleCategoriesTab = () => {
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ name: "", name_ur: "", icon: "Package", sort_order: 0 });
+  const [form, setForm] = useState({ name: "", name_ur: "", icon: "Package", sort_order: 0, kind: "item" });
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Cat>>({});
 
   const fetchCats = async () => {
     setLoading(true);
-    const { data } = await supabase.from("wholesale_categories").select("*").order("sort_order");
+    const { data } = await supabase.from("wholesale_categories").select("*").order("kind").order("sort_order");
     setCats((data as any) || []);
     setLoading(false);
   };
@@ -38,7 +39,7 @@ const WholesaleCategoriesTab = () => {
     const { error } = await supabase.from("wholesale_categories").insert(form as any);
     if (error) return toast.error(error.message);
     toast.success("کیٹیگری شامل ہو گئی");
-    setForm({ name: "", name_ur: "", icon: "Package", sort_order: 0 });
+    setForm({ name: "", name_ur: "", icon: "Package", sort_order: 0, kind: "item" });
     setAdding(false);
     fetchCats();
   };
@@ -60,7 +61,7 @@ const WholesaleCategoriesTab = () => {
   const saveEdit = async () => {
     if (!editId) return;
     const { error } = await supabase.from("wholesale_categories").update({
-      name: editForm.name, name_ur: editForm.name_ur, icon: editForm.icon, sort_order: editForm.sort_order,
+      name: editForm.name, name_ur: editForm.name_ur, icon: editForm.icon, sort_order: editForm.sort_order, kind: editForm.kind || "item",
     }).eq("id", editId);
     if (error) return toast.error(error.message);
     toast.success("اپڈیٹ ہو گیا");
@@ -78,10 +79,14 @@ const WholesaleCategoriesTab = () => {
       </CardHeader>
       <CardContent>
         {adding && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-4 p-3 border rounded-lg bg-muted/30">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-2 mb-4 p-3 border rounded-lg bg-muted/30">
             <Input placeholder="Name (Toys)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             <Input placeholder="نام اردو" value={form.name_ur} onChange={(e) => setForm({ ...form, name_ur: e.target.value })} />
             <Input placeholder="Icon (Package)" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} />
+            <select className="border rounded-md p-2 bg-background text-foreground text-sm" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
+              <option value="item">آئٹم کیٹیگری / Item</option>
+              <option value="shop">دکان کی قسم / Shop</option>
+            </select>
             <Input type="number" placeholder="Sort" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: +e.target.value })} />
             <Button onClick={handleAdd}>Save</Button>
           </div>
@@ -97,6 +102,7 @@ const WholesaleCategoriesTab = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>اردو</TableHead>
                 <TableHead>Icon</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Active</TableHead>
                 <TableHead></TableHead>
               </TableRow>
@@ -110,6 +116,12 @@ const WholesaleCategoriesTab = () => {
                       <TableCell><Input value={editForm.name ?? ""} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} /></TableCell>
                       <TableCell><Input value={editForm.name_ur ?? ""} onChange={(e) => setEditForm({ ...editForm, name_ur: e.target.value })} /></TableCell>
                       <TableCell><Input value={editForm.icon ?? ""} onChange={(e) => setEditForm({ ...editForm, icon: e.target.value })} /></TableCell>
+                      <TableCell>
+                        <select className="border rounded-md p-1 bg-background text-foreground text-xs" value={editForm.kind ?? "item"} onChange={(e) => setEditForm({ ...editForm, kind: e.target.value })}>
+                          <option value="item">Item</option>
+                          <option value="shop">Shop</option>
+                        </select>
+                      </TableCell>
                       <TableCell>{c.is_active ? "✅" : "❌"}</TableCell>
                       <TableCell className="flex gap-1">
                         <Button size="icon" variant="ghost" onClick={saveEdit}><Check className="h-4 w-4" /></Button>
@@ -122,6 +134,11 @@ const WholesaleCategoriesTab = () => {
                       <TableCell className="font-semibold">{c.name}</TableCell>
                       <TableCell>{c.name_ur}</TableCell>
                       <TableCell><code className="text-xs">{c.icon}</code></TableCell>
+                      <TableCell>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.kind === "shop" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                          {c.kind === "shop" ? "دکان" : "آئٹم"}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <button onClick={() => handleToggleActive(c)}>{c.is_active ? "✅" : "❌"}</button>
                       </TableCell>
