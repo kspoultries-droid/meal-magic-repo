@@ -25,7 +25,14 @@ const GroceryTab = () => {
   const [showAddStore, setShowAddStore] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg" });
-  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false });
+  const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false, shop_category: "" });
+  const [shopCats, setShopCats] = useState<any[]>([]);
+
+  useEffect(() => {
+    (supabase.from("wholesale_categories" as any).select("id,name,name_ur").eq("kind", "shop").eq("is_active", true).order("sort_order") as any)
+      .then(({ data }: any) => setShopCats(data || []));
+  }, []);
+
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editProductPrice, setEditProductPrice] = useState("");
   const [editProductDiscount, setEditProductDiscount] = useState("");
