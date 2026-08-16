@@ -33,16 +33,17 @@ const Wholesale = () => {
   useEffect(() => {
     const fetchStores = async () => {
       setLoading(true);
-      let query = supabase
+      let query: any = supabase
         .from("grocery_stores")
         .select("*")
         .eq("store_type", "wholesale")
         .neq("subscription_status", "paused");
       if (selectedCity) query = query.eq("city_id", selectedCity);
       if (activeCategory && activeCategory !== "All") query = query.eq("category", activeCategory);
-      if (activeShopCategory) query = query.eq("shop_category" as any, activeShopCategory);
+      if (activeShopCategory) query = query.eq("shop_category", activeShopCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       query = query.order("sort_order").order("created_at", { ascending: false });
+
       const { data } = await query;
       setStores(data || []);
       setLoading(false);
