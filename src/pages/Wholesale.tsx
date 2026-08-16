@@ -14,14 +14,20 @@ const Wholesale = () => {
   const [stores, setStores] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [shopCategories, setShopCategories] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeShopCategory, setActiveShopCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
-    (supabase.from("wholesale_categories" as any).select("*").eq("is_active", true).order("sort_order") as any).then(({ data }: any) => setCategories(data || []));
+    (supabase.from("wholesale_categories" as any).select("*").eq("is_active", true).order("sort_order") as any).then(({ data }: any) => {
+      const all = data || [];
+      setCategories(all.filter((c: any) => (c.kind ?? "item") === "item"));
+      setShopCategories(all.filter((c: any) => c.kind === "shop"));
+    });
   }, []);
 
   useEffect(() => {
@@ -34,6 +40,7 @@ const Wholesale = () => {
         .neq("subscription_status", "paused");
       if (selectedCity) query = query.eq("city_id", selectedCity);
       if (activeCategory && activeCategory !== "All") query = query.eq("category", activeCategory);
+      if (activeShopCategory) query = query.eq("shop_category" as any, activeShopCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       query = query.order("sort_order").order("created_at", { ascending: false });
       const { data } = await query;
@@ -41,7 +48,8 @@ const Wholesale = () => {
       setLoading(false);
     };
     fetchStores();
-  }, [searchQuery, selectedCity, activeCategory]);
+  }, [searchQuery, selectedCity, activeCategory, activeShopCategory]);
+
 
   return (
     <div className="min-h-screen bg-background pb-20">
