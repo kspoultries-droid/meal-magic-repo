@@ -109,10 +109,12 @@ const GroceryTab = () => {
       owner_id: user.id,
       store_type: newStore.store_type,
       ships_nationwide: newStore.ships_nationwide,
+      shop_category: newStore.store_type === "wholesale" ? (newStore.shop_category || null) : null,
     } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("اسٹور شامل ہو گیا / Store added");
-    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false });
+    setNewStore({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false, shop_category: "" });
+
     setShowAddStore(false);
     fetchData();
   };
