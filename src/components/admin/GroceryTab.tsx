@@ -181,11 +181,21 @@ const GroceryTab = () => {
                     </select>
                   </div>
                   {newStore.store_type === "wholesale" && (
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={newStore.ships_nationwide} onChange={(e) => setNewStore({...newStore, ships_nationwide: e.target.checked})} />
-                      پورے پاکستان میں شپنگ / Ships nationwide (TCS/Leopards)
-                    </label>
+                    <>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">دکان کی قسم / Shop Category</label>
+                        <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newStore.shop_category} onChange={(e) => setNewStore({...newStore, shop_category: e.target.value})}>
+                          <option value="">— منتخب کریں —</option>
+                          {shopCats.map((c) => <option key={c.id} value={c.name}>{c.name_ur ? `${c.name_ur} / ${c.name}` : c.name}</option>)}
+                        </select>
+                      </div>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" checked={newStore.ships_nationwide} onChange={(e) => setNewStore({...newStore, ships_nationwide: e.target.checked})} />
+                        پورے پاکستان میں شپنگ / Ships nationwide (TCS/Leopards)
+                      </label>
+                    </>
                   )}
+
                   <Button onClick={addStore} className="w-full">شامل کریں / Add</Button>
                 </div>
               </DialogContent>
