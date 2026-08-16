@@ -1,14 +1,14 @@
 import { UtensilsCrossed, Pizza, Sandwich, Coffee, IceCreamCone, Salad, Beef, Flame } from "lucide-react";
 
 const categories = [
-  { name: "All", icon: UtensilsCrossed },
-  { name: "Biryani", icon: Flame },
-  { name: "Pizza", icon: Pizza },
-  { name: "Burgers", icon: Sandwich },
-  { name: "BBQ", icon: Beef },
-  { name: "Coffee", icon: Coffee },
-  { name: "Desserts", icon: IceCreamCone },
-  { name: "Healthy", icon: Salad },
+  { name: "All", ur: "سب", icon: UtensilsCrossed },
+  { name: "Biryani", ur: "بریانی", icon: Flame },
+  { name: "Pizza", ur: "پیزا", icon: Pizza },
+  { name: "Burgers", ur: "برگر", icon: Sandwich },
+  { name: "BBQ", ur: "بی بی کیو", icon: Beef },
+  { name: "Coffee", ur: "کافی", icon: Coffee },
+  { name: "Desserts", ur: "میٹھا", icon: IceCreamCone },
+  { name: "Healthy", ur: "ہیلتھی", icon: Salad },
 ];
 
 interface CategoryChipsProps {
@@ -18,9 +18,12 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
   return (
-    <section className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-extrabold text-foreground mb-5">What are you craving?</h2>
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+    <section className="container mx-auto px-4 pt-4 pb-2">
+      <div className="flex items-baseline gap-2 mb-3">
+        <h2 className="text-lg font-extrabold text-foreground">آج کیا کھانا ہے؟</h2>
+        <span className="text-xs text-muted-foreground">What are you craving?</span>
+      </div>
+      <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
         {categories.map((cat) => {
           const Icon = cat.icon;
           const isActive = cat.name === activeCategory;
@@ -28,14 +31,14 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
             <button
               key={cat.name}
               onClick={() => onCategoryChange(cat.name)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold whitespace-nowrap transition-colors shrink-0 ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all active:scale-95 ${
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-card text-foreground border hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-gradient-primary text-primary-foreground shadow-glow scale-105"
+                  : "bg-card text-foreground border border-border/60 shadow-soft hover:border-primary/40 hover:text-primary"
               }`}
             >
               <Icon className="w-4 h-4" />
-              {cat.name}
+              {cat.ur}
             </button>
           );
         })}

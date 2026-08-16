@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import HomeHero from "@/components/home/HomeHero";
+import ServiceSwitcher from "@/components/home/ServiceSwitcher";
+import TrustStrip from "@/components/home/TrustStrip";
+import TopPicksRail from "@/components/home/TopPicksRail";
 import QuickCategories from "@/components/QuickCategories";
 import PromotionalAds from "@/components/PromotionalAds";
 import CategoryChips from "@/components/CategoryChips";
@@ -13,25 +16,21 @@ import AppShareButton from "@/components/AppShareButton";
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const isSearching = searchQuery.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-gradient-subtle pb-24">
       <Navbar />
-      {/* Premium search bar */}
-      <div className="bg-gradient-hero px-4 pb-5 pt-1">
-        <div className="flex items-center gap-3 bg-card/95 backdrop-blur rounded-full px-4 py-3 shadow-elegant border border-white/20">
-          <Search className="w-5 h-5 text-primary shrink-0" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ریسٹورنٹ، گروسری یا ڈش تلاش کریں..."
-            className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-          />
-        </div>
-      </div>
+      <HomeHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+      <ServiceSwitcher />
       <QuickCategories />
-      <PromotionalAds placement="home" />
+      {!isSearching && (
+        <>
+          <PromotionalAds placement="home" />
+          <TopPicksRail />
+          <TrustStrip />
+        </>
+      )}
       <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
       <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} />
       <Footer />
