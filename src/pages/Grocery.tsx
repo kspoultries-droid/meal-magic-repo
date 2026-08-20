@@ -197,6 +197,50 @@ const Grocery = () => {
         </section>
       )}
 
+      {/* Top selling products rail */}
+      {topSelling.length > 0 && !searchQuery && (
+        <section className="container mx-auto px-4 pb-4">
+          <div className="flex items-baseline gap-2 mb-3">
+            <h2 className="text-lg font-extrabold text-foreground flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-primary" /> زیادہ بکنے والی اشیاء
+            </h2>
+            <span className="text-xs text-muted-foreground">Top selling</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {topSelling.map((p, i) => (
+              <button
+                key={p.id}
+                onClick={() => navigate(`/grocery/${p.store_id}`)}
+                className="w-36 shrink-0 bg-gradient-card rounded-2xl border border-border/60 shadow-card overflow-hidden text-left active:scale-95 transition-transform"
+              >
+                <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                  ) : (
+                    <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
+                  )}
+                  <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    #{i + 1}
+                  </span>
+                </div>
+                <div className="p-2.5">
+                  <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</span>
+                    {p.discount_price && (
+                      <span className="text-[10px] text-muted-foreground line-through">Rs {p.price}</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">{p.unit}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+
+
       {/* Filters Row: City + Sort */}
       <div className="container mx-auto px-4 pb-3">
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
