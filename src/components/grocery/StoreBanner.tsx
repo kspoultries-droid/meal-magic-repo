@@ -103,9 +103,9 @@ const StoreBanner = ({
       <div className="relative overflow-hidden">
         {/* Grocery Images Collage Background */}
         {store.image_url ? (
-          <img src={store.image_url} alt={store.name} className="w-full h-52 object-cover" />
+          <img src={store.image_url} alt={store.name} className="w-full h-72 sm:h-80 object-cover" />
         ) : (
-          <div className="w-full h-52 grid grid-cols-4 grid-rows-2">
+          <div className="w-full h-72 sm:h-80 grid grid-cols-4 grid-rows-2">
             {collageImages.slice(0, 8).map((img, i) => (
               <img key={i} src={img} alt="" className="w-full h-full object-cover" />
             ))}

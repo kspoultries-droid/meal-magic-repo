@@ -4,6 +4,7 @@ import { Search, Store, Star, Truck, MapPin, Package } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import PageHero from "@/components/common/PageHero";
 import BottomTabBar from "@/components/BottomTabBar";
 import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
@@ -56,27 +57,23 @@ const Wholesale = () => {
     <div className="min-h-screen bg-background pb-20">
       <Navbar />
 
-      {/* Hero */}
-      <div className="bg-gradient-to-br from-primary to-primary/70 px-4 pt-3 pb-5">
-        <div className="text-center text-primary-foreground mb-3">
-          <h1 className="text-xl font-extrabold flex items-center justify-center gap-1.5">
-            <Package className="w-5 h-5" /> ہول سیل بازار
-          </h1>
-          <p className="text-[11px] opacity-95 mt-1 leading-relaxed">
-            بولٹن مارکیٹ کراچی صدر • شاہ عالمی مارکیٹ لاہور • کارخانہ بازار فیصل آباد
-          </p>
-        </div>
-        <div className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5 shadow">
-          <Search className="w-5 h-5 text-muted-foreground shrink-0" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ہول سیل دکان تلاش کریں / Search wholesale..."
-            className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-          />
-        </div>
-      </div>
+      <PageHero
+        title="ہول سیل بازار / Bazar"
+        eyebrow="بولٹن مارکیٹ کراچی • شاہ عالمی لاہور • کارخانہ بازار فیصل آباد"
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        placeholders={[
+          "ہول سیل دکان تلاش کریں…",
+          "کریانہ ہول سیلر تلاش کریں…",
+          "الیکٹرانکس تلاش کریں…",
+          "کپڑے / اسٹیشنری تلاش کریں…",
+        ]}
+        promos={[
+          { emoji: "📦", title: "تھوک ریٹ پر پورے پاکستان ڈیلیوری", subtitle: "Wholesale rates, nationwide shipping" },
+          { emoji: "🤝", title: "تصدیق شدہ ہول سیلرز", subtitle: "Verified wholesalers only" },
+          { emoji: "🧾", title: "کم سے کم آرڈر پر خاص رعایت", subtitle: "Special discount on bulk MOQ" },
+        ]}
+      />
 
       {/* Shop-wise Categories */}
       {shopCategories.length > 0 && (
