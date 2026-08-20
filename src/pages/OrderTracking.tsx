@@ -112,13 +112,42 @@ const OrderTracking = () => {
             </div>
           </div>
         )}
-        {rider?.current_lat && rider?.current_lng && (
+        {rider?.lat && rider?.lng && (
           <div className="absolute top-2 right-2 bg-card/95 backdrop-blur px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5 text-xs font-bold">
             <Bike className="w-3.5 h-3.5 text-primary animate-bounce" />
-            رائیڈر قریب
+            رائیڈر راستے میں
           </div>
         )}
       </div>
+
+      {/* Rider card */}
+      {rider && !["delivered", "completed", "cancelled"].includes(order.status) && (
+        <div className="mx-4 mt-4 rounded-2xl border bg-card p-4 flex items-center gap-3 shadow-soft">
+          <span className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Bike className="w-5 h-5 text-primary" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground">آپ کا رائیڈر</p>
+            <p className="font-extrabold text-foreground truncate">{rider.rider_name || "رائیڈر"}</p>
+          </div>
+          {rider.rider_phone && (
+            <a href={`tel:${rider.rider_phone}`} className="text-xs font-bold bg-primary text-primary-foreground rounded-full px-3 py-2">
+              کال کریں
+            </a>
+          )}
+          {rider.lat && rider.lng && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${rider.lat},${rider.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-bold border rounded-full px-3 py-2"
+            >
+              لوکیشن
+            </a>
+          )}
+        </div>
+      )}
+
 
       {/* Order Status Steps */}
       <div className="px-6 py-6">
