@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import HomeHero from "@/components/home/HomeHero";
-import ServiceSwitcher from "@/components/home/ServiceSwitcher";
 import TrustStrip from "@/components/home/TrustStrip";
 import TopPicksRail from "@/components/home/TopPicksRail";
 import QuickCategories from "@/components/QuickCategories";
@@ -22,8 +21,8 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle pb-24">
       <Navbar />
       <HomeHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-      <ServiceSwitcher />
       <QuickCategories />
+
       {!isSearching && (
         <>
           <PromotionalAds placement="home" />
