@@ -339,6 +339,56 @@ const RiderDashboard = () => {
           </CardContent>
         </Card>
 
+        {/* My Grocery / Bazar Orders */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Package className="w-5 h-5" /> گروسری / بازار آرڈرز</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {groceryOrders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6">ابھی کوئی گروسری آرڈر اسائن نہیں ہوا</p>
+            ) : (
+              <div className="space-y-3">
+                {groceryOrders.map((o) => {
+                  const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
+                  const dropoff = mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng);
+                  return (
+                    <div key={`${o._table}-${o.id}`} className="rounded-xl border bg-secondary/20 p-4 space-y-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div>
+                          <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                          <p className="font-extrabold text-foreground">Rs {o.total_amount ?? "—"}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[10px]">{o._label}</Badge>
+                          <Badge className={isClosed ? "bg-success text-success-foreground" : "bg-primary text-primary-foreground"}>{o.status}</Badge>
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p>🏪 Pickup: <span className="font-bold text-foreground">{o.grocery_stores?.name || "اسٹور"}</span></p>
+                        <p>📍 Dropoff: {o.delivery_address || "پتہ نہیں"}</p>
+                        <p className="text-xs">💰 ڈلیوری فیس: Rs {o.delivery_fee || 0}</p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {dropoff && (
+                          <a href={dropoff} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline">
+                            <Navigation className="w-3 h-3" /> کسٹمر لوکیشن
+                          </a>
+                        )}
+                        {!isClosed && (
+                          <Button size="sm" className="h-8 text-xs" onClick={() => markGroceryDelivered(o)}>
+                            ڈلیور ہو گیا
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* My Assigned Orders */}
         <Card>
           <CardHeader>
