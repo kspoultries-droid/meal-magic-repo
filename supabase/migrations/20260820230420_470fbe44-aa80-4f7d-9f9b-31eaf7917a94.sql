@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.get_top_selling_grocery_products(integer) FROM anon;
