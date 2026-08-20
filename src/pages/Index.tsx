@@ -22,8 +22,8 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle pb-24">
       <Navbar />
       <HomeHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-      <ServiceSwitcher />
       <QuickCategories />
+
       {!isSearching && (
         <>
           <PromotionalAds placement="home" />
