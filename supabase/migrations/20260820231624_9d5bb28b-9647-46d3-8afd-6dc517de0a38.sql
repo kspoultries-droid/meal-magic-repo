@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.settle_grocery_order_on_delivery() FROM PUBLIC, anon, authenticated;

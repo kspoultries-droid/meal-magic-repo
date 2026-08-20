@@ -28,6 +28,7 @@ const RiderDashboard = () => {
   const [riderData, setRiderData] = useState<any>(null);
   const [myOrders, setMyOrders] = useState<any[]>([]);
   const [nearbyOrders, setNearbyOrders] = useState<any[]>([]);
+  const [groceryOrders, setGroceryOrders] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<string>("");
@@ -100,15 +101,21 @@ const RiderDashboard = () => {
   const fetchData = async (showLoader = true) => {
     if (!user) return;
     if (showLoader) setLoadingData(true);
-    const [{ data: rider }, { data: assigned }, { data: available }] = await Promise.all([
+    const [{ data: rider }, { data: assigned }, { data: available }, { data: gCart }, { data: gList }] = await Promise.all([
       supabase.from("riders").select("*").eq("id", user.id).maybeSingle(),
       supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode, pickup_address, pickup_lat, pickup_lng)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("orders").select("*, order_items(*), restaurants!inner(name, description, delivery_mode, pickup_address, pickup_lat, pickup_lng)").in("status", ["confirmed", "preparing", "delivering"]).is("rider_id", null).neq("restaurants.delivery_mode", "self").order("created_at", { ascending: false }).limit(20),
-
+      supabase.from("grocery_cart_orders").select("id,status,total_amount,delivery_fee,delivery_address,delivery_lat,delivery_lng,rider_id,created_at,grocery_stores(name)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("grocery_list_orders").select("id,status,total_amount,delivery_fee,delivery_address,delivery_lat,delivery_lng,rider_id,created_at,grocery_stores(name)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
     ]);
     const nextRider = rider || await ensureRiderProfile();
     setRiderData(nextRider);
     setMyOrders(assigned || []);
+    setGroceryOrders([
+      ...(gCart || []).map((o: any) => ({ ...o, _table: "grocery_cart_orders" as const, _label: "گروسری کارٹ" })),
+      ...(gList || []).map((o: any) => ({ ...o, _table: "grocery_list_orders" as const, _label: "لسٹ/فوٹو آرڈر" })),
+    ].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)));
+
 
     // Sort by distance and take nearest 5
     const allAvailable = available || [];
@@ -147,7 +154,16 @@ const RiderDashboard = () => {
           toast.success("🏍️ نیا آرڈر آپ کو اسائن ہوا ہے!");
         }
       })
-
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_cart_orders" }, (payload) => {
+        fetchData();
+        const nw: any = payload.new || {}; const old: any = payload.old || {};
+        if (nw.rider_id === user.id && old.rider_id !== user.id) { triggerAlert(); toast.success("🛒 نیا گروسری آرڈر آپ کو اسائن ہوا ہے!"); }
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_list_orders" }, (payload) => {
+        fetchData();
+        const nw: any = payload.new || {}; const old: any = payload.old || {};
+        if (nw.rider_id === user.id && old.rider_id !== user.id) { triggerAlert(); toast.success("🛒 نیا گروسری آرڈر آپ کو اسائن ہوا ہے!"); }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [hasRole, user]);
@@ -170,6 +186,13 @@ const RiderDashboard = () => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
     if (error) { toast.error(error.message); return; }
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
+    fetchData();
+  };
+
+  const markGroceryDelivered = async (order: any) => {
+    const { error } = await supabase.from(order._table).update({ status: "delivered" }).eq("id", order.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("گروسری آرڈر ڈلیور ہو گیا ✅");
     fetchData();
   };
 
@@ -311,6 +334,56 @@ const RiderDashboard = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* My Grocery / Bazar Orders */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Package className="w-5 h-5" /> گروسری / بازار آرڈرز</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {groceryOrders.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6">ابھی کوئی گروسری آرڈر اسائن نہیں ہوا</p>
+            ) : (
+              <div className="space-y-3">
+                {groceryOrders.map((o) => {
+                  const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
+                  const dropoff = mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng);
+                  return (
+                    <div key={`${o._table}-${o.id}`} className="rounded-xl border bg-secondary/20 p-4 space-y-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div>
+                          <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                          <p className="font-extrabold text-foreground">Rs {o.total_amount ?? "—"}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[10px]">{o._label}</Badge>
+                          <Badge className={isClosed ? "bg-success text-success-foreground" : "bg-primary text-primary-foreground"}>{o.status}</Badge>
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p>🏪 Pickup: <span className="font-bold text-foreground">{o.grocery_stores?.name || "اسٹور"}</span></p>
+                        <p>📍 Dropoff: {o.delivery_address || "پتہ نہیں"}</p>
+                        <p className="text-xs">💰 ڈلیوری فیس: Rs {o.delivery_fee || 0}</p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {dropoff && (
+                          <a href={dropoff} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline">
+                            <Navigation className="w-3 h-3" /> کسٹمر لوکیشن
+                          </a>
+                        )}
+                        {!isClosed && (
+                          <Button size="sm" className="h-8 text-xs" onClick={() => markGroceryDelivered(o)}>
+                            ڈلیور ہو گیا
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>
