@@ -1,13 +1,15 @@
-import { Search, Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight } from "lucide-react";
+import { Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import PageHero from "@/components/common/PageHero";
 import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
+
 
 const groceryCategories = [
   { name: "All", nameUr: "سب", icon: ShoppingBasket, filter: null },
