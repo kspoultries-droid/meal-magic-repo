@@ -1645,6 +1645,19 @@ export type Database = {
         }
         Returns: string
       }
+      get_top_selling_grocery_products: {
+        Args: { _limit?: number }
+        Returns: {
+          discount_price: number
+          id: string
+          image_url: string
+          name: string
+          price: number
+          sold_qty: number
+          store_id: string
+          unit: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

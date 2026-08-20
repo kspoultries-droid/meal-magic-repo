@@ -18,7 +18,7 @@ const Navbar = () => {
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center transition-transform group-hover:scale-105 group-hover:rotate-3 shadow-glow">
             <span className="text-primary-foreground font-extrabold text-base sm:text-lg">EL</span>
           </div>
-          <span className="text-lg sm:text-xl font-extrabold text-primary-foreground hidden sm:block tracking-tight">
+          <span className="text-lg sm:text-xl font-extrabold text-primary-foreground tracking-tight">
             Easy<span className="text-primary-foreground/80">Life</span>
           </span>
         </div>

@@ -1,13 +1,15 @@
-import { Search, Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight } from "lucide-react";
+import { Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import PageHero from "@/components/common/PageHero";
 import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
+
 
 const groceryCategories = [
   { name: "All", nameUr: "سب", icon: ShoppingBasket, filter: null },
@@ -32,6 +34,7 @@ const Grocery = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [stores, setStores] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
+  const [topSelling, setTopSelling] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
@@ -49,12 +52,19 @@ const Grocery = () => {
       .order("sort_order", { ascending: true })
       .limit(12)
       .then(({ data }) => setDeals(data || []));
+    (supabase.rpc as any)("get_top_selling_grocery_products", { _limit: 12 }).then(({ data }: any) =>
+      setTopSelling(data || [])
+    );
   }, []);
 
   useEffect(() => {
     const fetchStores = async () => {
       setLoading(true);
-      let query = supabase.from("grocery_stores").select("*").neq("subscription_status", "paused").or("store_type.is.null,store_type.eq.retail");
+      let query = supabase
+        .from("grocery_stores")
+        .select("id, name, category, image_url, rating, delivery_time, minimum_order, is_active")
+        .neq("subscription_status", "paused")
+        .or("store_type.is.null,store_type.eq.retail");
       if (activeCategory) query = query.eq("category", activeCategory);
       if (selectedCity) query = query.eq("city_id", selectedCity);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
@@ -67,7 +77,7 @@ const Grocery = () => {
         query = query.order("sort_order", { ascending: true }).order("created_at", { ascending: false });
       }
 
-      const { data } = await query;
+      const { data } = await query.limit(40);
       setStores(data || []);
       setLoading(false);
     };
@@ -80,22 +90,24 @@ const Grocery = () => {
     <div className="min-h-screen bg-background pb-24">
       <Navbar />
 
-      {/* Sticky Search */}
-      <div className="sticky top-0 z-30 bg-primary/95 backdrop-blur-md px-4 pb-3 pt-2 shadow-soft">
-        <div className="flex items-center gap-3 bg-card rounded-2xl px-4 py-2.5 shadow-card">
-          <Search className="w-5 h-5 text-muted-foreground shrink-0" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search stores / اسٹور تلاش کریں..."
-            className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="text-muted-foreground text-xs shrink-0">✕</button>
-          )}
-        </div>
-      </div>
+      <PageHero
+        title="گروسری / Grocery"
+        eyebrow="تازہ سبزی، پھل، گوشت اور روزمرہ سامان"
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        placeholders={[
+          "دودھ تلاش کریں…",
+          "آٹا / چاول تلاش کریں…",
+          "سبزی و پھل تلاش کریں…",
+          "گوشت تلاش کریں…",
+        ]}
+        promos={[
+          { emoji: "🥬", title: "روزانہ تازہ سبزی و پھل", subtitle: "Fresh daily from local markets" },
+          { emoji: "💸", title: "منتخب اشیاء پر 30% تک رعایت", subtitle: "Up to 30% off on selected items" },
+          { emoji: "🚚", title: "Rs 1000 سے اوپر مفت ڈیلیوری", subtitle: "Free delivery above Rs 1000" },
+        ]}
+      />
+
 
       {/* Sponsored Ads */}
       <PromotionalAds placement="grocery" />
@@ -184,6 +196,50 @@ const Grocery = () => {
           </div>
         </section>
       )}
+
+      {/* Top selling products rail */}
+      {topSelling.length > 0 && !searchQuery && (
+        <section className="container mx-auto px-4 pb-4">
+          <div className="flex items-baseline gap-2 mb-3">
+            <h2 className="text-lg font-extrabold text-foreground flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-primary" /> زیادہ بکنے والی اشیاء
+            </h2>
+            <span className="text-xs text-muted-foreground">Top selling</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {topSelling.map((p, i) => (
+              <button
+                key={p.id}
+                onClick={() => navigate(`/grocery/${p.store_id}`)}
+                className="w-36 shrink-0 bg-gradient-card rounded-2xl border border-border/60 shadow-card overflow-hidden text-left active:scale-95 transition-transform"
+              >
+                <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                  ) : (
+                    <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
+                  )}
+                  <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    #{i + 1}
+                  </span>
+                </div>
+                <div className="p-2.5">
+                  <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</span>
+                    {p.discount_price && (
+                      <span className="text-[10px] text-muted-foreground line-through">Rs {p.price}</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">{p.unit}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+
 
       {/* Filters Row: City + Sort */}
       <div className="container mx-auto px-4 pb-3">
