@@ -1645,6 +1645,15 @@ export type Database = {
         }
         Returns: string
       }
+      get_order_rider_info: {
+        Args: { _order_id: string }
+        Returns: {
+          lat: number
+          lng: number
+          rider_name: string
+          rider_phone: string
+        }[]
+      }
       get_top_selling_grocery_products: {
         Args: { _limit?: number }
         Returns: {
