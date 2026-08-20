@@ -138,8 +138,16 @@ const RiderDashboard = () => {
       .channel("rider-orders")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
         fetchData();
-        if (payload.eventType === 'INSERT') triggerAlert();
+        const nw: any = payload.new || {};
+        const old: any = payload.old || {};
+        // Alert on a new nearby order OR when this order gets assigned to me
+        if (payload.eventType === "INSERT") triggerAlert();
+        if (payload.eventType === "UPDATE" && nw.rider_id === user.id && old.rider_id !== user.id) {
+          triggerAlert();
+          toast.success("🏍️ نیا آرڈر آپ کو اسائن ہوا ہے!");
+        }
       })
+
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [hasRole, user]);
