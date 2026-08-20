@@ -154,7 +154,16 @@ const RiderDashboard = () => {
           toast.success("🏍️ نیا آرڈر آپ کو اسائن ہوا ہے!");
         }
       })
-
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_cart_orders" }, (payload) => {
+        fetchData();
+        const nw: any = payload.new || {}; const old: any = payload.old || {};
+        if (nw.rider_id === user.id && old.rider_id !== user.id) { triggerAlert(); toast.success("🛒 نیا گروسری آرڈر آپ کو اسائن ہوا ہے!"); }
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_list_orders" }, (payload) => {
+        fetchData();
+        const nw: any = payload.new || {}; const old: any = payload.old || {};
+        if (nw.rider_id === user.id && old.rider_id !== user.id) { triggerAlert(); toast.success("🛒 نیا گروسری آرڈر آپ کو اسائن ہوا ہے!"); }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [hasRole, user]);
