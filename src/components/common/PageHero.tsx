@@ -12,6 +12,7 @@ interface PageHeroProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   placeholders: string[];
+  title: string;
   eyebrow?: string;
   promos: PromoSlide[];
   showLocation?: boolean;
@@ -22,6 +23,7 @@ const PageHero = ({
   searchQuery,
   onSearchChange,
   placeholders,
+  title,
   eyebrow,
   promos,
   showLocation = true,
@@ -53,22 +55,13 @@ const PageHero = ({
       <div className="relative container mx-auto max-w-3xl">
         {/* Brand + location row */}
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <button
-              onClick={() => navigate("/")}
-              className="w-9 h-9 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center shadow-glow shrink-0"
-              aria-label="EasyLife"
-            >
-              <span className="text-primary-foreground font-extrabold text-sm">EL</span>
-            </button>
-            <div className="min-w-0">
-              <p className="text-primary-foreground font-extrabold leading-none tracking-tight">
-                Easy<span className="text-primary-foreground/75">Life</span>
-              </p>
-              {eyebrow && (
-                <p className="text-[10px] text-primary-foreground/75 leading-none mt-1 truncate">{eyebrow}</p>
-              )}
-            </div>
+          <div className="min-w-0">
+            <h1 className="text-primary-foreground font-extrabold text-lg leading-none tracking-tight truncate">
+              {title}
+            </h1>
+            {eyebrow && (
+              <p className="text-[10px] text-primary-foreground/75 leading-none mt-1.5 truncate">{eyebrow}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-1">
