@@ -1,4 +1,4 @@
-import { Search, Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin } from "lucide-react";
+import { Search, Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +31,7 @@ const sortOptions = [
 const Grocery = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [stores, setStores] = useState<any[]>([]);
+  const [deals, setDeals] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
@@ -40,6 +41,14 @@ const Grocery = () => {
 
   useEffect(() => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
+    supabase
+      .from("grocery_products")
+      .select("id, name, price, discount_price, image_url, unit, store_id, is_special_offer")
+      .eq("is_available", true)
+      .eq("is_special_offer", true)
+      .order("sort_order", { ascending: true })
+      .limit(12)
+      .then(({ data }) => setDeals(data || []));
   }, []);
 
   useEffect(() => {
@@ -68,12 +77,12 @@ const Grocery = () => {
   const storeCount = stores.length;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       <Navbar />
 
-      {/* Compact Search Bar */}
-      <div className="bg-primary px-4 pb-4">
-        <div className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5 shadow">
+      {/* Sticky Search */}
+      <div className="sticky top-0 z-30 bg-primary/95 backdrop-blur-md px-4 pb-3 pt-2 shadow-soft">
+        <div className="flex items-center gap-3 bg-card rounded-2xl px-4 py-2.5 shadow-card">
           <Search className="w-5 h-5 text-muted-foreground shrink-0" />
           <input
             type="text"
@@ -91,10 +100,13 @@ const Grocery = () => {
       {/* Sponsored Ads */}
       <PromotionalAds placement="grocery" />
 
-      {/* Horizontal Category Chips */}
+      {/* Category rail */}
       <section className="container mx-auto px-4 py-4">
-        <h2 className="text-lg font-extrabold text-foreground mb-3">Shop by Category / کیٹیگری</h2>
-        <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex items-baseline gap-2 mb-3">
+          <h2 className="text-lg font-extrabold text-foreground">کیٹیگری</h2>
+          <span className="text-xs text-muted-foreground">Shop by category</span>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {groceryCategories.map((cat) => {
             const Icon = cat.icon;
             const isActive = activeCategory === cat.filter;
@@ -102,25 +114,80 @@ const Grocery = () => {
               <button
                 key={cat.name}
                 onClick={() => setActiveCategory(isActive ? null : cat.filter)}
-                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 min-w-[60px] ${
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-md scale-105"
-                    : "bg-card text-foreground border hover:bg-accent hover:text-accent-foreground"
-                }`}
+                className="flex flex-col items-center gap-1.5 shrink-0 w-[68px] active:scale-95 transition-transform"
               >
-                <Icon className="w-5 h-5" />
-                <span>{cat.name}</span>
-                <span className="text-[8px] opacity-70">{cat.nameUr}</span>
+                <span
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                    isActive
+                      ? "bg-gradient-primary text-primary-foreground shadow-glow scale-105"
+                      : "bg-card border border-border/60 text-primary shadow-soft"
+                  }`}
+                >
+                  <Icon className="w-6 h-6" />
+                </span>
+                <span className={`text-[10px] font-bold leading-tight text-center ${isActive ? "text-primary" : "text-foreground"}`}>
+                  {cat.nameUr}
+                </span>
               </button>
             );
           })}
         </div>
       </section>
 
+      {/* Deals / Top selling products rail */}
+      {deals.length > 0 && !searchQuery && (
+        <section className="container mx-auto px-4 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-baseline gap-2">
+              <h2 className="text-lg font-extrabold text-foreground flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-destructive" /> آج کی ڈیلز
+              </h2>
+              <span className="text-xs text-muted-foreground">Top deals</span>
+            </div>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {deals.map((p) => {
+              const off = p.discount_price && p.price > p.discount_price
+                ? Math.round(((p.price - p.discount_price) / p.price) * 100)
+                : 0;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => navigate(`/grocery/${p.store_id}`)}
+                  className="w-36 shrink-0 bg-gradient-card rounded-2xl border border-border/60 shadow-card overflow-hidden text-left active:scale-95 transition-transform"
+                >
+                  <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                    ) : (
+                      <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
+                    )}
+                    {off > 0 && (
+                      <span className="absolute top-1.5 left-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                        <Percent className="w-2.5 h-2.5" />{off}%
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                      <span className="text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</span>
+                      {p.discount_price && (
+                        <span className="text-[10px] text-muted-foreground line-through">Rs {p.price}</span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">{p.unit}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Filters Row: City + Sort */}
       <div className="container mx-auto px-4 pb-3">
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          {/* City filter */}
           {cities.length > 0 && (
             <div className="flex items-center gap-1.5 shrink-0">
               <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
@@ -137,7 +204,6 @@ const Grocery = () => {
             </div>
           )}
 
-          {/* Sort */}
           <div className="flex items-center gap-1.5 shrink-0">
             <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
             <div className="flex gap-1">
@@ -145,9 +211,9 @@ const Grocery = () => {
                 <button
                   key={opt.value}
                   onClick={() => setSortBy(opt.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     sortBy === opt.value
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-gradient-primary text-primary-foreground shadow-glow"
                       : "bg-card border text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -163,50 +229,61 @@ const Grocery = () => {
       <div className="container mx-auto px-4 pb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-extrabold text-foreground">
-            {activeCategory ? `${activeCategory} Stores` : "All Stores / تمام اسٹورز"}
+            {activeCategory ? `${activeCategory} Stores` : "تمام اسٹورز"}
           </h2>
           <span className="text-xs text-muted-foreground">{storeCount} stores</span>
         </div>
         {loading ? (
           <StoreGridSkeleton count={6} />
         ) : stores.length === 0 ? (
-          <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-6 text-center">
+          <div className="rounded-2xl bg-gradient-primary p-6 text-center shadow-glow">
             <ShoppingBasket className="w-10 h-10 text-primary-foreground mx-auto mb-2" />
             <h3 className="text-lg font-extrabold text-primary-foreground mb-1">Coming Soon!</h3>
             <p className="text-primary-foreground/80 text-xs">ابھی کوئی اسٹور نہیں</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {stores.map((store) => (
+          <div className="space-y-3">
+            {stores.map((store, i) => (
               <button
                 key={store.id}
                 onClick={() => navigate(`/grocery/${store.id}`)}
-                className={`bg-card rounded-2xl border overflow-hidden hover:shadow-md transition-shadow text-left ${!store.is_active ? 'opacity-60 grayscale' : ''}`}
+                style={{ animationDelay: `${i * 50}ms` }}
+                className={`animate-fade-in-up w-full flex gap-3 bg-gradient-card rounded-2xl border border-border/60 shadow-card hover:shadow-elegant transition-all p-2.5 text-left ${!store.is_active ? "opacity-60 grayscale" : ""}`}
               >
-                <div className="w-full h-24 bg-secondary flex items-center justify-center overflow-hidden relative">
+                <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
                   {store.image_url ? (
-                    <img src={store.image_url} alt={store.name} className="w-full h-full object-cover" />
+                    <img src={store.image_url} alt={store.name} loading="lazy" className="w-full h-full object-cover" />
                   ) : (
                     <ShoppingBasket className="w-8 h-8 text-muted-foreground" />
                   )}
                   {!store.is_active && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <span className="bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-1 rounded-md">بند ہے / Closed</span>
+                    <div className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] flex items-center justify-center">
+                      <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-md">بند</span>
                     </div>
                   )}
-                  {store.rating > 0 && (
-                    <span className="absolute top-1.5 right-1.5 bg-background/80 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-[10px] font-bold flex items-center gap-0.5">
-                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" /> {store.rating}
-                    </span>
-                  )}
                 </div>
-                <div className="p-2.5">
-                  <h3 className="font-bold text-foreground text-sm truncate">{store.name}</h3>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
-                    <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" /> {store.delivery_time}</span>
+                <div className="flex-1 min-w-0 py-0.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-extrabold text-foreground text-sm truncate">{store.name}</h3>
+                    {store.rating > 0 && (
+                      <span className="flex items-center gap-0.5 text-[11px] font-bold text-foreground shrink-0">
+                        <Star className="w-3 h-3 text-warning fill-warning" /> {store.rating}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-[10px] text-primary font-semibold">{store.category}</span>
+                  <p className="text-[11px] text-primary font-semibold mt-0.5">{store.category}</p>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-accent-foreground bg-accent rounded-full px-2 py-0.5">
+                      <Clock className="w-3 h-3" /> {store.delivery_time}
+                    </span>
+                    {store.minimum_order > 0 && (
+                      <span className="text-[10px] font-semibold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                        Min Rs {store.minimum_order}
+                      </span>
+                    )}
+                  </div>
                 </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground self-center shrink-0" />
               </button>
             ))}
           </div>
