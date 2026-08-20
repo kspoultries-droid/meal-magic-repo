@@ -117,6 +117,7 @@ export type Database = {
           created_at: string
           customer_id: string
           delivery_address: string | null
+          delivery_fee: number
           delivery_lat: number | null
           delivery_lng: number | null
           delivery_method: string
@@ -127,6 +128,8 @@ export type Database = {
           payment_method: string | null
           receiver_name: string | null
           receiver_phone: string | null
+          rider_assigned_at: string | null
+          rider_id: string | null
           status: string
           store_id: string
           total_amount: number
@@ -139,6 +142,7 @@ export type Database = {
           created_at?: string
           customer_id: string
           delivery_address?: string | null
+          delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
@@ -149,6 +153,8 @@ export type Database = {
           payment_method?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
+          rider_assigned_at?: string | null
+          rider_id?: string | null
           status?: string
           store_id: string
           total_amount?: number
@@ -161,6 +167,7 @@ export type Database = {
           created_at?: string
           customer_id?: string
           delivery_address?: string | null
+          delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
@@ -171,6 +178,8 @@ export type Database = {
           payment_method?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
+          rider_assigned_at?: string | null
+          rider_id?: string | null
           status?: string
           store_id?: string
           total_amount?: number
@@ -201,6 +210,7 @@ export type Database = {
           created_at: string
           customer_id: string
           delivery_address: string | null
+          delivery_fee: number
           delivery_lat: number | null
           delivery_lng: number | null
           id: string
@@ -210,6 +220,8 @@ export type Database = {
           payment_method: string | null
           receiver_name: string | null
           receiver_phone: string | null
+          rider_assigned_at: string | null
+          rider_id: string | null
           shopkeeper_notes: string | null
           status: string
           store_id: string
@@ -222,6 +234,7 @@ export type Database = {
           created_at?: string
           customer_id: string
           delivery_address?: string | null
+          delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
           id?: string
@@ -231,6 +244,8 @@ export type Database = {
           payment_method?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
+          rider_assigned_at?: string | null
+          rider_id?: string | null
           shopkeeper_notes?: string | null
           status?: string
           store_id: string
@@ -243,6 +258,7 @@ export type Database = {
           created_at?: string
           customer_id?: string
           delivery_address?: string | null
+          delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
           id?: string
@@ -252,6 +268,8 @@ export type Database = {
           payment_method?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
+          rider_assigned_at?: string | null
+          rider_id?: string | null
           shopkeeper_notes?: string | null
           status?: string
           store_id?: string
