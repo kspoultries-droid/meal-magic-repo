@@ -24,6 +24,11 @@ const OrderTracking = () => {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [hasReview, setHasReview] = useState(false);
 
+  const fetchRider = async (orderId: string) => {
+    const { data } = await supabase.rpc("get_order_rider_info", { _order_id: orderId });
+    setRider(Array.isArray(data) ? data[0] || null : data);
+  };
+
   const fetchOrder = async () => {
     if (!id) return;
     const { data } = await supabase
@@ -32,14 +37,7 @@ const OrderTracking = () => {
       .eq("id", id)
       .single();
     setOrder(data);
-    if (data?.rider_id) {
-      const { data: riderData } = await supabase
-        .from("riders")
-        .select("*")
-        .eq("id", data.rider_id)
-        .single();
-      setRider(riderData);
-    }
+    if (data?.rider_id) await fetchRider(data.id);
     setLoading(false);
   };
 
@@ -64,17 +62,14 @@ const OrderTracking = () => {
     return () => { supabase.removeChannel(channel); };
   }, [id]);
 
-  // Realtime rider location
+  // Live rider location while delivery is in progress
   useEffect(() => {
-    if (!order?.rider_id) return;
-    const channel = supabase
-      .channel(`rider-loc-${order.rider_id}`)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "riders", filter: `id=eq.${order.rider_id}` }, (payload) => {
-        setRider(payload.new);
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [order?.rider_id]);
+    if (!id || !order?.rider_id) return;
+    if (["delivered", "completed", "cancelled"].includes(order.status)) return;
+    const t = setInterval(() => fetchRider(id), 15000);
+    return () => clearInterval(t);
+  }, [id, order?.rider_id, order?.status]);
+
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
   if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">آرڈر نہیں ملا</div>;
