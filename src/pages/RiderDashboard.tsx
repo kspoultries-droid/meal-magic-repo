@@ -189,6 +189,13 @@ const RiderDashboard = () => {
     fetchData();
   };
 
+  const markGroceryDelivered = async (order: any) => {
+    const { error } = await supabase.from(order._table).update({ status: "delivered" }).eq("id", order.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("گروسری آرڈر ڈلیور ہو گیا ✅");
+    fetchData();
+  };
+
   const mapLink = (address?: string | null, lat?: number | null, lng?: number | null) => {
     if (lat && lng) return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     if (address) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
