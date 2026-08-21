@@ -2,15 +2,9 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { SHIPMENT_MESSAGES as MESSAGES } from "@/lib/courier";
 
-const MESSAGES: Record<string, string> = {
-  pending: "آپ کی شپمنٹ تیار کی جا رہی ہے 📦",
-  dispatched: "آپ کا پارسل کورئیر کو دے دیا گیا ہے 🚚",
-  in_transit: "آپ کا پارسل راستے میں ہے 🛣️",
-  out_for_delivery: "آپ کا پارسل آج ڈلیوری کے لیے نکل چکا ہے 🏃",
-  delivered: "آپ کا آرڈر ڈلیور ہو گیا ✅",
-  returned: "آپ کا پارسل واپس ہو گیا ❌",
-};
+
 
 /** Live courier/shipment updates for the signed-in customer. */
 export const useCourierNotifications = () => {
