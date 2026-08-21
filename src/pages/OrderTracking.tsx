@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package, Star } from "lucide-react";
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
+import CourierTimeline from "@/components/orders/CourierTimeline";
+
 
 const orderSteps = [
   { key: "pending", label: "آرڈر موصول ہوا", icon: Package, urdu: "آپ کا آرڈر موصول ہو گیا" },
