@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.refresh_city_rider_stats() FROM PUBLIC, anon, authenticated;

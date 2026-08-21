@@ -131,6 +131,24 @@ export type Database = {
         }
         Relationships: []
       }
+      city_rider_stats: {
+        Row: {
+          city_id: string
+          rider_count: number
+          updated_at: string
+        }
+        Insert: {
+          city_id: string
+          rider_count?: number
+          updated_at?: string
+        }
+        Update: {
+          city_id?: string
+          rider_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       courier_sync_queue: {
         Row: {
           attempts: number
@@ -1731,21 +1749,7 @@ export type Database = {
       }
     }
     Views: {
-      city_rider_counts: {
-        Row: {
-          city_id: string | null
-          rider_count: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "riders_city_id_fkey"
-            columns: ["city_id"]
-            isOneToOne: false
-            referencedRelation: "cities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       approve_partner_application: {
