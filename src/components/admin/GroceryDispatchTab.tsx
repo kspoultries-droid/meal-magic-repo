@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Truck } from "lucide-react";
+import CourierShipmentDialog from "@/components/orders/CourierShipmentDialog";
 
 const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
   const toRad = (v: number) => (v * Math.PI) / 180;
@@ -25,13 +26,15 @@ const GroceryDispatchTab = () => {
   const [riderProfiles, setRiderProfiles] = useState<any[]>([]);
   const [fees, setFees] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [shipOrder, setShipOrder] = useState<any>(null);
+  const [cityDefaults, setCityDefaults] = useState<Record<string, any>>({});
 
   const fetchAll = async () => {
     setLoading(true);
     const [{ data: cart }, { data: list }, { data: ridersData }] = await Promise.all([
       supabase
         .from("grocery_cart_orders")
-        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,delivery_method,created_at,grocery_stores(name)")
+        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,delivery_method,city_id,courier_name,tracking_number,courier_tracking_url,courier_payment_type,shipment_status,created_at,grocery_stores(name)")
         .in("status", OPEN_STATUSES)
         .order("created_at", { ascending: false })
         .limit(40),
@@ -43,6 +46,10 @@ const GroceryDispatchTab = () => {
         .limit(40),
       supabase.from("riders").select("id, is_available, current_lat, current_lng"),
     ]);
+    const { data: cityRows } = await (supabase.rpc as any)("get_city_services");
+    const map: Record<string, any> = {};
+    (cityRows || []).forEach((c: any) => { map[c.id] = c; });
+    setCityDefaults(map);
     setCartOrders(cart || []);
     setListOrders(list || []);
     const all = ridersData || [];
@@ -105,6 +112,24 @@ const GroceryDispatchTab = () => {
         <p>📍 Dropoff: {o.delivery_address || "پتہ نہیں"}</p>
       </div>
 
+      {table === "grocery_cart_orders" && (
+        <div className="rounded-lg border bg-background px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
+          <div className="text-xs">
+            <p className="font-bold">🚚 کورئیر شپمنٹ</p>
+            {o.tracking_number ? (
+              <p className="text-muted-foreground">
+                {o.courier_name} · {o.tracking_number} · {o.shipment_status || "—"} · {o.courier_payment_type === "cod" ? "COD" : "ایڈوانس"}
+              </p>
+            ) : (
+              <p className="text-muted-foreground">ابھی کوئی شپمنٹ نہیں بنی</p>
+            )}
+          </div>
+          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setShipOrder(o)}>
+            <Truck className="h-3 w-3" /> {o.tracking_number ? "اپڈیٹ" : "شپمنٹ بنائیں"}
+          </Button>
+        </div>
+      )}
+
       {o.rider_id ? (
         <p className="text-xs text-muted-foreground">
           🏍️ رائیڈر: <span className="font-bold">{riderName(o.rider_id)}</span>
@@ -162,6 +187,19 @@ const GroceryDispatchTab = () => {
           </>
         )}
       </CardContent>
+      {shipOrder && (
+        <CourierShipmentDialog
+          open={!!shipOrder}
+          onOpenChange={(v) => !v && setShipOrder(null)}
+          order={shipOrder}
+          defaults={{
+            courier: cityDefaults[shipOrder.city_id]?.default_courier,
+            paymentType: cityDefaults[shipOrder.city_id]?.courier_payment_default,
+            advancePercent: cityDefaults[shipOrder.city_id]?.courier_advance_percent,
+          }}
+          onSaved={fetchAll}
+        />
+      )}
     </Card>
   );
 };

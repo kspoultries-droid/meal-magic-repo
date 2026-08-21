@@ -11,16 +11,23 @@ import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
+import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
+import { useCityServices } from "@/hooks/useCityServices";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const isSearching = searchQuery.trim().length > 0;
+  const { foodLive, city, cities, setCityId } = useCityServices();
 
   return (
     <div className="min-h-screen bg-gradient-subtle pb-24">
       <Navbar />
       <HomeHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+      {!foodLive ? (
+        <ServiceUnavailableNotice kind="food" city={city} cities={cities} onCityChange={setCityId} />
+      ) : (
+      <>
       <QuickCategories />
 
       {!isSearching && (
@@ -32,6 +39,8 @@ const Index = () => {
       )}
       <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
       <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} />
+      </>
+      )}
       <Footer />
       <CartDrawer />
       <AppShareButton section="food" />

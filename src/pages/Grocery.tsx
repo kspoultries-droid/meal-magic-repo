@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
+import { useCityServices } from "@/hooks/useCityServices";
 import PageHero from "@/components/common/PageHero";
 import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -40,6 +42,7 @@ const Grocery = () => {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("default");
   const [loading, setLoading] = useState(true);
+  const { groceryLive, city, cities: liveCities, setCityId } = useCityServices();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -109,6 +112,10 @@ const Grocery = () => {
       />
 
 
+      {!groceryLive ? (
+        <ServiceUnavailableNotice kind="grocery" city={city} cities={liveCities} onCityChange={setCityId} />
+      ) : (
+      <>
       {/* Sponsored Ads */}
       <PromotionalAds placement="grocery" />
 
@@ -346,6 +353,8 @@ const Grocery = () => {
         )}
       </div>
 
+      </>
+      )}
       <CartDrawer />
       <AppShareButton section="grocery" />
       <BottomTabBar />

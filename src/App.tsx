@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/contexts/CartContext";
+import { useCourierNotifications } from "@/hooks/useCourierNotifications";
 import { toast } from "sonner";
 import Index from "./pages/Index";
 
@@ -82,6 +83,11 @@ const GlobalErrorHandler = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const CourierNotifications = () => {
+  useCourierNotifications();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -90,6 +96,7 @@ const App = () => (
           <GlobalErrorHandler>
             <Toaster />
             <Sonner />
+            <CourierNotifications />
             <BrowserRouter>
               <Suspense fallback={<div className="min-h-screen bg-background" />}>
                 <Routes>
