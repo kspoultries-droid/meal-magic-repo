@@ -1731,7 +1731,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      city_rider_counts: {
+        Row: {
+          city_id: string | null
+          rider_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "riders_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       approve_partner_application: {
