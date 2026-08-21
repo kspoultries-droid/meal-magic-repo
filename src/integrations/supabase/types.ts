@@ -91,22 +91,43 @@ export type Database = {
       }
       cities: {
         Row: {
+          auto_hide_without_rider: boolean
+          courier_advance_percent: number
+          courier_payment_default: string
           created_at: string | null
+          default_courier: string | null
           delivery_fee: number | null
+          food_enabled: boolean
+          grocery_enabled: boolean
           id: string
           name: string
+          wholesale_enabled: boolean
         }
         Insert: {
+          auto_hide_without_rider?: boolean
+          courier_advance_percent?: number
+          courier_payment_default?: string
           created_at?: string | null
+          default_courier?: string | null
           delivery_fee?: number | null
+          food_enabled?: boolean
+          grocery_enabled?: boolean
           id?: string
           name: string
+          wholesale_enabled?: boolean
         }
         Update: {
+          auto_hide_without_rider?: boolean
+          courier_advance_percent?: number
+          courier_payment_default?: string
           created_at?: string | null
+          default_courier?: string | null
           delivery_fee?: number | null
+          food_enabled?: boolean
+          grocery_enabled?: boolean
           id?: string
           name?: string
+          wholesale_enabled?: boolean
         }
         Relationships: []
       }
@@ -114,6 +135,9 @@ export type Database = {
         Row: {
           city_id: string | null
           courier_name: string | null
+          courier_payment_type: string
+          courier_tracking_url: string | null
+          courier_updated_at: string | null
           created_at: string
           customer_id: string
           delivery_address: string | null
@@ -130,6 +154,8 @@ export type Database = {
           receiver_phone: string | null
           rider_assigned_at: string | null
           rider_id: string | null
+          shipment_status: string | null
+          shipped_at: string | null
           status: string
           store_id: string
           total_amount: number
@@ -139,6 +165,9 @@ export type Database = {
         Insert: {
           city_id?: string | null
           courier_name?: string | null
+          courier_payment_type?: string
+          courier_tracking_url?: string | null
+          courier_updated_at?: string | null
           created_at?: string
           customer_id: string
           delivery_address?: string | null
@@ -155,6 +184,8 @@ export type Database = {
           receiver_phone?: string | null
           rider_assigned_at?: string | null
           rider_id?: string | null
+          shipment_status?: string | null
+          shipped_at?: string | null
           status?: string
           store_id: string
           total_amount?: number
@@ -164,6 +195,9 @@ export type Database = {
         Update: {
           city_id?: string | null
           courier_name?: string | null
+          courier_payment_type?: string
+          courier_tracking_url?: string | null
+          courier_updated_at?: string | null
           created_at?: string
           customer_id?: string
           delivery_address?: string | null
@@ -180,6 +214,8 @@ export type Database = {
           receiver_phone?: string | null
           rider_assigned_at?: string | null
           rider_id?: string | null
+          shipment_status?: string | null
+          shipped_at?: string | null
           status?: string
           store_id?: string
           total_amount?: number
@@ -1662,6 +1698,24 @@ export type Database = {
           _service_id: string
         }
         Returns: string
+      }
+      get_city_services: {
+        Args: never
+        Returns: {
+          courier_advance_percent: number
+          courier_payment_default: string
+          default_courier: string
+          delivery_fee: number
+          food_enabled: boolean
+          food_live: boolean
+          grocery_enabled: boolean
+          grocery_live: boolean
+          id: string
+          name: string
+          rider_count: number
+          wholesale_enabled: boolean
+          wholesale_live: boolean
+        }[]
       }
       get_order_rider_info: {
         Args: { _order_id: string }
