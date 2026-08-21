@@ -1731,7 +1731,105 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      city_rider_counts: {
+        Row: {
+          city_id: string | null
+          rider_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "riders_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_order_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          order_id: string | null
+          rating: number | null
+          restaurant_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          order_id?: string | null
+          rating?: number | null
+          restaurant_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          order_id?: string | null
+          rating?: number | null
+          restaurant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_reviews_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_service_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          provider_id: string | null
+          rating: number | null
+          service_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          provider_id?: string | null
+          rating?: number | null
+          service_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          provider_id?: string | null
+          rating?: number | null
+          service_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reviews_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       approve_partner_application: {
