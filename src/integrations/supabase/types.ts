@@ -131,6 +131,54 @@ export type Database = {
         }
         Relationships: []
       }
+      courier_sync_queue: {
+        Row: {
+          attempts: number
+          created_at: string
+          event_key: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          order_id: string
+          payload: Json
+          provider: string
+          shipment_status: string | null
+          state: string
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          event_key: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          order_id: string
+          payload?: Json
+          provider?: string
+          shipment_status?: string | null
+          state?: string
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          event_key?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          order_id?: string
+          payload?: Json
+          provider?: string
+          shipment_status?: string | null
+          state?: string
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       grocery_cart_orders: {
         Row: {
           city_id: string | null
@@ -540,6 +588,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      order_events: {
+        Row: {
+          actor_id: string | null
+          courier_name: string | null
+          created_at: string
+          event_type: string
+          from_value: string | null
+          id: string
+          note: string | null
+          order_id: string
+          order_type: string
+          source: string
+          to_value: string | null
+          tracking_number: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          courier_name?: string | null
+          created_at?: string
+          event_type: string
+          from_value?: string | null
+          id?: string
+          note?: string | null
+          order_id: string
+          order_type: string
+          source?: string
+          to_value?: string | null
+          tracking_number?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          courier_name?: string | null
+          created_at?: string
+          event_type?: string
+          from_value?: string | null
+          id?: string
+          note?: string | null
+          order_id?: string
+          order_type?: string
+          source?: string
+          to_value?: string | null
+          tracking_number?: string | null
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
