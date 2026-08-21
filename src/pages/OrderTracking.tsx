@@ -71,7 +71,9 @@ const OrderTracking = () => {
     const channel = supabase
       .channel(`order-track-${id}`)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` }, () => fetchOrder())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_cart_orders", filter: `id=eq.${id}` }, () => fetchOrder())
       .subscribe();
+
     return () => { supabase.removeChannel(channel); };
   }, [id]);
 
