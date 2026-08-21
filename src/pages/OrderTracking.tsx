@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package, Star } from "lucide-react";
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
+import CourierTimeline from "@/components/orders/CourierTimeline";
+
 
 const orderSteps = [
   { key: "pending", label: "آرڈر موصول ہوا", icon: Package, urdu: "آپ کا آرڈر موصول ہو گیا" },
@@ -19,6 +21,7 @@ const OrderTracking = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [order, setOrder] = useState<any>(null);
+  const [kind, setKind] = useState<"food" | "grocery_cart">("food");
   const [rider, setRider] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -35,11 +38,23 @@ const OrderTracking = () => {
       .from("orders")
       .select("*, order_items(*)")
       .eq("id", id)
-      .single();
-    setOrder(data);
-    if (data?.rider_id) await fetchRider(data.id);
+      .maybeSingle();
+    if (data) {
+      setKind("food");
+      setOrder(data);
+      if (data?.rider_id) await fetchRider(data.id);
+    } else {
+      const { data: g } = await (supabase as any)
+        .from("grocery_cart_orders")
+        .select("*, grocery_stores(name)")
+        .eq("id", id)
+        .maybeSingle();
+      setKind("grocery_cart");
+      setOrder(g || null);
+    }
     setLoading(false);
   };
+
 
   useEffect(() => {
     fetchOrder();
@@ -58,7 +73,9 @@ const OrderTracking = () => {
     const channel = supabase
       .channel(`order-track-${id}`)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` }, () => fetchOrder())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_cart_orders", filter: `id=eq.${id}` }, () => fetchOrder())
       .subscribe();
+
     return () => { supabase.removeChannel(channel); };
   }, [id]);
 
@@ -148,8 +165,20 @@ const OrderTracking = () => {
         </div>
       )}
 
+      {/* Courier shipment — name, tracking number, live timeline + history */}
+      {kind === "grocery_cart" && (order.delivery_method === "courier" || order.courier_name || order.tracking_number) && (
+        <CourierTimeline
+          orderId={order.id}
+          courierName={order.courier_name}
+          trackingNumber={order.tracking_number}
+          trackingUrl={order.courier_tracking_url}
+          shipmentStatus={order.shipment_status}
+          paymentType={order.courier_payment_type}
+        />
+      )}
 
       {/* Order Status Steps */}
+
       <div className="px-6 py-6">
         <h2 className="text-lg font-extrabold text-foreground mb-6">
           {isCancelled ? "آرڈر منسوخ ہو گیا ❌" : orderSteps[currentStepIndex]?.urdu || "ٹریکنگ"}

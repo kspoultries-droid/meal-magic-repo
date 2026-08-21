@@ -4,17 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { SHIPMENT_STATUSES, isValidShipmentTransition } from "@/lib/courier";
 
 const COURIERS = ["TCS", "Leopards", "M&P", "BlueEx", "PostEx", "Trax", "Pakistan Post"];
 
-const SHIPMENT_STATUSES: { value: string; label: string }[] = [
-  { value: "pending", label: "تیاری میں (Pending)" },
-  { value: "dispatched", label: "روانہ ہو گیا (Dispatched)" },
-  { value: "in_transit", label: "راستے میں (In transit)" },
-  { value: "out_for_delivery", label: "ڈلیوری کے لیے نکل گیا" },
-  { value: "delivered", label: "ڈلیور ہو گیا ✅" },
-  { value: "returned", label: "واپس (Returned)" },
-];
+
 
 interface Props {
   open: boolean;
@@ -35,6 +29,10 @@ const CourierShipmentDialog = ({ open, onOpenChange, order, defaults, onSaved }:
   const save = async () => {
     if (!courier.trim()) { toast.error("کورئیر کا نام درج کریں"); return; }
     if (!tracking.trim()) { toast.error("ٹریکنگ نمبر درج کریں"); return; }
+    if (!isValidShipmentTransition(order?.shipment_status, status)) {
+      toast.error("شپمنٹ اسٹیٹس پیچھے نہیں کیا جا سکتا");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("grocery_cart_orders")
