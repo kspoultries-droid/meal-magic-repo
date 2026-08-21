@@ -18,6 +18,7 @@ import PhotoOrdersTab from "@/components/admin/PhotoOrdersTab";
 import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
 import ApplicationsTab from "@/components/admin/ApplicationsTab";
 import GroceryDispatchTab from "@/components/admin/GroceryDispatchTab";
+import CitySettingsTab from "@/components/admin/CitySettingsTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -51,6 +52,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="restaurants" className="gap-1 text-xs"><Store className="h-3.5 w-3.5" /> ریسٹورنٹس</TabsTrigger>
             <TabsTrigger value="riders" className="gap-1 text-xs"><Bike className="h-3.5 w-3.5" /> رائیڈرز</TabsTrigger>
             <TabsTrigger value="cities" className="gap-1 text-xs"><MapPin className="h-3.5 w-3.5" /> شہر</TabsTrigger>
+            <TabsTrigger value="city-settings" className="gap-1 text-xs"><MapPin className="h-3.5 w-3.5" /> شہر سیٹنگز</TabsTrigger>
             <TabsTrigger value="users" className="gap-1 text-xs"><Users className="h-3.5 w-3.5" /> یوزرز</TabsTrigger>
             <TabsTrigger value="grocery" className="gap-1 text-xs"><ShoppingCart className="h-3.5 w-3.5" /> گروسری</TabsTrigger>
             <TabsTrigger value="grocery-dispatch" className="gap-1 text-xs"><Bike className="h-3.5 w-3.5" /> گروسری ڈسپیچ</TabsTrigger>
@@ -65,6 +67,7 @@ const AdminDashboard = () => {
           <TabsContent value="restaurants"><RestaurantsTab /></TabsContent>
           <TabsContent value="riders"><RidersTab /></TabsContent>
           <TabsContent value="cities"><CitiesTab /></TabsContent>
+          <TabsContent value="city-settings"><CitySettingsTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="grocery"><GroceryTab /></TabsContent>
           <TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent>

@@ -1,6 +1,7 @@
 import { UtensilsCrossed, Store, ShoppingBag, User, Wrench, Package } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
+import { useCityServices } from "@/hooks/useCityServices";
 
 const tabs = [
   { name: "Food", icon: UtensilsCrossed, path: "/" },
@@ -15,6 +16,7 @@ const BottomTabBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItems, setIsOpen } = useCart();
+  const { foodLive, groceryLive, wholesaleLive } = useCityServices();
 
   // Hide on dashboard/admin pages
   const hiddenPaths = ["/admin", "/restaurant-dashboard", "/rider-dashboard", "/mechanic-dashboard", "/service-manager", "/checkout", "/auth"];
@@ -36,7 +38,13 @@ const BottomTabBar = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 pb-[env(safe-area-inset-bottom)] shadow-card">
       <div className="flex items-center justify-around h-16 max-w-md mx-auto">
-        {tabs.map((tab) => {
+        {tabs
+          .filter((tab) =>
+            tab.path === "/" ? foodLive :
+            tab.path === "/grocery" ? groceryLive :
+            tab.path === "/wholesale" ? wholesaleLive : true
+          )
+          .map((tab) => {
           const Icon = tab.icon;
           const active = isActive(tab.path);
           return (
