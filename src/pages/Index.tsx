@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import HomeHero from "@/components/home/HomeHero";
 import TrustStrip from "@/components/home/TrustStrip";
 import TopPicksRail from "@/components/home/TopPicksRail";
-import QuickCategories from "@/components/QuickCategories";
+import QuickCategories, { QuickFilter } from "@/components/QuickCategories";
 import PromotionalAds from "@/components/PromotionalAds";
 import CategoryChips from "@/components/CategoryChips";
 import RestaurantGrid from "@/components/RestaurantGrid";
@@ -17,6 +17,7 @@ import { useCityServices } from "@/hooks/useCityServices";
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>(null);
   const isSearching = searchQuery.trim().length > 0;
   const { foodLive, city, cities, setCityId } = useCityServices();
 
@@ -28,7 +29,7 @@ const Index = () => {
         <ServiceUnavailableNotice kind="food" city={city} cities={cities} onCityChange={setCityId} />
       ) : (
       <>
-      <QuickCategories />
+      <QuickCategories active={quickFilter} onChange={setQuickFilter} />
 
       {!isSearching && (
         <>
@@ -38,7 +39,7 @@ const Index = () => {
         </>
       )}
       <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
-      <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} />
+      <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} quickFilter={quickFilter} />
       </>
       )}
       <Footer />
