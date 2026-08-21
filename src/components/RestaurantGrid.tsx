@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import RestaurantCard from "./RestaurantCard";
 import { RestaurantGridSkeleton } from "./ui/skeleton-card";
+import type { QuickFilter } from "./QuickCategories";
 
 export interface MenuItem {
   id: string;
@@ -20,14 +21,19 @@ export interface Restaurant {
   discount?: string;
   menuItems: MenuItem[];
   isActive: boolean;
+  createdAt?: string | null;
+  pickupAddress?: string | null;
+  deliveryMode?: string | null;
+  minPrice?: number | null;
 }
 
 interface RestaurantGridProps {
   searchQuery: string;
   activeCategory: string;
+  quickFilter?: QuickFilter;
 }
 
-const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) => {
+const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null }: RestaurantGridProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -37,7 +43,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
       setLoading(true);
       const { data: rests } = await supabase
         .from("restaurants")
-        .select("id, name, image_url, rating, delivery_time, cuisines, is_active");
+        .select("id, name, image_url, rating, delivery_time, cuisines, is_active, created_at, pickup_address, delivery_mode, description");
 
       if (rests?.length) {
         // Fetch menu items for all restaurants
@@ -56,6 +62,10 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
           deliveryTime: r.delivery_time || "30-45 min",
           cuisines: r.cuisines || [],
           isActive: r.is_active !== false,
+          createdAt: r.created_at,
+          pickupAddress: r.pickup_address,
+          deliveryMode: r.delivery_mode,
+          minPrice: (menus || []).filter((m) => m.restaurant_id === r.id).reduce<number | null>((min, m) => (min === null || m.price < min ? m.price : min), null),
           menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).slice(0, 3).map((m) => ({ id: m.id, name: m.name, price: m.price })),
         }));
         setRestaurants(mapped);
@@ -70,8 +80,22 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
   const filtered = restaurants.filter((r) => {
     const matchesCategory = activeCategory === "All" || r.cuisines.some((c) => c.toLowerCase().includes(activeCategory.toLowerCase()));
     const matchesSearch = searchQuery === "" || r.name.toLowerCase().includes(searchQuery.toLowerCase()) || r.cuisines.some((c) => c.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
+    let matchesQuick = true;
+    if (quickFilter === "offers") matchesQuick = r.minPrice !== null && r.minPrice !== undefined && r.minPrice <= 500;
+    else if (quickFilter === "new") matchesQuick = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
+    else if (quickFilter === "pickup") matchesQuick = !!r.pickupAddress || r.deliveryMode === "self" || r.deliveryMode === "both";
+    else if (quickFilter === "homechefs") matchesQuick = r.cuisines.some((c) => /home|chef|homemade|گھر|ہوم/i.test(c));
+    else if (quickFilter === "top-rated") matchesQuick = (r.rating || 0) >= 4;
+    return matchesCategory && matchesSearch && matchesQuick;
   });
+
+  const quickLabels: Record<string, string> = {
+    offers: "آفرز اور سستے سودے",
+    new: "نئے ریسٹورنٹس",
+    pickup: "پِک اپ دستیاب",
+    homechefs: "ہوم شیف",
+    "top-rated": "ٹاپ ریٹڈ",
+  };
 
   if (loading) {
     return (
@@ -85,7 +109,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory }: RestaurantGridProps) =>
     <section className="container mx-auto px-4 pb-16 min-h-[400px]">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-extrabold text-foreground">
-          {searchQuery ? `"${searchQuery}" کے نتائج` : "آپ کے قریب مشہور"}
+          {searchQuery ? `"${searchQuery}" کے نتائج` : quickFilter ? quickLabels[quickFilter] : "آپ کے قریب مشہور"}
         </h2>
         <span className="text-muted-foreground text-sm">{filtered.length} ریسٹورنٹس</span>
       </div>
