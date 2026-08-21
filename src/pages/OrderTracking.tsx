@@ -163,8 +163,20 @@ const OrderTracking = () => {
         </div>
       )}
 
+      {/* Courier shipment — name, tracking number, live timeline + history */}
+      {kind === "grocery_cart" && (order.delivery_method === "courier" || order.courier_name || order.tracking_number) && (
+        <CourierTimeline
+          orderId={order.id}
+          courierName={order.courier_name}
+          trackingNumber={order.tracking_number}
+          trackingUrl={order.courier_tracking_url}
+          shipmentStatus={order.shipment_status}
+          paymentType={order.courier_payment_type}
+        />
+      )}
 
       {/* Order Status Steps */}
+
       <div className="px-6 py-6">
         <h2 className="text-lg font-extrabold text-foreground mb-6">
           {isCancelled ? "آرڈر منسوخ ہو گیا ❌" : orderSteps[currentStepIndex]?.urdu || "ٹریکنگ"}
