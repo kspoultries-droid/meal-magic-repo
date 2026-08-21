@@ -89,11 +89,22 @@ async function drainQueue() {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Only the trusted courier integration / scheduler may call this endpoint.
+  const expected = Deno.env.get("COURIER_WEBHOOK_SECRET");
+  const provided =
+    req.headers.get("x-courier-secret") ??
+    new URL(req.url).searchParams.get("secret") ??
+    "";
+  if (!expected || provided !== expected) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+
   try {
     const url = new URL(req.url);
     if (url.searchParams.get("mode") === "retry" || req.method === "GET") {
       return json(await drainQueue());
     }
+
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") return json({ error: "Invalid JSON body" }, 400);
