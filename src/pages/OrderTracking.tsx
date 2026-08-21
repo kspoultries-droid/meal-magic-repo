@@ -19,6 +19,7 @@ const OrderTracking = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [order, setOrder] = useState<any>(null);
+  const [kind, setKind] = useState<"food" | "grocery_cart">("food");
   const [rider, setRider] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -35,11 +36,23 @@ const OrderTracking = () => {
       .from("orders")
       .select("*, order_items(*)")
       .eq("id", id)
-      .single();
-    setOrder(data);
-    if (data?.rider_id) await fetchRider(data.id);
+      .maybeSingle();
+    if (data) {
+      setKind("food");
+      setOrder(data);
+      if (data?.rider_id) await fetchRider(data.id);
+    } else {
+      const { data: g } = await (supabase as any)
+        .from("grocery_cart_orders")
+        .select("*, grocery_stores(name)")
+        .eq("id", id)
+        .maybeSingle();
+      setKind("grocery_cart");
+      setOrder(g || null);
+    }
     setLoading(false);
   };
+
 
   useEffect(() => {
     fetchOrder();
