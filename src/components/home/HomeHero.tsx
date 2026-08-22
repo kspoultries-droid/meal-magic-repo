@@ -1,17 +1,23 @@
 import PageHero from "@/components/common/PageHero";
 
 const rotating = [
-  "بریانی تلاش کریں…",
-  "پیزا تلاش کریں…",
-  "گروسری تلاش کریں…",
-  "بی بی کیو تلاش کریں…",
-  "برگر تلاش کریں…",
+  "آج کیا کھانے کا دل ہے؟",
+  "بریانی، پیزا یا برگر؟",
+  "اپنا پسندیدہ کھانا لکھیں…",
+  "قریبی ریسٹورنٹس تلاش کریں…",
 ];
 
 const promos = [
   { emoji: "🛵", title: "پہلے آرڈر پر مفت ڈیلیوری", subtitle: "Free delivery on your first order" },
   { emoji: "🔥", title: "روزانہ نئی ڈیلز اور رعایت", subtitle: "Fresh deals every day on EasyLife" },
   { emoji: "⚡", title: "30 منٹ میں تیز ڈیلیوری", subtitle: "Super fast delivery near you" },
+];
+
+const features = [
+  { emoji: "🛵", label: "مفت ڈیلیوری" },
+  { emoji: "⚡", label: "30 منٹ میں" },
+  { emoji: "🔥", label: "آج کی ڈیلز" },
+  { emoji: "⭐", label: "ٹاپ ریٹڈ" },
 ];
 
 interface HomeHeroProps {
@@ -27,6 +33,7 @@ const HomeHero = ({ searchQuery, onSearchChange }: HomeHeroProps) => (
     onSearchChange={onSearchChange}
     placeholders={rotating}
     promos={promos}
+    features={features}
   />
 );
 
