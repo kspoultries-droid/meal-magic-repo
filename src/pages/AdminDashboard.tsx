@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package } from "lucide-react";
+import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import GroceryTab from "@/components/admin/GroceryTab";
 import ServicesTab from "@/components/admin/ServicesTab";
@@ -20,6 +20,7 @@ import ApplicationsTab from "@/components/admin/ApplicationsTab";
 import GroceryDispatchTab from "@/components/admin/GroceryDispatchTab";
 import CitySettingsTab from "@/components/admin/CitySettingsTab";
 import AuditLogTab from "@/components/admin/AuditLogTab";
+import VouchersTab from "@/components/admin/VouchersTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -61,6 +62,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="ads" className="gap-1 text-xs"><Megaphone className="h-3.5 w-3.5" /> ایڈز</TabsTrigger>
             <TabsTrigger value="photo-orders" className="gap-1 text-xs"><FileImage className="h-3.5 w-3.5" /> فوٹو آرڈرز</TabsTrigger>
             <TabsTrigger value="wholesale-cats" className="gap-1 text-xs"><Package className="h-3.5 w-3.5" /> بازار کیٹ</TabsTrigger>
+            <TabsTrigger value="vouchers" className="gap-1 text-xs"><Ticket className="h-3.5 w-3.5" /> واؤچرز</TabsTrigger>
             <TabsTrigger value="audit" className="gap-1 text-xs"><Shield className="h-3.5 w-3.5" /> آڈٹ لاگ</TabsTrigger>
             <TabsTrigger value="applications" className="gap-1 text-xs"><Users className="h-3.5 w-3.5" /> پارٹنر درخواستیں</TabsTrigger>
           </TabsList>
@@ -77,6 +79,7 @@ const AdminDashboard = () => {
           <TabsContent value="ads"><AdsTab /></TabsContent>
           <TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent>
           <TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
+          <TabsContent value="vouchers"><VouchersTab /></TabsContent>
           <TabsContent value="audit"><AuditLogTab /></TabsContent>
           <TabsContent value="applications"><ApplicationsTab /></TabsContent>
         </Tabs>
