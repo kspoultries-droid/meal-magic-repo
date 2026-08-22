@@ -121,7 +121,7 @@ const PageHero = ({
 
         {/* Feature chips */}
         {features && features.length > 0 && (
-          <div className="flex gap-1.5 mt-2 overflow-x-auto no-scrollbar">
+          <div className="flex gap-1.5 mt-2 overflow-x-auto scrollbar-hide">
             {features.map((f) => (
               <span
                 key={f.label}
