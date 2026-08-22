@@ -62,10 +62,8 @@ const GroceryStoreDetail = () => {
   const categories = ["All", "🔥 Special Offers", ...Array.from(new Set(products.map((p) => p.category || "General")))];
   const filtered = activeCategory === "All" ? products : activeCategory === "🔥 Special Offers" ? products.filter((p) => p.is_special_offer) : products.filter((p) => p.category === activeCategory);
 
-  const getCartQty = (productId: string) => {
-    const item = cartItems.find((i) => i.id === productId);
-    return item?.quantity || 0;
-  };
+  const getCartLine = (productId: string) =>
+    cartItems.find((i) => i.menu_item_id === productId || i.id === productId);
 
   const handleAdd = (product: any) => {
     const effectivePrice = product.discount_price || product.price;
