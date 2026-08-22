@@ -365,7 +365,7 @@ const StandaloneStore = () => {
                               </Button>
                             ) : (
                               <div className="flex items-center gap-1">
-                                <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center" onClick={() => updateQuantity(product.id, qty - 1)}>
+                                <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center" onClick={() => cartLine && updateQuantity(cartLine.id, qty - 1)}>
                                   <Minus className="w-3 h-3" />
                                 </button>
                                 <span className="text-sm font-bold w-5 text-center">{qty}</span>
