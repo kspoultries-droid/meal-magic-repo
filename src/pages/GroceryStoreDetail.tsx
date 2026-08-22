@@ -217,7 +217,8 @@ const GroceryStoreDetail = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3 pt-3">
                 {filtered.map((product, idx) => {
-                  const qty = getCartQty(product.id);
+                  const cartLine = getCartLine(product.id);
+                  const qty = cartLine?.quantity || 0;
                   const isEditing = editingId === product.id;
                   return (
                     <div

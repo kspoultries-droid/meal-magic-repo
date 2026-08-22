@@ -265,7 +265,8 @@ const StandaloneStore = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {filtered.map((product) => {
-                  const qty = getCartQty(product.id);
+                  const cartLine = getCartLine(product.id);
+                  const qty = cartLine?.quantity || 0;
                   const isEditing = editingId === product.id;
                   return (
                     <div key={product.id} className={`bg-card rounded-2xl border overflow-hidden relative ${!product.is_available && isOwner ? 'opacity-60' : ''}`}>
