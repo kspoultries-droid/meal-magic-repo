@@ -62,10 +62,8 @@ const GroceryStoreDetail = () => {
   const categories = ["All", "🔥 Special Offers", ...Array.from(new Set(products.map((p) => p.category || "General")))];
   const filtered = activeCategory === "All" ? products : activeCategory === "🔥 Special Offers" ? products.filter((p) => p.is_special_offer) : products.filter((p) => p.category === activeCategory);
 
-  const getCartQty = (productId: string) => {
-    const item = cartItems.find((i) => i.id === productId);
-    return item?.quantity || 0;
-  };
+  const getCartLine = (productId: string) =>
+    cartItems.find((i) => i.menu_item_id === productId || i.id === productId);
 
   const handleAdd = (product: any) => {
     const effectivePrice = product.discount_price || product.price;
@@ -219,7 +217,8 @@ const GroceryStoreDetail = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3 pt-3">
                 {filtered.map((product, idx) => {
-                  const qty = getCartQty(product.id);
+                  const cartLine = getCartLine(product.id);
+                  const qty = cartLine?.quantity || 0;
                   const isEditing = editingId === product.id;
                   return (
                     <div
@@ -322,7 +321,7 @@ const GroceryStoreDetail = () => {
                               </Button>
                             ) : (
                               <div className="flex items-center gap-1">
-                                <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center" onClick={() => updateQuantity(product.id, qty - 1)}>
+                                <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center" onClick={() => cartLine && updateQuantity(cartLine.id, qty - 1)}>
                                   <Minus className="w-3 h-3" />
                                 </button>
                                 <span className="text-sm font-bold w-5 text-center">{qty}</span>
