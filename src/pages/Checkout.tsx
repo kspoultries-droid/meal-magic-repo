@@ -271,7 +271,39 @@ const Checkout = () => {
                 <span className="text-muted-foreground">ڈلیوری فیس</span>
                 <span className="font-semibold">Rs {deliveryFee}</span>
               </div>
+              {voucher && (
+                <div className="flex justify-between text-xs text-success">
+                  <span className="font-semibold">واؤچر ({voucher.code})</span>
+                  <span className="font-bold">− Rs {voucher.discount}</span>
+                </div>
+              )}
             </div>
+
+            {/* Voucher input */}
+            {!voucher ? (
+              <div className="flex gap-2 mt-2.5">
+                <div className="relative flex-1">
+                  <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                  <Input
+                    placeholder="واؤچر کوڈ لکھیں (مثلاً BAZAR10)"
+                    value={voucherCode}
+                    onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                    className="h-10 pl-9 rounded-xl bg-background/80 font-mono text-sm"
+                  />
+                </div>
+                <Button variant="outline" onClick={applyVoucher} disabled={applyingVoucher || !voucherCode.trim()} className="h-10 rounded-xl border-primary/40 text-primary font-bold">
+                  {applyingVoucher ? "..." : "لگائیں"}
+                </Button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setVoucher(null); setVoucherCode(""); }}
+                className="mt-2.5 flex items-center gap-1.5 text-[11px] font-bold text-success bg-success/10 border border-success/30 rounded-full px-3 py-1.5"
+              >
+                <Ticket className="w-3.5 h-3.5" /> {voucher.code} لاگو ہے
+                <X className="w-3 h-3 text-muted-foreground" />
+              </button>
+            )}
             <div className="border-t pt-3 flex justify-between items-baseline">
               <span className="font-extrabold text-foreground">کل قابل ادائیگی</span>
               <span className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">Rs {grandTotal}</span>
