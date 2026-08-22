@@ -99,10 +99,16 @@ const Grocery = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         placeholders={[
-          "دودھ تلاش کریں…",
-          "آٹا / چاول تلاش کریں…",
-          "سبزی و پھل تلاش کریں…",
-          "گوشت تلاش کریں…",
+          "آج گھر کے لیے کیا چاہیے؟",
+          "تازہ دودھ، سبزی یا پھل؟",
+          "آٹا، چاول یا مصالحے؟",
+          "اپنی پسند کی شے لکھیں…",
+        ]}
+        features={[
+          { emoji: "🥬", label: "روزانہ تازہ" },
+          { emoji: "💸", label: "30% تک رعایت" },
+          { emoji: "🚚", label: "مفت ڈیلیوری" },
+          { emoji: "📸", label: "فوٹو لسٹ آرڈر" },
         ]}
         promos={[
           { emoji: "🥬", title: "روزانہ تازہ سبزی و پھل", subtitle: "Fresh daily from local markets" },
