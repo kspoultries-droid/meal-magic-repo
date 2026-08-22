@@ -211,6 +211,7 @@ export type Database = {
           delivery_lat: number | null
           delivery_lng: number | null
           delivery_method: string
+          discount_amount: number
           id: string
           is_gift: boolean | null
           items: Json
@@ -227,6 +228,7 @@ export type Database = {
           total_amount: number
           tracking_number: string | null
           updated_at: string
+          voucher_code: string | null
         }
         Insert: {
           city_id?: string | null
@@ -241,6 +243,7 @@ export type Database = {
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
+          discount_amount?: number
           id?: string
           is_gift?: boolean | null
           items?: Json
@@ -257,6 +260,7 @@ export type Database = {
           total_amount?: number
           tracking_number?: string | null
           updated_at?: string
+          voucher_code?: string | null
         }
         Update: {
           city_id?: string | null
@@ -271,6 +275,7 @@ export type Database = {
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
+          discount_amount?: number
           id?: string
           is_gift?: boolean | null
           items?: Json
@@ -287,6 +292,7 @@ export type Database = {
           total_amount?: number
           tracking_number?: string | null
           updated_at?: string
+          voucher_code?: string | null
         }
         Relationships: [
           {
@@ -763,6 +769,7 @@ export type Database = {
           delivery_fee: number | null
           delivery_lat: number | null
           delivery_lng: number | null
+          discount_amount: number
           id: string
           is_gift: boolean | null
           notes: string | null
@@ -775,6 +782,7 @@ export type Database = {
           status: string | null
           total_amount: number
           updated_at: string | null
+          voucher_code: string | null
         }
         Insert: {
           city_id: string
@@ -784,6 +792,7 @@ export type Database = {
           delivery_fee?: number | null
           delivery_lat?: number | null
           delivery_lng?: number | null
+          discount_amount?: number
           id?: string
           is_gift?: boolean | null
           notes?: string | null
@@ -796,6 +805,7 @@ export type Database = {
           status?: string | null
           total_amount?: number
           updated_at?: string | null
+          voucher_code?: string | null
         }
         Update: {
           city_id?: string
@@ -805,6 +815,7 @@ export type Database = {
           delivery_fee?: number | null
           delivery_lat?: number | null
           delivery_lng?: number | null
+          discount_amount?: number
           id?: string
           is_gift?: boolean | null
           notes?: string | null
@@ -817,6 +828,7 @@ export type Database = {
           status?: string | null
           total_amount?: number
           updated_at?: string | null
+          voucher_code?: string | null
         }
         Relationships: [
           {
@@ -1601,6 +1613,66 @@ export type Database = {
         }
         Relationships: []
       }
+      vouchers: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_discount: number | null
+          min_order: number
+          scope: string
+          sort_order: number
+          title: string
+          title_ur: string | null
+          usage_limit: number | null
+          used_count: number
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          min_order?: number
+          scope?: string
+          sort_order?: number
+          title: string
+          title_ur?: string | null
+          usage_limit?: number | null
+          used_count?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          min_order?: number
+          scope?: string
+          sort_order?: number
+          title?: string
+          title_ur?: string | null
+          usage_limit?: number | null
+          used_count?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -1752,6 +1824,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_voucher_to_order: {
+        Args: { _code: string; _kind: string; _order_id: string }
+        Returns: Json
+      }
       approve_partner_application: {
         Args: { _application_id: string }
         Returns: undefined
@@ -1872,6 +1948,10 @@ export type Database = {
       request_wallet_topup: {
         Args: { _amount: number; _payment_method: string }
         Returns: string
+      }
+      validate_voucher: {
+        Args: { _code: string; _scope: string; _subtotal: number }
+        Returns: Json
       }
     }
     Enums: {

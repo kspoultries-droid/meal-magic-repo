@@ -8,6 +8,7 @@ import PageHero from "@/components/common/PageHero";
 import BottomTabBar from "@/components/BottomTabBar";
 import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
+import BazarDeals from "@/components/wholesale/BazarDeals";
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 
 const Wholesale = () => {
@@ -74,6 +75,8 @@ const Wholesale = () => {
           { emoji: "🧾", title: "کم سے کم آرڈر پر خاص رعایت", subtitle: "Special discount on bulk MOQ" },
         ]}
       />
+
+      <BazarDeals />
 
       {/* Shop-wise Categories */}
       {shopCategories.length > 0 && (
