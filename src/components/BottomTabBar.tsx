@@ -1,4 +1,4 @@
-import { UtensilsCrossed, Store, ShoppingBag, User, Wrench, Package } from "lucide-react";
+import { UtensilsCrossed, Store, ShoppingBag, User, Wrench, Package, Clapperboard } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useCityServices } from "@/hooks/useCityServices";
@@ -7,6 +7,7 @@ const tabs = [
   { name: "Food", icon: UtensilsCrossed, path: "/" },
   { name: "Grocery", icon: Store, path: "/grocery" },
   { name: "Bazar", icon: Package, path: "/wholesale" },
+  { name: "Reels", icon: Clapperboard, path: "/reels" },
   { name: "Services", icon: Wrench, path: "/services" },
   { name: "Cart", icon: ShoppingBag, path: "cart" },
   { name: "Account", icon: User, path: "/profile" },
@@ -19,7 +20,7 @@ const BottomTabBar = () => {
   const { foodLive, groceryLive, wholesaleLive } = useCityServices();
 
   // Hide on dashboard/admin pages
-  const hiddenPaths = ["/admin", "/restaurant-dashboard", "/rider-dashboard", "/mechanic-dashboard", "/service-manager", "/checkout", "/auth"];
+  const hiddenPaths = ["/admin", "/restaurant-dashboard", "/rider-dashboard", "/mechanic-dashboard", "/service-manager", "/checkout", "/auth", "/reels"];
   if (hiddenPaths.some((p) => location.pathname.startsWith(p))) return null;
 
   const handleTab = (tab: typeof tabs[0]) => {

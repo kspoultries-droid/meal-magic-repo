@@ -58,6 +58,7 @@ const Wholesale = lazyWithRetry(() => import("./pages/Wholesale"));
 const OrderConfirmation = lazyWithRetry(() => import("./pages/OrderConfirmation"));
 const Partner = lazyWithRetry(() => import("./pages/Partner"));
 const Operations = lazyWithRetry(() => import("./pages/Operations"));
+const Reels = lazyWithRetry(() => import("./pages/Reels"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
