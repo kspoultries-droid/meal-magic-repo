@@ -124,6 +124,7 @@ const App = () => (
                   <Route path="/order-confirmation/:type/:id" element={<OrderConfirmation />} />
                   <Route path="/partner" element={<Partner />} />
                   <Route path="/operations" element={<Operations />} />
+                  <Route path="/reels" element={<Reels />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
