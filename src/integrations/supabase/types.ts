@@ -1123,6 +1123,57 @@ export type Database = {
           },
         ]
       }
+      reels: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          likes: number
+          poster_url: string | null
+          price: number | null
+          sort_order: number
+          source_id: string | null
+          source_name: string
+          source_type: string
+          title: string
+          video_url: string
+          views: number
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          likes?: number
+          poster_url?: string | null
+          price?: number | null
+          sort_order?: number
+          source_id?: string | null
+          source_name: string
+          source_type: string
+          title: string
+          video_url: string
+          views?: number
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          likes?: number
+          poster_url?: string | null
+          price?: number | null
+          sort_order?: number
+          source_id?: string | null
+          source_name?: string
+          source_type?: string
+          title?: string
+          video_url?: string
+          views?: number
+        }
+        Relationships: []
+      }
       restaurants: {
         Row: {
           city_id: string
@@ -1933,6 +1984,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_reel_views: { Args: { _reel_id: string }; Returns: undefined }
+      like_reel: { Args: { _reel_id: string }; Returns: undefined }
       manages_category: {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
