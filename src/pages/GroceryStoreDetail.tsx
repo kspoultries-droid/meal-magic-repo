@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import MyReelsManager from "@/components/reels/MyReelsManager";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
 import { toast } from "sonner";
