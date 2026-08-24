@@ -34,6 +34,7 @@ const ReelsTab = () => {
   const [sortOrder, setSortOrder] = useState("0");
 
   const [entities, setEntities] = useState<EntityOption[]>([]);
+  const [modFilter, setModFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
 
   const fetchReels = async () => {
     setLoading(true);
@@ -42,7 +43,27 @@ const ReelsTab = () => {
     setLoading(false);
   };
 
+  const setModeration = async (id: string, status: "approved" | "rejected") => {
+    let reason: string | null = null;
+    if (status === "rejected") {
+      reason = prompt("مسترد کرنے کی وجہ لکھیں (دکاندار کو نظر آئے گی):", "خلافِ اصول مواد");
+      if (reason === null) return;
+    }
+    const { data: auth } = await supabase.auth.getUser();
+    const { error } = await (supabase.from("reels" as any).update({
+      moderation_status: status,
+      rejection_reason: reason,
+      is_active: status === "approved",
+      reviewed_by: auth.user?.id,
+      reviewed_at: new Date().toISOString(),
+    }).eq("id", id) as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success(status === "approved" ? "ریل منظور — اب لائیو ہے ✅" : "ریل مسترد / بلاک ⛔");
+    fetchReels();
+  };
+
   useEffect(() => { fetchReels(); }, []);
+
 
   // Load entities for the chosen source type
   useEffect(() => {

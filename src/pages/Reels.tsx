@@ -55,8 +55,11 @@ const Reels = () => {
       const { data } = await (supabase
         .from("reels" as any)
         .select("*")
+        .eq("is_active", true)
+        .eq("moderation_status", "approved")
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false }) as any);
+
       setReels(data || []);
       setLoading(false);
     };
