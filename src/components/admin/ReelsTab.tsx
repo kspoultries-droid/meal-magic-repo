@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Clapperboard, Eye, EyeOff, Heart, Upload } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Clapperboard, Eye, EyeOff, Heart, Upload, ShieldCheck, Ban } from "lucide-react";
 
 const SOURCE_LABELS: Record<string, string> = {
   restaurant: "🍔 ریسٹورنٹ (فوڈ)",
@@ -315,7 +315,9 @@ const ReelsTab = () => {
               </TableBody>
             </Table>
           </div>
-        )}
+        );
+        })()}
+
       </CardContent>
     </Card>
   );
