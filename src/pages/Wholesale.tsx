@@ -190,7 +190,7 @@ const Wholesale = () => {
             {stores.map((store) => (
               <button
                 key={store.id}
-                onClick={() => navigate(`/grocery/${store.id}`)}
+                onClick={() => navigate(`/bazar/${store.id}`)}
                 className={`bg-card rounded-2xl border overflow-hidden hover:shadow-md transition-shadow text-left ${!store.is_active ? "opacity-60 grayscale" : ""}`}
               >
                 <div className="w-full h-24 bg-secondary flex items-center justify-center overflow-hidden relative">
