@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +23,7 @@ const GROCERY_CATEGORIES = [
 
 const GroceryStoreDetail = () => {
   const { id } = useParams();
+  const isBazar = useLocation().pathname.startsWith("/bazar");
   const navigate = useNavigate();
   const { user } = useAuth();
   const { items: cartItems, addItem, updateQuantity } = useCart();
@@ -208,7 +209,9 @@ const GroceryStoreDetail = () => {
         <Tabs defaultValue="products" className="w-full">
           <TabsList className="w-full mb-3">
             <TabsTrigger value="products" className="flex-1">🛒 پروڈکٹس</TabsTrigger>
-            <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
+            {(!isBazar || isOwner) && (
+              <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="products">
@@ -347,6 +350,7 @@ const GroceryStoreDetail = () => {
             )}
           </TabsContent>
 
+          {(!isBazar || isOwner) && (
           <TabsContent value="orders">
             {isOwner ? (
               <ShopkeeperListOrders storeId={id!} />
@@ -357,6 +361,7 @@ const GroceryStoreDetail = () => {
               </div>
             )}
           </TabsContent>
+          )}
         </Tabs>
       </div>
 
