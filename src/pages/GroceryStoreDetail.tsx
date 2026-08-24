@@ -212,7 +212,9 @@ const GroceryStoreDetail = () => {
             {(!isBazar || isOwner) && (
               <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
             )}
+            {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 ریلز</TabsTrigger>}
           </TabsList>
+
 
           <TabsContent value="products">
             {filtered.length === 0 ? (
@@ -362,7 +364,13 @@ const GroceryStoreDetail = () => {
             )}
           </TabsContent>
           )}
+          {isOwner && (
+            <TabsContent value="reels">
+              <MyReelsManager restrictSourceId={id!} />
+            </TabsContent>
+          )}
         </Tabs>
+
       </div>
 
       <CartDrawer />
