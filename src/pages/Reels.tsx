@@ -307,8 +307,33 @@ const Reels = () => {
           })
         )}
       </div>
+
+      <Dialog open={!!reportReel} onOpenChange={(o) => !o && setReportReel(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Flag className="w-4 h-4 text-destructive" /> ریل رپورٹ کریں
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground -mt-2">{reportReel?.title}</p>
+          <div className="space-y-2">
+            {REPORT_REASONS.map((r) => (
+              <label key={r.key} className={`flex items-center gap-2 rounded-lg border p-2.5 text-sm cursor-pointer transition-colors ${reportReason === r.key ? "border-destructive bg-destructive/5 font-semibold" : "border-border"}`}>
+                <input type="radio" name="reel-report-reason" value={r.key} checked={reportReason === r.key} onChange={() => setReportReason(r.key)} />
+                {r.label}
+              </label>
+            ))}
+            <Textarea placeholder="مزید تفصیل (اختیاری)" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} maxLength={500} rows={3} />
+            <Button variant="destructive" className="w-full" onClick={submitReport} disabled={reporting}>
+              {reporting ? "بھیجی جا رہی ہے…" : "رپورٹ بھیجیں"}
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center">جھوٹی رپورٹس پر اکاؤنٹ محدود کیا جا سکتا ہے۔</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+
 
 export default Reels;
