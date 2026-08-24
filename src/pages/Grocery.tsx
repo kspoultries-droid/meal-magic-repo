@@ -52,7 +52,7 @@ const Grocery = () => {
       .select("id, name, price, discount_price, image_url, unit, store_id, is_special_offer, sort_order")
       .eq("is_available", true)
       .eq("is_special_offer", true)
-      .limit(200)
+      .limit(2000)
       .then(({ data }) => {
         // ایک ہی آئٹم کئی دکانوں میں ہوتا ہے — نام کے حساب سے صرف بہترین (سب سے زیادہ رعایت / کم قیمت) رکھیں
         const best = new Map<string, any>();
@@ -64,8 +64,8 @@ const Grocery = () => {
         }
         const list = Array.from(best.values())
           .map((p) => ({ ...p, _off: p.discount_price ? 1 - p.discount_price / p.price : 0 }))
-          .sort((a, b) => b._off - a._off || (a.sort_order ?? 0) - (b.sort_order ?? 0))
-          .slice(0, 12);
+          .sort((a, b) => b._off - a._off || (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
         setDeals(list);
       });
 

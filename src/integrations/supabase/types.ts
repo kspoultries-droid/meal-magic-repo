@@ -1130,8 +1130,13 @@ export type Database = {
           id: string
           is_active: boolean
           likes: number
+          moderation_status: string
+          owner_id: string | null
           poster_url: string | null
           price: number | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           sort_order: number
           source_id: string | null
           source_name: string
@@ -1146,8 +1151,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           likes?: number
+          moderation_status?: string
+          owner_id?: string | null
           poster_url?: string | null
           price?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sort_order?: number
           source_id?: string | null
           source_name: string
@@ -1162,8 +1172,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           likes?: number
+          moderation_status?: string
+          owner_id?: string | null
           poster_url?: string | null
           price?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sort_order?: number
           source_id?: string | null
           source_name?: string
@@ -1992,6 +2007,10 @@ export type Database = {
       }
       mechanic_can_access_booking: {
         Args: { _booking_id: string; _user_id: string }
+        Returns: boolean
+      }
+      owns_reel_source: {
+        Args: { _source_id: string; _source_type: string; _user_id: string }
         Returns: boolean
       }
       owns_restaurant: {

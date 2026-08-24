@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import MyReelsManager from "@/components/reels/MyReelsManager";
 import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
 import { toast } from "sonner";
@@ -212,7 +213,9 @@ const GroceryStoreDetail = () => {
             {(!isBazar || isOwner) && (
               <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
             )}
+            {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 ریلز</TabsTrigger>}
           </TabsList>
+
 
           <TabsContent value="products">
             {filtered.length === 0 ? (
@@ -362,7 +365,13 @@ const GroceryStoreDetail = () => {
             )}
           </TabsContent>
           )}
+          {isOwner && (
+            <TabsContent value="reels">
+              <MyReelsManager restrictSourceId={id!} />
+            </TabsContent>
+          )}
         </Tabs>
+
       </div>
 
       <CartDrawer />
