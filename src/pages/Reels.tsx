@@ -62,6 +62,12 @@ const Reels = () => {
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const viewedRef = useRef<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
+  const [reportReel, setReportReel] = useState<Reel | null>(null);
+  const [reportReason, setReportReason] = useState<string>("");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reporting, setReporting] = useState(false);
+  const [reported, setReported] = useState<Set<string>>(new Set());
+
 
   useEffect(() => {
     const load = async () => {
