@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Heart, Eye, Share2, Volume2, VolumeX, Play, ShoppingBag, Store, Package, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Heart, Eye, Share2, Volume2, VolumeX, Play, ShoppingBag, Store, Package, UtensilsCrossed, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
 
 interface Reel {
   id: string;
