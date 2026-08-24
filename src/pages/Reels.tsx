@@ -275,7 +275,12 @@ const Reels = () => {
                   <button onClick={toggleMute} className="flex flex-col items-center active:scale-90 transition-transform" aria-label="آواز">
                     {muted ? <VolumeX className="w-7 h-7 text-white drop-shadow-lg" /> : <Volume2 className="w-7 h-7 text-white drop-shadow-lg" />}
                   </button>
+                  <button onClick={() => openReport(reel)} className="flex flex-col items-center gap-1 active:scale-90 transition-transform" aria-label="رپورٹ کریں">
+                    <Flag className={`w-7 h-7 drop-shadow-lg ${reported.has(reel.id) ? "text-red-500 fill-red-500" : "text-white"}`} />
+                    <span className="text-white text-[10px] font-bold drop-shadow">رپورٹ</span>
+                  </button>
                 </div>
+
 
                 {/* Bottom info */}
                 <div className="absolute left-0 right-16 bottom-0 p-4 pb-8 z-10">
