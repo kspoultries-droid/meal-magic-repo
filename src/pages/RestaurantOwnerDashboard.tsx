@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil, Bike } from "lucide-react";
+import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil, Bike, Clapperboard } from "lucide-react";
+import MyReelsManager from "@/components/reels/MyReelsManager";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
@@ -66,10 +67,13 @@ const RestaurantOwnerDashboard = () => {
             <TabsTrigger value="restaurant" className="gap-1"><Store className="h-4 w-4" /> میرا ریسٹورنٹ</TabsTrigger>
             <TabsTrigger value="menu" className="gap-1"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
             <TabsTrigger value="orders" className="gap-1"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
+            <TabsTrigger value="reels" className="gap-1"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
           </TabsList>
           <TabsContent value="restaurant"><MyRestaurantTab /></TabsContent>
           <TabsContent value="menu"><MenuTab /></TabsContent>
           <TabsContent value="orders"><OwnerOrdersTab /></TabsContent>
+          <TabsContent value="reels"><MyReelsManager /></TabsContent>
+
         </Tabs>
       </div>
     </div>
