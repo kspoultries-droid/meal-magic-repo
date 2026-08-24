@@ -112,6 +112,7 @@ const App = () => (
                   <Route path="/install" element={<Install />} />
                   <Route path="/grocery" element={<Grocery />} />
                   <Route path="/grocery/:id" element={<GroceryStoreDetail />} />
+                  <Route path="/bazar/:id" element={<GroceryStoreDetail />} />
                   <Route path="/order-tracking/:id" element={<OrderTracking />} />
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/services" element={<Services />} />

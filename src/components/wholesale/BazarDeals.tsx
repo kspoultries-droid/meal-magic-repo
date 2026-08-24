@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { Copy, Check, Ticket, Clock } from "lucide-react";
+import { Copy, Check, Ticket, Clock, Plus, X, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface Voucher {
   id: string;
@@ -25,18 +29,58 @@ const gradients = [
 ];
 
 const BazarDeals = () => {
+  const { isAdmin } = useAuth();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState({ code: "", title: "", discountType: "percent", discountValue: "", minOrder: "0", validUntil: "" });
 
-  useEffect(() => {
-    (supabase.from("vouchers" as any).select("*").eq("is_active", true).order("sort_order") as any)
-      .then(({ data }: any) => {
-        const all: Voucher[] = data || [];
-        setVouchers(all.filter((v) => v.scope === "wholesale" || v.scope === "all"));
-        setLoaded(true);
-      });
-  }, []);
+  const fetchVouchers = async () => {
+    const { data } = await (supabase.from("vouchers" as any).select("*").eq("is_active", true).order("sort_order") as any);
+    const all: Voucher[] = data || [];
+    setVouchers(all.filter((v) => v.scope === "wholesale" || v.scope === "all"));
+    setLoaded(true);
+  };
+
+  useEffect(() => { fetchVouchers(); }, []);
+
+  const createVoucher = async () => {
+    if (!form.code.trim() || !form.title.trim() || !form.discountValue) {
+      toast.error("کوڈ، ٹائٹل اور رعایت ضروری ہے");
+      return;
+    }
+    const { error } = await (supabase.from("vouchers" as any).insert({
+      code: form.code.trim().toUpperCase(),
+      title: form.title.trim(),
+      title_ur: form.title.trim(),
+      discount_type: form.discountType,
+      discount_value: parseFloat(form.discountValue),
+      min_order: parseFloat(form.minOrder) || 0,
+      scope: "wholesale",
+      valid_until: form.validUntil ? new Date(form.validUntil + "T23:59:59").toISOString() : null,
+    }) as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success("بازار واؤچر بن گیا 🎟️");
+    setForm({ code: "", title: "", discountType: "percent", discountValue: "", minOrder: "0", validUntil: "" });
+    setDialogOpen(false);
+    fetchVouchers();
+  };
+
+  const closeVoucher = async (id: string) => {
+    const { error } = await (supabase.from("vouchers" as any).update({ is_active: false }).eq("id", id) as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success("واؤچر بند کر دیا گیا");
+    fetchVouchers();
+  };
+
+  const deleteVoucher = async (id: string) => {
+    if (!confirm("کیا آپ واقعی یہ واؤچر حذف کرنا چاہتے ہیں؟")) return;
+    const { error } = await (supabase.from("vouchers" as any).delete().eq("id", id) as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success("واؤچر حذف ہو گیا");
+    fetchVouchers();
+  };
 
   const copyCode = async (v: Voucher) => {
     try {
@@ -54,8 +98,8 @@ const BazarDeals = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  if (loaded && vouchers.length === 0) return null;
   if (!loaded) return null;
+  if (vouchers.length === 0 && !isAdmin) return null;
 
   const daysLeft = (until: string | null) => {
     if (!until) return null;
@@ -103,6 +147,25 @@ const BazarDeals = () => {
                 {copiedId === v.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4 opacity-80" />}
               </button>
 
+              {isAdmin && (
+                <div className="absolute top-2 left-2 flex gap-1">
+                  <button
+                    onClick={() => closeVoucher(v.id)}
+                    title="بند کریں"
+                    className="w-6 h-6 rounded-full bg-background/85 text-foreground flex items-center justify-center active:scale-90 transition-transform"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteVoucher(v.id)}
+                    title="حذف کریں"
+                    className="w-6 h-6 rounded-full bg-background/85 text-destructive flex items-center justify-center active:scale-90 transition-transform"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               {left !== null && (
                 <p className="flex items-center gap-1 text-[9px] font-semibold opacity-80 mt-1.5">
                   <Clock className="w-2.5 h-2.5" /> {left} دن باقی
@@ -111,7 +174,48 @@ const BazarDeals = () => {
             </div>
           );
         })}
+
+        {isAdmin && (
+          <button
+            onClick={() => setDialogOpen(true)}
+            className="shrink-0 w-40 rounded-2xl border-2 border-dashed border-primary/50 bg-card text-primary flex flex-col items-center justify-center gap-1 py-6 active:scale-95 transition-transform"
+          >
+            <Plus className="w-6 h-6" />
+            <span className="text-xs font-bold">نیا واؤچر</span>
+            <span className="text-[10px] opacity-70">Add voucher</span>
+          </button>
+        )}
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>بازار کا نیا واؤچر</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Input placeholder="کوڈ * (BAZAR10)" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} />
+              <Input placeholder="ٹائٹل *" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                className="w-full border rounded-md p-2 bg-background text-foreground text-sm"
+                value={form.discountType}
+                onChange={(e) => setForm({ ...form, discountType: e.target.value })}
+              >
+                <option value="percent">فیصد (%)</option>
+                <option value="flat">فکسڈ رقم (Rs)</option>
+              </select>
+              <Input type="number" placeholder="رعایت *" value={form.discountValue} onChange={(e) => setForm({ ...form, discountValue: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input type="number" placeholder="کم از کم آرڈر" value={form.minOrder} onChange={(e) => setForm({ ...form, minOrder: e.target.value })} />
+              <Input type="date" value={form.validUntil} onChange={(e) => setForm({ ...form, validUntil: e.target.value })} />
+            </div>
+            <Button className="w-full" onClick={createVoucher}>بنائیں</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
