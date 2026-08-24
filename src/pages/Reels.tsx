@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Heart, Eye, Share2, Volume2, VolumeX, Play, ShoppingBag, Store, Package, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Reel {
   id: string;
@@ -34,6 +35,7 @@ const SOURCE_BADGE: Record<string, string> = {
 const LIKED_KEY = "easylife:liked-reels";
 
 const Reels = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [reels, setReels] = useState<Reel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,14 +92,14 @@ const Reels = () => {
         video.play().catch(() => {});
         if (!viewedRef.current.has(id)) {
           viewedRef.current.add(id);
-          (supabase.rpc("increment_reel_views" as any, { _reel_id: id } as any) as any).then(() => {});
+          if (user) (supabase.rpc("increment_reel_views" as any, { _reel_id: id } as any) as any).then(() => {});
           setReels((prev) => prev.map((r) => (r.id === id ? { ...r, views: r.views + 1 } : r)));
         }
       } else {
         video.pause();
       }
     });
-  }, [activeId, muted]);
+  }, [activeId, muted, user]);
 
   const toggleMute = useCallback(() => setMuted((m) => !m), []);
 
@@ -115,8 +117,8 @@ const Reels = () => {
     setLiked(next);
     localStorage.setItem(LIKED_KEY, JSON.stringify([...next]));
     setReels((prev) => prev.map((r) => (r.id === reel.id ? { ...r, likes: r.likes + 1 } : r)));
-    (supabase.rpc("like_reel" as any, { _reel_id: reel.id } as any) as any).then(() => {});
-  }, [liked]);
+    if (user) (supabase.rpc("like_reel" as any, { _reel_id: reel.id } as any) as any).then(() => {});
+  }, [liked, user]);
 
   const shareReel = useCallback(async (reel: Reel) => {
     const url = `${window.location.origin}/reels`;
