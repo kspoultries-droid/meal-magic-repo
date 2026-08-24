@@ -35,6 +35,24 @@ const Wholesale = () => {
     });
   }, []);
 
+  const fetchProductPage = async (list: any[], from: number) => {
+    const ids = list.map((s: any) => s.id);
+    if (ids.length === 0) return [] as any[];
+    let pq: any = supabase
+      .from("grocery_products")
+      .select("id, store_id, name, price, discount_price, wholesale_price, image_url, unit, min_order_qty, is_available")
+      .in("store_id", ids)
+      .eq("is_available", true)
+      .order("sort_order", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+    if (searchQuery) pq = pq.ilike("name", `%${searchQuery}%`);
+    const { data } = await pq;
+    const nameById = new Map(list.map((s: any) => [s.id, s.name]));
+    return (data || []).map((p: any) => ({ ...p, storeName: nameById.get(p.store_id) }));
+  };
+
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -53,26 +71,30 @@ const Wholesale = () => {
       const list = storeData || [];
       setStores(list);
 
-      const ids = list.map((s: any) => s.id);
-      if (ids.length === 0) {
-        setProducts([]);
-        setLoading(false);
-        return;
-      }
-      let pq: any = supabase
-        .from("grocery_products")
-        .select("id, store_id, name, price, discount_price, wholesale_price, image_url, unit, min_order_qty, is_available")
-        .in("store_id", ids)
-        .eq("is_available", true)
-        .limit(200);
-      if (searchQuery) pq = pq.ilike("name", `%${searchQuery}%`);
-      const { data: prodData } = await pq;
-      const nameById = new Map(list.map((s: any) => [s.id, s.name]));
-      setProducts((prodData || []).map((p: any) => ({ ...p, storeName: nameById.get(p.store_id) })));
+      const page = await fetchProductPage(list, 0);
+      setProducts(page);
+      setHasMore(page.length === PAGE_SIZE);
       setLoading(false);
     };
     fetchAll();
   }, [searchQuery, selectedCity, activeCategory, activeShopCategory]);
+
+  const loadMore = async () => {
+    if (visible + 20 <= products.length) {
+      setVisible((v) => v + 20);
+      return;
+    }
+    if (!hasMore || loadingMore) {
+      setVisible((v) => Math.min(v + 20, products.length));
+      return;
+    }
+    setLoadingMore(true);
+    const page = await fetchProductPage(stores, products.length);
+    setProducts((prev) => [...prev, ...page]);
+    setHasMore(page.length === PAGE_SIZE);
+    setVisible((v) => v + 20);
+    setLoadingMore(false);
+  };
 
   const filteredStores = useMemo(
     () => (searchQuery ? stores.filter((s) => s.name?.toLowerCase().includes(searchQuery.toLowerCase())) : stores),
