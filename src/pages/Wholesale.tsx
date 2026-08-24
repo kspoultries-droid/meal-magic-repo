@@ -309,12 +309,13 @@ const Wholesale = () => {
                 <BazarProductCard key={p.id} product={p} onClick={() => openProduct(p)} />
               ))}
             </div>
-            {visible < products.length && (
+            {(visible < products.length || hasMore) && (
               <button
-                onClick={() => setVisible((v) => v + 20)}
-                className="mx-auto mt-4 flex items-center gap-1 rounded-full bg-card border px-5 py-2 text-xs font-bold text-primary active:scale-95 transition-transform"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="mx-auto mt-4 flex items-center gap-1 rounded-full bg-card border px-5 py-2 text-xs font-bold text-primary active:scale-95 transition-transform disabled:opacity-60"
               >
-                مزید دیکھیں <ChevronRight className="w-3.5 h-3.5" />
+                {loadingMore ? "لوڈ ہو رہا ہے…" : "مزید دیکھیں"} <ChevronRight className="w-3.5 h-3.5" />
               </button>
             )}
           </>
