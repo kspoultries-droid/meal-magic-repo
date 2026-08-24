@@ -49,12 +49,26 @@ const Grocery = () => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
     supabase
       .from("grocery_products")
-      .select("id, name, price, discount_price, image_url, unit, store_id, is_special_offer")
+      .select("id, name, price, discount_price, image_url, unit, store_id, is_special_offer, sort_order")
       .eq("is_available", true)
       .eq("is_special_offer", true)
-      .order("sort_order", { ascending: true })
-      .limit(12)
-      .then(({ data }) => setDeals(data || []));
+      .limit(200)
+      .then(({ data }) => {
+        // ایک ہی آئٹم کئی دکانوں میں ہوتا ہے — نام کے حساب سے صرف بہترین (سب سے زیادہ رعایت / کم قیمت) رکھیں
+        const best = new Map<string, any>();
+        for (const p of data || []) {
+          const key = (p.name || "").trim().toLowerCase();
+          const eff = p.discount_price ?? p.price;
+          const prev = best.get(key);
+          if (!prev || eff < (prev.discount_price ?? prev.price)) best.set(key, p);
+        }
+        const list = Array.from(best.values())
+          .map((p) => ({ ...p, _off: p.discount_price ? 1 - p.discount_price / p.price : 0 }))
+          .sort((a, b) => b._off - a._off || (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          .slice(0, 12);
+        setDeals(list);
+      });
+
     (supabase.rpc as any)("get_top_selling_grocery_products", { _limit: 12 }).then(({ data }: any) =>
       setTopSelling(data || [])
     );
