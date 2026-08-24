@@ -12,6 +12,8 @@ import BazarHero from "@/components/wholesale/BazarHero";
 import BazarProductCard, { BazarProduct } from "@/components/wholesale/BazarProductCard";
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 
+const PAGE_SIZE = 60;
+
 const Wholesale = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [stores, setStores] = useState<any[]>([]);
