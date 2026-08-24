@@ -36,12 +36,19 @@ const ReelsTab = () => {
   const [entities, setEntities] = useState<EntityOption[]>([]);
   const [modFilter, setModFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
 
+  const [reportCounts, setReportCounts] = useState<Record<string, number>>({});
+
   const fetchReels = async () => {
     setLoading(true);
     const { data } = await (supabase.from("reels" as any).select("*").order("sort_order").order("created_at", { ascending: false }) as any);
     setReels(data || []);
+    const { data: reports } = await (supabase.from("reel_reports" as any).select("reel_id").eq("status", "new") as any);
+    const counts: Record<string, number> = {};
+    ((reports as any[]) || []).forEach((r) => { counts[r.reel_id] = (counts[r.reel_id] || 0) + 1; });
+    setReportCounts(counts);
     setLoading(false);
   };
+
 
   const setModeration = async (id: string, status: "approved" | "rejected") => {
     let reason: string | null = null;
@@ -287,6 +294,10 @@ const ReelsTab = () => {
                           {r.moderation_status === "rejected" ? "مسترد" : r.moderation_status === "pending" ? "زیرِ جائزہ" : "منظور"}
                         </Badge>
                         <span className="text-[10px] text-muted-foreground">{r.is_active ? "فعال" : "غیر فعال"}</span>
+                        {reportCounts[r.id] > 0 && (
+                          <Badge className="bg-destructive text-destructive-foreground text-[10px]">🚩 {reportCounts[r.id]} رپورٹس</Badge>
+                        )}
+
                       </div>
                     </TableCell>
                     <TableCell>

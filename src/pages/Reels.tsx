@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Heart, Eye, Share2, Volume2, VolumeX, Play, ShoppingBag, Store, Package, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Heart, Eye, Share2, Volume2, VolumeX, Play, ShoppingBag, Store, Package, UtensilsCrossed, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
 
 interface Reel {
   id: string;
@@ -34,6 +38,15 @@ const SOURCE_BADGE: Record<string, string> = {
 
 const LIKED_KEY = "easylife:liked-reels";
 
+const REPORT_REASONS = [
+  { key: "obscene", label: "فحش / بےہودہ مواد" },
+  { key: "violence", label: "تشدد یا نفرت انگیز" },
+  { key: "misleading", label: "گمراہ کن / جھوٹی معلومات" },
+  { key: "spam", label: "اسپام یا غیر متعلقہ" },
+  { key: "other", label: "دیگر وجہ" },
+];
+
+
 const Reels = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -49,6 +62,12 @@ const Reels = () => {
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const viewedRef = useRef<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
+  const [reportReel, setReportReel] = useState<Reel | null>(null);
+  const [reportReason, setReportReason] = useState<string>("");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reporting, setReporting] = useState(false);
+  const [reported, setReported] = useState<Set<string>>(new Set());
+
 
   useEffect(() => {
     const load = async () => {
@@ -140,6 +159,39 @@ const Reels = () => {
     else navigate(`/grocery/${reel.source_id}`);
   }, [navigate]);
 
+  const openReport = useCallback((reel: Reel) => {
+    if (!user) { toast.error("رپورٹ کے لیے لاگ اِن ضروری ہے"); return; }
+    if (reported.has(reel.id)) { toast.info("آپ پہلے ہی یہ ریل رپورٹ کر چکے ہیں"); return; }
+    setReportReel(reel); setReportReason(""); setReportDetails("");
+  }, [user, reported]);
+
+  const submitReport = async () => {
+    if (!reportReel) return;
+    if (!reportReason) { toast.error("وجہ منتخب کریں"); return; }
+    setReporting(true);
+    const { error } = await (supabase.from("reel_reports" as any).insert({
+      reel_id: reportReel.id,
+      reason: reportReason,
+      details: reportDetails.trim() || null,
+    }) as any);
+    setReporting(false);
+    if (error) {
+      if ((error as any).code === "23505") {
+        toast.info("آپ پہلے ہی یہ ریل رپورٹ کر چکے ہیں");
+        setReported((p) => new Set(p).add(reportReel.id));
+        setReportReel(null);
+        return;
+      }
+      toast.error("رپورٹ نہ بھیجی جا سکی: " + error.message);
+      return;
+    }
+    setReported((p) => new Set(p).add(reportReel.id));
+    setReportReel(null);
+    toast.success("شکریہ! رپورٹ ایڈمن کو بھیج دی گئی 🚩");
+  };
+
+
+
   return (
     <div className="fixed inset-0 bg-black z-[60]">
       {/* Top bar */}
@@ -223,7 +275,12 @@ const Reels = () => {
                   <button onClick={toggleMute} className="flex flex-col items-center active:scale-90 transition-transform" aria-label="آواز">
                     {muted ? <VolumeX className="w-7 h-7 text-white drop-shadow-lg" /> : <Volume2 className="w-7 h-7 text-white drop-shadow-lg" />}
                   </button>
+                  <button onClick={() => openReport(reel)} className="flex flex-col items-center gap-1 active:scale-90 transition-transform" aria-label="رپورٹ کریں">
+                    <Flag className={`w-7 h-7 drop-shadow-lg ${reported.has(reel.id) ? "text-red-500 fill-red-500" : "text-white"}`} />
+                    <span className="text-white text-[10px] font-bold drop-shadow">رپورٹ</span>
+                  </button>
                 </div>
+
 
                 {/* Bottom info */}
                 <div className="absolute left-0 right-16 bottom-0 p-4 pb-8 z-10">
@@ -250,8 +307,33 @@ const Reels = () => {
           })
         )}
       </div>
+
+      <Dialog open={!!reportReel} onOpenChange={(o) => !o && setReportReel(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Flag className="w-4 h-4 text-destructive" /> ریل رپورٹ کریں
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground -mt-2">{reportReel?.title}</p>
+          <div className="space-y-2">
+            {REPORT_REASONS.map((r) => (
+              <label key={r.key} className={`flex items-center gap-2 rounded-lg border p-2.5 text-sm cursor-pointer transition-colors ${reportReason === r.key ? "border-destructive bg-destructive/5 font-semibold" : "border-border"}`}>
+                <input type="radio" name="reel-report-reason" value={r.key} checked={reportReason === r.key} onChange={() => setReportReason(r.key)} />
+                {r.label}
+              </label>
+            ))}
+            <Textarea placeholder="مزید تفصیل (اختیاری)" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} maxLength={500} rows={3} />
+            <Button variant="destructive" className="w-full" onClick={submitReport} disabled={reporting}>
+              {reporting ? "بھیجی جا رہی ہے…" : "رپورٹ بھیجیں"}
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center">جھوٹی رپورٹس پر اکاؤنٹ محدود کیا جا سکتا ہے۔</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+
 
 export default Reels;
