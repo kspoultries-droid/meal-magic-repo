@@ -159,6 +159,39 @@ const Reels = () => {
     else navigate(`/grocery/${reel.source_id}`);
   }, [navigate]);
 
+  const openReport = useCallback((reel: Reel) => {
+    if (!user) { toast.error("رپورٹ کے لیے لاگ اِن ضروری ہے"); return; }
+    if (reported.has(reel.id)) { toast.info("آپ پہلے ہی یہ ریل رپورٹ کر چکے ہیں"); return; }
+    setReportReel(reel); setReportReason(""); setReportDetails("");
+  }, [user, reported]);
+
+  const submitReport = async () => {
+    if (!reportReel) return;
+    if (!reportReason) { toast.error("وجہ منتخب کریں"); return; }
+    setReporting(true);
+    const { error } = await (supabase.from("reel_reports" as any).insert({
+      reel_id: reportReel.id,
+      reason: reportReason,
+      details: reportDetails.trim() || null,
+    }) as any);
+    setReporting(false);
+    if (error) {
+      if ((error as any).code === "23505") {
+        toast.info("آپ پہلے ہی یہ ریل رپورٹ کر چکے ہیں");
+        setReported((p) => new Set(p).add(reportReel.id));
+        setReportReel(null);
+        return;
+      }
+      toast.error("رپورٹ نہ بھیجی جا سکی: " + error.message);
+      return;
+    }
+    setReported((p) => new Set(p).add(reportReel.id));
+    setReportReel(null);
+    toast.success("شکریہ! رپورٹ ایڈمن کو بھیج دی گئی 🚩");
+  };
+
+
+
   return (
     <div className="fixed inset-0 bg-black z-[60]">
       {/* Top bar */}
