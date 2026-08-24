@@ -38,6 +38,15 @@ const SOURCE_BADGE: Record<string, string> = {
 
 const LIKED_KEY = "easylife:liked-reels";
 
+const REPORT_REASONS = [
+  { key: "obscene", label: "فحش / بےہودہ مواد" },
+  { key: "violence", label: "تشدد یا نفرت انگیز" },
+  { key: "misleading", label: "گمراہ کن / جھوٹی معلومات" },
+  { key: "spam", label: "اسپام یا غیر متعلقہ" },
+  { key: "other", label: "دیگر وجہ" },
+];
+
+
 const Reels = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
