@@ -123,6 +123,8 @@ const ReelsTab = () => {
         poster_url: posterUrl.trim() || null,
         price: price ? parseFloat(price) : null,
         sort_order: parseInt(sortOrder) || 0,
+        moderation_status: "approved",
+
       };
       const { error } = await (supabase.from("reels" as any).insert(payload) as any);
       if (error) { toast.error(error.message); setSaving(false); return; }
@@ -212,8 +214,31 @@ const ReelsTab = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : reels.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">کوئی ریل نہیں — اوپر "نئی ریل" سے بنائیں</p>
+        <div className="flex gap-2 mb-3 overflow-x-auto">
+          {([
+            { k: "pending", l: "⏳ زیرِ جائزہ" },
+            { k: "approved", l: "✅ منظور شدہ" },
+            { k: "rejected", l: "⛔ مسترد" },
+            { k: "all", l: "سب" },
+          ] as const).map((t) => {
+            const count = t.k === "all" ? reels.length : reels.filter((r) => (r.moderation_status || "approved") === t.k).length;
+            return (
+              <button
+                key={t.k}
+                onClick={() => setModFilter(t.k)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                  modFilter === t.k ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {t.l} ({count})
+              </button>
+            );
+          })}
+        </div>
+        {(() => {
+          const visible = modFilter === "all" ? reels : reels.filter((r) => (r.moderation_status || "approved") === modFilter);
+          return loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : visible.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">اس فہرست میں کوئی ریل نہیں</p>
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -228,7 +253,7 @@ const ReelsTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {reels.map((r) => (
+                {visible.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -240,21 +265,42 @@ const ReelsTab = () => {
                         <div>
                           <p className="font-bold text-sm">{r.title}</p>
                           {r.price && <p className="text-xs text-primary font-semibold">Rs {r.price}</p>}
+                          <a href={r.video_url} target="_blank" rel="noreferrer" className="text-[10px] text-primary underline">ویڈیو دیکھیں</a>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{SOURCE_LABELS[r.source_type] || r.source_type}</Badge></TableCell>
-                    <TableCell className="text-xs">{r.source_name}</TableCell>
+                    <TableCell className="text-xs">
+                      {r.source_name}
+                      {r.owner_id && <span className="block text-[10px] text-muted-foreground">دکاندار کی بھیجی ہوئی</span>}
+                    </TableCell>
                     <TableCell className="text-xs">
                       <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {r.views} · <Heart className="w-3 h-3" /> {r.likes}</span>
                     </TableCell>
                     <TableCell>
-                      <Badge className={r.is_active ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
-                        {r.is_active ? "فعال" : "غیر فعال"}
-                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        <Badge className={
+                          r.moderation_status === "rejected" ? "bg-destructive text-destructive-foreground"
+                          : r.moderation_status === "pending" ? "bg-warning/20 text-warning-foreground border border-warning/40"
+                          : "bg-success text-success-foreground"
+                        }>
+                          {r.moderation_status === "rejected" ? "مسترد" : r.moderation_status === "pending" ? "زیرِ جائزہ" : "منظور"}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground">{r.is_active ? "فعال" : "غیر فعال"}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-wrap">
+                        {r.moderation_status !== "approved" && (
+                          <Button size="sm" className="h-7 text-xs px-2" onClick={() => setModeration(r.id, "approved")}>
+                            <ShieldCheck className="h-3 w-3 mr-1" /> منظور
+                          </Button>
+                        )}
+                        {r.moderation_status !== "rejected" && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs px-2" onClick={() => setModeration(r.id, "rejected")}>
+                            <Ban className="h-3 w-3 mr-1" /> بلاک
+                          </Button>
+                        )}
                         <Button size="sm" variant="ghost" className="h-7 text-xs px-2" onClick={() => toggleActive(r.id, r.is_active)}>
                           {r.is_active ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                         </Button>
@@ -265,6 +311,7 @@ const ReelsTab = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+
               </TableBody>
             </Table>
           </div>
