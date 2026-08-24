@@ -294,6 +294,10 @@ const ReelsTab = () => {
                           {r.moderation_status === "rejected" ? "مسترد" : r.moderation_status === "pending" ? "زیرِ جائزہ" : "منظور"}
                         </Badge>
                         <span className="text-[10px] text-muted-foreground">{r.is_active ? "فعال" : "غیر فعال"}</span>
+                        {reportCounts[r.id] > 0 && (
+                          <Badge className="bg-destructive text-destructive-foreground text-[10px]">🚩 {reportCounts[r.id]} رپورٹس</Badge>
+                        )}
+
                       </div>
                     </TableCell>
                     <TableCell>
