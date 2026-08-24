@@ -1990,6 +1990,10 @@ export type Database = {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
       }
+      mechanic_can_access_booking: {
+        Args: { _booking_id: string; _user_id: string }
+        Returns: boolean
+      }
       owns_restaurant: {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
