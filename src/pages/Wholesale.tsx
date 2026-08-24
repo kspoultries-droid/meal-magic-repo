@@ -119,13 +119,23 @@ const Wholesale = () => {
       {categories.length > 0 && (
         <section className="container mx-auto px-4 py-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {categories.map((cat) => {
+            <button
+              onClick={() => setActiveCategory(null)}
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 min-w-[64px] ${
+                !activeCategory ? "bg-primary text-primary-foreground shadow-md scale-105" : "bg-card text-foreground border hover:bg-accent"
+              }`}
+            >
+              <Package className="w-5 h-5" />
+              <span>All</span>
+              <span className="text-[8px] opacity-70">سب</span>
+            </button>
+            {categories.filter((c) => c.name !== "All").map((cat) => {
               const Icon = (LucideIcons as any)[cat.icon] || Package;
-              const isActive = activeCategory === cat.name || (cat.name === "All" && !activeCategory);
+              const isActive = activeCategory === cat.name;
               return (
                 <button
                   key={cat.id}
-                  onClick={() => setActiveCategory(cat.name === "All" ? null : cat.name)}
+                  onClick={() => setActiveCategory(isActive ? null : cat.name)}
                   className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-semibold whitespace-nowrap transition-all shrink-0 min-w-[64px] ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-md scale-105"
