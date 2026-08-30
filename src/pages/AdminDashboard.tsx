@@ -22,6 +22,7 @@ import CitySettingsTab from "@/components/admin/CitySettingsTab";
 import AuditLogTab from "@/components/admin/AuditLogTab";
 import VouchersTab from "@/components/admin/VouchersTab";
 import ReelsTab from "@/components/admin/ReelsTab";
+import PayoutsTab from "@/components/admin/PayoutsTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
