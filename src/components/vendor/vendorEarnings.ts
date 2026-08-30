@@ -45,9 +45,11 @@ export const loadVendorEarnings = async (from: Date, ownerId?: string): Promise<
 
   const restQ = supabase.from("restaurants").select("name, owner_id").in("owner_id", vendorIds);
   const storeQ = supabase.from("grocery_stores").select("name, owner_id").in("owner_id", vendorIds);
-  const [{ data: rests }, { data: stores }, { data: payouts }] = await Promise.all([
+  const providerQ = supabase.from("service_providers").select("name, user_id").in("user_id", vendorIds);
+  const [{ data: rests }, { data: stores }, { data: providers }, { data: payouts }] = await Promise.all([
     restQ,
     storeQ,
+    providerQ,
     supabase.from("payouts").select("vendor_id, amount, status, period_start")
       .in("vendor_id", vendorIds).gte("period_start", iso.slice(0, 10)),
   ]);
