@@ -356,8 +356,29 @@ const Checkout = () => {
             <select className="w-full border rounded-xl p-3 bg-background/80 text-foreground text-sm" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
               {cities.map((c) => <option key={c.id} value={c.id}>{c.name} (ڈلیوری: Rs {c.delivery_fee})</option>)}
             </select>
+
+            {savedAddresses.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
+                {savedAddresses.map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => {
+                      setAddress(a.address);
+                      if (a.lat && a.lng) setCoords({ lat: a.lat, lng: a.lng });
+                      setSaveThisAddress(false);
+                    }}
+                    className={`shrink-0 max-w-[220px] text-right px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${
+                      address === a.address ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background/70"
+                    }`}
+                  >
+                    📍 {a.label} — <span className="font-normal">{a.address.slice(0, 28)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => setAddress(e.target.value)} required className="flex-1 h-11 rounded-xl bg-background/80" />
+              <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => { setAddress(e.target.value); }} required className="flex-1 h-11 rounded-xl bg-background/80" />
               <Button variant="outline" onClick={getCurrentLocation} disabled={locating} className="shrink-0 h-11 px-3 rounded-xl glass border-primary/30 hover:bg-primary/10">
                 <LocateFixed className={`h-4 w-4 text-primary ${locating ? "animate-spin" : ""}`} />
               </Button>
@@ -365,6 +386,10 @@ const Checkout = () => {
             {coords && (
               <p className="text-xs text-primary font-semibold">📍 GPS: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>
             )}
+            <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground cursor-pointer">
+              <input type="checkbox" checked={saveThisAddress} onChange={(e) => setSaveThisAddress(e.target.checked)} className="accent-primary w-4 h-4" />
+              یہ پتہ محفوظ کریں تاکہ اگلی بار دوبارہ نہ لکھنا پڑے
+            </label>
             <Input placeholder="کوئی خاص ہدایات (اختیاری)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background/80" />
             {restaurantDeliveryMode === "self" && (
               <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
