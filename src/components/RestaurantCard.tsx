@@ -1,6 +1,7 @@
 import { Star, Clock, Tag, Plus, Bike } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
+import MenuItemSheet, { type MenuItemLike } from "@/components/menu/MenuItemSheet";
 import type { Restaurant } from "./RestaurantGrid";
 
 interface RestaurantCardProps {
