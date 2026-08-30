@@ -24,6 +24,7 @@ const MechanicDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
+  const [providerId, setProviderId] = useState<string | null>(null);
   const [fetching, setFetching] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [customerProfile, setCustomerProfile] = useState<any>(null);
