@@ -24,6 +24,8 @@ import VouchersTab from "@/components/admin/VouchersTab";
 import ReelsTab from "@/components/admin/ReelsTab";
 import PayoutsTab from "@/components/admin/PayoutsTab";
 import RiderRemittancesTab from "@/components/admin/RiderRemittancesTab";
+import RevenueTab from "@/components/admin/RevenueTab";
+import CommissionRulesTab from "@/components/admin/CommissionRulesTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
