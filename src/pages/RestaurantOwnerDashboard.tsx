@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil, Bike, Clapperboard, Wallet } from "lucide-react";
 import MyReelsManager from "@/components/reels/MyReelsManager";
 import EarningsPanel from "@/components/vendor/EarningsPanel";
+import SalesReport from "@/components/vendor/SalesReport";
+import VendorReviewsPanel from "@/components/reviews/VendorReviewsPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
@@ -70,12 +72,20 @@ const RestaurantOwnerDashboard = () => {
             <TabsTrigger value="orders" className="gap-1"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
             <TabsTrigger value="reels" className="gap-1"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
             <TabsTrigger value="earnings" className="gap-1"><Wallet className="h-4 w-4" /> کمائی</TabsTrigger>
+            <TabsTrigger value="sales" className="gap-1"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
+            <TabsTrigger value="reviews" className="gap-1"><Store className="h-4 w-4" /> ریویوز</TabsTrigger>
           </TabsList>
           <TabsContent value="restaurant"><MyRestaurantTab /></TabsContent>
           <TabsContent value="menu"><MenuTab /></TabsContent>
           <TabsContent value="orders"><OwnerOrdersTab /></TabsContent>
           <TabsContent value="reels"><MyReelsManager /></TabsContent>
           <TabsContent value="earnings"><EarningsPanel /></TabsContent>
+          <TabsContent value="sales"><SalesReport /></TabsContent>
+          <TabsContent value="reviews" className="space-y-4">
+            <VendorReviewsPanel kind="food" />
+            <VendorReviewsPanel kind="grocery" />
+          </TabsContent>
+
 
         </Tabs>
       </div>

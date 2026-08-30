@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
+import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
@@ -28,6 +29,7 @@ const Profile = () => {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [newAddr, setNewAddr] = useState({ label: "Home", address: "", lat: null as number | null, lng: null as number | null });
   const [locBusy, setLocBusy] = useState(false);
+  const [reviewOrder, setReviewOrder] = useState<any>(null);
   const [partnerAssets, setPartnerAssets] = useState({ restaurants: [] as any[], stores: [] as any[], serviceProvider: null as any, rider: null as any });
 
   useEffect(() => {
@@ -360,6 +362,11 @@ const Profile = () => {
                       ٹریک کریں 📍
                     </Button>
                   )}
+                  {(o.status === "delivered" || o.status === "completed") && (
+                    <Button size="sm" variant="outline" className="w-full mt-2 text-xs font-bold" onClick={() => setReviewOrder(o)}>
+                      رائے دیں ⭐
+                    </Button>
+                  )}
                   {o.order_items?.length > 0 && (
                     <>
                       <button className="flex items-center gap-1 text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
@@ -622,6 +629,17 @@ const Profile = () => {
         </AlertDialog>
       </div>
 
+      {reviewOrder && user && (
+        <OrderReviewDialog
+          open={!!reviewOrder}
+          onOpenChange={(v) => !v && setReviewOrder(null)}
+          orderId={reviewOrder.id}
+          restaurantId={reviewOrder.restaurant_id}
+          customerId={user.id}
+          kind="food"
+          items={(reviewOrder.order_items || []).map((i: any) => ({ name: i.name, quantity: i.quantity }))}
+        />
+      )}
       <BottomTabBar />
     </div>
   );

@@ -462,6 +462,53 @@ export type Database = {
           },
         ]
       }
+      grocery_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          order_id: string
+          rating: number
+          replied_at: string | null
+          reply: string | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          order_id: string
+          rating: number
+          replied_at?: string | null
+          reply?: string | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          order_id?: string
+          rating?: number
+          replied_at?: string | null
+          reply?: string | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_reviews_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grocery_stores: {
         Row: {
           advance_percent: number | null
@@ -720,6 +767,8 @@ export type Database = {
           id: string
           order_id: string
           rating: number
+          replied_at: string | null
+          reply: string | null
           restaurant_id: string
           updated_at: string
         }
@@ -730,6 +779,8 @@ export type Database = {
           id?: string
           order_id: string
           rating: number
+          replied_at?: string | null
+          reply?: string | null
           restaurant_id: string
           updated_at?: string
         }
@@ -740,6 +791,8 @@ export type Database = {
           id?: string
           order_id?: string
           rating?: number
+          replied_at?: string | null
+          reply?: string | null
           restaurant_id?: string
           updated_at?: string
         }
@@ -984,6 +1037,7 @@ export type Database = {
           processed_at: string | null
           processed_by: string | null
           status: string
+          vendor_confirmed_at: string | null
           vendor_id: string
         }
         Insert: {
@@ -997,6 +1051,7 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           status?: string
+          vendor_confirmed_at?: string | null
           vendor_id: string
         }
         Update: {
@@ -1010,6 +1065,7 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           status?: string
+          vendor_confirmed_at?: string | null
           vendor_id?: string
         }
         Relationships: []
@@ -1304,6 +1360,51 @@ export type Database = {
           },
         ]
       }
+      rider_remittances: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          note: string | null
+          receipt_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          rider_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          receipt_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          rider_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          receipt_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          rider_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       riders: {
         Row: {
           city_id: string | null
@@ -1560,6 +1661,8 @@ export type Database = {
           id: string
           provider_id: string | null
           rating: number
+          replied_at: string | null
+          reply: string | null
           service_id: string
         }
         Insert: {
@@ -1570,6 +1673,8 @@ export type Database = {
           id?: string
           provider_id?: string | null
           rating: number
+          replied_at?: string | null
+          reply?: string | null
           service_id: string
         }
         Update: {
@@ -1580,6 +1685,8 @@ export type Database = {
           id?: string
           provider_id?: string | null
           rating?: number
+          replied_at?: string | null
+          reply?: string | null
           service_id?: string
         }
         Relationships: [
@@ -1939,6 +2046,10 @@ export type Database = {
         Args: { _application_id: string }
         Returns: undefined
       }
+      confirm_payout_received: {
+        Args: { _payout_id: string }
+        Returns: undefined
+      }
       create_grocery_cart_order: {
         Args: {
           _city_id: string
@@ -2011,6 +2122,13 @@ export type Database = {
           wholesale_live: boolean
         }[]
       }
+      get_order_customer_contact: {
+        Args: { _kind: string; _order_id: string }
+        Returns: {
+          customer_name: string
+          customer_phone: string
+        }[]
+      }
       get_order_rider_info: {
         Args: { _order_id: string }
         Returns: {
@@ -2018,6 +2136,19 @@ export type Database = {
           lng: number
           rider_name: string
           rider_phone: string
+        }[]
+      }
+      get_rider_summary: {
+        Args: never
+        Returns: {
+          cash_collected: number
+          cash_due: number
+          pending_remit: number
+          remitted: number
+          today_deliveries: number
+          today_earnings: number
+          total_deliveries: number
+          total_earnings: number
         }[]
       }
       get_top_selling_grocery_products: {
@@ -2062,9 +2193,17 @@ export type Database = {
         Args: { _application_id: string; _reason: string }
         Returns: undefined
       }
+      reply_to_review: {
+        Args: { _kind: string; _reply: string; _review_id: string }
+        Returns: undefined
+      }
       request_wallet_topup: {
         Args: { _amount: number; _payment_method: string }
         Returns: string
+      }
+      review_rider_remittance: {
+        Args: { _approve: boolean; _id: string; _note?: string }
+        Returns: undefined
       }
       validate_voucher: {
         Args: { _code: string; _scope: string; _subtotal: number }
