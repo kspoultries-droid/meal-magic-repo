@@ -9,6 +9,9 @@ import { CartProvider } from "@/contexts/CartContext";
 import { useCourierNotifications } from "@/hooks/useCourierNotifications";
 import { toast } from "sonner";
 import Index from "./pages/Index";
+import CartDrawer from "@/components/CartDrawer";
+import FloatingCartBar from "@/components/cart/FloatingCartBar";
+
 
 // Auto-reload once when a lazy chunk fails to load (typically after a redeploy
 // invalidates old hashed filenames). Prevents blank-screen from stale chunks.
