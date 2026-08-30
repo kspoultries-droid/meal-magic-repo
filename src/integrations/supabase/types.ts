@@ -91,6 +91,7 @@ export type Database = {
       }
       cities: {
         Row: {
+          auto_dispatch: boolean
           auto_hide_without_rider: boolean
           courier_advance_percent: number
           courier_payment_default: string
@@ -100,10 +101,14 @@ export type Database = {
           food_enabled: boolean
           grocery_enabled: boolean
           id: string
+          max_dispatch_km: number
+          max_offers_before_stuck: number
           name: string
+          offer_timeout_seconds: number
           wholesale_enabled: boolean
         }
         Insert: {
+          auto_dispatch?: boolean
           auto_hide_without_rider?: boolean
           courier_advance_percent?: number
           courier_payment_default?: string
@@ -113,10 +118,14 @@ export type Database = {
           food_enabled?: boolean
           grocery_enabled?: boolean
           id?: string
+          max_dispatch_km?: number
+          max_offers_before_stuck?: number
           name: string
+          offer_timeout_seconds?: number
           wholesale_enabled?: boolean
         }
         Update: {
+          auto_dispatch?: boolean
           auto_hide_without_rider?: boolean
           courier_advance_percent?: number
           courier_payment_default?: string
@@ -126,7 +135,10 @@ export type Database = {
           food_enabled?: boolean
           grocery_enabled?: boolean
           id?: string
+          max_dispatch_km?: number
+          max_offers_before_stuck?: number
           name?: string
+          offer_timeout_seconds?: number
           wholesale_enabled?: boolean
         }
         Relationships: []
@@ -197,6 +209,57 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_offers: {
+        Row: {
+          created_at: string
+          delivery_fee: number
+          distance_km: number | null
+          dropoff_address: string | null
+          expires_at: string
+          id: string
+          order_id: string
+          order_kind: string
+          pickup_name: string | null
+          responded_at: string | null
+          rider_id: string
+          status: string
+          total_amount: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_fee?: number
+          distance_km?: number | null
+          dropoff_address?: string | null
+          expires_at: string
+          id?: string
+          order_id: string
+          order_kind: string
+          pickup_name?: string | null
+          responded_at?: string | null
+          rider_id: string
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_fee?: number
+          distance_km?: number | null
+          dropoff_address?: string | null
+          expires_at?: string
+          id?: string
+          order_id?: string
+          order_kind?: string
+          pickup_name?: string | null
+          responded_at?: string | null
+          rider_id?: string
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       grocery_cart_orders: {
         Row: {
           city_id: string | null
@@ -212,6 +275,7 @@ export type Database = {
           delivery_lng: number | null
           delivery_method: string
           discount_amount: number
+          dispatch_state: string
           id: string
           is_gift: boolean | null
           items: Json
@@ -244,6 +308,7 @@ export type Database = {
           delivery_lng?: number | null
           delivery_method?: string
           discount_amount?: number
+          dispatch_state?: string
           id?: string
           is_gift?: boolean | null
           items?: Json
@@ -276,6 +341,7 @@ export type Database = {
           delivery_lng?: number | null
           delivery_method?: string
           discount_amount?: number
+          dispatch_state?: string
           id?: string
           is_gift?: boolean | null
           items?: Json
@@ -321,6 +387,7 @@ export type Database = {
           delivery_fee: number
           delivery_lat: number | null
           delivery_lng: number | null
+          dispatch_state: string
           id: string
           image_url: string
           is_gift: boolean | null
@@ -345,6 +412,7 @@ export type Database = {
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          dispatch_state?: string
           id?: string
           image_url: string
           is_gift?: boolean | null
@@ -369,6 +437,7 @@ export type Database = {
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          dispatch_state?: string
           id?: string
           image_url?: string
           is_gift?: boolean | null
@@ -823,6 +892,7 @@ export type Database = {
           delivery_lat: number | null
           delivery_lng: number | null
           discount_amount: number
+          dispatch_state: string
           id: string
           is_gift: boolean | null
           notes: string | null
@@ -846,6 +916,7 @@ export type Database = {
           delivery_lat?: number | null
           delivery_lng?: number | null
           discount_amount?: number
+          dispatch_state?: string
           id?: string
           is_gift?: boolean | null
           notes?: string | null
@@ -869,6 +940,7 @@ export type Database = {
           delivery_lat?: number | null
           delivery_lng?: number | null
           discount_amount?: number
+          dispatch_state?: string
           id?: string
           is_gift?: boolean | null
           notes?: string | null
@@ -2038,6 +2110,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
       apply_voucher_to_order: {
         Args: { _code: string; _kind: string; _order_id: string }
         Returns: Json
@@ -2104,6 +2177,15 @@ export type Database = {
         }
         Returns: string
       }
+      decline_delivery_offer: {
+        Args: { _offer_id: string }
+        Returns: undefined
+      }
+      dispatch_next_rider: {
+        Args: { _kind: string; _order_id: string }
+        Returns: string
+      }
+      escalate_stale_offers: { Args: never; Returns: number }
       get_city_services: {
         Args: never
         Returns: {
@@ -2170,6 +2252,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      haversine_km: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
       }
       increment_reel_views: { Args: { _reel_id: string }; Returns: undefined }
       like_reel: { Args: { _reel_id: string }; Returns: undefined }
