@@ -28,6 +28,7 @@ const Profile = () => {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [newAddr, setNewAddr] = useState({ label: "Home", address: "", lat: null as number | null, lng: null as number | null });
   const [locBusy, setLocBusy] = useState(false);
+  const [reviewOrder, setReviewOrder] = useState<any>(null);
   const [partnerAssets, setPartnerAssets] = useState({ restaurants: [] as any[], stores: [] as any[], serviceProvider: null as any, rider: null as any });
 
   useEffect(() => {
