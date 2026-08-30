@@ -339,7 +339,7 @@ const Checkout = () => {
             )}
             <div className="border-t pt-3 flex justify-between items-baseline">
               <span className="font-extrabold text-foreground">کل قابل ادائیگی</span>
-              <span className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">Rs {grandTotal}</span>
+              <span className="text-2xl font-extrabold text-primary">Rs {grandTotal}</span>
             </div>
           </div>
         </div>
