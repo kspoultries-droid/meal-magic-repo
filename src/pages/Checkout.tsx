@@ -431,7 +431,7 @@ const Checkout = () => {
         <div className="container mx-auto max-w-2xl flex items-center gap-3">
           <div className="flex-1">
             <p className="text-[10px] text-muted-foreground">کل قابل ادائیگی</p>
-            <p className="text-lg font-extrabold bg-gradient-primary bg-clip-text text-transparent leading-tight">Rs {grandTotal}</p>
+            <p className="text-lg font-extrabold text-primary leading-tight">Rs {grandTotal}</p>
           </div>
           <Button className="flex-[2] h-12 text-base font-extrabold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" disabled={submitting} onClick={placeOrder}>
             {submitting ? "بھیجا جا رہا ہے..." : "آرڈر کی تصدیق کریں ✓"}
