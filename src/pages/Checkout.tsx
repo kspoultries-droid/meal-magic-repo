@@ -25,6 +25,8 @@ const Checkout = () => {
   const [locating, setLocating] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [restaurantDeliveryMode, setRestaurantDeliveryMode] = useState<string>("platform");
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [saveThisAddress, setSaveThisAddress] = useState(false);
 
   // Voucher
   const [voucherCode, setVoucherCode] = useState("");
