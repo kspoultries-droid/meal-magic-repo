@@ -2122,6 +2122,13 @@ export type Database = {
           wholesale_live: boolean
         }[]
       }
+      get_order_customer_contact: {
+        Args: { _kind: string; _order_id: string }
+        Returns: {
+          customer_name: string
+          customer_phone: string
+        }[]
+      }
       get_order_rider_info: {
         Args: { _order_id: string }
         Returns: {
