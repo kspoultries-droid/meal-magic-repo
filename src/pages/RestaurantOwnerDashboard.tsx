@@ -72,6 +72,8 @@ const RestaurantOwnerDashboard = () => {
             <TabsTrigger value="orders" className="gap-1"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
             <TabsTrigger value="reels" className="gap-1"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
             <TabsTrigger value="earnings" className="gap-1"><Wallet className="h-4 w-4" /> کمائی</TabsTrigger>
+            <TabsTrigger value="sales" className="gap-1"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
+            <TabsTrigger value="reviews" className="gap-1"><Store className="h-4 w-4" /> ریویوز</TabsTrigger>
           </TabsList>
           <TabsContent value="restaurant"><MyRestaurantTab /></TabsContent>
           <TabsContent value="menu"><MenuTab /></TabsContent>
