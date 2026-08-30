@@ -51,46 +51,43 @@ const AdminDashboard = () => {
       </header>
 
       <div className="p-6">
-        <Tabs defaultValue="orders">
-          <TabsList className="mb-6 flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="orders" className="gap-1 text-xs"><ShoppingBag className="h-3.5 w-3.5" /> آرڈرز</TabsTrigger>
-            <TabsTrigger value="restaurants" className="gap-1 text-xs"><Store className="h-3.5 w-3.5" /> ریسٹورنٹس</TabsTrigger>
-            <TabsTrigger value="riders" className="gap-1 text-xs"><Bike className="h-3.5 w-3.5" /> رائیڈرز</TabsTrigger>
-            <TabsTrigger value="cities" className="gap-1 text-xs"><MapPin className="h-3.5 w-3.5" /> شہر</TabsTrigger>
-            <TabsTrigger value="city-settings" className="gap-1 text-xs"><MapPin className="h-3.5 w-3.5" /> شہر سیٹنگز</TabsTrigger>
-            <TabsTrigger value="users" className="gap-1 text-xs"><Users className="h-3.5 w-3.5" /> یوزرز</TabsTrigger>
-            <TabsTrigger value="grocery" className="gap-1 text-xs"><ShoppingCart className="h-3.5 w-3.5" /> گروسری</TabsTrigger>
-            <TabsTrigger value="grocery-dispatch" className="gap-1 text-xs"><Bike className="h-3.5 w-3.5" /> گروسری ڈسپیچ</TabsTrigger>
-            <TabsTrigger value="services" className="gap-1 text-xs"><Wrench className="h-3.5 w-3.5" /> سروسز</TabsTrigger>
-            <TabsTrigger value="ads" className="gap-1 text-xs"><Megaphone className="h-3.5 w-3.5" /> ایڈز</TabsTrigger>
-            <TabsTrigger value="photo-orders" className="gap-1 text-xs"><FileImage className="h-3.5 w-3.5" /> فوٹو آرڈرز</TabsTrigger>
-            <TabsTrigger value="wholesale-cats" className="gap-1 text-xs"><Package className="h-3.5 w-3.5" /> بازار کیٹ</TabsTrigger>
-            <TabsTrigger value="vouchers" className="gap-1 text-xs"><Ticket className="h-3.5 w-3.5" /> واؤچرز</TabsTrigger>
-            <TabsTrigger value="reels" className="gap-1 text-xs"><Clapperboard className="h-3.5 w-3.5" /> ریلز</TabsTrigger>
-            <TabsTrigger value="audit" className="gap-1 text-xs"><Shield className="h-3.5 w-3.5" /> آڈٹ لاگ</TabsTrigger>
-            <TabsTrigger value="payouts" className="gap-1 text-xs"><Ticket className="h-3.5 w-3.5" /> وینڈر پیمنٹس</TabsTrigger>
-            <TabsTrigger value="rider-remit" className="gap-1 text-xs"><Bike className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ</TabsTrigger>
-            <TabsTrigger value="applications" className="gap-1 text-xs"><Users className="h-3.5 w-3.5" /> پارٹنر درخواستیں</TabsTrigger>
+        <Tabs defaultValue="operations">
+          <TabsList className="mb-6 grid h-auto grid-cols-2 gap-2 bg-transparent sm:grid-cols-3 lg:grid-cols-6">
+            <TabsTrigger value="operations" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> آپریشنز</TabsTrigger>
+            <TabsTrigger value="partners" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> پارٹنرز</TabsTrigger>
+            <TabsTrigger value="people" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> لوگ اور رولز</TabsTrigger>
+            <TabsTrigger value="finance" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> فنانس</TabsTrigger>
+            <TabsTrigger value="content" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> مواد اور آفرز</TabsTrigger>
+            <TabsTrigger value="settings" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="orders"><OrdersTab /></TabsContent>
-          <TabsContent value="restaurants"><RestaurantsTab /></TabsContent>
-          <TabsContent value="riders"><RidersTab /></TabsContent>
-          <TabsContent value="cities"><CitiesTab /></TabsContent>
-          <TabsContent value="city-settings"><CitySettingsTab /></TabsContent>
-          <TabsContent value="users"><UsersTab /></TabsContent>
-          <TabsContent value="grocery"><GroceryTab /></TabsContent>
-          <TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent>
-          <TabsContent value="services"><ServicesTab /></TabsContent>
-          <TabsContent value="ads"><AdsTab /></TabsContent>
-          <TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent>
-          <TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
-          <TabsContent value="vouchers"><VouchersTab /></TabsContent>
-          <TabsContent value="reels"><ReelsTab /></TabsContent>
-          <TabsContent value="audit"><AuditLogTab /></TabsContent>
-          <TabsContent value="payouts"><PayoutsTab /></TabsContent>
-          <TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent>
-          <TabsContent value="applications"><ApplicationsTab /></TabsContent>
+          <TabsContent value="operations">
+            <Tabs defaultValue="orders">
+              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">آرڈرز</TabsTrigger><TabsTrigger value="grocery-dispatch">ڈسپیچ</TabsTrigger><TabsTrigger value="photo-orders">فوٹو آرڈرز</TabsTrigger><TabsTrigger value="audit">آڈٹ لاگ</TabsTrigger></TabsList>
+              <TabsContent value="orders"><OrdersTab /></TabsContent><TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent><TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent><TabsContent value="audit"><AuditLogTab /></TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          <TabsContent value="partners">
+            <Tabs defaultValue="applications">
+              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="applications">درخواستیں</TabsTrigger><TabsTrigger value="restaurants">ریسٹورنٹس</TabsTrigger><TabsTrigger value="riders">رائیڈرز</TabsTrigger><TabsTrigger value="grocery">گروسری</TabsTrigger><TabsTrigger value="services">سروسز</TabsTrigger><TabsTrigger value="wholesale-cats">بازار کیٹیگریز</TabsTrigger></TabsList>
+              <TabsContent value="applications"><ApplicationsTab /></TabsContent><TabsContent value="restaurants"><RestaurantsTab /></TabsContent><TabsContent value="riders"><RidersTab /></TabsContent><TabsContent value="grocery"><GroceryTab /></TabsContent><TabsContent value="services"><ServicesTab /></TabsContent><TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          <TabsContent value="people"><UsersTab /></TabsContent>
+
+          <TabsContent value="finance">
+            <Tabs defaultValue="payouts"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit">رائیڈر سیٹلمنٹ</TabsTrigger></TabsList><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent></Tabs>
+          </TabsContent>
+
+          <TabsContent value="content">
+            <Tabs defaultValue="ads"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="ads">ایڈز</TabsTrigger><TabsTrigger value="vouchers">واؤچرز</TabsTrigger><TabsTrigger value="reels">ریلز</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Tabs defaultValue="city-settings"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="city-settings">شہر سیٹنگز</TabsTrigger><TabsTrigger value="cities">شہر</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
+          </TabsContent>
         </Tabs>
       </div>
     </div>

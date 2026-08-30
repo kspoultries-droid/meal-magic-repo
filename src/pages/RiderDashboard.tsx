@@ -254,6 +254,8 @@ const RiderDashboard = () => {
           <p className="text-[10px] text-muted-foreground text-center">📍 لوکیشن شیئر ہو رہی ہے</p>
         ) : null}
 
+        {user && <RiderOfferCard riderId={user.id} onChanged={() => fetchData(false)} />}
+
         {/* Compact stats strip */}
         <div className="grid grid-cols-4 gap-2">
           {[
