@@ -9,6 +9,10 @@ export interface MenuItem {
   id: string;
   name: string;
   price: number;
+  description?: string | null;
+  image_url?: string | null;
+  variants?: any[] | null;
+  option_groups?: any[] | null;
 }
 
 export interface Restaurant {
