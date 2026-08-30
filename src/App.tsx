@@ -104,6 +104,36 @@ const CourierNotifications = () => {
   return null;
 };
 
+// Warm up the most-used route chunks while the browser is idle so navigation
+// feels instant instead of waiting on a network fetch after the tap.
+const RoutePrefetcher = () => {
+  useEffect(() => {
+    const warm = () => {
+      const loaders = [
+        () => import("./pages/Grocery"),
+        () => import("./pages/RestaurantDetail"),
+        () => import("./pages/GroceryStoreDetail"),
+        () => import("./pages/Wholesale"),
+        () => import("./pages/Services"),
+        () => import("./pages/Reels"),
+        () => import("./pages/SearchPage"),
+        () => import("./pages/Checkout"),
+        () => import("./pages/Profile"),
+      ];
+      loaders.forEach((l, i) => setTimeout(() => l().catch(() => {}), i * 250));
+    };
+    const ric = (window as any).requestIdleCallback;
+    if (typeof ric === "function") {
+      const id = ric(warm, { timeout: 3000 });
+      return () => (window as any).cancelIdleCallback?.(id);
+    }
+    const t = setTimeout(warm, 1500);
+    return () => clearTimeout(t);
+  }, []);
+  return null;
+};
+
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
