@@ -35,7 +35,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
   const [now, setNow] = useState(Date.now());
 
   const fetchOffer = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("delivery_offers")
       .select("id,order_id,order_kind,pickup_name,dropoff_address,total_amount,delivery_fee,distance_km,expires_at")
       .eq("rider_id", riderId)
