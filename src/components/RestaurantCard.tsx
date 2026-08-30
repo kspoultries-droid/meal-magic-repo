@@ -24,11 +24,13 @@ const optimizeImageUrl = (url: string): string => {
 };
 
 const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
-  const { name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
+  const { id: restaurantId, name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
   const [showMenu, setShowMenu] = useState(false);
+  const [sheetItem, setSheetItem] = useState<MenuItemLike | null>(null);
   const { addItem } = useCart();
   const optimizedImage = optimizeImageUrl(image);
   const isAboveFold = index < 4;
+
 
   return (
     <div
