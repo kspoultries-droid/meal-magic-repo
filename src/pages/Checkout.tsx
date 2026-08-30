@@ -258,31 +258,40 @@ const Checkout = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-secondary/20 to-background pb-32">
       <Navbar />
 
-      {/* Hero Header */}
-      <div className="bg-gradient-hero text-primary-foreground px-4 pt-4 pb-8 shadow-glow relative overflow-hidden">
+      {/* Compact Hero Header */}
+      <div className="bg-gradient-hero text-primary-foreground px-4 py-3 shadow-glow relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,white,transparent_60%)]" />
-        <div className="container mx-auto max-w-2xl relative">
-          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-primary-foreground/90 hover:text-primary-foreground text-sm mb-3 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> واپس
+        <div className="container mx-auto max-w-2xl relative flex items-center gap-3">
+          <button onClick={() => navigate(-1)} aria-label="واپس" className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+            <ArrowLeft className="h-4 w-4" />
           </button>
-          <h1 className="text-2xl font-extrabold flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6" /> چیک آؤٹ
-          </h1>
-          <p className="text-xs text-primary-foreground/80 mt-1">{items.length} آئٹمز • Rs {grandTotal}</p>
+          <div className="min-w-0">
+            <h1 className="text-base font-extrabold flex items-center gap-1.5">
+              <ShoppingBag className="w-4 h-4" /> چیک آؤٹ
+            </h1>
+            <p className="text-[11px] text-primary-foreground/80">{items.length} آئٹمز • Rs {grandTotal}</p>
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 max-w-2xl -mt-5 space-y-4">
+      <div className="container mx-auto px-4 max-w-2xl mt-3 space-y-3">
 
         {/* Order Summary - Glass */}
-        <div className="glass rounded-2xl p-5 border border-border/50 shadow-elegant animate-fade-in">
-          <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-1.5">
+        <div className="glass rounded-2xl p-4 border border-border/50 shadow-elegant animate-fade-in">
+          <h2 className="text-sm font-extrabold text-foreground mb-2.5 flex items-center gap-1.5">
             <span className="w-1 h-4 bg-gradient-primary rounded-full" /> آرڈر کی تفصیل
           </h2>
           <div className="space-y-2">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span className="text-foreground/90 truncate pr-2">{item.name} <span className="text-muted-foreground">× {item.quantity}</span></span>
+              <div key={item.id} className="flex justify-between text-sm gap-2">
+                <div className="min-w-0">
+                  <p className="text-foreground/90 truncate">{item.name} <span className="text-muted-foreground">× {item.quantity}</span></p>
+                  {(item.variant_label || (item.options && item.options.length > 0)) && (
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {[item.variant_label, ...(item.options || []).map((o) => o.choice)].filter(Boolean).join(" • ")}
+                    </p>
+                  )}
+                </div>
                 <span className="font-bold shrink-0">Rs {item.price * item.quantity}</span>
               </div>
             ))}
