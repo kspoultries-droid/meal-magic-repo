@@ -74,10 +74,10 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
   useEffect(() => {
     if (offer && secondsLeft === 0) {
       setOffer(null);
-      onChanged();
+      onChangedRef.current();
       fetchOffer();
     }
-  }, [offer, secondsLeft, onChanged]);
+  }, [offer, secondsLeft]);
 
   const respond = async (action: "accept_delivery_offer" | "decline_delivery_offer") => {
     if (!offer || busy) return;
