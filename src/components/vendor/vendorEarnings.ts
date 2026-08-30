@@ -54,10 +54,12 @@ export const loadVendorEarnings = async (from: Date, ownerId?: string): Promise<
 
   const map = new Map<string, VendorRow>();
   const ensure = (vid: string) => {
-    if (!map.has(vid)) {
-      map.set(vid, { vendorId: vid, shopNames: [], orders: 0, gross: 0, commissionRate: 0, commission: 0, net: 0, paid: 0, pending: 0 });
+    let row = map.get(vid);
+    if (!row) {
+      row = { vendorId: vid, shopNames: [], orders: 0, gross: 0, commissionRate: 0, commission: 0, net: 0, paid: 0, pending: 0 };
+      map.set(vid, row);
     }
-    return map.get(vid)!;
+    return row;
   };
 
   vendorIds.forEach((vid) => ensure(vid));
