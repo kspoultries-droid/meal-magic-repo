@@ -34,6 +34,9 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
   const [offer, setOffer] = useState<DeliveryOffer | null>(null);
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const offerRef = useRef<DeliveryOffer | null>(null);
+  const onChangedRef = useRef(onChanged);
+  onChangedRef.current = onChanged;
 
   const fetchOffer = async () => {
     const { data, error } = await (supabase as any)
