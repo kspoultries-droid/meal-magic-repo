@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 import RiderRemittance from "@/components/rider/RiderRemittance";
+import RiderOfferCard from "@/components/rider/RiderOfferCard";
+
 
 const vibrate = (pattern: number[] = [300, 120, 300, 120, 500]) => {
   try { navigator.vibrate?.(pattern); } catch { /* not supported */ }
@@ -251,6 +253,8 @@ const RiderDashboard = () => {
         ) : locationOk ? (
           <p className="text-[10px] text-muted-foreground text-center">📍 لوکیشن شیئر ہو رہی ہے</p>
         ) : null}
+
+        {user && <RiderOfferCard riderId={user.id} onChanged={() => fetchData(false)} />}
 
         {/* Compact stats strip */}
         <div className="grid grid-cols-4 gap-2">
