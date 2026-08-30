@@ -22,77 +22,81 @@ export interface VendorRow {
   pending: number;
 }
 
-const DELIVERED = ["delivered", "completed"];
-
-/** Loads sales for all vendors (admin) or a single vendor (ownerId given). */
+/**
+ * Reads the server-side commission ledger (`platform_commissions`).
+ * Rates are frozen at order time, so numbers never change retroactively.
+ */
 export const loadVendorEarnings = async (from: Date, ownerId?: string): Promise<VendorRow[]> => {
   const iso = from.toISOString();
 
-  const restQ = supabase.from("restaurants").select("id, name, owner_id, commission_rate");
-  const storeQ = supabase.from("grocery_stores").select("id, name, owner_id");
-  const [{ data: rests }, { data: stores }] = await Promise.all([
-    ownerId ? restQ.eq("owner_id", ownerId) : restQ,
-    ownerId ? storeQ.eq("owner_id", ownerId) : storeQ,
+  let q = supabase
+    .from("platform_commissions")
+    .select("vendor_id, gross, rate, commission, net_payable, created_at")
+    .gte("created_at", iso)
+    .not("vendor_id", "is", null);
+  if (ownerId) q = q.eq("vendor_id", ownerId);
+
+  const { data: ledger } = await q;
+  const rowsRaw = (ledger || []) as any[];
+
+  const vendorIds = Array.from(new Set(rowsRaw.map((r) => r.vendor_id as string)));
+  if (ownerId && !vendorIds.includes(ownerId)) vendorIds.push(ownerId);
+  if (!vendorIds.length) return [];
+
+  const restQ = supabase.from("restaurants").select("name, owner_id").in("owner_id", vendorIds);
+  const storeQ = supabase.from("grocery_stores").select("name, owner_id").in("owner_id", vendorIds);
+  const providerQ = supabase.from("service_providers").select("name, user_id").in("user_id", vendorIds);
+  const [{ data: rests }, { data: stores }, { data: providers }, { data: payouts }] = await Promise.all([
+    restQ,
+    storeQ,
+    providerQ,
+    supabase.from("payouts").select("vendor_id, amount, status, period_start")
+      .in("vendor_id", vendorIds).gte("period_start", iso.slice(0, 10)),
   ]);
-
-  const restIds = (rests || []).map((r) => r.id);
-  const storeIds = (stores || []).map((s) => s.id);
-
-  const [{ data: foodOrders }, { data: groceryOrders }] = await Promise.all([
-    restIds.length
-      ? supabase.from("orders").select("restaurant_id, total_amount, delivery_fee, status, created_at")
-          .in("restaurant_id", restIds).in("status", DELIVERED).gte("created_at", iso)
-      : Promise.resolve({ data: [] as any[] }),
-    storeIds.length
-      ? supabase.from("grocery_cart_orders").select("store_id, total_amount, delivery_fee, status, created_at")
-          .in("store_id", storeIds).in("status", DELIVERED).gte("created_at", iso)
-      : Promise.resolve({ data: [] as any[] }),
-  ]);
-
-  const vendorIds = Array.from(new Set([...(rests || []).map((r) => r.owner_id), ...(stores || []).map((s) => s.owner_id)]));
-  const { data: settings } = vendorIds.length
-    ? await supabase.from("payout_settings").select("user_id, commission_rate").in("user_id", vendorIds)
-    : { data: [] as any[] };
-  const { data: payouts } = vendorIds.length
-    ? await supabase.from("payouts").select("vendor_id, amount, status, period_start").in("vendor_id", vendorIds).gte("period_start", iso.slice(0, 10))
-    : { data: [] as any[] };
 
   const map = new Map<string, VendorRow>();
-  const ensure = (vid: string, shop: string, rate: number) => {
-    if (!map.has(vid)) {
-      map.set(vid, { vendorId: vid, shopNames: [], orders: 0, gross: 0, commissionRate: rate, commission: 0, net: 0, paid: 0, pending: 0 });
+  const ensure = (vid: string) => {
+    let row = map.get(vid);
+    if (!row) {
+      row = { vendorId: vid, shopNames: [], orders: 0, gross: 0, commissionRate: 0, commission: 0, net: 0, paid: 0, pending: 0 };
+      map.set(vid, row);
     }
-    const row = map.get(vid)!;
-    if (!row.shopNames.includes(shop)) row.shopNames.push(shop);
     return row;
   };
 
-  const rateFor = (vid: string, fallback: number) =>
-    Number((settings || []).find((s: any) => s.user_id === vid)?.commission_rate ?? fallback);
-
-  (rests || []).forEach((r: any) => {
-    const row = ensure(r.owner_id, r.name, rateFor(r.owner_id, Number(r.commission_rate ?? 15)));
-    (foodOrders || []).filter((o: any) => o.restaurant_id === r.id).forEach((o: any) => {
-      row.orders += 1;
-      row.gross += Math.max(0, Number(o.total_amount || 0) - Number(o.delivery_fee || 0));
-    });
+  vendorIds.forEach((vid) => ensure(vid));
+  [...(rests || []), ...(stores || [])].forEach((s: any) => {
+    const row = ensure(s.owner_id);
+    if (s.name && !row.shopNames.includes(s.name)) row.shopNames.push(s.name);
+  });
+  (providers || []).forEach((p: any) => {
+    const row = ensure(p.user_id);
+    if (p.name && !row.shopNames.includes(p.name)) row.shopNames.push(p.name);
   });
 
-  (stores || []).forEach((s: any) => {
-    const row = ensure(s.owner_id, s.name, rateFor(s.owner_id, 15));
-    (groceryOrders || []).filter((o: any) => o.store_id === s.id).forEach((o: any) => {
-      row.orders += 1;
-      row.gross += Math.max(0, Number(o.total_amount || 0) - Number(o.delivery_fee || 0));
-    });
+  rowsRaw.forEach((r) => {
+    const row = ensure(r.vendor_id);
+    row.orders += 1;
+    row.gross += Number(r.gross || 0);
+    row.commission += Number(r.commission || 0);
+    row.net += Number(r.net_payable || 0);
+    row.commissionRate = Math.max(row.commissionRate, Number(r.rate || 0));
   });
 
   const rows = Array.from(map.values()).map((r) => {
-    const commission = Math.round((r.gross * r.commissionRate) / 100);
     const paid = (payouts || [])
       .filter((p: any) => p.vendor_id === r.vendorId && p.status === "paid")
       .reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
-    const net = Math.max(0, Math.round(r.gross) - commission);
-    return { ...r, gross: Math.round(r.gross), commission, net, paid, pending: Math.max(0, net - paid) };
+    const net = Math.round(r.net);
+    return {
+      ...r,
+      gross: Math.round(r.gross),
+      commission: Math.round(r.commission),
+      commissionRate: Math.round(r.commissionRate),
+      net,
+      paid,
+      pending: Math.max(0, net - paid),
+    };
   });
 
   return rows.sort((a, b) => b.pending - a.pending);

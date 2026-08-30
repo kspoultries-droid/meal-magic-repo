@@ -24,6 +24,7 @@ const MechanicDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
+  const [providerId, setProviderId] = useState<string | null>(null);
   const [fetching, setFetching] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [customerProfile, setCustomerProfile] = useState<any>(null);
@@ -35,7 +36,7 @@ const MechanicDashboard = () => {
 
   const fetchData = async () => {
     setFetching(true);
-    const [{ data: bks }, { data: svcs }] = await Promise.all([
+    const [{ data: bks }, { data: svcs }, { data: provider }] = await Promise.all([
       supabase
         .from("service_bookings")
         .select("*")
@@ -43,13 +44,17 @@ const MechanicDashboard = () => {
         .order("created_at", { ascending: false })
         .limit(50),
       supabase.from("services").select("id, name, category_id, price, duration"),
+      user && !isAdmin
+        ? supabase.from("service_providers").select("id").eq("user_id", user.id).maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
+    setProviderId(provider?.id || null);
     setBookings(bks || []);
     setServices(svcs || []);
     setFetching(false);
   };
 
-  useEffect(() => { if (user) fetchData(); }, [user]);
+  useEffect(() => { if (user) fetchData(); }, [user?.id, isAdmin]);
 
   // Realtime
   useEffect(() => {
@@ -66,7 +71,11 @@ const MechanicDashboard = () => {
   const getServiceName = (serviceId: string) => services.find((s) => s.id === serviceId)?.name || "—";
 
   const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("service_bookings").update({ status }).eq("id", id);
+    const changes: { status: string; provider_id?: string } = { status };
+    if (providerId && (status === "confirmed" || status === "in_progress")) {
+      changes.provider_id = providerId;
+    }
+    const { error } = await supabase.from("service_bookings").update(changes).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
     setSelectedBooking(null);

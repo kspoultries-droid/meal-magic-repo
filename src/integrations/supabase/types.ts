@@ -161,6 +161,42 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string | null
+          max_commission: number | null
+          min_commission: number
+          rate: number
+          sector: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          max_commission?: number | null
+          min_commission?: number
+          rate?: number
+          sector: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          max_commission?: number | null
+          min_commission?: number
+          rate?: number
+          sector?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       courier_sync_queue: {
         Row: {
           attempts: number
@@ -1142,6 +1178,60 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_commissions: {
+        Row: {
+          city_id: string | null
+          commission: number
+          created_at: string
+          delivery_fee: number
+          gross: number
+          id: string
+          net_payable: number
+          order_id: string
+          order_kind: string
+          partner_channel: string
+          rate: number
+          sector: string
+          status: string
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          city_id?: string | null
+          commission?: number
+          created_at?: string
+          delivery_fee?: number
+          gross?: number
+          id?: string
+          net_payable?: number
+          order_id: string
+          order_kind: string
+          partner_channel?: string
+          rate?: number
+          sector: string
+          status?: string
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          city_id?: string | null
+          commission?: number
+          created_at?: string
+          delivery_fee?: number
+          gross?: number
+          id?: string
+          net_payable?: number
+          order_id?: string
+          order_kind?: string
+          partner_channel?: string
+          rate?: number
+          sector?: string
+          status?: string
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -1529,6 +1619,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_method: string | null
+          provider_id: string | null
           scheduled_date: string
           scheduled_time: string
           service_id: string
@@ -1546,6 +1637,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_method?: string | null
+          provider_id?: string | null
           scheduled_date: string
           scheduled_time: string
           service_id: string
@@ -1563,6 +1655,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_method?: string | null
+          provider_id?: string | null
           scheduled_date?: string
           scheduled_time?: string
           service_id?: string
@@ -1576,6 +1669,13 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_bookings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
           {
@@ -2275,6 +2375,19 @@ export type Database = {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
       }
+      record_commission: {
+        Args: {
+          _channel?: string
+          _city_id: string
+          _delivery_fee: number
+          _order_id: string
+          _order_kind: string
+          _sector: string
+          _total: number
+          _vendor_id: string
+        }
+        Returns: undefined
+      }
       reject_partner_application: {
         Args: { _application_id: string; _reason: string }
         Returns: undefined
@@ -2286,6 +2399,10 @@ export type Database = {
       request_wallet_topup: {
         Args: { _amount: number; _payment_method: string }
         Returns: string
+      }
+      resolve_commission_rate: {
+        Args: { _sector: string; _vendor_id: string }
+        Returns: number
       }
       review_rider_remittance: {
         Args: { _approve: boolean; _id: string; _note?: string }
