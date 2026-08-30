@@ -69,6 +69,10 @@ export const loadVendorEarnings = async (from: Date, ownerId?: string): Promise<
     const row = ensure(s.owner_id);
     if (s.name && !row.shopNames.includes(s.name)) row.shopNames.push(s.name);
   });
+  (providers || []).forEach((p: any) => {
+    const row = ensure(p.user_id);
+    if (p.name && !row.shopNames.includes(p.name)) row.shopNames.push(p.name);
+  });
 
   rowsRaw.forEach((r) => {
     const row = ensure(r.vendor_id);
