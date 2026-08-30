@@ -23,6 +23,7 @@ import AuditLogTab from "@/components/admin/AuditLogTab";
 import VouchersTab from "@/components/admin/VouchersTab";
 import ReelsTab from "@/components/admin/ReelsTab";
 import PayoutsTab from "@/components/admin/PayoutsTab";
+import RiderRemittancesTab from "@/components/admin/RiderRemittancesTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
