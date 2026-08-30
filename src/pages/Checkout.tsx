@@ -172,6 +172,17 @@ const Checkout = () => {
     if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
     setSubmitting(true);
 
+    if (saveThisAddress && user) {
+      await supabase.from("user_addresses").insert({
+        user_id: user.id,
+        label: "میرا پتہ",
+        address: address.trim(),
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
+        is_default: savedAddresses.length === 0,
+      });
+    }
+
     try {
       if (isGroceryOrder) {
         const storeId = items[0]?.sourceId;
