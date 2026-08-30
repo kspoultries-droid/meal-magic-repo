@@ -1,6 +1,7 @@
 import { Star, Clock, Tag, Plus, Bike } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
+import MenuItemSheet, { type MenuItemLike } from "@/components/menu/MenuItemSheet";
 import type { Restaurant } from "./RestaurantGrid";
 
 interface RestaurantCardProps {
@@ -23,11 +24,13 @@ const optimizeImageUrl = (url: string): string => {
 };
 
 const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
-  const { name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
+  const { id: restaurantId, name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
   const [showMenu, setShowMenu] = useState(false);
+  const [sheetItem, setSheetItem] = useState<MenuItemLike | null>(null);
   const { addItem } = useCart();
   const optimizedImage = optimizeImageUrl(image);
   const isAboveFold = index < 4;
+
 
   return (
     <div
@@ -102,25 +105,53 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
       {showMenu && menuItems.length > 0 && (
         <div className="border-t border-border/60 px-4 py-3 space-y-2 animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">فوری شامل کریں</p>
-          {menuItems.map((item) => (
-            <div key={item.id} className="flex items-center justify-between py-1.5">
-              <div>
-                <p className="text-sm font-semibold text-foreground">{item.name}</p>
-                <p className="text-xs text-primary font-bold">Rs. {item.price}</p>
+          {menuItems.map((item) => {
+            const hasChoices = (item.variants?.length || 0) > 0 || (item.option_groups?.length || 0) > 0;
+            const minPrice = item.variants?.length
+              ? Math.min(...item.variants.map((v: any) => Number(v.price) || 0))
+              : item.price;
+            return (
+              <div key={item.id} className="flex items-center justify-between py-1.5">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
+                  <p className="text-xs text-primary font-bold">
+                    {hasChoices && item.variants?.length ? `Rs. ${minPrice} سے` : `Rs. ${item.price}`}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (hasChoices) {
+                      setSheetItem({
+                        id: item.id, name: item.name, price: item.price,
+                        description: item.description, image_url: item.image_url,
+                        variants: item.variants as any, option_groups: item.option_groups as any,
+                      });
+                      return;
+                    }
+                    addItem({
+                      id: item.id, menu_item_id: item.id, name: item.name, restaurant: name,
+                      price: item.price, image: item.image_url || image,
+                      source: "restaurant", sourceId: restaurantId,
+                    });
+                  }}
+                  className="w-8 h-8 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow active:scale-90 transition-transform shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addItem({ id: item.id, name: item.name, restaurant: name, price: item.price, image });
-                }}
-                className="w-8 h-8 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow active:scale-90 transition-transform"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      <div onClick={(e) => e.stopPropagation()}>
+        <MenuItemSheet
+          item={sheetItem}
+          restaurant={{ id: restaurantId, name, image_url: image }}
+          onClose={() => setSheetItem(null)}
+        />
+      </div>
     </div>
   );
 };

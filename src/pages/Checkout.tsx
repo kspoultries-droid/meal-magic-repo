@@ -25,6 +25,8 @@ const Checkout = () => {
   const [locating, setLocating] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [restaurantDeliveryMode, setRestaurantDeliveryMode] = useState<string>("platform");
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [saveThisAddress, setSaveThisAddress] = useState(false);
 
   // Voucher
   const [voucherCode, setVoucherCode] = useState("");
@@ -44,10 +46,21 @@ const Checkout = () => {
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("address, city_id").eq("id", user.id).single().then(({ data }) => {
-      if (data?.address) setAddress(data.address);
-      if (data?.city_id) setSelectedCity(data.city_id);
+      if (data?.address) setAddress((a) => a || data.address);
+      if (data?.city_id) setSelectedCity((c) => c || data.city_id);
     });
+    supabase.from("user_addresses").select("*").eq("user_id", user.id)
+      .order("is_default", { ascending: false }).limit(6)
+      .then(({ data }) => {
+        setSavedAddresses(data || []);
+        const def = (data || []).find((a: any) => a.is_default) || (data || [])[0];
+        if (def) {
+          setAddress((prev) => prev || def.address);
+          if (def.lat && def.lng) setCoords({ lat: def.lat, lng: def.lng });
+        }
+      });
   }, [user]);
+
 
   useEffect(() => {
     supabase.from("cities").select("*").order("name").then(({ data }) => {
@@ -159,6 +172,17 @@ const Checkout = () => {
     if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
     setSubmitting(true);
 
+    if (saveThisAddress && user) {
+      await supabase.from("user_addresses").insert({
+        user_id: user.id,
+        label: "میرا پتہ",
+        address: address.trim(),
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
+        is_default: savedAddresses.length === 0,
+      });
+    }
+
     try {
       if (isGroceryOrder) {
         const storeId = items[0]?.sourceId;
@@ -234,31 +258,40 @@ const Checkout = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-secondary/20 to-background pb-32">
       <Navbar />
 
-      {/* Hero Header */}
-      <div className="bg-gradient-hero text-primary-foreground px-4 pt-4 pb-8 shadow-glow relative overflow-hidden">
+      {/* Compact Hero Header */}
+      <div className="bg-gradient-hero text-primary-foreground px-4 py-3 shadow-glow relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,white,transparent_60%)]" />
-        <div className="container mx-auto max-w-2xl relative">
-          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-primary-foreground/90 hover:text-primary-foreground text-sm mb-3 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> واپس
+        <div className="container mx-auto max-w-2xl relative flex items-center gap-3">
+          <button onClick={() => navigate(-1)} aria-label="واپس" className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+            <ArrowLeft className="h-4 w-4" />
           </button>
-          <h1 className="text-2xl font-extrabold flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6" /> چیک آؤٹ
-          </h1>
-          <p className="text-xs text-primary-foreground/80 mt-1">{items.length} آئٹمز • Rs {grandTotal}</p>
+          <div className="min-w-0">
+            <h1 className="text-base font-extrabold flex items-center gap-1.5">
+              <ShoppingBag className="w-4 h-4" /> چیک آؤٹ
+            </h1>
+            <p className="text-[11px] text-primary-foreground/80">{items.length} آئٹمز • Rs {grandTotal}</p>
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 max-w-2xl -mt-5 space-y-4">
+      <div className="container mx-auto px-4 max-w-2xl mt-3 space-y-3">
 
         {/* Order Summary - Glass */}
-        <div className="glass rounded-2xl p-5 border border-border/50 shadow-elegant animate-fade-in">
-          <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-1.5">
+        <div className="glass rounded-2xl p-4 border border-border/50 shadow-elegant animate-fade-in">
+          <h2 className="text-sm font-extrabold text-foreground mb-2.5 flex items-center gap-1.5">
             <span className="w-1 h-4 bg-gradient-primary rounded-full" /> آرڈر کی تفصیل
           </h2>
           <div className="space-y-2">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span className="text-foreground/90 truncate pr-2">{item.name} <span className="text-muted-foreground">× {item.quantity}</span></span>
+              <div key={item.id} className="flex justify-between text-sm gap-2">
+                <div className="min-w-0">
+                  <p className="text-foreground/90 truncate">{item.name} <span className="text-muted-foreground">× {item.quantity}</span></p>
+                  {(item.variant_label || (item.options && item.options.length > 0)) && (
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {[item.variant_label, ...(item.options || []).map((o) => o.choice)].filter(Boolean).join(" • ")}
+                    </p>
+                  )}
+                </div>
                 <span className="font-bold shrink-0">Rs {item.price * item.quantity}</span>
               </div>
             ))}
@@ -306,7 +339,7 @@ const Checkout = () => {
             )}
             <div className="border-t pt-3 flex justify-between items-baseline">
               <span className="font-extrabold text-foreground">کل قابل ادائیگی</span>
-              <span className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">Rs {grandTotal}</span>
+              <span className="text-2xl font-extrabold text-primary">Rs {grandTotal}</span>
             </div>
           </div>
         </div>
@@ -323,8 +356,29 @@ const Checkout = () => {
             <select className="w-full border rounded-xl p-3 bg-background/80 text-foreground text-sm" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
               {cities.map((c) => <option key={c.id} value={c.id}>{c.name} (ڈلیوری: Rs {c.delivery_fee})</option>)}
             </select>
+
+            {savedAddresses.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
+                {savedAddresses.map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => {
+                      setAddress(a.address);
+                      if (a.lat && a.lng) setCoords({ lat: a.lat, lng: a.lng });
+                      setSaveThisAddress(false);
+                    }}
+                    className={`shrink-0 max-w-[220px] text-right px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${
+                      address === a.address ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background/70"
+                    }`}
+                  >
+                    📍 {a.label} — <span className="font-normal">{a.address.slice(0, 28)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => setAddress(e.target.value)} required className="flex-1 h-11 rounded-xl bg-background/80" />
+              <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => { setAddress(e.target.value); }} required className="flex-1 h-11 rounded-xl bg-background/80" />
               <Button variant="outline" onClick={getCurrentLocation} disabled={locating} className="shrink-0 h-11 px-3 rounded-xl glass border-primary/30 hover:bg-primary/10">
                 <LocateFixed className={`h-4 w-4 text-primary ${locating ? "animate-spin" : ""}`} />
               </Button>
@@ -332,6 +386,10 @@ const Checkout = () => {
             {coords && (
               <p className="text-xs text-primary font-semibold">📍 GPS: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>
             )}
+            <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground cursor-pointer">
+              <input type="checkbox" checked={saveThisAddress} onChange={(e) => setSaveThisAddress(e.target.checked)} className="accent-primary w-4 h-4" />
+              یہ پتہ محفوظ کریں تاکہ اگلی بار دوبارہ نہ لکھنا پڑے
+            </label>
             <Input placeholder="کوئی خاص ہدایات (اختیاری)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background/80" />
             {restaurantDeliveryMode === "self" && (
               <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
@@ -398,7 +456,7 @@ const Checkout = () => {
         <div className="container mx-auto max-w-2xl flex items-center gap-3">
           <div className="flex-1">
             <p className="text-[10px] text-muted-foreground">کل قابل ادائیگی</p>
-            <p className="text-lg font-extrabold bg-gradient-primary bg-clip-text text-transparent leading-tight">Rs {grandTotal}</p>
+            <p className="text-lg font-extrabold text-primary leading-tight">Rs {grandTotal}</p>
           </div>
           <Button className="flex-[2] h-12 text-base font-extrabold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" disabled={submitting} onClick={placeOrder}>
             {submitting ? "بھیجا جا رہا ہے..." : "آرڈر کی تصدیق کریں ✓"}
