@@ -148,6 +148,38 @@ const App = () => (
               <CartDrawer />
               <FloatingCartBar />
               <Suspense fallback={<div className="min-h-screen bg-background" />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+                  <Route path="/restaurant-dashboard" element={<RestaurantOwnerDashboard />} />
+                  <Route path="/rider-dashboard" element={<RiderDashboard />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/install" element={<Install />} />
+                  <Route path="/grocery" element={<Grocery />} />
+                  <Route path="/grocery/:id" element={<GroceryStoreDetail />} />
+                  <Route path="/bazar/:id" element={<GroceryStoreDetail />} />
+                  <Route path="/order-tracking/:id" element={<OrderTracking />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/wallet" element={<Wallet />} />
+                  <Route path="/support-dashboard" element={<SupportDashboard />} />
+                  <Route path="/mechanic-dashboard" element={<MechanicDashboard />} />
+                  <Route path="/store/:slug" element={<StandaloneStore />} />
+                  <Route path="/service-manager" element={<ServiceManagerDashboard />} />
+                  <Route path="/wholesale" element={<Wholesale />} />
+                  <Route path="/order-confirmation/:type/:id" element={<OrderConfirmation />} />
+                  <Route path="/partner" element={<Partner />} />
+                  <Route path="/operations" element={<Operations />} />
+                  <Route path="/reels" element={<Reels />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+
 
           </GlobalErrorHandler>
         </TooltipProvider>
