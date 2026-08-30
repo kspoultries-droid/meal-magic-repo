@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil, Bike, Clapperboard, Wallet } from "lucide-react";
 import MyReelsManager from "@/components/reels/MyReelsManager";
 import EarningsPanel from "@/components/vendor/EarningsPanel";
+import SalesReport from "@/components/vendor/SalesReport";
+import VendorReviewsPanel from "@/components/reviews/VendorReviewsPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
