@@ -89,6 +89,7 @@ const AdminDashboard = () => {
           <TabsContent value="reels"><ReelsTab /></TabsContent>
           <TabsContent value="audit"><AuditLogTab /></TabsContent>
           <TabsContent value="payouts"><PayoutsTab /></TabsContent>
+          <TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent>
           <TabsContent value="applications"><ApplicationsTab /></TabsContent>
         </Tabs>
       </div>
