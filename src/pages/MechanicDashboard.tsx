@@ -71,7 +71,11 @@ const MechanicDashboard = () => {
   const getServiceName = (serviceId: string) => services.find((s) => s.id === serviceId)?.name || "—";
 
   const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("service_bookings").update({ status }).eq("id", id);
+    const changes: { status: string; provider_id?: string } = { status };
+    if (providerId && (status === "confirmed" || status === "in_progress")) {
+      changes.provider_id = providerId;
+    }
+    const { error } = await supabase.from("service_bookings").update(changes).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
     setSelectedBooking(null);
