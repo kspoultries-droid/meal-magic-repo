@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock3, MapPin, PackageCheck, Phone, Store, X } from "lucide-react";
+import { Clock3, MapPin, PackageCheck, Store, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface DeliveryOffer {
