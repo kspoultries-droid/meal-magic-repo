@@ -92,7 +92,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
     }
     setOffer(null);
     setBusy(false);
-    onChanged();
+    onChangedRef.current();
     fetchOffer();
   };
 
