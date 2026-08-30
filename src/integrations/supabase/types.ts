@@ -2131,6 +2131,19 @@ export type Database = {
           rider_phone: string
         }[]
       }
+      get_rider_summary: {
+        Args: never
+        Returns: {
+          cash_collected: number
+          cash_due: number
+          pending_remit: number
+          remitted: number
+          today_deliveries: number
+          today_earnings: number
+          total_deliveries: number
+          total_earnings: number
+        }[]
+      }
       get_top_selling_grocery_products: {
         Args: { _limit?: number }
         Returns: {
