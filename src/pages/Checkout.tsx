@@ -46,10 +46,21 @@ const Checkout = () => {
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("address, city_id").eq("id", user.id).single().then(({ data }) => {
-      if (data?.address) setAddress(data.address);
-      if (data?.city_id) setSelectedCity(data.city_id);
+      if (data?.address) setAddress((a) => a || data.address);
+      if (data?.city_id) setSelectedCity((c) => c || data.city_id);
     });
+    supabase.from("user_addresses").select("*").eq("user_id", user.id)
+      .order("is_default", { ascending: false }).limit(6)
+      .then(({ data }) => {
+        setSavedAddresses(data || []);
+        const def = (data || []).find((a: any) => a.is_default) || (data || [])[0];
+        if (def) {
+          setAddress((prev) => prev || def.address);
+          if (def.lat && def.lng) setCoords({ lat: def.lat, lng: def.lng });
+        }
+      });
   }, [user]);
+
 
   useEffect(() => {
     supabase.from("cities").select("*").order("name").then(({ data }) => {
