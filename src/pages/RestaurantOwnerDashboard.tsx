@@ -68,11 +68,13 @@ const RestaurantOwnerDashboard = () => {
             <TabsTrigger value="menu" className="gap-1"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
             <TabsTrigger value="orders" className="gap-1"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
             <TabsTrigger value="reels" className="gap-1"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
+            <TabsTrigger value="earnings" className="gap-1"><Wallet className="h-4 w-4" /> کمائی</TabsTrigger>
           </TabsList>
           <TabsContent value="restaurant"><MyRestaurantTab /></TabsContent>
           <TabsContent value="menu"><MenuTab /></TabsContent>
           <TabsContent value="orders"><OwnerOrdersTab /></TabsContent>
           <TabsContent value="reels"><MyReelsManager /></TabsContent>
+          <TabsContent value="earnings"><EarningsPanel /></TabsContent>
 
         </Tabs>
       </div>
