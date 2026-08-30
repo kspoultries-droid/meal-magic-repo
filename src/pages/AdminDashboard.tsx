@@ -69,6 +69,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="reels" className="gap-1 text-xs"><Clapperboard className="h-3.5 w-3.5" /> ریلز</TabsTrigger>
             <TabsTrigger value="audit" className="gap-1 text-xs"><Shield className="h-3.5 w-3.5" /> آڈٹ لاگ</TabsTrigger>
             <TabsTrigger value="payouts" className="gap-1 text-xs"><Ticket className="h-3.5 w-3.5" /> وینڈر پیمنٹس</TabsTrigger>
+            <TabsTrigger value="rider-remit" className="gap-1 text-xs"><Bike className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ</TabsTrigger>
             <TabsTrigger value="applications" className="gap-1 text-xs"><Users className="h-3.5 w-3.5" /> پارٹنر درخواستیں</TabsTrigger>
           </TabsList>
 
