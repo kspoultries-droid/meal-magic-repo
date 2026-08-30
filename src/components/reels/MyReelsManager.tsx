@@ -78,11 +78,15 @@ const MyReelsManager = ({ restrictSourceId }: Props) => {
     const file = fileRef.current?.files?.[0];
     if (!file) return null;
     if (file.size > 50 * 1024 * 1024) { toast.error("ویڈیو 50MB سے چھوٹی ہونی چاہیے"); throw new Error("too large"); }
-    const path = `reels/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id;
+    if (!uid) { toast.error("لاگ اِن ضروری ہے"); throw new Error("not authenticated"); }
+    const path = `reels/${uid}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file, { cacheControl: "3600", upsert: false });
     if (error) { toast.error("اپلوڈ ناکام: " + error.message); throw error; }
     return supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
   };
+
 
   const save = async () => {
     const entity = entities.find((e) => e.id === sourceId);
