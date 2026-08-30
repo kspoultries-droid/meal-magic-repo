@@ -54,7 +54,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null }: Res
         const ids = rests.map((r) => r.id);
         const { data: menus } = await supabase
           .from("menu_items")
-          .select("id, name, price, restaurant_id")
+          .select("id, name, price, restaurant_id, description, image_url, variants, option_groups")
           .in("restaurant_id", ids)
           .eq("is_available", true);
 
@@ -70,7 +70,12 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null }: Res
           pickupAddress: r.pickup_address,
           deliveryMode: r.delivery_mode,
           minPrice: (menus || []).filter((m) => m.restaurant_id === r.id).reduce<number | null>((min, m) => (min === null || m.price < min ? m.price : min), null),
-          menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).slice(0, 3).map((m) => ({ id: m.id, name: m.name, price: m.price })),
+          menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).slice(0, 3).map((m) => ({
+            id: m.id, name: m.name, price: m.price,
+            description: (m as any).description, image_url: (m as any).image_url,
+            variants: ((m as any).variants || []) as any[],
+            option_groups: ((m as any).option_groups || []) as any[],
+          })),
         }));
         setRestaurants(mapped);
       } else {
