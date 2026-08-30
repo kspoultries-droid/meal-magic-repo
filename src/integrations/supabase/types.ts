@@ -1619,6 +1619,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_method: string | null
+          provider_id: string | null
           scheduled_date: string
           scheduled_time: string
           service_id: string
@@ -1636,6 +1637,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_method?: string | null
+          provider_id?: string | null
           scheduled_date: string
           scheduled_time: string
           service_id: string
@@ -1653,6 +1655,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_method?: string | null
+          provider_id?: string | null
           scheduled_date?: string
           scheduled_time?: string
           service_id?: string
@@ -1666,6 +1669,13 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_bookings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
           {
