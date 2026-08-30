@@ -81,7 +81,10 @@ const RestaurantOwnerDashboard = () => {
           <TabsContent value="reels"><MyReelsManager /></TabsContent>
           <TabsContent value="earnings"><EarningsPanel /></TabsContent>
           <TabsContent value="sales"><SalesReport /></TabsContent>
-          <TabsContent value="reviews"><VendorReviewsPanel /></TabsContent>
+          <TabsContent value="reviews" className="space-y-4">
+            <VendorReviewsPanel kind="food" />
+            <VendorReviewsPanel kind="grocery" />
+          </TabsContent>
 
 
         </Tabs>
