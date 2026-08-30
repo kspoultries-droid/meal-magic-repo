@@ -16,7 +16,8 @@ const lazyWithRetry = <T extends { default: React.ComponentType<any> }>(
   factory: () => Promise<T>
 ) =>
   lazy(async () => {
-    const RELOAD_KEY = "lovable:chunk-reloaded";
+    const RELOAD_KEY = "lovable:chunk-reloaded-at";
+    const COOLDOWN = 15_000;
     try {
       return await factory();
     } catch (err: any) {
@@ -25,15 +26,29 @@ const lazyWithRetry = <T extends { default: React.ComponentType<any> }>(
         msg.includes("Failed to fetch dynamically imported module") ||
         msg.includes("Importing a module script failed") ||
         msg.includes("error loading dynamically imported module");
-      if (isChunkErr && !sessionStorage.getItem(RELOAD_KEY)) {
-        sessionStorage.setItem(RELOAD_KEY, "1");
+      const last = Number(sessionStorage.getItem(RELOAD_KEY) || 0);
+      if (isChunkErr && Date.now() - last > COOLDOWN) {
+        sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+        // Drop any stale precached app shell before reloading.
+        try {
+          if ("caches" in window) {
+            const names = await caches.keys();
+            await Promise.allSettled(names.map((n) => caches.delete(n)));
+          }
+          if ("serviceWorker" in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.allSettled(regs.map((r) => r.unregister()));
+          }
+        } catch {
+          /* ignore */
+        }
         window.location.reload();
-        // Return an empty component while the page reloads.
         return { default: () => null } as unknown as T;
       }
       throw err;
     }
   });
+
 
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
 const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
