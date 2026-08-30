@@ -78,7 +78,7 @@ const AdminDashboard = () => {
           <TabsContent value="people"><UsersTab /></TabsContent>
 
           <TabsContent value="finance">
-            <Tabs defaultValue="payouts"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit">رائیڈر سیٹلمنٹ</TabsTrigger></TabsList><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent></Tabs>
+            <Tabs defaultValue="revenue"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit">رائیڈر سیٹلمنٹ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
           </TabsContent>
 
           <TabsContent value="content">
