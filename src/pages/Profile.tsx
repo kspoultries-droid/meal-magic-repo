@@ -628,6 +628,17 @@ const Profile = () => {
         </AlertDialog>
       </div>
 
+      {reviewOrder && user && (
+        <OrderReviewDialog
+          open={!!reviewOrder}
+          onOpenChange={(v) => !v && setReviewOrder(null)}
+          orderId={reviewOrder.id}
+          restaurantId={reviewOrder.restaurant_id}
+          customerId={user.id}
+          kind="food"
+          items={(reviewOrder.order_items || []).map((i: any) => ({ name: i.name, quantity: i.quantity }))}
+        />
+      )}
       <BottomTabBar />
     </div>
   );
