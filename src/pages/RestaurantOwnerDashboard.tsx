@@ -80,6 +80,9 @@ const RestaurantOwnerDashboard = () => {
           <TabsContent value="orders"><OwnerOrdersTab /></TabsContent>
           <TabsContent value="reels"><MyReelsManager /></TabsContent>
           <TabsContent value="earnings"><EarningsPanel /></TabsContent>
+          <TabsContent value="sales"><SalesReport /></TabsContent>
+          <TabsContent value="reviews"><VendorReviewsPanel /></TabsContent>
+
 
         </Tabs>
       </div>
