@@ -5,7 +5,6 @@ import * as LucideIcons from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
-import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
 import BazarDeals from "@/components/wholesale/BazarDeals";
 import BazarHero from "@/components/wholesale/BazarHero";
@@ -322,7 +321,6 @@ const Wholesale = () => {
         )}
       </section>
 
-      <CartDrawer />
       <AppShareButton section="grocery" />
       <BottomTabBar />
     </div>

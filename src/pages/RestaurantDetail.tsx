@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, Clock, Plus } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import CartDrawer from "@/components/CartDrawer";
 import MenuItemSheet from "@/components/menu/MenuItemSheet";
 
 const RestaurantDetail = () => {
@@ -56,7 +55,6 @@ const RestaurantDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <CartDrawer />
 
       {/* Hero */}
       <div className="relative h-56 md:h-72 overflow-hidden">

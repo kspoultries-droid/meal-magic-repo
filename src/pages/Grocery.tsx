@@ -8,7 +8,6 @@ import { useCityServices } from "@/hooks/useCityServices";
 import PageHero from "@/components/common/PageHero";
 import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
-import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 
@@ -375,7 +374,6 @@ const Grocery = () => {
 
       </>
       )}
-      <CartDrawer />
       <AppShareButton section="grocery" />
       <BottomTabBar />
     </div>

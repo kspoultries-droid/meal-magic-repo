@@ -2,7 +2,6 @@ import { Search } from "lucide-react";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
-import CartDrawer from "@/components/CartDrawer";
 import RestaurantGrid from "@/components/RestaurantGrid";
 
 const SearchPage = () => {
@@ -29,7 +28,6 @@ const SearchPage = () => {
       </div>
 
       <RestaurantGrid searchQuery={searchQuery} activeCategory="All" />
-      <CartDrawer />
       <BottomTabBar />
     </div>
   );
