@@ -8,7 +8,6 @@ import PromotionalAds from "@/components/PromotionalAds";
 import CategoryChips from "@/components/CategoryChips";
 import RestaurantGrid from "@/components/RestaurantGrid";
 import Footer from "@/components/Footer";
-import CartDrawer from "@/components/CartDrawer";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
 import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
@@ -43,7 +42,6 @@ const Index = () => {
       </>
       )}
       <Footer />
-      <CartDrawer />
       <AppShareButton section="food" />
       <BottomTabBar />
     </div>

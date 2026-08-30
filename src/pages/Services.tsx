@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
-import CartDrawer from "@/components/CartDrawer";
 import AppShareButton from "@/components/AppShareButton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -763,7 +762,6 @@ const Services = () => {
         </DrawerContent>
       </Drawer>
 
-      <CartDrawer />
       <AppShareButton section="services" />
       <BottomTabBar />
     </div>

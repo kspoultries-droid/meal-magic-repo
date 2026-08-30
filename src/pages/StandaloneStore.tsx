@@ -11,7 +11,6 @@ import ShopkeeperListOrders from "@/components/grocery/ShopkeeperListOrders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import CartDrawer from "@/components/CartDrawer";
 import { toast } from "sonner";
 
 const GROCERY_CATEGORIES = [
@@ -398,7 +397,6 @@ const StandaloneStore = () => {
       </div>
 
       {/* Cart Drawer only - NO Navbar, NO BottomTabBar */}
-      <CartDrawer />
     </div>
   );
 };
