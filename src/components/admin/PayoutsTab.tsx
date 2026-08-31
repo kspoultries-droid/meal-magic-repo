@@ -157,18 +157,41 @@ const PayoutsTab = () => {
             ))}
           </div>
 
+          <div className="rounded-xl border bg-secondary/40 p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-bold">
+                خودکار شیڈول — آج واجب الادا: <span className="text-primary">{dueRows.length}</span> وینڈر
+                {dueRows.length > 0 && <> • کل Rs {dueRows.reduce((s, r) => s + r.pending, 0)}</>}
+              </p>
+              <button onClick={() => setOnlyDue(!onlyDue)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${onlyDue ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>
+                {onlyDue ? "سب دکھائیں" : "صرف واجب الادا"}
+              </button>
+            </div>
+            <Button size="sm" className="w-full h-9 font-bold" disabled={!dueRows.length || bulkBusy} onClick={payAllDue}>
+              {bulkBusy ? "ادائیگی جاری…" : "تمام واجب الادا ادا کریں"}
+            </Button>
+          </div>
+
           {loading && <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>}
           {!loading && rows.length === 0 && <p className="text-sm text-muted-foreground">اس عرصے میں کوئی مکمل آرڈر نہیں</p>}
 
-          {rows.map((r) => (
+          {(onlyDue ? dueRows : rows).map((r) => (
             <div key={r.vendorId} className="border rounded-xl p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-bold text-sm truncate">{r.shopNames.join("، ")}</p>
                   <p className="text-[11px] text-muted-foreground truncate">{names[r.vendorId] || r.vendorId.slice(0, 8)}</p>
                 </div>
-                <Badge variant="secondary" className="shrink-0">{r.orders} آرڈرز</Badge>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <Badge variant="secondary">{r.orders} آرڈرز</Badge>
+                  <Badge variant={dueInfo(r.vendorId).overdue ? "default" : "outline"} className="text-[10px]">
+                    {SCHEDULE_LABEL[dueInfo(r.vendorId).sched] || "ہفتہ وار"} •{" "}
+                    {dueInfo(r.vendorId).overdue ? "واجب الادا" : `${dueInfo(r.vendorId).days} دن بعد`}
+                  </Badge>
+                </div>
               </div>
+
               <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
                 <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">سیل</p><p className="font-extrabold">Rs {r.gross}</p></div>
                 <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">کمیشن {r.commissionRate}%</p><p className="font-extrabold text-destructive">− {r.commission}</p></div>
