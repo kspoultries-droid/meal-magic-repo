@@ -782,12 +782,30 @@ const OwnerOrdersTab = () => {
   return (
     <Card>
       <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نیا فوڈ آرڈر! / New food order!" />
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>آرڈرز</CardTitle>
-        <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
+      <CardHeader className="space-y-2 pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base">آرڈرز</CardTitle>
+          <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setDateFilter((v) => !v)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
+              dateFilter ? "bg-primary text-primary-foreground border-primary" : "border-border"
+            }`}
+          >
+            {dateFilter ? "📅 تاریخ کے مطابق" : "سب آرڈرز"}
+          </button>
+          {dateFilter && <DayNavigator date={day} onChange={setDay} />}
+          {dateFilter && (
+            <span className="text-xs text-muted-foreground">
+              {activeOrders.length + doneOrders.length} آرڈرز • Rs {dayTotal}
+            </span>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : orders.length === 0 ? (
+        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : visible.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>
         ) : (
           <div className="space-y-6">
