@@ -160,7 +160,7 @@ const PayoutsTab = () => {
           <div className="rounded-xl border bg-secondary/40 p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-bold">
-                خودکار شیڈول — آج واجب الادا: <span className="text-primary">{dueRows.length}</span> وینڈر
+                پیمنٹ لسٹ — آج واجب الادا: <span className="text-primary">{dueRows.length}</span> وینڈر
                 {dueRows.length > 0 && <> • کل Rs {dueRows.reduce((s, r) => s + r.pending, 0)}</>}
               </p>
               <button onClick={() => setOnlyDue(!onlyDue)}
@@ -168,10 +168,11 @@ const PayoutsTab = () => {
                 {onlyDue ? "سب دکھائیں" : "صرف واجب الادا"}
               </button>
             </div>
-            <Button size="sm" className="w-full h-9 font-bold" disabled={!dueRows.length || bulkBusy} onClick={payAllDue}>
-              {bulkBusy ? "ادائیگی جاری…" : "تمام واجب الادا ادا کریں"}
-            </Button>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              یہ لسٹ کھولیں، بینک ایپ میں باری باری ہر وینڈر کو پیمنٹ کریں، پھر یہاں ریفرنس نمبر لکھ کر "ادائیگی درج کریں" دبائیں — ریکارڈ اور بینک اسٹیٹمنٹ خودکار اپڈیٹ ہو جائیں گی۔
+            </p>
           </div>
+
 
           {loading && <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>}
           {!loading && rows.length === 0 && <p className="text-sm text-muted-foreground">اس عرصے میں کوئی مکمل آرڈر نہیں</p>}
