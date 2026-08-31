@@ -2764,6 +2764,15 @@ export type Database = {
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
+      admin_offer_order_to_rider: {
+        Args: {
+          _delivery_fee?: number
+          _kind: string
+          _order_id: string
+          _rider_id: string
+        }
+        Returns: string
+      }
       admin_pay_vendor: {
         Args: {
           _amount: number
@@ -3053,6 +3062,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      retry_order_dispatch: {
+        Args: { _kind: string; _order_id: string }
+        Returns: string
       }
       review_rider_remittance: {
         Args: { _approve: boolean; _id: string; _note?: string }
