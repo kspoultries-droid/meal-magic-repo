@@ -151,19 +151,17 @@ const Services = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  // Fetch nearby providers
+  // Fetch nearby providers (phone numbers are never exposed in public listing)
   const fetchNearbyProviders = async (catId?: string | null) => {
-    let query = supabase
-      .from("service_providers")
-      .select("*, service_categories(name)")
-      .eq("is_active", true)
-      .eq("is_available", true)
-      .order("rating", { ascending: false })
-      .limit(20);
-    if (catId) query = query.eq("category_id", catId);
-    const { data } = await query;
-    
-    let providers = data || [];
+    const { data } = await supabase.rpc("list_public_service_providers", {
+      _category_id: catId ?? null,
+    });
+
+    let providers: any[] = (data || [])
+      .filter((p: any) => p.is_available)
+      .slice(0, 20)
+      .map((p: any) => ({ ...p, service_categories: { name: p.category_name } }));
+
     // Sort by distance if user location available
     if (userLocation && providers.length > 0) {
       providers = providers
@@ -177,6 +175,7 @@ const Services = () => {
     }
     setNearbyProviders(providers);
   };
+
 
   // Haversine distance
   const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -575,15 +574,6 @@ const Services = () => {
                       <span className="text-xs text-muted-foreground flex items-center gap-0.5">
                         <MapPin className="w-3 h-3" /> {provider.distance.toFixed(1)} km
                       </span>
-                    )}
-                    {provider.phone && (
-                      <a
-                        href={`tel:${provider.phone}`}
-                        className="text-xs font-bold text-primary"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        📞 Call
-                      </a>
                     )}
                   </div>
                 </div>

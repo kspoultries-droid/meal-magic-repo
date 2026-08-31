@@ -2333,6 +2333,13 @@ export type Database = {
           total_earnings: number
         }[]
       }
+      get_service_provider_contact: {
+        Args: { _provider_id: string }
+        Returns: {
+          provider_name: string
+          provider_phone: string
+        }[]
+      }
       get_top_selling_grocery_products: {
         Args: { _limit?: number }
         Returns: {
@@ -2359,6 +2366,24 @@ export type Database = {
       }
       increment_reel_views: { Args: { _reel_id: string }; Returns: undefined }
       like_reel: { Args: { _reel_id: string }; Returns: undefined }
+      list_public_service_providers: {
+        Args: { _category_id?: string }
+        Returns: {
+          address: string
+          bio: string
+          category_id: string
+          category_name: string
+          city_id: string
+          id: string
+          image_url: string
+          is_available: boolean
+          latitude: number
+          longitude: number
+          name: string
+          rating: number
+          total_reviews: number
+        }[]
+      }
       manages_category: {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
