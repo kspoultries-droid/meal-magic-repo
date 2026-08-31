@@ -114,6 +114,15 @@ const GroceryDispatchTab = () => {
         <p>📍 Dropoff: {o.delivery_address || "پتہ نہیں"}</p>
       </div>
 
+      {o.status === "pending" && (
+        <div className="flex items-center justify-between gap-2 rounded-lg border bg-yellow-50 px-3 py-2">
+          <p className="text-xs text-yellow-800 font-bold">⏳ دکاندار نے ابھی قبول نہیں کیا</p>
+          <Button size="sm" className="h-7 text-xs" onClick={() => confirmForShop(table, o.id)}>
+            ایڈمن قبول کرے
+          </Button>
+        </div>
+      )}
+
       {table === "grocery_cart_orders" && (
         <div className="rounded-lg border bg-background px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
           <div className="text-xs">
