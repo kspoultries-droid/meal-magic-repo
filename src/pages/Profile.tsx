@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
+import CustomerGroceryHistory from "@/components/grocery/CustomerGroceryHistory";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
