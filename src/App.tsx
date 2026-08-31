@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/contexts/CartContext";
 import { useCourierNotifications } from "@/hooks/useCourierNotifications";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+
 import { toast } from "sonner";
 import Index from "./pages/Index";
 import CartDrawer from "@/components/CartDrawer";
@@ -105,8 +107,10 @@ const GlobalErrorHandler = ({ children }: { children: React.ReactNode }) => {
 
 const CourierNotifications = () => {
   useCourierNotifications();
+  usePushNotifications();
   return null;
 };
+
 
 // Warm up the most-used route chunks while the browser is idle so navigation
 // feels instant instead of waiting on a network fetch after the tap.
