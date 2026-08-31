@@ -52,29 +52,33 @@ const RestaurantOwnerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
-          <h1 className="text-xl font-bold text-primary">ریسٹورنٹ ڈیش بورڈ</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{user?.email}</span>
-          <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
-            <LogOut className="h-4 w-4 mr-1" /> لاگ آؤٹ
+      <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur-xl px-3 py-2.5 sm:px-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-extrabold text-primary sm:text-lg">ریسٹورنٹ ڈیش بورڈ</h1>
+              <p className="truncate text-[10px] text-muted-foreground sm:text-xs">{user?.email}</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="h-8 shrink-0 px-2 text-xs" onClick={() => { signOut(); navigate("/"); }}>
+            <LogOut className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">لاگ آؤٹ</span>
           </Button>
         </div>
       </header>
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <Tabs defaultValue="restaurant">
-          <TabsList className="mb-6">
-            <TabsTrigger value="restaurant" className="gap-1"><Store className="h-4 w-4" /> میرا ریسٹورنٹ</TabsTrigger>
-            <TabsTrigger value="menu" className="gap-1"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
-            <TabsTrigger value="orders" className="gap-1"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
-            <TabsTrigger value="reels" className="gap-1"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
-            <TabsTrigger value="earnings" className="gap-1"><Wallet className="h-4 w-4" /> کمائی</TabsTrigger>
-            <TabsTrigger value="sales" className="gap-1"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
-            <TabsTrigger value="reviews" className="gap-1"><Store className="h-4 w-4" /> ریویوز</TabsTrigger>
-          </TabsList>
+          <div className="-mx-3 mb-4 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="inline-flex w-max gap-1">
+              <TabsTrigger value="restaurant" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> میرا ریسٹورنٹ</TabsTrigger>
+              <TabsTrigger value="menu" className="gap-1 whitespace-nowrap text-xs"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
+              <TabsTrigger value="orders" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
+              <TabsTrigger value="reels" className="gap-1 whitespace-nowrap text-xs"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
+              <TabsTrigger value="earnings" className="gap-1 whitespace-nowrap text-xs"><Wallet className="h-4 w-4" /> آمدنی</TabsTrigger>
+              <TabsTrigger value="sales" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
+              <TabsTrigger value="reviews" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> ریویوز</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="restaurant"><MyRestaurantTab /></TabsContent>
           <TabsContent value="menu"><MenuTab /></TabsContent>
           <TabsContent value="orders"><OwnerOrdersTab /></TabsContent>
