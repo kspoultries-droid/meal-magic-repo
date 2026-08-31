@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 import RiderOfferCard from "@/components/rider/RiderOfferCard";
+import OrderChat from "@/components/orders/OrderChat";
+
 
 
 const vibrate = (pattern: number[] = [300, 120, 300, 120, 500]) => {
