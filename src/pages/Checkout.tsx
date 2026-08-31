@@ -182,7 +182,7 @@ const Checkout = () => {
   const placeOrder = async () => {
     if (isMixed) { toast.error("کارٹ میں مختلف شاپس کے آئٹمز ہیں — ایک شاپ کا آرڈر الگ سے دیں"); return; }
     if (!address.trim()) { toast.error("ڈلیوری ایڈریس درکار ہے"); return; }
-    if (!selectedCity) { toast.error("شہر منتخب کریں"); return; }
+    if (!selectedCity) { toast.error("ڈلیوری علاقہ دستیاب نہیں — تھوڑی دیر بعد کوشش کریں"); return; }
     if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
     setSubmitting(true);
 
@@ -367,10 +367,6 @@ const Checkout = () => {
             ڈلیوری کی معلومات
           </h2>
           <div className="space-y-3">
-            <select className="w-full border rounded-xl p-3 bg-background/80 text-foreground text-sm" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
-              {cities.map((c) => <option key={c.id} value={c.id}>{c.name} (ڈلیوری: Rs {c.delivery_fee})</option>)}
-            </select>
-
             {savedAddresses.length > 0 && (
               <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
                 {savedAddresses.map((a) => (
@@ -447,19 +443,11 @@ const Checkout = () => {
             </div>
             ادائیگی کا طریقہ
           </h2>
-          <div className="grid gap-2">
-            {[
-              { value: "cod", label: "کیش آن ڈلیوری", icon: "💵" },
-              { value: "jazzcash", label: "JazzCash", icon: "📱" },
-              { value: "easypaisa", label: "EasyPaisa", icon: "💚" },
-            ].map((pm) => (
-              <label key={pm.value} className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === pm.value ? "border-primary bg-primary/10 shadow-glow" : "border-border hover:border-primary/30"}`}>
-                <input type="radio" name="payment" value={pm.value} checked={paymentMethod === pm.value} onChange={(e) => setPaymentMethod(e.target.value)} className="accent-primary" />
-                <span className="text-lg">{pm.icon}</span>
-                <span className="font-semibold text-sm">{pm.label}</span>
-              </label>
-            ))}
+          <div className="flex items-center gap-3 p-3 border-2 border-primary bg-primary/10 rounded-xl shadow-glow">
+            <span className="text-lg">💵</span>
+            <span className="font-semibold text-sm">کیش آن ڈلیوری (COD)</span>
           </div>
+          <p className="text-[11px] text-muted-foreground mt-2">آن لائن بینک/والیٹ ادائیگی جلد شامل کی جائے گی۔</p>
         </div>
 
         <PromotionalAds placement="checkout" className="!px-0" />
