@@ -72,11 +72,13 @@ const Checkout = () => {
     });
   }, []);
 
+  const [vendorPaysDelivery, setVendorPaysDelivery] = useState(false);
+
   useEffect(() => {
     const city = cities.find((c) => c.id === selectedCity);
     const baseFee = city?.delivery_fee || 0;
-    setDeliveryFee(restaurantDeliveryMode === "self" ? 0 : baseFee);
-  }, [selectedCity, cities, restaurantDeliveryMode]);
+    setDeliveryFee(restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : baseFee);
+  }, [selectedCity, cities, restaurantDeliveryMode, vendorPaysDelivery]);
 
   // Detect restaurant delivery mode
   useEffect(() => {
@@ -87,6 +89,18 @@ const Checkout = () => {
     supabase.from("restaurants").select("delivery_mode").eq("id", rid).maybeSingle()
       .then(({ data }) => setRestaurantDeliveryMode(data?.delivery_mode || "platform"));
   }, [items]);
+
+  // Vendor-funded (free) delivery
+  useEffect(() => {
+    const sourceId = items[0]?.sourceId;
+    if (!sourceId || items.length === 0) { setVendorPaysDelivery(false); return; }
+    const isRest = items.every((i) => (i.source || "restaurant") === "restaurant");
+    const q = isRest
+      ? supabase.from("restaurants").select("pays_delivery_fee").eq("id", sourceId).maybeSingle()
+      : supabase.from("grocery_stores").select("pays_delivery_fee").eq("id", sourceId).maybeSingle();
+    q.then(({ data }) => setVendorPaysDelivery(Boolean((data as any)?.pays_delivery_fee)));
+  }, [items]);
+
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
