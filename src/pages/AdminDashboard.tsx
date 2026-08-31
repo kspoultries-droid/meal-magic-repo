@@ -464,11 +464,13 @@ const OrdersTab = () => {
 
   return (
     <Card>
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="آرڈر قبول ہوا — رائیڈر تفویض کریں!" />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>آرڈرز</CardTitle>
         <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent>
+
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
           <div className="space-y-3">
             {orders.length === 0 && <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>}
