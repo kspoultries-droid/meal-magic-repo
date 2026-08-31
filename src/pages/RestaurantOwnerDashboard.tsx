@@ -319,11 +319,12 @@ const MenuTab = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "", price: "", category: "Main", image_url: "" });
+  const [form, setForm] = useState({ name: "", description: "", price: "", unit: "", category: "Main", image_url: "" });
+  const [uploading, setUploading] = useState(false);
   const [formVariants, setFormVariants] = useState<VariantRow[]>([]);
   const [formGroups, setFormGroups] = useState<OptionGroupRow[]>([]);
   const [editItem, setEditItem] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: "", category: "", image_url: "" });
+  const [editForm, setEditForm] = useState({ name: "", description: "", price: "", unit: "", category: "", image_url: "" });
   const [editVariants, setEditVariants] = useState<VariantRow[]>([]);
   const [editGroups, setEditGroups] = useState<OptionGroupRow[]>([]);
 
@@ -346,6 +347,30 @@ const MenuTab = () => {
 
   useEffect(() => { fetchMenu(); }, [selectedRest]);
 
+  const uploadImage = async (file: File): Promise<string | null> => {
+    if (!selectedRest) { toast.error("پہلے ریسٹورنٹ منتخب کریں"); return null; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("تصویر 5MB سے کم ہونی چاہیے"); return null; }
+    setUploading(true);
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `menu/${selectedRest}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    setUploading(false);
+    if (error) { toast.error("اپلوڈ ناکام: " + error.message); return null; }
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    toast.success("تصویر اپلوڈ ہو گئی");
+    return data.publicUrl;
+  };
+
+  // Base (main) size is stored as the first variant so customers always see it
+  const buildVariants = (unit: string, price: string, extra: VariantRow[]) => {
+    const rest = sanitizeVariants(extra);
+    const base = unit.trim() && Number(price) > 0
+      ? [{ id: "base", label: unit.trim(), price: Number(price) }]
+      : [];
+    if (base.length === 0 && rest.length === 0) return [];
+    return [...base, ...rest];
+  };
+
   const addItem = async () => {
     if (!form.name || !form.price) { toast.error("نام اور قیمت درکار ہے"); return; }
     const { error } = await supabase.from("menu_items").insert({
@@ -355,13 +380,13 @@ const MenuTab = () => {
       price: Number(form.price),
       category: form.category || "Main",
       image_url: form.image_url,
-      variants: sanitizeVariants(formVariants) as any,
+      variants: buildVariants(form.unit, form.price, formVariants) as any,
       option_groups: sanitizeGroups(formGroups) as any,
     } as any);
     if (error) { toast.error(error.message); return; }
     toast.success("آئٹم شامل ہو گئی!");
     setShowAdd(false);
-    setForm({ name: "", description: "", price: "", category: "Main", image_url: "" });
+    setForm({ name: "", description: "", price: "", unit: "", category: "Main", image_url: "" });
     setFormVariants([]); setFormGroups([]);
     fetchMenu();
   };
@@ -385,9 +410,10 @@ const MenuTab = () => {
       description: item.description || "",
       price: String(item.price),
       category: item.category || "Main",
+      unit: (((item.variants || []) as VariantRow[]).find((v) => v.id === "base")?.label) || "",
       image_url: item.image_url || "",
     });
-    setEditVariants((item.variants || []) as VariantRow[]);
+    setEditVariants(((item.variants || []) as VariantRow[]).filter((v) => v.id !== "base"));
     setEditGroups((item.option_groups || []) as OptionGroupRow[]);
   };
 
@@ -399,7 +425,7 @@ const MenuTab = () => {
       price: Number(editForm.price),
       category: editForm.category,
       image_url: editForm.image_url,
-      variants: sanitizeVariants(editVariants) as any,
+      variants: buildVariants(editForm.unit, editForm.price, editVariants) as any,
       option_groups: sanitizeGroups(editGroups) as any,
     } as any).eq("id", editItem.id);
     if (error) { toast.error(error.message); return; }
@@ -428,9 +454,23 @@ const MenuTab = () => {
             <div className="space-y-3">
               <Input placeholder="آئٹم کا نام" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <Input placeholder="تفصیل" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              <Input placeholder="بنیادی قیمت (اگر variants نہیں تو)" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="قیمت (Rs)" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+                <Input placeholder="وزن / مقدار (مثلاً 1 کلو)" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+              </div>
+              <p className="text-[11px] text-muted-foreground">یہی بنیادی قیمت و مقدار گاہک کو سب سے پہلے نظر آئے گی۔</p>
               <Input placeholder="کیٹگری (مثلاً Main, Drinks)" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-              <Input placeholder="تصویر URL" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              <div className="space-y-2">
+                <Input placeholder="تصویر URL (اختیاری)" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+                <input type="file" accept="image/*" disabled={uploading} className="text-xs" onChange={async (e) => {
+                  const f = e.target.files?.[0]; if (!f) return;
+                  const url = await uploadImage(f);
+                  if (url) setForm((prev) => ({ ...prev, image_url: url }));
+                  e.target.value = "";
+                }} />
+                {uploading && <p className="text-[11px] text-muted-foreground">اپلوڈ ہو رہی ہے...</p>}
+                {form.image_url && <img src={form.image_url} alt="preview" className="w-20 h-20 rounded-lg object-cover" />}
+              </div>
               <VariantsEditor value={formVariants} onChange={setFormVariants} />
               <OptionGroupsEditor value={formGroups} onChange={setFormGroups} />
               <Button className="w-full" onClick={addItem}>شامل کریں</Button>
@@ -486,9 +526,22 @@ const MenuTab = () => {
             <div className="space-y-3">
               <Input placeholder="آئٹم کا نام" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
               <Input placeholder="تفصیل" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
-              <Input placeholder="بنیادی قیمت" type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="قیمت (Rs)" type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+                <Input placeholder="وزن / مقدار (مثلاً 1 کلو)" value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} />
+              </div>
               <Input placeholder="کیٹگری" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
-              <Input placeholder="تصویر URL" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} />
+              <div className="space-y-2">
+                <Input placeholder="تصویر URL (اختیاری)" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} />
+                <input type="file" accept="image/*" disabled={uploading} className="text-xs" onChange={async (e) => {
+                  const f = e.target.files?.[0]; if (!f) return;
+                  const url = await uploadImage(f);
+                  if (url) setEditForm((prev) => ({ ...prev, image_url: url }));
+                  e.target.value = "";
+                }} />
+                {uploading && <p className="text-[11px] text-muted-foreground">اپلوڈ ہو رہی ہے...</p>}
+                {editForm.image_url && <img src={editForm.image_url} alt="preview" className="w-20 h-20 rounded-lg object-cover" />}
+              </div>
               <VariantsEditor value={editVariants} onChange={setEditVariants} />
               <OptionGroupsEditor value={editGroups} onChange={setEditGroups} />
               <Button className="w-full" onClick={saveEdit}>اپڈیٹ کریں</Button>
