@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "./vendorEarnings";
 import { Wallet } from "lucide-react";
+import VendorBankAccounts from "./VendorBankAccounts";
 
 const PERIODS: { key: Period; label: string }[] = [
   { key: "week", label: "7 دن" },
