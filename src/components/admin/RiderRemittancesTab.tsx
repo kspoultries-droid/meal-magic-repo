@@ -21,14 +21,17 @@ const RiderRemittancesTab = () => {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  const [accounts, setAccounts] = useState<Record<string, string>>({});
+
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("rider_remittances")
-      .select("*")
-      .eq("status", tab)
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const [{ data }, { data: accs }] = await Promise.all([
+      supabase.from("rider_remittances").select("*").eq("status", tab).order("created_at", { ascending: false }).limit(100),
+      supabase.from("payment_accounts").select("id, label"),
+    ]);
+    const accMap: Record<string, string> = {};
+    (accs || []).forEach((a: any) => { accMap[a.id] = a.label; });
+    setAccounts(accMap);
     setRows(data || []);
     const ids = Array.from(new Set((data || []).map((r: any) => r.rider_id)));
     if (ids.length) {
