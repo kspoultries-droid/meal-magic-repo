@@ -343,8 +343,9 @@ const Profile = () => {
       {showOrders && (
         <div className="px-4 pb-4">
           <h3 className="text-lg font-extrabold text-foreground mb-3">میرے آرڈرز</h3>
+          <div className="mb-4"><CustomerGroceryHistory /></div>
           {orders.length === 0 ? (
-            <p className="text-center text-muted-foreground py-6">ابھی کوئی آرڈر نہیں</p>
+            <p className="text-center text-muted-foreground py-6">کھانے کا کوئی آرڈر نہیں</p>
           ) : (
             <div className="space-y-3">
               {orders.map((o) => (
