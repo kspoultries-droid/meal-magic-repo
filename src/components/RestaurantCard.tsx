@@ -1,4 +1,4 @@
-import { Star, Clock, Tag, Plus, Bike } from "lucide-react";
+import { Star, Clock, Tag, Plus, Bike, Heart } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import MenuItemSheet, { type MenuItemLike } from "@/components/menu/MenuItemSheet";
@@ -24,7 +24,8 @@ const optimizeImageUrl = (url: string): string => {
 };
 
 const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
-  const { id: restaurantId, name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive } = restaurant;
+  const { id: restaurantId, name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive, minPrice } = restaurant;
+  const [fav, setFav] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [sheetItem, setSheetItem] = useState<MenuItemLike | null>(null);
   const { addItem } = useCart();
@@ -72,6 +73,15 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           </div>
         )}
 
+        {/* Favourite */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setFav((v) => !v); }}
+          aria-label="پسندیدہ"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-card/85 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-90 transition-transform"
+        >
+          <Heart className={`w-4 h-4 ${fav ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
+        </button>
+
         {/* Rating pill on image */}
         <span className="absolute bottom-2.5 left-3 flex items-center gap-1 text-[11px] font-bold text-primary-foreground bg-foreground/50 backdrop-blur-md rounded-full px-2.5 py-1">
           <Star className="w-3 h-3 fill-current text-warning" />
@@ -91,8 +101,13 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
         <p className="text-muted-foreground text-xs truncate mb-3">{cuisines.join(" · ")}</p>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-[10px] font-bold text-accent-foreground bg-accent rounded-full px-2.5 py-1">
-            <Bike className="w-3 h-3" /> فوری ڈیلیوری
+            <Bike className="w-3 h-3" /> فری ڈیلیوری
           </span>
+          {minPrice != null && (
+            <span className="text-[10px] font-bold text-foreground bg-secondary rounded-full px-2.5 py-1">
+              Rs. {minPrice} سے
+            </span>
+          )}
           {menuItems.length > 0 && isActive && (
             <span className="text-[10px] font-semibold text-primary ml-auto">
               {showMenu ? "بند کریں" : "مینو دیکھیں"}

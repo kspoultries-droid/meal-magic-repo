@@ -79,13 +79,6 @@ const Navbar = () => {
         <div className="flex items-center gap-1 sm:gap-2">
           {user ? (
             <>
-              <button
-                onClick={() => navigate("/profile")}
-                className="p-2 rounded-full hover:bg-primary-foreground/20 transition-colors"
-                aria-label="پروفائل"
-              >
-                <User className="w-5 h-5 text-primary-foreground" />
-              </button>
 
               {/* Mobile menu for roles + logout */}
               <div className="md:hidden relative">
