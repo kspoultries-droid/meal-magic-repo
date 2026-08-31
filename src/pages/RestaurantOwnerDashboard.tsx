@@ -642,8 +642,12 @@ const OwnerOrdersTab = () => {
     return map[s] || "bg-muted text-muted-foreground";
   };
 
-  const activeOrders = orders.filter((o) => !["delivered", "completed", "cancelled"].includes(o.status));
-  const doneOrders = orders.filter((o) => ["delivered", "completed", "cancelled"].includes(o.status));
+  const visible = dateFilter
+    ? orders.filter((o) => dayKey(new Date(o.created_at)) === dayKey(day))
+    : orders;
+  const activeOrders = visible.filter((o) => !["delivered", "completed", "cancelled"].includes(o.status));
+  const doneOrders = visible.filter((o) => ["delivered", "completed", "cancelled"].includes(o.status));
+  const dayTotal = Math.round(doneOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0));
 
   const renderActive = (o: any) => {
     const deliveryMode = o.restaurants?.delivery_mode || "platform";
