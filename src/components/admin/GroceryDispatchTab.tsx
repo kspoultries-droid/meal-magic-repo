@@ -95,6 +95,15 @@ const GroceryDispatchTab = () => {
     fetchAll();
   };
 
+  const confirmForShop = async (table: "grocery_cart_orders" | "grocery_list_orders", orderId: string) => {
+    const { error } = await supabase.from(table).update({ status: "confirmed" }).eq("id", orderId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("آرڈر قبول کر لیا گیا — رائیڈر تلاش شروع 🏍️");
+    fetchAll();
+  };
+
+
+
   const renderOrder = (o: any, table: "grocery_cart_orders" | "grocery_list_orders", label: string) => (
     <div key={o.id} className="border rounded-xl p-4 space-y-2">
       <div className="flex items-center justify-between flex-wrap gap-2">
