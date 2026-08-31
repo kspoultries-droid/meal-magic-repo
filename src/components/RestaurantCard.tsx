@@ -25,7 +25,7 @@ const optimizeImageUrl = (url: string): string => {
 };
 
 const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
-  const { id: restaurantId, name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive, minPrice } = restaurant;
+  const { id: restaurantId, name, image, rating, deliveryTime, cuisines, discount, menuItems, isActive, minPrice, paysDeliveryFee } = restaurant;
   const [fav, setFav] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [sheetItem, setSheetItem] = useState<MenuItemLike | null>(null);
@@ -100,7 +100,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
         <p className="text-muted-foreground text-xs truncate mb-3">{cuisines.join(" · ")}</p>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-[10px] font-bold text-accent-foreground bg-accent rounded-full px-2.5 py-1">
-            <Bike className="w-3 h-3" /> فری ڈیلیوری
+            <Bike className="w-3 h-3" /> {paysDeliveryFee ? "فری ڈیلیوری" : "فوری ڈیلیوری"}
           </span>
           {minPrice != null && (
             <span className="text-[10px] font-bold text-foreground bg-secondary rounded-full px-2.5 py-1">
