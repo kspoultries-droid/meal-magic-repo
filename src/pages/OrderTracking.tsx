@@ -252,6 +252,7 @@ const OrderTracking = () => {
           orderId={order.id}
           restaurantId={order.restaurant_id}
           customerId={user.id}
+          riderId={order.rider_id}
           onSubmitted={() => setHasReview(true)}
         />
       )}
