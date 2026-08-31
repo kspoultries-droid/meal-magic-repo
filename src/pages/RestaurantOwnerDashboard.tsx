@@ -176,10 +176,10 @@ const MyRestaurantTab = () => {
         ) : (
           <div className="grid gap-4">
             {restaurants.map((r) => (
-              <div key={r.id} className="flex gap-4 bg-secondary/30 rounded-xl p-4 border">
-                {r.image_url && <img src={r.image_url} alt={r.name} className="w-24 h-24 rounded-lg object-cover" />}
-                <div className="flex-1">
-                  <h3 className="font-bold text-foreground">{r.name}</h3>
+              <div key={r.id} className="flex flex-col sm:flex-row gap-4 bg-secondary/30 rounded-xl p-3 sm:p-4 border overflow-hidden">
+                {r.image_url && <img src={r.image_url} alt={r.name} className="w-full h-32 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0" />}
+                <div className="flex-1 min-w-0 w-full">
+                  <h3 className="font-bold text-foreground break-words">{r.name}</h3>
                   <p className="text-sm text-muted-foreground">{r.description}</p>
                   <div className="flex gap-2 mt-2 flex-wrap">
                     <Badge className={r.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
@@ -230,7 +230,7 @@ const MyRestaurantTab = () => {
                   <div className="mt-2 flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
                     <span className="text-xs font-bold text-muted-foreground">🚚 ڈلیوری:</span>
                     <select
-                      className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
+                      className="h-7 text-xs border rounded-md px-2 bg-background text-foreground w-full min-w-0 max-w-full"
                       value={(r as any).delivery_mode || "platform"}
                       onChange={async (e) => {
                         await supabase.from("restaurants").update({ delivery_mode: e.target.value } as any).eq("id", r.id);
@@ -245,7 +245,7 @@ const MyRestaurantTab = () => {
 
                   {/* Who pays the delivery fee */}
                   <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-secondary/40 px-3 py-2">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs font-bold">🎁 ڈلیوری فیس میں خود دوں گا</p>
                       <p className="text-[10px] text-muted-foreground">کسٹمر کو "فری ڈیلیوری" ملے گی، فیس آپ کی ادائیگی سے کٹے گی</p>
                     </div>
