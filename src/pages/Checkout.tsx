@@ -65,12 +65,21 @@ const Checkout = () => {
   useEffect(() => {
     supabase.from("cities").select("*").order("name").then(({ data }) => {
       setCities(data || []);
-      if (data?.length && !selectedCity) {
-        setSelectedCity(data[0].id);
-        setDeliveryFee(data[0].delivery_fee || 0);
-      }
+      if (data?.length) setSelectedCity((prev) => prev || data[0].id);
     });
   }, []);
+
+  // City is derived from the shop being ordered from (no manual city picker)
+  useEffect(() => {
+    const sourceId = items[0]?.sourceId;
+    if (!sourceId) return;
+    const isRest = items.every((i) => (i.source || "restaurant") === "restaurant");
+    const q = isRest
+      ? supabase.from("restaurants").select("city_id").eq("id", sourceId).maybeSingle()
+      : supabase.from("grocery_stores").select("city_id").eq("id", sourceId).maybeSingle();
+    q.then(({ data }) => { if ((data as any)?.city_id) setSelectedCity((data as any).city_id); });
+  }, [items]);
+
 
   const [vendorPaysDelivery, setVendorPaysDelivery] = useState(false);
 
