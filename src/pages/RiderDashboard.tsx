@@ -260,9 +260,10 @@ const RiderDashboard = () => {
         <div className="grid grid-cols-4 gap-2">
           {[
             { label: "آج ڈلیوری", value: summary?.today_deliveries ?? 0, cls: "text-foreground" },
-            { label: "آج کمائی", value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-primary" },
+            { label: "آج کی کمائی", value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-primary" },
             { label: "کل کمائی", value: `Rs ${Math.round(Number(summary?.total_earnings ?? 0))}`, cls: "text-success" },
-            { label: "واجب الادا", value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
+            { label: "جمع کرانی رقم", value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
+
           ].map((s) => (
             <div key={s.label} className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
               <p className="text-[9px] text-muted-foreground leading-tight">{s.label}</p>
@@ -270,11 +271,15 @@ const RiderDashboard = () => {
             </div>
           ))}
         </div>
+        <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
+          نوٹ: وصول کی گئی پوری رقم (ڈیلیوری فیس سمیت) EasyLife کو جمع کرانی ہے۔ آپ کی کمائی تنخواہ / فی آرڈر پلان کے مطابق الگ سے ادا کی جاتی ہے۔
+        </p>
         {Number(summary?.pending_remit ?? 0) > 0 && (
           <p className="text-[11px] text-warning font-bold text-center">
             Rs {Math.round(Number(summary.pending_remit))} زیرِ تصدیق ہے
           </p>
         )}
+
 
         <RiderRemittance cashDue={cashDue} onSubmitted={() => fetchData(false)} />
 
@@ -374,7 +379,7 @@ const RiderDashboard = () => {
                       <div className="text-xs text-muted-foreground space-y-0.5">
                         <p>🏪 {o.grocery_stores?.name || "اسٹور"}</p>
                         <p>📍 {o.delivery_address || "پتہ نہیں"}</p>
-                        <p>💰 ڈلیوری فیس: Rs {o.delivery_fee || 0}</p>
+                        <p>💰 ڈلیوری فیس (EasyLife کی): Rs {o.delivery_fee || 0}</p>
                       </div>
 
                       {items.length > 0 && (

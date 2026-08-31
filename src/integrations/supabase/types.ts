@@ -366,6 +366,7 @@ export type Database = {
           customer_id: string
           delivery_address: string | null
           delivery_fee: number
+          delivery_fee_payer: string
           delivery_lat: number | null
           delivery_lng: number | null
           delivery_method: string
@@ -399,6 +400,7 @@ export type Database = {
           customer_id: string
           delivery_address?: string | null
           delivery_fee?: number
+          delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
@@ -432,6 +434,7 @@ export type Database = {
           customer_id?: string
           delivery_address?: string | null
           delivery_fee?: number
+          delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
@@ -695,6 +698,7 @@ export type Database = {
           name_style: string | null
           opening_time: string | null
           owner_id: string
+          pays_delivery_fee: boolean
           rating: number | null
           ships_nationwide: boolean
           shop_category: string | null
@@ -725,6 +729,7 @@ export type Database = {
           name_style?: string | null
           opening_time?: string | null
           owner_id: string
+          pays_delivery_fee?: boolean
           rating?: number | null
           ships_nationwide?: boolean
           shop_category?: string | null
@@ -755,6 +760,7 @@ export type Database = {
           name_style?: string | null
           opening_time?: string | null
           owner_id?: string
+          pays_delivery_fee?: boolean
           rating?: number | null
           ships_nationwide?: boolean
           shop_category?: string | null
@@ -984,6 +990,7 @@ export type Database = {
           customer_id: string
           delivery_address: string | null
           delivery_fee: number | null
+          delivery_fee_payer: string
           delivery_lat: number | null
           delivery_lng: number | null
           discount_amount: number
@@ -1008,6 +1015,7 @@ export type Database = {
           customer_id: string
           delivery_address?: string | null
           delivery_fee?: number | null
+          delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
           discount_amount?: number
@@ -1032,6 +1040,7 @@ export type Database = {
           customer_id?: string
           delivery_address?: string | null
           delivery_fee?: number | null
+          delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
           discount_amount?: number
@@ -1589,6 +1598,7 @@ export type Database = {
           name: string
           opening_time: string | null
           owner_id: string
+          pays_delivery_fee: boolean
           pickup_address: string | null
           pickup_lat: number | null
           pickup_lng: number | null
@@ -1610,6 +1620,7 @@ export type Database = {
           name: string
           opening_time?: string | null
           owner_id: string
+          pays_delivery_fee?: boolean
           pickup_address?: string | null
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -1631,6 +1642,7 @@ export type Database = {
           name?: string
           opening_time?: string | null
           owner_id?: string
+          pays_delivery_fee?: boolean
           pickup_address?: string | null
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -1640,6 +1652,101 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "restaurants_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_earnings: {
+        Row: {
+          amount: number
+          base_pay: number
+          bonus: number
+          created_at: string
+          distance_km: number
+          distance_pay: number
+          id: string
+          order_id: string
+          order_kind: string
+          payout_id: string | null
+          rider_id: string
+          status: string
+        }
+        Insert: {
+          amount?: number
+          base_pay?: number
+          bonus?: number
+          created_at?: string
+          distance_km?: number
+          distance_pay?: number
+          id?: string
+          order_id: string
+          order_kind: string
+          payout_id?: string | null
+          rider_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          base_pay?: number
+          bonus?: number
+          created_at?: string
+          distance_km?: number
+          distance_pay?: number
+          id?: string
+          order_id?: string
+          order_kind?: string
+          payout_id?: string | null
+          rider_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      rider_pay_plans: {
+        Row: {
+          city_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          min_order_pay: number
+          monthly_salary: number
+          pay_type: string
+          per_km_fee: number
+          per_order_fee: number
+          rider_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          city_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          min_order_pay?: number
+          monthly_salary?: number
+          pay_type?: string
+          per_km_fee?: number
+          per_order_fee?: number
+          rider_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          min_order_pay?: number
+          monthly_salary?: number
+          pay_type?: string
+          per_km_fee?: number
+          per_order_fee?: number
+          rider_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_pay_plans_city_id_fkey"
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
@@ -1700,6 +1807,68 @@ export type Database = {
           {
             foreignKeyName: "rider_remittances_account_id_fkey"
             columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_salary_payouts: {
+        Row: {
+          bonus: number
+          created_at: string
+          created_by: string | null
+          deduction: number
+          from_account_id: string | null
+          id: string
+          note: string | null
+          order_earnings: number
+          period_end: string
+          period_start: string
+          reference_no: string | null
+          rider_id: string
+          salary_amount: number
+          status: string
+          total: number
+        }
+        Insert: {
+          bonus?: number
+          created_at?: string
+          created_by?: string | null
+          deduction?: number
+          from_account_id?: string | null
+          id?: string
+          note?: string | null
+          order_earnings?: number
+          period_end: string
+          period_start: string
+          reference_no?: string | null
+          rider_id: string
+          salary_amount?: number
+          status?: string
+          total?: number
+        }
+        Update: {
+          bonus?: number
+          created_at?: string
+          created_by?: string | null
+          deduction?: number
+          from_account_id?: string | null
+          id?: string
+          note?: string | null
+          order_earnings?: number
+          period_end?: string
+          period_start?: string
+          reference_no?: string | null
+          rider_id?: string
+          salary_amount?: number
+          status?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_salary_payouts_from_account_id_fkey"
+            columns: ["from_account_id"]
             isOneToOne: false
             referencedRelation: "payment_accounts"
             referencedColumns: ["id"]
@@ -2591,17 +2760,50 @@ export type Database = {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
       }
-      record_commission: {
+      pay_rider: {
         Args: {
-          _channel?: string
-          _city_id: string
-          _delivery_fee: number
-          _order_id: string
-          _order_kind: string
-          _sector: string
-          _total: number
-          _vendor_id: string
+          _bonus: number
+          _deduction: number
+          _from_account_id: string
+          _note: string
+          _period_end: string
+          _period_start: string
+          _reference_no: string
+          _rider: string
+          _salary: number
         }
+        Returns: string
+      }
+      record_commission:
+        | {
+            Args: {
+              _channel?: string
+              _city_id: string
+              _delivery_fee: number
+              _order_id: string
+              _order_kind: string
+              _sector: string
+              _total: number
+              _vendor_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _channel?: string
+              _city_id: string
+              _delivery_fee: number
+              _order_id: string
+              _order_kind: string
+              _sector: string
+              _total: number
+              _vendor_id: string
+              _vendor_pays_delivery?: boolean
+            }
+            Returns: undefined
+          }
+      record_rider_earning: {
+        Args: { _kind: string; _order_id: string; _rider: string }
         Returns: undefined
       }
       reject_partner_application: {
@@ -2619,6 +2821,28 @@ export type Database = {
       resolve_commission_rate: {
         Args: { _sector: string; _vendor_id: string }
         Returns: number
+      }
+      resolve_rider_pay: {
+        Args: { _rider: string }
+        Returns: {
+          city_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          min_order_pay: number
+          monthly_salary: number
+          pay_type: string
+          per_km_fee: number
+          per_order_fee: number
+          rider_id: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "rider_pay_plans"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       review_rider_remittance: {
         Args: { _approve: boolean; _id: string; _note?: string }

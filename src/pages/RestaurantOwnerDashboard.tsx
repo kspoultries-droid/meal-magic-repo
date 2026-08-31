@@ -238,6 +238,25 @@ const MyRestaurantTab = () => {
                     </select>
                   </div>
 
+                  {/* Who pays the delivery fee */}
+                  <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-secondary/40 px-3 py-2">
+                    <div>
+                      <p className="text-xs font-bold">🎁 ڈلیوری فیس میں خود دوں گا</p>
+                      <p className="text-[10px] text-muted-foreground">کسٹمر کو "فری ڈیلیوری" ملے گی، فیس آپ کی ادائیگی سے کٹے گی</p>
+                    </div>
+                    <button
+                      type="button"
+                      className={`h-7 shrink-0 rounded-full px-3 text-[11px] font-bold ${(r as any).pays_delivery_fee ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                      onClick={async () => {
+                        await supabase.from("restaurants").update({ pays_delivery_fee: !(r as any).pays_delivery_fee } as any).eq("id", r.id);
+                        toast.success("اپڈیٹ ہو گیا"); fetchAll();
+                      }}
+                    >
+                      {(r as any).pays_delivery_fee ? "آن" : "آف"}
+                    </button>
+                  </div>
+
+
                   {/* Pickup Address (for riders) */}
                   <div className="mt-2 bg-secondary/40 border border-border/60 rounded-lg px-3 py-2 space-y-2">
                     <p className="text-xs font-bold text-muted-foreground">📍 پک اپ لوکیشن (رائیڈر یہاں آئے گا)</p>
