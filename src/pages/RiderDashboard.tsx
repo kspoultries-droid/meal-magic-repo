@@ -395,7 +395,18 @@ const RiderDashboard = () => {
                         </div>
                       </div>
 
-                      {!isClosed && <ContactStrip id={o.id} />}
+                      {!isClosed && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <ContactStrip id={o.id} />
+                          <OrderChat
+                            orderId={o.id}
+                            orderKind={o._table === "grocery_list_orders" ? "grocery_list" : "grocery"}
+                            role="rider"
+                            label="کسٹمر سے چیٹ"
+                          />
+                        </div>
+                      )}
+
 
                       <div className="text-xs text-muted-foreground space-y-0.5">
                         <p>🏪 {o.grocery_stores?.name || "اسٹور"}</p>
