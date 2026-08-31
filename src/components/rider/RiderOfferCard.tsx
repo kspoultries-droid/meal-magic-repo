@@ -73,7 +73,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
 
   useEffect(() => {
     fetchOffer();
-    const interval = window.setInterval(fetchOffer, 5000);
+    const interval = window.setInterval(fetchOffer, 2500);
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     const channel = supabase
       .channel(`delivery-offers-${riderId}`)
