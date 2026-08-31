@@ -50,6 +50,12 @@ const ApplicationsTab = () => {
 
 
   const approve = async (app: any) => {
+    if (app.applicant_type === "rider") {
+      const k = kycMap[app.user_id];
+      if (!k) return toast.error("رائیڈر کی شناختی تصدیق موجود نہیں — منظوری ممکن نہیں");
+      if (k.status === "failed") return toast.error("تصدیق ناکام ہے — پہلے رائیڈر سے دوبارہ تصدیق کروائیں");
+      if (k.status === "manual_review" && !window.confirm("خودکار تصدیق مکمل نہیں (دستی جائزہ)۔ کیا آپ ذمہ داری سے منظور کرنا چاہتے ہیں؟")) return;
+    }
     const { error } = await supabase.rpc("approve_partner_application", { _application_id: app.id });
     if (error) return toast.error(error.message);
     toast.success("منظور ہو گیا! رول assign ہو گیا۔");
