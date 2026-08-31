@@ -35,9 +35,10 @@ interface RestaurantGridProps {
   searchQuery: string;
   activeCategory: string;
   quickFilter?: QuickFilter;
+  onClearQuickFilter?: () => void;
 }
 
-const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null }: RestaurantGridProps) => {
+const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onClearQuickFilter }: RestaurantGridProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -115,7 +116,19 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null }: Res
   }
 
   return (
-    <section className="container mx-auto px-4 pb-16 min-h-[400px]">
+    <section id="food-results" className="container mx-auto px-4 pb-16 min-h-[400px] scroll-mt-16">
+      {quickFilter && (
+        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-primary/30 bg-accent px-3 py-2 shadow-soft animate-fade-in">
+          <span className="text-xs font-bold text-accent-foreground">فلٹر: {quickLabels[quickFilter]}</span>
+          <span className="text-[11px] font-semibold text-muted-foreground">{filtered.length} نتائج</span>
+          <button
+            onClick={() => onClearQuickFilter?.()}
+            className="ml-auto rounded-full bg-card px-3 py-1 text-[11px] font-bold text-primary shadow-soft active:scale-95 transition-transform"
+          >
+            ہٹائیں ✕
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-extrabold text-foreground">
           {searchQuery ? `"${searchQuery}" کے نتائج` : quickFilter ? quickLabels[quickFilter] : "آپ کے قریب مشہور"}
