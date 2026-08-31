@@ -19,6 +19,10 @@ interface Row {
   default_courier: string | null;
   courier_payment_default: string | null;
   courier_advance_percent: number | null;
+  auto_dispatch: boolean;
+  offer_timeout_seconds: number;
+  max_dispatch_km: number;
+  max_offers_before_stuck: number;
 }
 
 const CitySettingsTab = () => {
