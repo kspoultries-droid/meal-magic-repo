@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Store, ShoppingCart, Package, Wrench, Bike, CheckCircle2, ExternalLink } from "lucide-react";
 
+import RiderVerification, { type RiderKycState } from "@/components/partner/RiderVerification";
+
 type PartnerType = "restaurant" | "grocery" | "wholesale" | "service_provider" | "rider";
 
 const TYPES: { value: PartnerType; label: string; urdu: string; icon: any; desc: string }[] = [
@@ -101,12 +103,11 @@ const Partner = () => {
       return;
     }
     if (isRider) {
-      if (!form.cnic.trim()) { toast.error("شناختی کارڈ نمبر ضروری ہے"); return; }
+      if (form.cnic.replace(/\D/g, "").length !== 13) { toast.error("شناختی کارڈ نمبر 13 ہندسوں کا لکھیں"); return; }
       if (!form.city_id) { toast.error("شہر منتخب کریں"); return; }
-      if (!cnicFile) { toast.error("CNIC کی تصویر لازمی ہے"); return; }
-      if (!shopFile) { toast.error("بائیک/گاڑی کی تصویر لازمی ہے"); return; }
-      if (!platefile) { toast.error("نمبر پلیٹ کی تصویر لازمی ہے"); return; }
-      if (!selfieFile) { toast.error("سیلفی لازمی ہے"); return; }
+      if (form.address.trim().length < 10) { toast.error("مکمل پتہ لکھیں (کارڈ کے پتے سے میل کھاتا)"); return; }
+      if (!kyc.verified) { toast.error("پہلے شناخت کی تصدیق مکمل کریں"); return; }
+      if (!kyc.biometric) { toast.error("فنگر پرنٹ / بایومیٹرک رجسٹر کرنا لازمی ہے"); return; }
     }
     setSubmitting(true);
 
@@ -114,10 +115,15 @@ const Partner = () => {
     let shop_image_url: string | null = null;
     let numberplate_url: string | null = null;
     let selfie_url: string | null = null;
-    if (cnicFile) cnic_image_url = await uploadDoc(cnicFile, "cnic");
-    if (shopFile) shop_image_url = await uploadDoc(shopFile, "shop");
-    if (platefile) numberplate_url = await uploadDoc(platefile, "plate");
-    if (selfieFile) selfie_url = await uploadDoc(selfieFile, "selfie");
+    if (isRider) {
+      cnic_image_url = kyc.cnicFrontPath;
+      shop_image_url = kyc.bikePath;
+      numberplate_url = kyc.platePath;
+      selfie_url = kyc.selfiePath;
+    } else {
+      if (cnicFile) cnic_image_url = await uploadDoc(cnicFile, "cnic");
+      if (shopFile) shop_image_url = await uploadDoc(shopFile, "shop");
+    }
 
     // Resolve referral code -> referrer user id (optional)
     let referred_by: string | null = null;
@@ -132,8 +138,13 @@ const Partner = () => {
     if (referred_by) extra.referred_by = referred_by;
     if (numberplate_url) extra.numberplate_url = numberplate_url;
     if (selfie_url) extra.selfie_url = selfie_url;
+    if (isRider) {
+      extra.cnic_back_url = kyc.cnicBackPath;
+      extra.kyc_status = kyc.status;
+      extra.biometric_registered = kyc.biometric;
+    }
 
-    const { error } = await supabase.from("partner_applications").insert({
+    const { data: inserted, error } = await supabase.from("partner_applications").insert({
       user_id: user.id,
       applicant_type: tab,
       business_name,
@@ -144,7 +155,10 @@ const Partner = () => {
       cnic_image_url,
       shop_image_url,
       extra,
-    });
+    }).select("id").maybeSingle();
+    if (!error && isRider && inserted?.id) {
+      await supabase.from("rider_verifications").update({ application_id: inserted.id }).eq("user_id", user.id);
+    }
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("درخواست جمع ہو گئی! ایڈمن جلد رابطہ کرے گا۔");
