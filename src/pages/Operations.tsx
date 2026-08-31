@@ -39,7 +39,7 @@ const Operations = () => {
       sb.from("service_bookings").select("id", { count: "exact", head: true }).gte("created_at", iso),
       sb.from("orders").select("id,total_amount,status,delivery_address,created_at,restaurant_id,rider_id,customer_id,restaurants(name)")
         .not("status", "in", "(delivered,cancelled)").order("created_at", { ascending: false }).limit(30),
-      sb.from("riders").select("id,full_name,phone,is_online,city_id").eq("is_online", true),
+      sb.from("riders").select("id,city_id,is_available").eq("is_available", true),
       sb.from("partner_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
       sb.from("orders").select("total_amount").gte("created_at", iso).eq("status", "delivered"),
     ]);
@@ -47,7 +47,18 @@ const Operations = () => {
     const groceryToday = results[1].count;
     const servicesToday = results[2].count;
     const openOrders = results[3].data;
-    const activeRiders = results[4].data;
+    let activeRiders: any[] = results[4].data || [];
+    if (activeRiders.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id,full_name,phone")
+        .in("id", activeRiders.map((r: any) => r.id));
+      activeRiders = activeRiders.map((r: any) => ({
+        ...r,
+        full_name: profs?.find((p) => p.id === r.id)?.full_name || "Rider",
+        phone: profs?.find((p) => p.id === r.id)?.phone || "",
+      }));
+    }
     const newApps = results[5].count;
     const allOrders = results[6].data;
 

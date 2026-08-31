@@ -29,6 +29,7 @@ export interface Restaurant {
   pickupAddress?: string | null;
   deliveryMode?: string | null;
   minPrice?: number | null;
+  paysDeliveryFee?: boolean;
 }
 
 interface RestaurantGridProps {
@@ -48,7 +49,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
       setLoading(true);
       const { data: rests } = await supabase
         .from("restaurants")
-        .select("id, name, image_url, rating, delivery_time, cuisines, is_active, created_at, pickup_address, delivery_mode, description");
+        .select("id, name, image_url, rating, delivery_time, cuisines, is_active, created_at, pickup_address, delivery_mode, description, pays_delivery_fee");
 
       if (rests?.length) {
         // Fetch menu items for all restaurants
@@ -70,6 +71,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
           createdAt: r.created_at,
           pickupAddress: r.pickup_address,
           deliveryMode: r.delivery_mode,
+          paysDeliveryFee: r.pays_delivery_fee === true,
           minPrice: (menus || []).filter((m) => m.restaurant_id === r.id).reduce<number | null>((min, m) => (min === null || m.price < min ? m.price : min), null),
           menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).slice(0, 3).map((m) => ({
             id: m.id, name: m.name, price: m.price,
