@@ -929,6 +929,39 @@ export type Database = {
           },
         ]
       }
+      order_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          order_id: string
+          order_kind: string
+          read_at: string | null
+          sender_id: string
+          sender_role: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          order_id: string
+          order_kind?: string
+          read_at?: string | null
+          sender_id: string
+          sender_role?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          order_kind?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_role?: string
+        }
+        Relationships: []
+      }
       order_reviews: {
         Row: {
           comment: string | null
@@ -2724,6 +2757,10 @@ export type Database = {
       approve_partner_application: {
         Args: { _application_id: string }
         Returns: undefined
+      }
+      can_access_order_chat: {
+        Args: { _kind: string; _order_id: string; _user_id: string }
+        Returns: boolean
       }
       confirm_payout_received: {
         Args: { _payout_id: string }

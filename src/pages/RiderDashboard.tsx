@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 import RiderOfferCard from "@/components/rider/RiderOfferCard";
+import OrderChat from "@/components/orders/OrderChat";
+
 
 
 const vibrate = (pattern: number[] = [300, 120, 300, 120, 500]) => {
@@ -324,7 +326,13 @@ const RiderDashboard = () => {
                         </Badge>
                       </div>
 
-                      {!isClosed && <ContactStrip id={o.id} />}
+                      {!isClosed && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <ContactStrip id={o.id} />
+                          <OrderChat orderId={o.id} orderKind="food" role="rider" label="کسٹمر سے چیٹ" />
+                        </div>
+                      )}
+
 
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="rounded-lg bg-background/70 border p-2">
@@ -387,7 +395,18 @@ const RiderDashboard = () => {
                         </div>
                       </div>
 
-                      {!isClosed && <ContactStrip id={o.id} />}
+                      {!isClosed && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <ContactStrip id={o.id} />
+                          <OrderChat
+                            orderId={o.id}
+                            orderKind={o._table === "grocery_list_orders" ? "grocery_list" : "grocery"}
+                            role="rider"
+                            label="کسٹمر سے چیٹ"
+                          />
+                        </div>
+                      )}
+
 
                       <div className="text-xs text-muted-foreground space-y-0.5">
                         <p>🏪 {o.grocery_stores?.name || "اسٹور"}</p>
