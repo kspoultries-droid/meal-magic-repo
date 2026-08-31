@@ -41,9 +41,19 @@ interface Props {
   onClose: () => void;
 }
 
+// Always show the item's own (base) price as the first choice, so the main
+// item never disappears behind its variants.
+export const withBaseVariant = (item: MenuItemLike | null): MenuVariant[] => {
+  const raw = ((item?.variants || []) as MenuVariant[]).filter((v) => v && v.label);
+  if (!item || raw.length === 0) return [];
+  if (raw.some((v) => v.id === "base")) return raw;
+  if (!item.price || item.price <= 0) return raw;
+  return [{ id: "base", label: "بنیادی", price: Number(item.price) }, ...raw];
+};
+
 const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
   const { addItem } = useCart();
-  const variants = (item?.variants || []) as MenuVariant[];
+  const variants = withBaseVariant(item);
   const groups = (item?.option_groups || []) as MenuOptionGroup[];
 
   const [variantId, setVariantId] = useState<string>(variants[0]?.id || "");
@@ -53,10 +63,10 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
   // Reset when item changes
   useMemo(() => {
     if (item) {
-      setVariantId(((item.variants as MenuVariant[]) || [])[0]?.id || "");
+      setVariantId(withBaseVariant(item)[0]?.id || "");
       const init: Record<string, string[]> = {};
       ((item.option_groups as MenuOptionGroup[]) || []).forEach((g) => {
-        // Auto-select first choice for required single-choice groups
+        // Auto-select first choice only for strictly required single-choice groups
         if (g.min >= 1 && g.max === 1 && g.choices[0]) init[g.id] = [g.choices[0].id];
         else init[g.id] = [];
       });
