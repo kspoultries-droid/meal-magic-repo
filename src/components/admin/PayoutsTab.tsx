@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Wallet, RefreshCw } from "lucide-react";
+import { Wallet, RefreshCw, Copy } from "lucide-react";
 import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "@/components/vendor/vendorEarnings";
 
 const PERIODS: { key: Period; label: string }[] = [
@@ -33,7 +33,7 @@ const PayoutsTab = () => {
   const [schedules, setSchedules] = useState<Record<string, string>>({});
   const [lastPaid, setLastPaid] = useState<Record<string, string>>({});
   const [onlyDue, setOnlyDue] = useState(false);
-  const [bulkBusy, setBulkBusy] = useState(false);
+  
 
   const from = periodStart(period);
 
@@ -124,20 +124,20 @@ const PayoutsTab = () => {
 
   const dueRows = rows.filter((r) => r.pending > 0 && dueInfo(r.vendorId).overdue);
 
-  const payAllDue = async () => {
-    if (!dueRows.length) return;
-    setBulkBusy(true);
-    let ok = 0, fail = 0;
-    for (const r of dueRows) {
-      const done = await pay(r, true);
-      done ? ok++ : fail++;
-    }
-    setBulkBusy(false);
-    toast[fail ? "warning" : "success"](
-      `${ok} وینڈرز کو ادائیگی ہو گئی${fail ? ` • ${fail} رہ گئے (بینک اکاؤنٹ نہیں)` : ""}`
-    );
-    load();
+  const copyPayLine = (r: VendorRow) => {
+    const accs = vendorAccounts[r.vendorId] || [];
+    const acc = accs.find((a: any) => a.id === toAcc[r.vendorId]) || accs.find((a: any) => a.is_default) || accs[0];
+    const amount = amounts[r.vendorId] || String(r.pending);
+    const text = [
+      `${r.shopNames.join(", ")} — ${names[r.vendorId] || ""}`,
+      acc ? `${acc.bank_name || acc.method} | ${acc.account_title || ""} | ${acc.account_number}` : "بینک اکاؤنٹ موجود نہیں",
+      `رقم: Rs ${amount}`,
+    ].join("\n");
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success("پیمنٹ تفصیل کاپی ہو گئی — بینک ایپ میں پیسٹ کریں"))
+      .catch(() => toast.error("کاپی نہیں ہوئی"));
   };
+
 
 
   return (
@@ -160,7 +160,7 @@ const PayoutsTab = () => {
           <div className="rounded-xl border bg-secondary/40 p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-bold">
-                خودکار شیڈول — آج واجب الادا: <span className="text-primary">{dueRows.length}</span> وینڈر
+                پیمنٹ لسٹ — آج واجب الادا: <span className="text-primary">{dueRows.length}</span> وینڈر
                 {dueRows.length > 0 && <> • کل Rs {dueRows.reduce((s, r) => s + r.pending, 0)}</>}
               </p>
               <button onClick={() => setOnlyDue(!onlyDue)}
@@ -168,10 +168,11 @@ const PayoutsTab = () => {
                 {onlyDue ? "سب دکھائیں" : "صرف واجب الادا"}
               </button>
             </div>
-            <Button size="sm" className="w-full h-9 font-bold" disabled={!dueRows.length || bulkBusy} onClick={payAllDue}>
-              {bulkBusy ? "ادائیگی جاری…" : "تمام واجب الادا ادا کریں"}
-            </Button>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              یہ لسٹ کھولیں، بینک ایپ میں باری باری ہر وینڈر کو پیمنٹ کریں، پھر یہاں ریفرنس نمبر لکھ کر "ادائیگی درج کریں" دبائیں — ریکارڈ اور بینک اسٹیٹمنٹ خودکار اپڈیٹ ہو جائیں گی۔
+            </p>
           </div>
+
 
           {loading && <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>}
           {!loading && rows.length === 0 && <p className="text-sm text-muted-foreground">اس عرصے میں کوئی مکمل آرڈر نہیں</p>}
@@ -215,12 +216,17 @@ const PayoutsTab = () => {
               <div className="flex gap-2">
                 <Input type="number" placeholder={`Rs ${r.pending}`} value={amounts[r.vendorId] || ""}
                   onChange={(e) => setAmounts({ ...amounts, [r.vendorId]: e.target.value })} className="h-9" />
-                <Input placeholder="ریفرنس نمبر" value={refs[r.vendorId] || ""}
+                <Input placeholder="ریفرنس نمبر (بینک ٹرانزیکشن)" value={refs[r.vendorId] || ""}
                   onChange={(e) => setRefs({ ...refs, [r.vendorId]: e.target.value })} className="h-9" />
+                <Button size="sm" variant="outline" className="h-9 shrink-0" title="بینک تفصیل کاپی کریں"
+                  onClick={() => copyPayLine(r)}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
               </div>
               <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => pay(r)}>
-                ادائیگی کریں
+                {busy === r.vendorId ? "درج ہو رہا ہے…" : "ادائیگی درج کریں (بینک سے ادا کرنے کے بعد)"}
               </Button>
+
             </div>
           ))}
         </CardContent>
