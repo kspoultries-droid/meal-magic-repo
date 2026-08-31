@@ -27,6 +27,7 @@ import RiderRemittancesTab from "@/components/admin/RiderRemittancesTab";
 import RevenueTab from "@/components/admin/RevenueTab";
 import CommissionRulesTab from "@/components/admin/CommissionRulesTab";
 import BankAccountsTab from "@/components/admin/BankAccountsTab";
+import RiderPayTab from "@/components/admin/RiderPayTab";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -81,7 +82,7 @@ const AdminDashboard = () => {
           <TabsContent value="people"><UsersTab /></TabsContent>
 
           <TabsContent value="finance">
-            <Tabs defaultValue="revenue"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="banks">بینک اور اسٹیٹمنٹ</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit">رائیڈر سیٹلمنٹ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
+            <Tabs defaultValue="revenue"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="banks">بینک اور اسٹیٹمنٹ</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit">رائیڈر سیٹلمنٹ</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
           </TabsContent>
 
           <TabsContent value="content">
