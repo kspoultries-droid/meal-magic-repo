@@ -34,13 +34,13 @@ const GroceryDispatchTab = () => {
     const [{ data: cart }, { data: list }, { data: ridersData }] = await Promise.all([
       supabase
         .from("grocery_cart_orders")
-        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,delivery_method,city_id,courier_name,tracking_number,courier_tracking_url,courier_payment_type,shipment_status,created_at,grocery_stores(name)")
+        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,delivery_method,dispatch_state,city_id,courier_name,tracking_number,courier_tracking_url,courier_payment_type,shipment_status,created_at,grocery_stores(name)")
         .in("status", OPEN_STATUSES)
         .order("created_at", { ascending: false })
         .limit(40),
       supabase
         .from("grocery_list_orders")
-        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,created_at,grocery_stores(name)")
+        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,dispatch_state,created_at,grocery_stores(name)")
         .in("status", OPEN_STATUSES)
         .order("created_at", { ascending: false })
         .limit(40),
@@ -86,12 +86,12 @@ const GroceryDispatchTab = () => {
 
   const assign = async (table: "grocery_cart_orders" | "grocery_list_orders", order: any, riderId: string) => {
     const fee = Number(fees[order.id] ?? order.delivery_fee ?? 0) || 0;
-    const { error } = await supabase
-      .from(table)
-      .update({ rider_id: riderId, rider_assigned_at: new Date().toISOString(), delivery_fee: fee, status: "delivering" })
-      .eq("id", order.id);
+    const kind = table === "grocery_cart_orders" ? "grocery_cart" : "grocery_list";
+    const { error } = await (supabase.rpc as any)("admin_offer_order_to_rider", {
+      _kind: kind, _order_id: order.id, _rider_id: riderId, _delivery_fee: fee,
+    });
     if (error) { toast.error(error.message); return; }
-    toast.success("رائیڈر تفویض ہو گیا! 🏍️");
+    toast.success("رائیڈر کو آفر بھیج دی گئی — قبولیت کا انتظار ہے 🏍️");
     fetchAll();
   };
 
@@ -105,6 +105,8 @@ const GroceryDispatchTab = () => {
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px]">{label}</Badge>
           <Badge className="text-[10px]">{o.status}</Badge>
+          {!o.rider_id && o.dispatch_state === "searching" && <Badge variant="outline" className="text-[10px]">آفر بھیجی گئی</Badge>}
+          {!o.rider_id && o.dispatch_state === "stuck" && <Badge variant="destructive" className="text-[10px]">توجہ درکار</Badge>}
         </div>
       </div>
       <div className="grid gap-1 text-xs text-muted-foreground">
@@ -160,7 +162,7 @@ const GroceryDispatchTab = () => {
                     {r.distance != null ? `📍 ${r.distance.toFixed(1)} km دور` : "📍 فاصلہ نامعلوم"}
                   </p>
                 </div>
-                <Button size="sm" className="h-7 text-xs ml-2" onClick={() => assign(table, o, r.id)}>تفویض کریں</Button>
+                <Button size="sm" className="h-7 text-xs ml-2" onClick={() => assign(table, o, r.id)}>آفر بھیجیں</Button>
               </div>
             ))
           )}

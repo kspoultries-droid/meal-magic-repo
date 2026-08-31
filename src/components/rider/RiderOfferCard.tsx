@@ -36,6 +36,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
   const onChangedRef = useRef(onChanged);
+  const alertedOfferRef = useRef<string | null>(null);
   onChangedRef.current = onChanged;
 
   const fetchOffer = async () => {
@@ -48,7 +49,26 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!error) setOffer(data as DeliveryOffer | null);
+    if (!error) {
+      const next = data as DeliveryOffer | null;
+      setOffer(next);
+      if (next && alertedOfferRef.current !== next.id) {
+        alertedOfferRef.current = next.id;
+        try { navigator.vibrate?.([400, 150, 400, 150, 600]); } catch { /* unsupported */ }
+        try {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContextClass) {
+            const context = new AudioContextClass();
+            const oscillator = context.createOscillator();
+            oscillator.connect(context.destination);
+            oscillator.frequency.value = 880;
+            oscillator.start();
+            oscillator.stop(context.currentTime + 0.25);
+          }
+        } catch { /* browser may block audio */ }
+        toast.info("نیا ڈیلیوری آفر — ابھی جواب دیں", { id: `offer-${next.id}` });
+      }
+    }
   };
 
   useEffect(() => {

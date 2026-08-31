@@ -45,6 +45,18 @@ const RiderRemittancesTab = () => {
 
   useEffect(() => { load(); }, [tab]);
 
+  useEffect(() => {
+    const channel = supabase.channel("rider-remittances-live")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "rider_remittances" }, () => {
+        setTab("pending");
+        load();
+        toast.info("نئی رائیڈر ادائیگی سلپ موصول ہوئی", { id: "remittance-tab-alert" });
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "rider_remittances" }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const review = async (id: string, approve: boolean) => {
     setBusyId(id);
     const { error } = await supabase.rpc("review_rider_remittance", {
