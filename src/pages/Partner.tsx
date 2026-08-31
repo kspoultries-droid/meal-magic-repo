@@ -274,34 +274,14 @@ const Partner = () => {
                   onChange={e => setForm({ ...form, address: e.target.value })} rows={2} />
 
                 {tab === "rider" ? (
-                  <div className="space-y-3">
-                    <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
-                      رائیڈر کے لیے تمام دستاویزات لازمی ہیں (تصدیق کے لیے)
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className="text-xs space-y-1">
-                        <span className="text-muted-foreground">CNIC تصویر *</span>
-                        <Input type="file" accept="image/*" onChange={e => setCnicFile(e.target.files?.[0] || null)} />
-                        {cnicFile && <span className="text-[10px] text-primary">✓ {cnicFile.name}</span>}
-                      </label>
-                      <label className="text-xs space-y-1">
-                        <span className="text-muted-foreground">بائیک/گاڑی تصویر *</span>
-                        <Input type="file" accept="image/*" onChange={e => setShopFile(e.target.files?.[0] || null)} />
-                        {shopFile && <span className="text-[10px] text-primary">✓ {shopFile.name}</span>}
-                      </label>
-                      <label className="text-xs space-y-1">
-                        <span className="text-muted-foreground">نمبر پلیٹ تصویر *</span>
-                        <Input type="file" accept="image/*" onChange={e => setPlateFile(e.target.files?.[0] || null)} />
-                        {platefile && <span className="text-[10px] text-primary">✓ {platefile.name}</span>}
-                      </label>
-                      <label className="text-xs space-y-1">
-                        <span className="text-muted-foreground">سیلفی (چہرہ) *</span>
-                        <Input type="file" accept="image/*" capture="user" onChange={e => setSelfieFile(e.target.files?.[0] || null)} />
-                        {selfieFile && <span className="text-[10px] text-primary">✓ {selfieFile.name}</span>}
-                      </label>
-                    </div>
-                  </div>
+                  <RiderVerification
+                    cnic={form.cnic}
+                    fullName={form.business_name}
+                    address={form.address}
+                    onChange={setKyc}
+                  />
                 ) : (
+
                   <div className="grid grid-cols-2 gap-3">
                     <label className="text-xs space-y-1">
                       <span className="text-muted-foreground">CNIC تصویر (اختیاری)</span>
