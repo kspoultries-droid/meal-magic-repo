@@ -19,6 +19,10 @@ interface Row {
   default_courier: string | null;
   courier_payment_default: string | null;
   courier_advance_percent: number | null;
+  auto_dispatch: boolean;
+  offer_timeout_seconds: number;
+  max_dispatch_km: number;
+  max_offers_before_stuck: number;
 }
 
 const CitySettingsTab = () => {
@@ -85,6 +89,33 @@ const CitySettingsTab = () => {
                       />
                     </label>
                   ))}
+                </div>
+
+                {/* Auto rider dispatch settings */}
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                  <label className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-primary">🤖 خودکار رائیڈر اسائنمنٹ (Auto Dispatch)</span>
+                    <Switch checked={!!c.auto_dispatch} onCheckedChange={(v) => patch(c.id, { auto_dispatch: v })} />
+                  </label>
+                  {c.auto_dispatch && (
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <div>
+                        <label className="text-[11px] font-bold text-muted-foreground">آفر ٹائم آؤٹ (سیکنڈ)</label>
+                        <Input type="number" className="h-8 text-xs" defaultValue={String(c.offer_timeout_seconds ?? 40)}
+                          onBlur={(e) => { const v = Number(e.target.value) || 40; if (v !== c.offer_timeout_seconds) patch(c.id, { offer_timeout_seconds: v }); }} />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-muted-foreground">زیادہ سے زیادہ فاصلہ (KM)</label>
+                        <Input type="number" step="0.5" className="h-8 text-xs" defaultValue={String(c.max_dispatch_km ?? 5)}
+                          onBlur={(e) => { const v = Number(e.target.value) || 5; if (v !== c.max_dispatch_km) patch(c.id, { max_dispatch_km: v }); }} />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-muted-foreground">کتنی آفرز کے بعد Stuck</label>
+                        <Input type="number" className="h-8 text-xs" defaultValue={String(c.max_offers_before_stuck ?? 5)}
+                          onBlur={(e) => { const v = Number(e.target.value) || 5; if (v !== c.max_offers_before_stuck) patch(c.id, { max_offers_before_stuck: v }); }} />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid gap-2 sm:grid-cols-3">
