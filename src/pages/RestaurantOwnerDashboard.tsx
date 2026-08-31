@@ -587,12 +587,26 @@ const OwnerOrdersTab = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
         fetchOrders();
         if (payload.eventType === 'INSERT') {
-          triggerAlert();
+          triggerAlert("نیا آرڈر آیا ہے — قبول کریں!");
         }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
+
+  // Re-ring every 5 minutes while an order is still un-accepted (pending)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const stale = orders.filter(
+        (o) => o.status === "pending" && Date.now() - new Date(o.created_at).getTime() > 5 * 60 * 1000
+      );
+      if (stale.length > 0) {
+        triggerAlert(`${stale.length} آرڈر ابھی تک قبول نہیں کیا گیا!`);
+        toast.warning(`⏰ ${stale.length} آرڈر 5 منٹ سے زیادہ سے زیرِ التوا ہے — فوراً قبول کریں`);
+      }
+    }, 5 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [orders, triggerAlert]);
 
   const updateStatus = async (order: any, status: string) => {
     if (["delivered", "completed", "cancelled"].includes(order.status)) {

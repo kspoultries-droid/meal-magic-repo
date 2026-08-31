@@ -28,6 +28,8 @@ import RevenueTab from "@/components/admin/RevenueTab";
 import CommissionRulesTab from "@/components/admin/CommissionRulesTab";
 import BankAccountsTab from "@/components/admin/BankAccountsTab";
 import RiderPayTab from "@/components/admin/RiderPayTab";
+import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
+import NewOrderBanner from "@/components/NewOrderBanner";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -371,6 +373,7 @@ const OrdersTab = () => {
   const [riderProfiles, setRiderProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -395,7 +398,16 @@ const OrdersTab = () => {
   useEffect(() => {
     const channel = supabase
       .channel("admin-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchOrders())
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload: any) => {
+        fetchOrders();
+        const nw = payload.new || {};
+        const old = payload.old || {};
+        // Restaurant accepted an order and no rider is assigned yet → alert admin
+        if (nw.status === "confirmed" && old.status !== "confirmed" && !nw.rider_id) {
+          triggerAlert("ریسٹورنٹ نے آرڈر قبول کر لیا — رائیڈر تفویض کریں!");
+          toast.info("✅ آرڈر قبول ہوا — رائیڈر تفویض کریں");
+        }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
