@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Wallet, Banknote, Receipt } from "lucide-react";
+import { ArrowLeft, Wallet, Banknote, Receipt, Star } from "lucide-react";
 import RiderRemittance from "@/components/rider/RiderRemittance";
 
 const RiderPayments = () => {
