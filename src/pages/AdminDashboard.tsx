@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket, Clapperboard } from "lucide-react";
+import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket, Clapperboard, BellRing } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import GroceryTab from "@/components/admin/GroceryTab";
 import ServicesTab from "@/components/admin/ServicesTab";
@@ -34,6 +34,24 @@ import NewOrderBanner from "@/components/NewOrderBanner";
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [pendingRemittances, setPendingRemittances] = useState(0);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const loadPending = async () => {
+      const { count } = await supabase.from("rider_remittances").select("id", { count: "exact", head: true }).eq("status", "pending");
+      setPendingRemittances(count || 0);
+    };
+    loadPending();
+    const channel = supabase.channel("admin-remittance-alerts")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "rider_remittances" }, () => {
+        setPendingRemittances((count) => count + 1);
+        toast.info("رائیڈر نے نئی ادائیگی سلپ بھیجی ہے", { id: "new-rider-remittance" });
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "rider_remittances" }, loadPending)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) navigate("/auth");
@@ -62,7 +80,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="operations" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> آپریشنز</TabsTrigger>
             <TabsTrigger value="partners" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> پارٹنرز</TabsTrigger>
             <TabsTrigger value="people" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> لوگ اور رولز</TabsTrigger>
-            <TabsTrigger value="finance" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> فنانس</TabsTrigger>
+            <TabsTrigger value="finance" className="relative h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> فنانس{pendingRemittances > 0 && <Badge className="absolute end-1 top-1 h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>
             <TabsTrigger value="content" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> مواد اور آفرز</TabsTrigger>
             <TabsTrigger value="settings" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
           </TabsList>
@@ -84,7 +102,7 @@ const AdminDashboard = () => {
           <TabsContent value="people"><UsersTab /></TabsContent>
 
           <TabsContent value="finance">
-            <Tabs defaultValue="revenue"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="banks">بینک اور اسٹیٹمنٹ</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit">رائیڈر سیٹلمنٹ</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
+            <Tabs defaultValue={pendingRemittances > 0 ? "rider-remit" : "revenue"}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="banks">بینک اور اسٹیٹمنٹ</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
           </TabsContent>
 
           <TabsContent value="content">
@@ -428,9 +446,16 @@ const OrdersTab = () => {
   };
 
   const assignRider = async (orderId: string, riderId: string) => {
-    const { error } = await supabase.from("orders").update({ rider_id: riderId }).eq("id", orderId);
+    const { error } = await (supabase.rpc as any)("admin_offer_order_to_rider", { _kind: "food", _order_id: orderId, _rider_id: riderId, _delivery_fee: null });
     if (error) { toast.error(error.message); return; }
-    toast.success("رائیڈر تفویض ہو گیا! 🏍️");
+    toast.success("رائیڈر کو آفر بھیج دی گئی — قبولیت کا انتظار ہے 🏍️");
+    fetchOrders();
+  };
+
+  const retryDispatch = async (orderId: string) => {
+    const { error } = await (supabase.rpc as any)("retry_order_dispatch", { _kind: "food", _order_id: orderId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("قریب ترین رائیڈر کو نئی آفر بھیج دی گئی");
     fetchOrders();
   };
 
@@ -487,7 +512,10 @@ const OrdersTab = () => {
                       <span className="ml-3 font-bold">Rs {o.total_amount}</span>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className={statusColor(o.status)}>{o.status}</Badge>
+                      <Badge className={statusColor(o.status)}>{o.status === "confirmed" ? "ریسٹورنٹ نے قبول کیا" : o.status}</Badge>
+                      {!o.rider_id && o.dispatch_state === "searching" && <Badge variant="outline">رائیڈر کو آفر بھیجی گئی</Badge>}
+                      {!o.rider_id && o.dispatch_state === "stuck" && <Badge variant="destructive">توجہ درکار</Badge>}
+                      {o.rider_id && <Badge variant="secondary">رائیڈر نے قبول کیا</Badge>}
                       {deliveryMode === "self" && <Badge variant="outline">خود ڈلیوری</Badge>}
                       <span className="text-xs text-muted-foreground">{o.payment_method}</span>
                       <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
@@ -546,6 +574,9 @@ const OrdersTab = () => {
                       🏍️ رائیڈر: <span className="font-bold">{getRiderName(o.rider_id)}</span>
                       {getRiderPhone(o.rider_id) && ` · 📞 ${getRiderPhone(o.rider_id)}`}
                     </p>
+                  )}
+                  {!o.rider_id && o.dispatch_state === "stuck" && (
+                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => retryDispatch(o.id)}>دوبارہ آٹو ڈسپیچ</Button>
                   )}
 
                   {/* Admin scope: assignment only, no cooking/delivery workflow */}

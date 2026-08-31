@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Bike, ArrowLeft, RefreshCw, Package, Navigation, MapPin, Phone, MessageCircle, Wallet } from "lucide-react";
+import { LogOut, Bike, ArrowLeft, RefreshCw, Package, Navigation, MapPin, Phone, MessageCircle, Wallet, ChevronDown, ChevronUp } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
@@ -40,6 +40,9 @@ const RiderDashboard = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [locationOk, setLocationOk] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string>("");
+  const [dateFilter, setDateFilter] = useState<"today" | "yesterday" | "week" | "custom">("today");
+  const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 10));
+  const [showCompleted, setShowCompleted] = useState(false);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
   const contactsRef = useRef<Record<string, any>>({});
 
@@ -232,6 +235,26 @@ const RiderDashboard = () => {
   );
 
   const cashDue = Number(summary?.cash_due ?? 0);
+  const CLOSED = ["delivered", "completed", "cancelled"];
+  const startOfDay = (date: Date) => { const value = new Date(date); value.setHours(0, 0, 0, 0); return value; };
+  const dateRange = (() => {
+    const now = new Date();
+    if (dateFilter === "week") return { start: new Date(startOfDay(now).getTime() - 6 * 86400000), end: new Date() };
+    const selected = dateFilter === "custom" ? new Date(`${customDate}T00:00:00`) : new Date(now);
+    if (dateFilter === "yesterday") selected.setDate(selected.getDate() - 1);
+    const start = startOfDay(selected);
+    return { start, end: new Date(start.getTime() + 86400000 - 1) };
+  })();
+  const inSelectedRange = (order: any) => {
+    const created = new Date(order.created_at).getTime();
+    return created >= dateRange.start.getTime() && created <= dateRange.end.getTime();
+  };
+  const activeFoodOrders = myOrders.filter((order) => !CLOSED.includes(order.status));
+  const activeGroceryOrders = groceryOrders.filter((order) => !CLOSED.includes(order.status));
+  const completedOrders = [
+    ...myOrders.filter((order) => CLOSED.includes(order.status) && inSelectedRange(order)).map((order) => ({ ...order, _historyLabel: "فوڈ" })),
+    ...groceryOrders.filter((order) => CLOSED.includes(order.status) && inSelectedRange(order)).map((order) => ({ ...order, _historyLabel: order._label })),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -269,6 +292,16 @@ const RiderDashboard = () => {
 
         {user && <RiderOfferCard riderId={user.id} onChanged={() => fetchData(false)} />}
 
+        <div className="rounded-xl border bg-card p-3 space-y-2">
+          <p className="text-xs font-extrabold">آرڈر ہسٹری کا دن</p>
+          <div className="grid grid-cols-4 gap-1">
+            {([['today', 'آج'], ['yesterday', 'کل'], ['week', '7 دن'], ['custom', 'تاریخ']] as const).map(([value, label]) => (
+              <Button key={value} size="sm" variant={dateFilter === value ? "default" : "outline"} className="h-8 px-1 text-[11px]" onClick={() => setDateFilter(value)}>{label}</Button>
+            ))}
+          </div>
+          {dateFilter === "custom" && <input aria-label="آرڈر کی تاریخ" type="date" value={customDate} onChange={(event) => setCustomDate(event.target.value)} className="h-9 w-full rounded-md border bg-background px-3 text-xs" />}
+        </div>
+
         {/* Compact stats strip */}
         <div className="grid grid-cols-4 gap-2">
           {[
@@ -305,11 +338,11 @@ const RiderDashboard = () => {
             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => fetchData(false)}><RefreshCw className="h-3.5 w-3.5" /></Button>
           </CardHeader>
           <CardContent className="pt-0">
-            {loadingData ? <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے...</p> : myOrders.length === 0 ? (
+            {loadingData ? <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے...</p> : activeFoodOrders.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-6">ابھی کوئی آرڈر اسائن نہیں ہوا</p>
             ) : (
               <div className="space-y-2.5">
-                {myOrders.map((o) => {
+                {activeFoodOrders.map((o) => {
                   const pickupAddr = o.restaurants?.pickup_address || o.restaurants?.description || "";
                   const pickupMap = mapLink(pickupAddr, o.restaurants?.pickup_lat, o.restaurants?.pickup_lng);
                   const dropoffMap = mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng);
@@ -374,11 +407,11 @@ const RiderDashboard = () => {
             <CardTitle className="text-base flex items-center gap-2"><Package className="w-4 h-4" /> گروسری / بازار آرڈرز</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            {groceryOrders.length === 0 ? (
+            {activeGroceryOrders.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-6">ابھی کوئی گروسری آرڈر اسائن نہیں ہوا</p>
             ) : (
               <div className="space-y-2.5">
-                {groceryOrders.map((o) => {
+                {activeGroceryOrders.map((o) => {
                   const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
                   const dropoff = mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng);
                   const items = Array.isArray(o.items) ? o.items : [];
@@ -438,6 +471,23 @@ const RiderDashboard = () => {
               </div>
             )}
           </CardContent>
+        </Card>
+
+        <Card>
+          <button className="flex w-full items-center justify-between p-4 text-right" onClick={() => setShowCompleted((open) => !open)} aria-expanded={showCompleted}>
+            <span className="text-sm font-extrabold">مکمل آرڈرز — {completedOrders.length}</span>
+            {showCompleted ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+          {showCompleted && (
+            <CardContent className="space-y-2 pt-0">
+              {completedOrders.length === 0 ? <p className="py-4 text-center text-xs text-muted-foreground">منتخب دن میں کوئی مکمل آرڈر نہیں</p> : completedOrders.map((order) => (
+                <div key={`${order._table || 'food'}-${order.id}`} className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs">
+                  <div><p className="font-bold">#{order.id.slice(0, 8)} · {order._historyLabel}</p><p className="text-[10px] text-muted-foreground">{new Date(order.created_at).toLocaleString("ur-PK")}</p></div>
+                  <div className="text-left"><Badge variant={order.status === "cancelled" ? "destructive" : "secondary"}>{STATUS_LABEL[order.status] || order.status}</Badge><p className="mt-1 font-bold">Rs {order.total_amount ?? "—"}</p></div>
+                </div>
+              ))}
+            </CardContent>
+          )}
         </Card>
       </div>
     </div>
