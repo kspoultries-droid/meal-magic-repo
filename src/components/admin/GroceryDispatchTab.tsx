@@ -17,7 +17,7 @@ const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-const OPEN_STATUSES = ["confirmed", "preparing", "ready", "delivering", "out_for_delivery"];
+const OPEN_STATUSES = ["pending", "quoted", "confirmed", "preparing", "ready", "delivering", "out_for_delivery"];
 
 const GroceryDispatchTab = () => {
   const [cartOrders, setCartOrders] = useState<any[]>([]);
@@ -95,6 +95,15 @@ const GroceryDispatchTab = () => {
     fetchAll();
   };
 
+  const confirmForShop = async (table: "grocery_cart_orders" | "grocery_list_orders", orderId: string) => {
+    const { error } = await supabase.from(table).update({ status: "confirmed" }).eq("id", orderId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("آرڈر قبول کر لیا گیا — رائیڈر تلاش شروع 🏍️");
+    fetchAll();
+  };
+
+
+
   const renderOrder = (o: any, table: "grocery_cart_orders" | "grocery_list_orders", label: string) => (
     <div key={o.id} className="border rounded-xl p-4 space-y-2">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -113,6 +122,15 @@ const GroceryDispatchTab = () => {
         <p>🏪 Pickup: <span className="font-bold text-foreground">{o.grocery_stores?.name || "اسٹور"}</span></p>
         <p>📍 Dropoff: {o.delivery_address || "پتہ نہیں"}</p>
       </div>
+
+      {o.status === "pending" && (
+        <div className="flex items-center justify-between gap-2 rounded-lg border bg-yellow-50 px-3 py-2">
+          <p className="text-xs text-yellow-800 font-bold">⏳ دکاندار نے ابھی قبول نہیں کیا</p>
+          <Button size="sm" className="h-7 text-xs" onClick={() => confirmForShop(table, o.id)}>
+            ایڈمن قبول کرے
+          </Button>
+        </div>
+      )}
 
       {table === "grocery_cart_orders" && (
         <div className="rounded-lg border bg-background px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
