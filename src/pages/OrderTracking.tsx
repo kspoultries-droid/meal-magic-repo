@@ -152,6 +152,7 @@ const OrderTracking = () => {
               کال کریں
             </a>
           )}
+          <OrderChat orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} role="customer" label="چیٹ" />
           {rider.lat && rider.lng && (
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${rider.lat},${rider.lng}`}
@@ -164,6 +165,7 @@ const OrderTracking = () => {
           )}
         </div>
       )}
+
 
       {/* Courier shipment — name, tracking number, live timeline + history */}
       {kind === "grocery_cart" && (order.delivery_method === "courier" || order.courier_name || order.tracking_number) && (
