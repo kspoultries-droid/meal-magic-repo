@@ -61,6 +61,11 @@ const Partner = () => {
   const [shopFile, setShopFile] = useState<File | null>(null);
   const [platefile, setPlateFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [kyc, setKyc] = useState<RiderKycState>({
+    verified: false, status: "none", biometric: false,
+    cnicFrontPath: null, cnicBackPath: null, selfiePath: null, bikePath: null, platePath: null,
+  });
+
 
   useEffect(() => {
     supabase.from("cities").select("id,name").order("name").then(({ data }) => setCities(data || []));
