@@ -575,15 +575,6 @@ const Services = () => {
                         <MapPin className="w-3 h-3" /> {provider.distance.toFixed(1)} km
                       </span>
                     )}
-                    {provider.phone && (
-                      <a
-                        href={`tel:${provider.phone}`}
-                        className="text-xs font-bold text-primary"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        📞 Call
-                      </a>
-                    )}
                   </div>
                 </div>
               </div>
