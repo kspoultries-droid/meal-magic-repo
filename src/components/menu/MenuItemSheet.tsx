@@ -124,16 +124,17 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
     }
     if (variants.length > 0 && !variantId) { toast.error("سائز منتخب کریں"); return; }
 
+    const showVariant = variant && variant.id !== "base";
     addItem({
       menu_item_id: item.id,
-      name: item.name + (variant ? ` — ${variant.label}` : ""),
+      name: item.name + (showVariant ? ` — ${variant!.label}` : ""),
       restaurant: restaurant.name,
       price: unitPrice,
       image: item.image_url || restaurant.image_url || "",
       source: "restaurant",
       sourceId: restaurant.id,
       variant_id: variant?.id || null,
-      variant_label: variant?.label || null,
+      variant_label: showVariant ? variant!.label : null,
       option_ids: selectedIds,
       options: selectedOptions,
       quantity: qty,
