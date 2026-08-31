@@ -93,14 +93,14 @@ const PayoutsTab = () => {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [period]);
 
 
-  const pay = async (row: VendorRow) => {
+  const pay = async (row: VendorRow, silent = false) => {
     const amount = Number(amounts[row.vendorId] || row.pending);
     const source = fromAcc[row.vendorId] || accounts[0]?.id;
     const dest = toAcc[row.vendorId];
-    if (!amount || amount <= 0) { toast.error("رقم درست نہیں"); return; }
-    if (!source) { toast.error("EasyLife اکاؤنٹ منتخب کریں"); return; }
-    if (!dest) { toast.error("اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا"); return; }
-    setBusy(row.vendorId);
+    if (!amount || amount <= 0) { if (!silent) toast.error("رقم درست نہیں"); return false; }
+    if (!source) { if (!silent) toast.error("EasyLife اکاؤنٹ منتخب کریں"); return false; }
+    if (!dest) { if (!silent) toast.error("اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا"); return false; }
+    if (!silent) setBusy(row.vendorId);
     const { error } = await supabase.rpc("admin_pay_vendor", {
       _vendor_id: row.vendorId,
       _amount: amount,
@@ -111,13 +111,34 @@ const PayoutsTab = () => {
       _reference_no: refs[row.vendorId]?.trim() || null,
       _notes: `${row.shopNames.join(", ")} — کمیشن ${row.commissionRate}%`,
     });
-    setBusy(null);
-    if (error) { toast.error(error.message); return; }
-    toast.success("ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓");
-    setAmounts({ ...amounts, [row.vendorId]: "" });
-    setRefs({ ...refs, [row.vendorId]: "" });
+    if (!silent) setBusy(null);
+    if (error) { if (!silent) toast.error(error.message); return false; }
+    if (!silent) {
+      toast.success("ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓");
+      setAmounts({ ...amounts, [row.vendorId]: "" });
+      setRefs({ ...refs, [row.vendorId]: "" });
+      load();
+    }
+    return true;
+  };
+
+  const dueRows = rows.filter((r) => r.pending > 0 && dueInfo(r.vendorId).overdue);
+
+  const payAllDue = async () => {
+    if (!dueRows.length) return;
+    setBulkBusy(true);
+    let ok = 0, fail = 0;
+    for (const r of dueRows) {
+      const done = await pay(r, true);
+      done ? ok++ : fail++;
+    }
+    setBulkBusy(false);
+    toast[fail ? "warning" : "success"](
+      `${ok} وینڈرز کو ادائیگی ہو گئی${fail ? ` • ${fail} رہ گئے (بینک اکاؤنٹ نہیں)` : ""}`
+    );
     load();
   };
+
 
   return (
     <div className="space-y-4">
