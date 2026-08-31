@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Wallet, RefreshCw } from "lucide-react";
+import { Wallet, RefreshCw, Copy } from "lucide-react";
 import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "@/components/vendor/vendorEarnings";
 
 const PERIODS: { key: Period; label: string }[] = [
