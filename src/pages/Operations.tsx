@@ -47,7 +47,18 @@ const Operations = () => {
     const groceryToday = results[1].count;
     const servicesToday = results[2].count;
     const openOrders = results[3].data;
-    const activeRiders = results[4].data;
+    let activeRiders: any[] = results[4].data || [];
+    if (activeRiders.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id,full_name,phone")
+        .in("id", activeRiders.map((r: any) => r.id));
+      activeRiders = activeRiders.map((r: any) => ({
+        ...r,
+        full_name: profs?.find((p) => p.id === r.id)?.full_name || "Rider",
+        phone: profs?.find((p) => p.id === r.id)?.phone || "",
+      }));
+    }
     const newApps = results[5].count;
     const allOrders = results[6].data;
 
