@@ -19,16 +19,23 @@ const RiderPayments = () => {
     if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
 
+  const [me, setMe] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+
   const load = async () => {
     if (!user) return;
-    const [{ data: sum }, { data: earn }, { data: sal }] = await Promise.all([
+    const [{ data: sum }, { data: earn }, { data: sal }, { data: rider }, { data: revs }] = await Promise.all([
       supabase.rpc("get_rider_summary"),
       supabase.from("rider_earnings").select("*").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(30),
       supabase.from("rider_salary_payouts").select("*").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(12),
+      supabase.from("riders").select("*").eq("id", user.id).maybeSingle(),
+      supabase.from("rider_reviews" as any).select("*").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(10),
     ]);
     setSummary(Array.isArray(sum) ? sum[0] : sum);
     setEarnings(earn || []);
     setSalaries(sal || []);
+    setMe(rider || null);
+    setReviews((revs as any[]) || []);
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.id]);
