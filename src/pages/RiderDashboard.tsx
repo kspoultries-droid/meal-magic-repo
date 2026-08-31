@@ -271,11 +271,15 @@ const RiderDashboard = () => {
             </div>
           ))}
         </div>
+        <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
+          نوٹ: وصول کی گئی پوری رقم (ڈیلیوری فیس سمیت) EasyLife کو جمع کرانی ہے۔ آپ کی کمائی تنخواہ / فی آرڈر پلان کے مطابق الگ سے ادا کی جاتی ہے۔
+        </p>
         {Number(summary?.pending_remit ?? 0) > 0 && (
           <p className="text-[11px] text-warning font-bold text-center">
             Rs {Math.round(Number(summary.pending_remit))} زیرِ تصدیق ہے
           </p>
         )}
+
 
         <RiderRemittance cashDue={cashDue} onSubmitted={() => fetchData(false)} />
 
@@ -375,7 +379,7 @@ const RiderDashboard = () => {
                       <div className="text-xs text-muted-foreground space-y-0.5">
                         <p>🏪 {o.grocery_stores?.name || "اسٹور"}</p>
                         <p>📍 {o.delivery_address || "پتہ نہیں"}</p>
-                        <p>💰 ڈلیوری فیس: Rs {o.delivery_fee || 0}</p>
+                        <p>💰 ڈلیوری فیس (EasyLife کی): Rs {o.delivery_fee || 0}</p>
                       </div>
 
                       {items.length > 0 && (
