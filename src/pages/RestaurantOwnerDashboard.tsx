@@ -562,6 +562,8 @@ const OwnerOrdersTab = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState(false);
+  const [day, setDay] = useState<Date>(startOfDay(new Date()));
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = async () => {
