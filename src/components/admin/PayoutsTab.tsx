@@ -124,20 +124,20 @@ const PayoutsTab = () => {
 
   const dueRows = rows.filter((r) => r.pending > 0 && dueInfo(r.vendorId).overdue);
 
-  const payAllDue = async () => {
-    if (!dueRows.length) return;
-    setBulkBusy(true);
-    let ok = 0, fail = 0;
-    for (const r of dueRows) {
-      const done = await pay(r, true);
-      done ? ok++ : fail++;
-    }
-    setBulkBusy(false);
-    toast[fail ? "warning" : "success"](
-      `${ok} وینڈرز کو ادائیگی ہو گئی${fail ? ` • ${fail} رہ گئے (بینک اکاؤنٹ نہیں)` : ""}`
-    );
-    load();
+  const copyPayLine = (r: VendorRow) => {
+    const accs = vendorAccounts[r.vendorId] || [];
+    const acc = accs.find((a: any) => a.id === toAcc[r.vendorId]) || accs.find((a: any) => a.is_default) || accs[0];
+    const amount = amounts[r.vendorId] || String(r.pending);
+    const text = [
+      `${r.shopNames.join(", ")} — ${names[r.vendorId] || ""}`,
+      acc ? `${acc.bank_name || acc.method} | ${acc.account_title || ""} | ${acc.account_number}` : "بینک اکاؤنٹ موجود نہیں",
+      `رقم: Rs ${amount}`,
+    ].join("\n");
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success("پیمنٹ تفصیل کاپی ہو گئی — بینک ایپ میں پیسٹ کریں"))
+      .catch(() => toast.error("کاپی نہیں ہوئی"));
   };
+
 
 
   return (
