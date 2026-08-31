@@ -1679,6 +1679,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "service_bookings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "service_bookings_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -1874,6 +1881,13 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers_public"
             referencedColumns: ["id"]
           },
           {
@@ -2207,7 +2221,78 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      service_providers_public: {
+        Row: {
+          address: string | null
+          bio: string | null
+          category_id: string | null
+          city_id: string | null
+          created_at: string | null
+          id: string | null
+          image_url: string | null
+          is_active: boolean | null
+          is_available: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string | null
+          rating: number | null
+          total_reviews: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          bio?: string | null
+          category_id?: string | null
+          city_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_active?: boolean | null
+          is_available?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          bio?: string | null
+          category_id?: string | null
+          city_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_active?: boolean | null
+          is_available?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_providers_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_providers_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
@@ -2331,6 +2416,13 @@ export type Database = {
           today_earnings: number
           total_deliveries: number
           total_earnings: number
+        }[]
+      }
+      get_service_provider_contact: {
+        Args: { _provider_id: string }
+        Returns: {
+          provider_name: string
+          provider_phone: string
         }[]
       }
       get_top_selling_grocery_products: {
