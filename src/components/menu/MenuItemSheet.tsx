@@ -46,9 +46,9 @@ interface Props {
 export const withBaseVariant = (item: MenuItemLike | null): MenuVariant[] => {
   const raw = ((item?.variants || []) as MenuVariant[]).filter((v) => v && v.label);
   if (!item || raw.length === 0) return [];
-  if (raw.some((v) => v.id === "base")) return raw;
+  if (raw.some((v) => v.id === "base" || v.id === "__base")) return raw;
   if (!item.price || item.price <= 0) return raw;
-  return [{ id: "base", label: "بنیادی", price: Number(item.price) }, ...raw];
+  return [{ id: "__base", label: "بنیادی", price: Number(item.price) }, ...raw];
 };
 
 const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
@@ -124,7 +124,9 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
     }
     if (variants.length > 0 && !variantId) { toast.error("سائز منتخب کریں"); return; }
 
-    const showVariant = variant && variant.id !== "base";
+    const isBase = !!variant && (variant.id === "base" || variant.id === "__base");
+    const showVariant = !!variant && !isBase;
+    const sentVariantId = variant && variant.id !== "__base" ? variant.id : null;
     addItem({
       menu_item_id: item.id,
       name: item.name + (showVariant ? ` — ${variant!.label}` : ""),
@@ -133,7 +135,7 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
       image: item.image_url || restaurant.image_url || "",
       source: "restaurant",
       sourceId: restaurant.id,
-      variant_id: variant?.id || null,
+      variant_id: sentVariantId,
       variant_label: showVariant ? variant!.label : null,
       option_ids: selectedIds,
       options: selectedOptions,
