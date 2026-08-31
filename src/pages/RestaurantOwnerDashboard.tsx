@@ -230,7 +230,7 @@ const MyRestaurantTab = () => {
                   <div className="mt-2 flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
                     <span className="text-xs font-bold text-muted-foreground">🚚 ڈلیوری:</span>
                     <select
-                      className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
+                      className="h-7 text-xs border rounded-md px-2 bg-background text-foreground w-full min-w-0 max-w-full"
                       value={(r as any).delivery_mode || "platform"}
                       onChange={async (e) => {
                         await supabase.from("restaurants").update({ delivery_mode: e.target.value } as any).eq("id", r.id);
@@ -245,7 +245,7 @@ const MyRestaurantTab = () => {
 
                   {/* Who pays the delivery fee */}
                   <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-secondary/40 px-3 py-2">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs font-bold">🎁 ڈلیوری فیس میں خود دوں گا</p>
                       <p className="text-[10px] text-muted-foreground">کسٹمر کو "فری ڈیلیوری" ملے گی، فیس آپ کی ادائیگی سے کٹے گی</p>
                     </div>
