@@ -176,10 +176,10 @@ const MyRestaurantTab = () => {
         ) : (
           <div className="grid gap-4">
             {restaurants.map((r) => (
-              <div key={r.id} className="flex gap-4 bg-secondary/30 rounded-xl p-4 border">
-                {r.image_url && <img src={r.image_url} alt={r.name} className="w-24 h-24 rounded-lg object-cover" />}
-                <div className="flex-1">
-                  <h3 className="font-bold text-foreground">{r.name}</h3>
+              <div key={r.id} className="flex flex-col sm:flex-row gap-4 bg-secondary/30 rounded-xl p-3 sm:p-4 border overflow-hidden">
+                {r.image_url && <img src={r.image_url} alt={r.name} className="w-full h-32 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0" />}
+                <div className="flex-1 min-w-0 w-full">
+                  <h3 className="font-bold text-foreground break-words">{r.name}</h3>
                   <p className="text-sm text-muted-foreground">{r.description}</p>
                   <div className="flex gap-2 mt-2 flex-wrap">
                     <Badge className={r.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
