@@ -33,7 +33,7 @@ const PayoutsTab = () => {
   const [schedules, setSchedules] = useState<Record<string, string>>({});
   const [lastPaid, setLastPaid] = useState<Record<string, string>>({});
   const [onlyDue, setOnlyDue] = useState(false);
-  const [bulkBusy, setBulkBusy] = useState(false);
+  
 
   const from = periodStart(period);
 
@@ -216,12 +216,17 @@ const PayoutsTab = () => {
               <div className="flex gap-2">
                 <Input type="number" placeholder={`Rs ${r.pending}`} value={amounts[r.vendorId] || ""}
                   onChange={(e) => setAmounts({ ...amounts, [r.vendorId]: e.target.value })} className="h-9" />
-                <Input placeholder="ریفرنس نمبر" value={refs[r.vendorId] || ""}
+                <Input placeholder="ریفرنس نمبر (بینک ٹرانزیکشن)" value={refs[r.vendorId] || ""}
                   onChange={(e) => setRefs({ ...refs, [r.vendorId]: e.target.value })} className="h-9" />
+                <Button size="sm" variant="outline" className="h-9 shrink-0" title="بینک تفصیل کاپی کریں"
+                  onClick={() => copyPayLine(r)}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
               </div>
               <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => pay(r)}>
-                ادائیگی کریں
+                {busy === r.vendorId ? "درج ہو رہا ہے…" : "ادائیگی درج کریں (بینک سے ادا کرنے کے بعد)"}
               </Button>
+
             </div>
           ))}
         </CardContent>
