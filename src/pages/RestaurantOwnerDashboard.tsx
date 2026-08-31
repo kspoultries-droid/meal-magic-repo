@@ -577,7 +577,7 @@ const OwnerOrdersTab = () => {
         .select("*, order_items(*), restaurants(name, delivery_mode)")
         .in("restaurant_id", ids)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(300);
       setOrders(data || []);
     } else {
       setOrders([]);
