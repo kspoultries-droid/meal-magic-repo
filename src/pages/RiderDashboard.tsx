@@ -6,11 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { LogOut, Bike, ArrowLeft, RefreshCw, Package, Navigation, MapPin, Phone, MessageCircle } from "lucide-react";
+import { LogOut, Bike, ArrowLeft, RefreshCw, Package, Navigation, MapPin, Phone, MessageCircle, Wallet } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
-import RiderRemittance from "@/components/rider/RiderRemittance";
 import RiderOfferCard from "@/components/rider/RiderOfferCard";
 
 
@@ -105,11 +104,23 @@ const RiderDashboard = () => {
     const nextRider = rider || await ensureRiderProfile();
     setRiderData(nextRider);
     setSummary(Array.isArray(sum) ? sum[0] : sum);
-    setMyOrders(assigned || []);
+    const CLOSED = ["delivered", "completed", "cancelled"];
+    const sortedAssigned = (assigned || []).slice().sort((a: any, b: any) => {
+      const aClosed = CLOSED.includes(a.status) ? 1 : 0;
+      const bClosed = CLOSED.includes(b.status) ? 1 : 0;
+      if (aClosed !== bClosed) return aClosed - bClosed;
+      return a.created_at < b.created_at ? 1 : -1;
+    });
+    setMyOrders(sortedAssigned);
     const grocery = [
       ...(gCart || []).map((o: any) => ({ ...o, _table: "grocery_cart_orders" as const, _kind: "grocery_cart", _label: "گروسری کارٹ" })),
       ...(gList || []).map((o: any) => ({ ...o, _table: "grocery_list_orders" as const, _kind: "grocery_list", _label: "لسٹ/فوٹو آرڈر" })),
-    ].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+    ].sort((a, b) => {
+      const aClosed = CLOSED.includes(a.status) ? 1 : 0;
+      const bClosed = CLOSED.includes(b.status) ? 1 : 0;
+      if (aClosed !== bClosed) return aClosed - bClosed;
+      return a.created_at < b.created_at ? 1 : -1;
+    });
     setGroceryOrders(grocery);
 
     (assigned || []).filter((o: any) => !["delivered", "completed", "cancelled"].includes(o.status))
@@ -281,7 +292,9 @@ const RiderDashboard = () => {
         )}
 
 
-        <RiderRemittance cashDue={cashDue} onSubmitted={() => fetchData(false)} />
+        <Button variant="outline" className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-payments")}>
+          <Wallet className="w-4 h-4 mr-1.5" /> پیمنٹ اور کمائی — رقم جمع کرائیں
+        </Button>
 
         {/* My assigned food orders */}
         <Card>
