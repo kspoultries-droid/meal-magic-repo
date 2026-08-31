@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, type VariantRow, type OptionGroupRow } from "@/components/menu/MenuOptionsEditor";
+import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -52,29 +53,33 @@ const RestaurantOwnerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
-          <h1 className="text-xl font-bold text-primary">ریسٹورنٹ ڈیش بورڈ</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{user?.email}</span>
-          <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
-            <LogOut className="h-4 w-4 mr-1" /> لاگ آؤٹ
+      <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur-xl px-3 py-2.5 sm:px-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-extrabold text-primary sm:text-lg">ریسٹورنٹ ڈیش بورڈ</h1>
+              <p className="truncate text-[10px] text-muted-foreground sm:text-xs">{user?.email}</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="h-8 shrink-0 px-2 text-xs" onClick={() => { signOut(); navigate("/"); }}>
+            <LogOut className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">لاگ آؤٹ</span>
           </Button>
         </div>
       </header>
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <Tabs defaultValue="restaurant">
-          <TabsList className="mb-6">
-            <TabsTrigger value="restaurant" className="gap-1"><Store className="h-4 w-4" /> میرا ریسٹورنٹ</TabsTrigger>
-            <TabsTrigger value="menu" className="gap-1"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
-            <TabsTrigger value="orders" className="gap-1"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
-            <TabsTrigger value="reels" className="gap-1"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
-            <TabsTrigger value="earnings" className="gap-1"><Wallet className="h-4 w-4" /> کمائی</TabsTrigger>
-            <TabsTrigger value="sales" className="gap-1"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
-            <TabsTrigger value="reviews" className="gap-1"><Store className="h-4 w-4" /> ریویوز</TabsTrigger>
-          </TabsList>
+          <div className="-mx-3 mb-4 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="inline-flex w-max gap-1">
+              <TabsTrigger value="restaurant" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> میرا ریسٹورنٹ</TabsTrigger>
+              <TabsTrigger value="menu" className="gap-1 whitespace-nowrap text-xs"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
+              <TabsTrigger value="orders" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
+              <TabsTrigger value="reels" className="gap-1 whitespace-nowrap text-xs"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
+              <TabsTrigger value="earnings" className="gap-1 whitespace-nowrap text-xs"><Wallet className="h-4 w-4" /> آمدنی</TabsTrigger>
+              <TabsTrigger value="sales" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
+              <TabsTrigger value="reviews" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> ریویوز</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="restaurant"><MyRestaurantTab /></TabsContent>
           <TabsContent value="menu"><MenuTab /></TabsContent>
           <TabsContent value="orders"><OwnerOrdersTab /></TabsContent>
@@ -558,6 +563,8 @@ const OwnerOrdersTab = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState(false);
+  const [day, setDay] = useState<Date>(startOfDay(new Date()));
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = async () => {
@@ -570,7 +577,7 @@ const OwnerOrdersTab = () => {
         .select("*, order_items(*), restaurants(name, delivery_mode)")
         .in("restaurant_id", ids)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(300);
       setOrders(data || []);
     } else {
       setOrders([]);
@@ -635,8 +642,12 @@ const OwnerOrdersTab = () => {
     return map[s] || "bg-muted text-muted-foreground";
   };
 
-  const activeOrders = orders.filter((o) => !["delivered", "completed", "cancelled"].includes(o.status));
-  const doneOrders = orders.filter((o) => ["delivered", "completed", "cancelled"].includes(o.status));
+  const visible = dateFilter
+    ? orders.filter((o) => dayKey(new Date(o.created_at)) === dayKey(day))
+    : orders;
+  const activeOrders = visible.filter((o) => !["delivered", "completed", "cancelled"].includes(o.status));
+  const doneOrders = visible.filter((o) => ["delivered", "completed", "cancelled"].includes(o.status));
+  const dayTotal = Math.round(doneOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0));
 
   const renderActive = (o: any) => {
     const deliveryMode = o.restaurants?.delivery_mode || "platform";
@@ -771,12 +782,30 @@ const OwnerOrdersTab = () => {
   return (
     <Card>
       <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نیا فوڈ آرڈر! / New food order!" />
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>آرڈرز</CardTitle>
-        <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
+      <CardHeader className="space-y-2 pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base">آرڈرز</CardTitle>
+          <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setDateFilter((v) => !v)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
+              dateFilter ? "bg-primary text-primary-foreground border-primary" : "border-border"
+            }`}
+          >
+            {dateFilter ? "📅 تاریخ کے مطابق" : "سب آرڈرز"}
+          </button>
+          {dateFilter && <DayNavigator date={day} onChange={setDay} />}
+          {dateFilter && (
+            <span className="text-xs text-muted-foreground">
+              {activeOrders.length + doneOrders.length} آرڈرز • Rs {dayTotal}
+            </span>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : orders.length === 0 ? (
+        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : visible.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>
         ) : (
           <div className="space-y-6">

@@ -54,7 +54,14 @@ const EarningsPanel = () => {
               <div className="bg-secondary/50 rounded-xl py-3"><p className="text-muted-foreground">مکمل آرڈرز</p><p className="text-lg font-extrabold">{row.orders}</p></div>
               <div className="bg-secondary/50 rounded-xl py-3"><p className="text-muted-foreground">کل سیل</p><p className="text-lg font-extrabold">Rs {row.gross}</p></div>
               <div className="bg-secondary/50 rounded-xl py-3"><p className="text-muted-foreground">پلیٹ فارم کمیشن ({row.commissionRate}%)</p><p className="text-lg font-extrabold text-destructive">− Rs {row.commission}</p></div>
-              <div className="bg-primary/10 rounded-xl py-3"><p className="text-muted-foreground">آپ کو ملنا ہے</p><p className="text-lg font-extrabold text-primary">Rs {row.pending}</p></div>
+              <div className="bg-secondary/50 rounded-xl py-3"><p className="text-muted-foreground">وصول شدہ ادائیگی</p><p className="text-lg font-extrabold text-success">Rs {row.paid}</p></div>
+              <div className="col-span-2 bg-primary/10 rounded-xl py-3">
+                <p className="text-muted-foreground">باقی ملنا ہے</p>
+                <p className="text-xl font-extrabold text-primary">Rs {row.pending}</p>
+                {row.pending === 0 && row.paid > 0 && (
+                  <p className="text-[11px] text-success">✅ تمام ادائیگی ہو چکی ہے</p>
+                )}
+              </div>
             </div>
           )}
           <p className="text-[11px] text-muted-foreground">

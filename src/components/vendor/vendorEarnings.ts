@@ -50,8 +50,8 @@ export const loadVendorEarnings = async (from: Date, ownerId?: string): Promise<
     restQ,
     storeQ,
     providerQ,
-    supabase.from("payouts").select("vendor_id, amount, status, period_start")
-      .in("vendor_id", vendorIds).gte("period_start", iso.slice(0, 10)),
+    supabase.from("payouts").select("vendor_id, amount, status, period_start, created_at")
+      .in("vendor_id", vendorIds).gte("created_at", iso),
   ]);
 
   const map = new Map<string, VendorRow>();
