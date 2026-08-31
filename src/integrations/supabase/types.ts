@@ -1813,6 +1813,42 @@ export type Database = {
           },
         ]
       }
+      rider_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          order_id: string
+          order_kind: string
+          rating: number
+          rider_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          order_id: string
+          order_kind?: string
+          rating: number
+          rider_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          order_id?: string
+          order_kind?: string
+          rating?: number
+          rider_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rider_salary_payouts: {
         Row: {
           bonus: number
@@ -1972,32 +2008,47 @@ export type Database = {
       }
       riders: {
         Row: {
+          acceptance_rate: number
           city_id: string | null
           current_lat: number | null
           current_lng: number | null
           id: string
           is_available: boolean | null
+          offers_accepted: number
+          offers_received: number
+          rating: number
           total_earnings: number | null
+          total_reviews: number
           updated_at: string | null
           wallet_balance: number | null
         }
         Insert: {
+          acceptance_rate?: number
           city_id?: string | null
           current_lat?: number | null
           current_lng?: number | null
           id: string
           is_available?: boolean | null
+          offers_accepted?: number
+          offers_received?: number
+          rating?: number
           total_earnings?: number | null
+          total_reviews?: number
           updated_at?: string | null
           wallet_balance?: number | null
         }
         Update: {
+          acceptance_rate?: number
           city_id?: string | null
           current_lat?: number | null
           current_lng?: number | null
           id?: string
           is_available?: boolean | null
+          offers_accepted?: number
+          offers_received?: number
+          rating?: number
           total_earnings?: number | null
+          total_reviews?: number
           updated_at?: string | null
           wallet_balance?: number | null
         }
