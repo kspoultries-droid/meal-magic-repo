@@ -123,7 +123,18 @@ const RestaurantDetail = () => {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-foreground">{item.name}</h3>
                       {item.description && <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>}
-                      <p className="text-primary font-extrabold mt-1">Rs. {item.price}</p>
+                      {(() => {
+                        const vs = (item.variants || []) as any[];
+                        const base = vs.find((v) => v.id === "base");
+                        const prices = vs.map((v) => Number(v.price) || 0).filter((n) => n > 0);
+                        const min = prices.length ? Math.min(item.price > 0 ? item.price : Infinity, ...prices) : item.price;
+                        return (
+                          <p className="text-primary font-extrabold mt-1">
+                            Rs. {min}{vs.length > 1 ? " سے" : ""}
+                            {base?.label && <span className="text-xs font-semibold text-muted-foreground"> / {base.label}</span>}
+                          </p>
+                        );
+                      })()}
                     </div>
                     <Button
                       size="sm"

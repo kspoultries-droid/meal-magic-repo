@@ -1,5 +1,6 @@
 import { Star, Clock, Tag, Plus, Bike, Heart } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import MenuItemSheet, { type MenuItemLike } from "@/components/menu/MenuItemSheet";
 import type { Restaurant } from "./RestaurantGrid";
@@ -29,6 +30,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const [sheetItem, setSheetItem] = useState<MenuItemLike | null>(null);
   const { addItem } = useCart();
+  const navigate = useNavigate();
   const optimizedImage = optimizeImageUrl(image);
   const isAboveFold = index < 4;
 
@@ -41,11 +43,8 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
     >
       {/* Image */}
       <div
-        className="relative h-44 overflow-hidden"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (isActive) setShowMenu(!showMenu);
-        }}
+        className="relative h-44 overflow-hidden cursor-pointer"
+        onClick={() => navigate(`/restaurant/${restaurantId}`)}
       >
         <img
           src={optimizedImage}
@@ -109,9 +108,13 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
             </span>
           )}
           {menuItems.length > 0 && isActive && (
-            <span className="text-[10px] font-semibold text-primary ml-auto">
-              {showMenu ? "بند کریں" : "مینو دیکھیں"}
-            </span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setShowMenu((v) => !v); }}
+              className="text-[10px] font-bold text-primary ml-auto rounded-full border border-primary/30 px-2.5 py-1 active:scale-95 transition-transform"
+            >
+              {showMenu ? "بند کریں" : "فوری آرڈر"}
+            </button>
           )}
         </div>
       </div>
@@ -122,15 +125,16 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">فوری شامل کریں</p>
           {menuItems.map((item) => {
             const hasChoices = (item.variants?.length || 0) > 0 || (item.option_groups?.length || 0) > 0;
-            const minPrice = item.variants?.length
-              ? Math.min(...item.variants.map((v: any) => Number(v.price) || 0))
+            const variantPrices = (item.variants || []).map((v: any) => Number(v.price) || 0).filter((n: number) => n > 0);
+            const minPrice = variantPrices.length
+              ? Math.min(item.price > 0 ? item.price : Infinity, ...variantPrices)
               : item.price;
             return (
               <div key={item.id} className="flex items-center justify-between py-1.5">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
                   <p className="text-xs text-primary font-bold">
-                    {hasChoices && item.variants?.length ? `Rs. ${minPrice} سے` : `Rs. ${item.price}`}
+                    {item.variants?.length ? `Rs. ${minPrice} سے` : `Rs. ${item.price}`}
                   </p>
                 </div>
                 <button
@@ -157,6 +161,13 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
               </div>
             );
           })}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); navigate(`/restaurant/${restaurantId}`); }}
+            className="w-full mt-1 rounded-xl bg-secondary py-2 text-xs font-bold text-primary active:scale-95 transition-transform"
+          >
+            پورا مینو دیکھیں →
+          </button>
         </div>
       )}
 
