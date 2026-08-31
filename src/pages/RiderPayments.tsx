@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Wallet, Banknote, Receipt } from "lucide-react";
+import { ArrowLeft, Wallet, Banknote, Receipt, Star } from "lucide-react";
 import RiderRemittance from "@/components/rider/RiderRemittance";
 
 const RiderPayments = () => {
@@ -19,16 +19,23 @@ const RiderPayments = () => {
     if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
 
+  const [me, setMe] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+
   const load = async () => {
     if (!user) return;
-    const [{ data: sum }, { data: earn }, { data: sal }] = await Promise.all([
+    const [{ data: sum }, { data: earn }, { data: sal }, { data: rider }, { data: revs }] = await Promise.all([
       supabase.rpc("get_rider_summary"),
       supabase.from("rider_earnings").select("*").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(30),
       supabase.from("rider_salary_payouts").select("*").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(12),
+      supabase.from("riders").select("*").eq("id", user.id).maybeSingle(),
+      supabase.from("rider_reviews" as any).select("*").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(10),
     ]);
     setSummary(Array.isArray(sum) ? sum[0] : sum);
     setEarnings(earn || []);
     setSalaries(sal || []);
+    setMe(rider || null);
+    setReviews((revs as any[]) || []);
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.id]);
@@ -60,6 +67,41 @@ const RiderPayments = () => {
             </div>
           ))}
         </div>
+
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="text-base flex items-center gap-2"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> میری ریٹنگ</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-2">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
+                <p className="text-[9px] text-muted-foreground">اوسط ریٹنگ</p>
+                <p className="text-sm font-extrabold text-yellow-500">⭐ {Number(me?.rating ?? 5).toFixed(2)}</p>
+              </div>
+              <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
+                <p className="text-[9px] text-muted-foreground">کل ریویوز</p>
+                <p className="text-sm font-extrabold">{me?.total_reviews ?? 0}</p>
+              </div>
+              <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
+                <p className="text-[9px] text-muted-foreground">قبولیت کی شرح</p>
+                <p className="text-sm font-extrabold text-primary">{Math.round(Number(me?.acceptance_rate ?? 1) * 100)}%</p>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              زیادہ ریٹنگ اور زیادہ قبولیت کی شرح والے رائیڈر کو نئے آرڈر کی آفر پہلے جاتی ہے۔
+            </p>
+            {reviews.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                {reviews.map((r) => (
+                  <div key={r.id} className="rounded-lg border bg-secondary/20 p-2">
+                    <p className="text-xs font-bold text-yellow-500">{"⭐".repeat(r.rating)}</p>
+                    {r.comment && <p className="text-[11px] text-muted-foreground">{r.comment}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <RiderRemittance cashDue={cashDue} onSubmitted={load} />
 

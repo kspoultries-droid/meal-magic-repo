@@ -71,6 +71,19 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
     return () => { supabase.removeChannel(channel); };
   }, [storeId]);
 
+  // Re-alert every 5 minutes while any list order is still un-accepted
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const stale = orders.filter(
+        (o) => o.status === "pending" && Date.now() - new Date(o.created_at).getTime() > 5 * 60 * 1000
+      );
+      if (stale.length > 0) {
+        triggerAlert(`${stale.length} راشن لسٹ ابھی تک قبول نہیں کی گئی!`);
+      }
+    }, 5 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [orders, triggerAlert]);
+
   const updateOrder = async (orderId: string, updates: any) => {
     setUpdating(true);
     const { error } = await supabase.from("grocery_list_orders").update(updates).eq("id", orderId);

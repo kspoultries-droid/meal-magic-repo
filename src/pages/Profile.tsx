@@ -637,6 +637,7 @@ const Profile = () => {
           restaurantId={reviewOrder.restaurant_id}
           customerId={user.id}
           kind="food"
+          riderId={reviewOrder.rider_id}
           items={(reviewOrder.order_items || []).map((i: any) => ({ name: i.name, quantity: i.quantity }))}
         />
       )}
