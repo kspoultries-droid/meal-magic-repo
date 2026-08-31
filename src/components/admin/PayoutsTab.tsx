@@ -14,6 +14,9 @@ const PERIODS: { key: Period; label: string }[] = [
   { key: "month", label: "ماہانہ (30 دن)" },
 ];
 
+const SCHEDULE_DAYS: Record<string, number> = { daily: 1, weekly: 7, fortnightly: 15, biweekly: 15, monthly: 30 };
+const SCHEDULE_LABEL: Record<string, string> = { daily: "روزانہ", weekly: "ہفتہ وار", fortnightly: "15 دن", biweekly: "15 دن", monthly: "ماہانہ" };
+
 const PayoutsTab = () => {
   const [period, setPeriod] = useState<Period>("week");
   const [rows, setRows] = useState<VendorRow[]>([]);
@@ -27,8 +30,23 @@ const PayoutsTab = () => {
   const [vendorAccounts, setVendorAccounts] = useState<Record<string, any[]>>({});
   const [history, setHistory] = useState<any[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [schedules, setSchedules] = useState<Record<string, string>>({});
+  const [lastPaid, setLastPaid] = useState<Record<string, string>>({});
+  const [onlyDue, setOnlyDue] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const from = periodStart(period);
+
+  /** دن جو اگلی خودکار ادائیگی میں باقی ہیں (0 = آج واجب الادا) */
+  const dueInfo = (vendorId: string) => {
+    const sched = schedules[vendorId] || "weekly";
+    const days = SCHEDULE_DAYS[sched] ?? 7;
+    const last = lastPaid[vendorId];
+    if (!last) return { days: 0, sched, overdue: true };
+    const elapsed = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
+    const left = days - elapsed;
+    return { days: Math.max(0, left), sched, overdue: left <= 0 };
+  };
 
   const load = async () => {
     setLoading(true);
@@ -36,13 +54,22 @@ const PayoutsTab = () => {
     setRows(data);
     const ids = data.map((d) => d.vendorId);
     if (ids.length) {
-      const [{ data: profs }, { data: vaccs }] = await Promise.all([
+      const [{ data: profs }, { data: vaccs }, { data: settings }, { data: lastPays }] = await Promise.all([
         supabase.from("profiles").select("id, full_name, phone").in("id", ids),
         supabase.from("vendor_bank_accounts").select("*").in("user_id", ids).eq("is_active", true),
+        supabase.from("payout_settings").select("user_id, payout_schedule").in("user_id", ids),
+        supabase.from("payouts").select("vendor_id, created_at, status").in("vendor_id", ids)
+          .order("created_at", { ascending: false }),
       ]);
       const m: Record<string, string> = {};
       (profs || []).forEach((p: any) => { m[p.id] = `${p.full_name || "—"} ${p.phone ? "• " + p.phone : ""}`; });
       setNames(m);
+      const sm: Record<string, string> = {};
+      (settings || []).forEach((s: any) => { sm[s.user_id] = s.payout_schedule; });
+      setSchedules(sm);
+      const lp: Record<string, string> = {};
+      (lastPays || []).forEach((p: any) => { if (!lp[p.vendor_id]) lp[p.vendor_id] = p.created_at; });
+      setLastPaid(lp);
       const grouped: Record<string, any[]> = {};
       (vaccs || []).forEach((a: any) => { (grouped[a.user_id] ||= []).push(a); });
       setVendorAccounts(grouped);
@@ -64,6 +91,7 @@ const PayoutsTab = () => {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [period]);
+
 
   const pay = async (row: VendorRow) => {
     const amount = Number(amounts[row.vendorId] || row.pending);
