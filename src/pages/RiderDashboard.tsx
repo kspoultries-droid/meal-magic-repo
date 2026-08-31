@@ -324,7 +324,13 @@ const RiderDashboard = () => {
                         </Badge>
                       </div>
 
-                      {!isClosed && <ContactStrip id={o.id} />}
+                      {!isClosed && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <ContactStrip id={o.id} />
+                          <OrderChat orderId={o.id} orderKind="food" role="rider" label="کسٹمر سے چیٹ" />
+                        </div>
+                      )}
+
 
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="rounded-lg bg-background/70 border p-2">

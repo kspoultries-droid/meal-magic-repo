@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package, Star } from "lucide-react";
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 import CourierTimeline from "@/components/orders/CourierTimeline";
+import OrderChat from "@/components/orders/OrderChat";
+
 
 
 const orderSteps = [
