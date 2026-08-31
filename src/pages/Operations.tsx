@@ -39,7 +39,7 @@ const Operations = () => {
       sb.from("service_bookings").select("id", { count: "exact", head: true }).gte("created_at", iso),
       sb.from("orders").select("id,total_amount,status,delivery_address,created_at,restaurant_id,rider_id,customer_id,restaurants(name)")
         .not("status", "in", "(delivered,cancelled)").order("created_at", { ascending: false }).limit(30),
-      sb.from("riders").select("id,full_name,phone,is_online,city_id").eq("is_online", true),
+      sb.from("riders").select("id,city_id,is_available").eq("is_available", true),
       sb.from("partner_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
       sb.from("orders").select("total_amount").gte("created_at", iso).eq("status", "delivered"),
     ]);
