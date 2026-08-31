@@ -260,9 +260,10 @@ const RiderDashboard = () => {
         <div className="grid grid-cols-4 gap-2">
           {[
             { label: "آج ڈلیوری", value: summary?.today_deliveries ?? 0, cls: "text-foreground" },
-            { label: "آج کمائی", value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-primary" },
+            { label: "آج کی کمائی", value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-primary" },
             { label: "کل کمائی", value: `Rs ${Math.round(Number(summary?.total_earnings ?? 0))}`, cls: "text-success" },
-            { label: "واجب الادا", value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
+            { label: "جمع کرانی رقم", value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
+
           ].map((s) => (
             <div key={s.label} className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
               <p className="text-[9px] text-muted-foreground leading-tight">{s.label}</p>
