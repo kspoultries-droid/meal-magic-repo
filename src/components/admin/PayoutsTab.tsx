@@ -14,6 +14,9 @@ const PERIODS: { key: Period; label: string }[] = [
   { key: "month", label: "ماہانہ (30 دن)" },
 ];
 
+const SCHEDULE_DAYS: Record<string, number> = { daily: 1, weekly: 7, fortnightly: 15, biweekly: 15, monthly: 30 };
+const SCHEDULE_LABEL: Record<string, string> = { daily: "روزانہ", weekly: "ہفتہ وار", fortnightly: "15 دن", biweekly: "15 دن", monthly: "ماہانہ" };
+
 const PayoutsTab = () => {
   const [period, setPeriod] = useState<Period>("week");
   const [rows, setRows] = useState<VendorRow[]>([]);
@@ -27,8 +30,23 @@ const PayoutsTab = () => {
   const [vendorAccounts, setVendorAccounts] = useState<Record<string, any[]>>({});
   const [history, setHistory] = useState<any[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [schedules, setSchedules] = useState<Record<string, string>>({});
+  const [lastPaid, setLastPaid] = useState<Record<string, string>>({});
+  const [onlyDue, setOnlyDue] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const from = periodStart(period);
+
+  /** دن جو اگلی خودکار ادائیگی میں باقی ہیں (0 = آج واجب الادا) */
+  const dueInfo = (vendorId: string) => {
+    const sched = schedules[vendorId] || "weekly";
+    const days = SCHEDULE_DAYS[sched] ?? 7;
+    const last = lastPaid[vendorId];
+    if (!last) return { days: 0, sched, overdue: true };
+    const elapsed = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
+    const left = days - elapsed;
+    return { days: Math.max(0, left), sched, overdue: left <= 0 };
+  };
 
   const load = async () => {
     setLoading(true);
@@ -36,13 +54,22 @@ const PayoutsTab = () => {
     setRows(data);
     const ids = data.map((d) => d.vendorId);
     if (ids.length) {
-      const [{ data: profs }, { data: vaccs }] = await Promise.all([
+      const [{ data: profs }, { data: vaccs }, { data: settings }, { data: lastPays }] = await Promise.all([
         supabase.from("profiles").select("id, full_name, phone").in("id", ids),
         supabase.from("vendor_bank_accounts").select("*").in("user_id", ids).eq("is_active", true),
+        supabase.from("payout_settings").select("user_id, payout_schedule").in("user_id", ids),
+        supabase.from("payouts").select("vendor_id, created_at, status").in("vendor_id", ids)
+          .order("created_at", { ascending: false }),
       ]);
       const m: Record<string, string> = {};
       (profs || []).forEach((p: any) => { m[p.id] = `${p.full_name || "—"} ${p.phone ? "• " + p.phone : ""}`; });
       setNames(m);
+      const sm: Record<string, string> = {};
+      (settings || []).forEach((s: any) => { sm[s.user_id] = s.payout_schedule; });
+      setSchedules(sm);
+      const lp: Record<string, string> = {};
+      (lastPays || []).forEach((p: any) => { if (!lp[p.vendor_id]) lp[p.vendor_id] = p.created_at; });
+      setLastPaid(lp);
       const grouped: Record<string, any[]> = {};
       (vaccs || []).forEach((a: any) => { (grouped[a.user_id] ||= []).push(a); });
       setVendorAccounts(grouped);
@@ -65,14 +92,15 @@ const PayoutsTab = () => {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [period]);
 
-  const pay = async (row: VendorRow) => {
+
+  const pay = async (row: VendorRow, silent = false) => {
     const amount = Number(amounts[row.vendorId] || row.pending);
     const source = fromAcc[row.vendorId] || accounts[0]?.id;
     const dest = toAcc[row.vendorId];
-    if (!amount || amount <= 0) { toast.error("رقم درست نہیں"); return; }
-    if (!source) { toast.error("EasyLife اکاؤنٹ منتخب کریں"); return; }
-    if (!dest) { toast.error("اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا"); return; }
-    setBusy(row.vendorId);
+    if (!amount || amount <= 0) { if (!silent) toast.error("رقم درست نہیں"); return false; }
+    if (!source) { if (!silent) toast.error("EasyLife اکاؤنٹ منتخب کریں"); return false; }
+    if (!dest) { if (!silent) toast.error("اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا"); return false; }
+    if (!silent) setBusy(row.vendorId);
     const { error } = await supabase.rpc("admin_pay_vendor", {
       _vendor_id: row.vendorId,
       _amount: amount,
@@ -83,13 +111,34 @@ const PayoutsTab = () => {
       _reference_no: refs[row.vendorId]?.trim() || null,
       _notes: `${row.shopNames.join(", ")} — کمیشن ${row.commissionRate}%`,
     });
-    setBusy(null);
-    if (error) { toast.error(error.message); return; }
-    toast.success("ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓");
-    setAmounts({ ...amounts, [row.vendorId]: "" });
-    setRefs({ ...refs, [row.vendorId]: "" });
+    if (!silent) setBusy(null);
+    if (error) { if (!silent) toast.error(error.message); return false; }
+    if (!silent) {
+      toast.success("ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓");
+      setAmounts({ ...amounts, [row.vendorId]: "" });
+      setRefs({ ...refs, [row.vendorId]: "" });
+      load();
+    }
+    return true;
+  };
+
+  const dueRows = rows.filter((r) => r.pending > 0 && dueInfo(r.vendorId).overdue);
+
+  const payAllDue = async () => {
+    if (!dueRows.length) return;
+    setBulkBusy(true);
+    let ok = 0, fail = 0;
+    for (const r of dueRows) {
+      const done = await pay(r, true);
+      done ? ok++ : fail++;
+    }
+    setBulkBusy(false);
+    toast[fail ? "warning" : "success"](
+      `${ok} وینڈرز کو ادائیگی ہو گئی${fail ? ` • ${fail} رہ گئے (بینک اکاؤنٹ نہیں)` : ""}`
+    );
     load();
   };
+
 
   return (
     <div className="space-y-4">
@@ -108,18 +157,41 @@ const PayoutsTab = () => {
             ))}
           </div>
 
+          <div className="rounded-xl border bg-secondary/40 p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-bold">
+                خودکار شیڈول — آج واجب الادا: <span className="text-primary">{dueRows.length}</span> وینڈر
+                {dueRows.length > 0 && <> • کل Rs {dueRows.reduce((s, r) => s + r.pending, 0)}</>}
+              </p>
+              <button onClick={() => setOnlyDue(!onlyDue)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${onlyDue ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>
+                {onlyDue ? "سب دکھائیں" : "صرف واجب الادا"}
+              </button>
+            </div>
+            <Button size="sm" className="w-full h-9 font-bold" disabled={!dueRows.length || bulkBusy} onClick={payAllDue}>
+              {bulkBusy ? "ادائیگی جاری…" : "تمام واجب الادا ادا کریں"}
+            </Button>
+          </div>
+
           {loading && <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>}
           {!loading && rows.length === 0 && <p className="text-sm text-muted-foreground">اس عرصے میں کوئی مکمل آرڈر نہیں</p>}
 
-          {rows.map((r) => (
+          {(onlyDue ? dueRows : rows).map((r) => (
             <div key={r.vendorId} className="border rounded-xl p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-bold text-sm truncate">{r.shopNames.join("، ")}</p>
                   <p className="text-[11px] text-muted-foreground truncate">{names[r.vendorId] || r.vendorId.slice(0, 8)}</p>
                 </div>
-                <Badge variant="secondary" className="shrink-0">{r.orders} آرڈرز</Badge>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <Badge variant="secondary">{r.orders} آرڈرز</Badge>
+                  <Badge variant={dueInfo(r.vendorId).overdue ? "default" : "outline"} className="text-[10px]">
+                    {SCHEDULE_LABEL[dueInfo(r.vendorId).sched] || "ہفتہ وار"} •{" "}
+                    {dueInfo(r.vendorId).overdue ? "واجب الادا" : `${dueInfo(r.vendorId).days} دن بعد`}
+                  </Badge>
+                </div>
               </div>
+
               <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
                 <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">سیل</p><p className="font-extrabold">Rs {r.gross}</p></div>
                 <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">کمیشن {r.commissionRate}%</p><p className="font-extrabold text-destructive">− {r.commission}</p></div>
