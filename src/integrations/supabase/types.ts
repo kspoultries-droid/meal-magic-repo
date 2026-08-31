@@ -1679,13 +1679,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "service_bookings_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "service_providers_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "service_bookings_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -1881,13 +1874,6 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_reviews_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "service_providers_public"
             referencedColumns: ["id"]
           },
           {
@@ -2221,78 +2207,7 @@ export type Database = {
       }
     }
     Views: {
-      service_providers_public: {
-        Row: {
-          address: string | null
-          bio: string | null
-          category_id: string | null
-          city_id: string | null
-          created_at: string | null
-          id: string | null
-          image_url: string | null
-          is_active: boolean | null
-          is_available: boolean | null
-          latitude: number | null
-          longitude: number | null
-          name: string | null
-          rating: number | null
-          total_reviews: number | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          address?: string | null
-          bio?: string | null
-          category_id?: string | null
-          city_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          image_url?: string | null
-          is_active?: boolean | null
-          is_available?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
-          name?: string | null
-          rating?: number | null
-          total_reviews?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          address?: string | null
-          bio?: string | null
-          category_id?: string | null
-          city_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          image_url?: string | null
-          is_active?: boolean | null
-          is_available?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
-          name?: string | null
-          rating?: number | null
-          total_reviews?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_providers_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "service_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_providers_city_id_fkey"
-            columns: ["city_id"]
-            isOneToOne: false
-            referencedRelation: "cities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
@@ -2451,6 +2366,24 @@ export type Database = {
       }
       increment_reel_views: { Args: { _reel_id: string }; Returns: undefined }
       like_reel: { Args: { _reel_id: string }; Returns: undefined }
+      list_public_service_providers: {
+        Args: { _category_id?: string }
+        Returns: {
+          address: string
+          bio: string
+          category_id: string
+          category_name: string
+          city_id: string
+          id: string
+          image_url: string
+          is_available: boolean
+          latitude: number
+          longitude: number
+          name: string
+          rating: number
+          total_reviews: number
+        }[]
+      }
       manages_category: {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
