@@ -44,10 +44,22 @@ export const useNewOrderAlert = () => {
     clearTimers();
   }, []);
 
-  const triggerAlert = useCallback(() => {
+  const triggerAlert = useCallback((message?: string) => {
     setNewOrderCount((c) => c + 1);
     playBell();
     ringsRef.current = 1;
+
+    // Native OS notification (works even when tab is in background)
+    try {
+      if (typeof Notification !== "undefined") {
+        if (Notification.permission === "granted") {
+          new Notification("EasyLife", { body: message || "نیا آرڈر آیا ہے!", icon: "/pwa-192x192.png" });
+        } else if (Notification.permission === "default") {
+          Notification.requestPermission();
+        }
+      }
+    } catch {}
+
 
     clearTimers();
     // Ring max 3 times total (once now + 2 more)

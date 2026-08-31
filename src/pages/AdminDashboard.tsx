@@ -28,6 +28,8 @@ import RevenueTab from "@/components/admin/RevenueTab";
 import CommissionRulesTab from "@/components/admin/CommissionRulesTab";
 import BankAccountsTab from "@/components/admin/BankAccountsTab";
 import RiderPayTab from "@/components/admin/RiderPayTab";
+import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
+import NewOrderBanner from "@/components/NewOrderBanner";
 
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
@@ -371,6 +373,7 @@ const OrdersTab = () => {
   const [riderProfiles, setRiderProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -395,7 +398,16 @@ const OrdersTab = () => {
   useEffect(() => {
     const channel = supabase
       .channel("admin-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchOrders())
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload: any) => {
+        fetchOrders();
+        const nw = payload.new || {};
+        const old = payload.old || {};
+        // Restaurant accepted an order and no rider is assigned yet → alert admin
+        if (nw.status === "confirmed" && old.status !== "confirmed" && !nw.rider_id) {
+          triggerAlert("ریسٹورنٹ نے آرڈر قبول کر لیا — رائیڈر تفویض کریں!");
+          toast.info("✅ آرڈر قبول ہوا — رائیڈر تفویض کریں");
+        }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
@@ -452,11 +464,13 @@ const OrdersTab = () => {
 
   return (
     <Card>
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="آرڈر قبول ہوا — رائیڈر تفویض کریں!" />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>آرڈرز</CardTitle>
         <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent>
+
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
           <div className="space-y-3">
             {orders.length === 0 && <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>}
