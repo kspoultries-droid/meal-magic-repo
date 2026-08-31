@@ -68,6 +68,41 @@ const RiderPayments = () => {
           ))}
         </div>
 
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle className="text-base flex items-center gap-2"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> میری ریٹنگ</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-2">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
+                <p className="text-[9px] text-muted-foreground">اوسط ریٹنگ</p>
+                <p className="text-sm font-extrabold text-yellow-500">⭐ {Number(me?.rating ?? 5).toFixed(2)}</p>
+              </div>
+              <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
+                <p className="text-[9px] text-muted-foreground">کل ریویوز</p>
+                <p className="text-sm font-extrabold">{me?.total_reviews ?? 0}</p>
+              </div>
+              <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
+                <p className="text-[9px] text-muted-foreground">قبولیت کی شرح</p>
+                <p className="text-sm font-extrabold text-primary">{Math.round(Number(me?.acceptance_rate ?? 1) * 100)}%</p>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              زیادہ ریٹنگ اور زیادہ قبولیت کی شرح والے رائیڈر کو نئے آرڈر کی آفر پہلے جاتی ہے۔
+            </p>
+            {reviews.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                {reviews.map((r) => (
+                  <div key={r.id} className="rounded-lg border bg-secondary/20 p-2">
+                    <p className="text-xs font-bold text-yellow-500">{"⭐".repeat(r.rating)}</p>
+                    {r.comment && <p className="text-[11px] text-muted-foreground">{r.comment}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <RiderRemittance cashDue={cashDue} onSubmitted={load} />
 
         <Card>
