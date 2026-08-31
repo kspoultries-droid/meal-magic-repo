@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Wallet, RefreshCw } from "lucide-react";
 import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "@/components/vendor/vendorEarnings";
-import { useAuth } from "@/hooks/useAuth";
 
 const PERIODS: { key: Period; label: string }[] = [
   { key: "week", label: "ہفتہ وار (7 دن)" },
@@ -16,13 +15,18 @@ const PERIODS: { key: Period; label: string }[] = [
 ];
 
 const PayoutsTab = () => {
-  const { user } = useAuth();
   const [period, setPeriod] = useState<Period>("week");
   const [rows, setRows] = useState<VendorRow[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [refs, setRefs] = useState<Record<string, string>>({});
+  const [fromAcc, setFromAcc] = useState<Record<string, string>>({});
+  const [toAcc, setToAcc] = useState<Record<string, string>>({});
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [vendorAccounts, setVendorAccounts] = useState<Record<string, any[]>>({});
   const [history, setHistory] = useState<any[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
 
   const from = periodStart(period);
 
@@ -32,12 +36,29 @@ const PayoutsTab = () => {
     setRows(data);
     const ids = data.map((d) => d.vendorId);
     if (ids.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name, phone").in("id", ids);
+      const [{ data: profs }, { data: vaccs }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, phone").in("id", ids),
+        supabase.from("vendor_bank_accounts").select("*").in("user_id", ids).eq("is_active", true),
+      ]);
       const m: Record<string, string> = {};
       (profs || []).forEach((p: any) => { m[p.id] = `${p.full_name || "—"} ${p.phone ? "• " + p.phone : ""}`; });
       setNames(m);
+      const grouped: Record<string, any[]> = {};
+      (vaccs || []).forEach((a: any) => { (grouped[a.user_id] ||= []).push(a); });
+      setVendorAccounts(grouped);
+      setToAcc((prev) => {
+        const next = { ...prev };
+        Object.entries(grouped).forEach(([vid, list]) => {
+          if (!next[vid]) next[vid] = (list.find((x: any) => x.is_default) || list[0]).id;
+        });
+        return next;
+      });
     }
-    const { data: hist } = await supabase.from("payouts").select("*").order("created_at", { ascending: false }).limit(25);
+    const [{ data: accs }, { data: hist }] = await Promise.all([
+      supabase.from("payment_accounts").select("*").eq("is_active", true).order("sort_order"),
+      supabase.from("payouts").select("*").order("created_at", { ascending: false }).limit(25),
+    ]);
+    setAccounts(accs || []);
     setHistory(hist || []);
     setLoading(false);
   };
@@ -46,20 +67,27 @@ const PayoutsTab = () => {
 
   const pay = async (row: VendorRow) => {
     const amount = Number(amounts[row.vendorId] || row.pending);
+    const source = fromAcc[row.vendorId] || accounts[0]?.id;
+    const dest = toAcc[row.vendorId];
     if (!amount || amount <= 0) { toast.error("رقم درست نہیں"); return; }
-    const { error } = await supabase.from("payouts").insert({
-      vendor_id: row.vendorId,
-      amount,
-      period_start: from.toISOString().slice(0, 10),
-      period_end: new Date().toISOString().slice(0, 10),
-      payout_method: "jazzcash",
-      status: "paid",
-      processed_by: user?.id || null,
-      processed_at: new Date().toISOString(),
-      notes: `${row.shopNames.join(", ")} — کمیشن ${row.commissionRate}%`,
+    if (!source) { toast.error("EasyLife اکاؤنٹ منتخب کریں"); return; }
+    if (!dest) { toast.error("اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا"); return; }
+    setBusy(row.vendorId);
+    const { error } = await supabase.rpc("admin_pay_vendor", {
+      _vendor_id: row.vendorId,
+      _amount: amount,
+      _from_account_id: source,
+      _vendor_account_id: dest,
+      _period_start: from.toISOString().slice(0, 10),
+      _period_end: new Date().toISOString().slice(0, 10),
+      _reference_no: refs[row.vendorId]?.trim() || null,
+      _notes: `${row.shopNames.join(", ")} — کمیشن ${row.commissionRate}%`,
     });
+    setBusy(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("ادائیگی ریکارڈ ہو گئی ✓");
+    toast.success("ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓");
+    setAmounts({ ...amounts, [row.vendorId]: "" });
+    setRefs({ ...refs, [row.vendorId]: "" });
     load();
   };
 
@@ -98,11 +126,29 @@ const PayoutsTab = () => {
                 <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">ادا شدہ</p><p className="font-extrabold">Rs {r.paid}</p></div>
                 <div className="bg-primary/10 rounded-lg py-1.5"><p className="text-muted-foreground">باقی</p><p className="font-extrabold text-primary">Rs {r.pending}</p></div>
               </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <select value={fromAcc[r.vendorId] || accounts[0]?.id || ""} onChange={(e) => setFromAcc({ ...fromAcc, [r.vendorId]: e.target.value })}
+                  className="h-9 rounded-md border bg-background px-2 text-xs">
+                  {accounts.length === 0 && <option value="">کوئی EasyLife اکاؤنٹ نہیں</option>}
+                  {accounts.map((a) => <option key={a.id} value={a.id}>{a.label} (Rs {Math.round(Number(a.balance || 0))})</option>)}
+                </select>
+                <select value={toAcc[r.vendorId] || ""} onChange={(e) => setToAcc({ ...toAcc, [r.vendorId]: e.target.value })}
+                  className="h-9 rounded-md border bg-background px-2 text-xs">
+                  {(vendorAccounts[r.vendorId] || []).length === 0 && <option value="">وینڈر اکاؤنٹ موجود نہیں</option>}
+                  {(vendorAccounts[r.vendorId] || []).map((a) => <option key={a.id} value={a.id}>{a.bank_name || a.method} • {a.account_number}</option>)}
+                </select>
+              </div>
+
               <div className="flex gap-2">
                 <Input type="number" placeholder={`Rs ${r.pending}`} value={amounts[r.vendorId] || ""}
                   onChange={(e) => setAmounts({ ...amounts, [r.vendorId]: e.target.value })} className="h-9" />
-                <Button size="sm" className="h-9 font-bold" disabled={r.pending <= 0} onClick={() => pay(r)}>ادائیگی ریکارڈ کریں</Button>
+                <Input placeholder="ریفرنس نمبر" value={refs[r.vendorId] || ""}
+                  onChange={(e) => setRefs({ ...refs, [r.vendorId]: e.target.value })} className="h-9" />
               </div>
+              <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => pay(r)}>
+                ادائیگی کریں
+              </Button>
             </div>
           ))}
         </CardContent>
@@ -114,7 +160,7 @@ const PayoutsTab = () => {
           {history.length === 0 && <p className="text-sm text-muted-foreground">ابھی کوئی ادائیگی نہیں</p>}
           {history.map((h) => (
             <div key={h.id} className="flex items-center justify-between text-xs border-b pb-1.5">
-              <span className="truncate pr-2">{h.notes || h.vendor_id.slice(0, 8)}</span>
+              <span className="truncate pr-2">{h.notes || h.vendor_id.slice(0, 8)}{h.reference_no ? ` • ${h.reference_no}` : ""}</span>
               <span className="font-bold shrink-0">Rs {h.amount} • {h.period_start} → {h.period_end}</span>
             </div>
           ))}

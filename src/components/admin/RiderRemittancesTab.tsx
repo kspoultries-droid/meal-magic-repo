@@ -21,14 +21,17 @@ const RiderRemittancesTab = () => {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  const [accounts, setAccounts] = useState<Record<string, string>>({});
+
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("rider_remittances")
-      .select("*")
-      .eq("status", tab)
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const [{ data }, { data: accs }] = await Promise.all([
+      supabase.from("rider_remittances").select("*").eq("status", tab).order("created_at", { ascending: false }).limit(100),
+      supabase.from("payment_accounts").select("id, label"),
+    ]);
+    const accMap: Record<string, string> = {};
+    (accs || []).forEach((a: any) => { accMap[a.id] = a.label; });
+    setAccounts(accMap);
     setRows(data || []);
     const ids = Array.from(new Set((data || []).map((r: any) => r.rider_id)));
     if (ids.length) {
@@ -88,6 +91,8 @@ const RiderRemittancesTab = () => {
                     <p className="text-xs text-muted-foreground">{names[r.rider_id] || r.rider_id.slice(0, 8)}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {new Date(r.created_at).toLocaleString("ur-PK")} • {r.method}
+                      {r.account_id ? ` • ${accounts[r.account_id] || "اکاؤنٹ"}` : ""}
+                      {r.reference_no ? ` • ریفرنس ${r.reference_no}` : ""}
                     </p>
                     {r.note && <p className="text-xs mt-1">📝 {r.note}</p>}
                   </div>

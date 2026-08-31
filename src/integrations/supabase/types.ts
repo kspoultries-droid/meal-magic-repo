@@ -89,6 +89,65 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_ledger: {
+        Row: {
+          account_id: string
+          amount: number
+          balance_after: number
+          counterparty_id: string | null
+          counterparty_label: string | null
+          created_at: string
+          created_by: string | null
+          destination_account: string | null
+          direction: string
+          id: string
+          note: string | null
+          reference_no: string | null
+          source_id: string | null
+          source_type: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          balance_after: number
+          counterparty_id?: string | null
+          counterparty_label?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination_account?: string | null
+          direction: string
+          id?: string
+          note?: string | null
+          reference_no?: string | null
+          source_id?: string | null
+          source_type: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          balance_after?: number
+          counterparty_id?: string | null
+          counterparty_label?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination_account?: string | null
+          direction?: string
+          id?: string
+          note?: string | null
+          reference_no?: string | null
+          source_id?: string | null
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_ledger_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cities: {
         Row: {
           auto_dispatch: boolean
@@ -1094,6 +1153,48 @@ export type Database = {
           },
         ]
       }
+      payment_accounts: {
+        Row: {
+          account_number: string | null
+          account_title: string | null
+          balance: number
+          bank_name: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          method: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          account_title?: string | null
+          balance?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          method?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          account_title?: string | null
+          balance?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          method?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payout_settings: {
         Row: {
           account_number: string | null
@@ -1137,6 +1238,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          from_account_id: string | null
           id: string
           notes: string | null
           payout_method: string
@@ -1144,13 +1246,16 @@ export type Database = {
           period_start: string
           processed_at: string | null
           processed_by: string | null
+          reference_no: string | null
           status: string
+          vendor_account_id: string | null
           vendor_confirmed_at: string | null
           vendor_id: string
         }
         Insert: {
           amount: number
           created_at?: string
+          from_account_id?: string | null
           id?: string
           notes?: string | null
           payout_method?: string
@@ -1158,13 +1263,16 @@ export type Database = {
           period_start: string
           processed_at?: string | null
           processed_by?: string | null
+          reference_no?: string | null
           status?: string
+          vendor_account_id?: string | null
           vendor_confirmed_at?: string | null
           vendor_id: string
         }
         Update: {
           amount?: number
           created_at?: string
+          from_account_id?: string | null
           id?: string
           notes?: string | null
           payout_method?: string
@@ -1172,11 +1280,28 @@ export type Database = {
           period_start?: string
           processed_at?: string | null
           processed_by?: string | null
+          reference_no?: string | null
           status?: string
+          vendor_account_id?: string | null
           vendor_confirmed_at?: string | null
           vendor_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payouts_from_account_id_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_vendor_account_id_fkey"
+            columns: ["vendor_account_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_commissions: {
         Row: {
@@ -1524,6 +1649,7 @@ export type Database = {
       }
       rider_remittances: {
         Row: {
+          account_id: string | null
           admin_note: string | null
           amount: number
           created_at: string
@@ -1531,6 +1657,7 @@ export type Database = {
           method: string
           note: string | null
           receipt_url: string | null
+          reference_no: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           rider_id: string
@@ -1538,6 +1665,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           admin_note?: string | null
           amount: number
           created_at?: string
@@ -1545,6 +1673,7 @@ export type Database = {
           method?: string
           note?: string | null
           receipt_url?: string | null
+          reference_no?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           rider_id: string
@@ -1552,6 +1681,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           admin_note?: string | null
           amount?: number
           created_at?: string
@@ -1559,13 +1689,22 @@ export type Database = {
           method?: string
           note?: string | null
           receipt_url?: string | null
+          reference_no?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           rider_id?: string
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rider_remittances_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       riders: {
         Row: {
@@ -1999,6 +2138,45 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_bank_accounts: {
+        Row: {
+          account_number: string
+          account_title: string
+          bank_name: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          method: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          account_title: string
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          method?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          account_title?: string
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          method?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vouchers: {
         Row: {
           code: string
@@ -2211,6 +2389,19 @@ export type Database = {
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
+      admin_pay_vendor: {
+        Args: {
+          _amount: number
+          _from_account_id: string
+          _notes?: string
+          _period_end: string
+          _period_start: string
+          _reference_no?: string
+          _vendor_account_id: string
+          _vendor_id: string
+        }
+        Returns: string
+      }
       apply_voucher_to_order: {
         Args: { _code: string; _kind: string; _order_id: string }
         Returns: Json
@@ -2433,10 +2624,12 @@ export type Database = {
         Args: { _approve: boolean; _id: string; _note?: string }
         Returns: undefined
       }
+      rider_cash_due: { Args: { _rider: string }; Returns: number }
       validate_voucher: {
         Args: { _code: string; _scope: string; _subtotal: number }
         Returns: Json
       }
+      vendor_payable: { Args: { _vendor: string }; Returns: number }
     }
     Enums: {
       app_role:

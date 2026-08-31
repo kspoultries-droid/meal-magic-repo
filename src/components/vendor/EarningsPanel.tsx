@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "./vendorEarnings";
 import { Wallet } from "lucide-react";
+import VendorBankAccounts from "./VendorBankAccounts";
 
 const PERIODS: { key: Period; label: string }[] = [
   { key: "week", label: "7 دن" },
@@ -62,13 +63,18 @@ const EarningsPanel = () => {
         </CardContent>
       </Card>
 
+      <VendorBankAccounts />
+
       <Card>
         <CardHeader><CardTitle className="text-base">وصول شدہ ادائیگیاں</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {payouts.length === 0 && <p className="text-sm text-muted-foreground">ابھی کوئی ادائیگی وصول نہیں ہوئی</p>}
           {payouts.map((p) => (
             <div key={p.id} className="flex items-center justify-between text-xs border-b pb-1.5">
-              <span className="text-muted-foreground">{p.period_start} → {p.period_end} • {p.payout_method}</span>
+              <span className="text-muted-foreground">
+                {p.period_start} → {p.period_end} • {p.payout_method}
+                {p.reference_no ? ` • ${p.reference_no}` : ""}
+              </span>
               <span className="font-bold">Rs {p.amount}</span>
             </div>
           ))}
