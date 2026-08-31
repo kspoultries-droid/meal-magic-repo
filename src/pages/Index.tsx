@@ -28,17 +28,24 @@ const Index = () => {
         <ServiceUnavailableNotice kind="food" city={city} cities={cities} onCityChange={setCityId} />
       ) : (
       <>
-      <QuickCategories active={quickFilter} onChange={setQuickFilter} />
+      <QuickCategories
+        active={quickFilter}
+        onChange={(f) => {
+          setQuickFilter(f);
+          if (f) {
+            setTimeout(() => document.getElementById("food-results")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+          }
+        }}
+      />
 
-      {!isSearching && (
+      {!isSearching && !quickFilter && (
         <>
           <PromotionalAds placement="home" />
           <TopPicksRail />
-          <TrustStrip />
         </>
       )}
       <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
-      <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} quickFilter={quickFilter} />
+      <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} quickFilter={quickFilter} onClearQuickFilter={() => setQuickFilter(null)} />
       </>
       )}
       <Footer />
