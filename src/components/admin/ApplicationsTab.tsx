@@ -27,6 +27,7 @@ const ApplicationsTab = () => {
   const [filter, setFilter] = useState<"pending" | "approved" | "rejected">("pending");
   const [rejectReason, setRejectReason] = useState("");
   const [rejectId, setRejectId] = useState<string | null>(null);
+  const [kycMap, setKycMap] = useState<Record<string, any>>({});
 
   const fetchApps = async () => {
     setLoading(true);
@@ -35,6 +36,13 @@ const ApplicationsTab = () => {
       .select("*, cities(name)")
       .order("created_at", { ascending: false });
     setApps(data || []);
+    const riderUsers = (data || []).filter((a: any) => a.applicant_type === "rider" && a.user_id).map((a: any) => a.user_id);
+    if (riderUsers.length) {
+      const { data: kyc } = await supabase.from("rider_verifications").select("*").in("user_id", riderUsers);
+      const map: Record<string, any> = {};
+      (kyc || []).forEach((k: any) => { map[k.user_id] = k; });
+      setKycMap(map);
+    }
     setLoading(false);
   };
 
@@ -130,6 +138,41 @@ const ApplicationsTab = () => {
                         )}
                       </div>
                     )}
+                    {app.applicant_type === "rider" && (() => {
+                      const k = kycMap[app.user_id];
+                      if (!k) return <p className="text-xs text-destructive mt-2">⚠️ تصدیق کا ریکارڈ موجود نہیں</p>;
+                      return (
+                        <div className="mt-2 rounded-lg border p-2 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={k.status === "verified" ? "default" : k.status === "manual_review" ? "secondary" : "destructive"} className="text-[10px]">
+                              KYC: {k.status === "verified" ? "تصدیق شدہ" : k.status === "manual_review" ? "دستی جائزہ" : "ناکام"} {k.ai_score}%
+                            </Badge>
+                            {k.cnic_expiry && <span className="text-[10px] text-muted-foreground">میعاد: {k.cnic_expiry}</span>}
+                          </div>
+                          <div className="flex flex-wrap gap-2 text-[10px]">
+                            <span>{k.cnic_match ? "✅" : "❌"} نمبر</span>
+                            <span>{k.expiry_valid ? "✅" : "❌"} میعاد</span>
+                            <span>{k.face_match ? "✅" : "❌"} چہرہ</span>
+                            <span>{k.liveness_ok ? "✅" : "❌"} لائیو</span>
+                            <span>{k.address_match ? "✅" : "❌"} پتہ</span>
+                          </div>
+                          {k.cnic_address && <p className="text-[10px] text-muted-foreground">کارڈ کا پتہ: {k.cnic_address}</p>}
+                          {k.failure_reason && <p className="text-[10px] text-destructive">{k.failure_reason}</p>}
+                          <div className="flex gap-2">
+                            {k.back_url && (
+                              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(k.back_url)}>
+                                <FileImage className="w-3 h-3 mr-1" /> CNIC پیچھے
+                              </Button>
+                            )}
+                            {k.selfie_url && (
+                              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(k.selfie_url)}>
+                                <FileImage className="w-3 h-3 mr-1" /> سیلفی
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     {app.admin_notes && <p className="text-xs text-destructive mt-1">Note: {app.admin_notes}</p>}
                   </div>
 
