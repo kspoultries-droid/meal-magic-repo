@@ -356,7 +356,10 @@ const GroceryStoreDetail = () => {
           {(!isBazar || isOwner) && (
           <TabsContent value="orders">
             {isOwner ? (
-              <ShopkeeperListOrders storeId={id!} />
+              <>
+                <ShopkeeperCartOrders storeId={id!} />
+                <ShopkeeperListOrders storeId={id!} />
+              </>
             ) : (
               <div className="space-y-2">
                 <PhotoListOrder storeId={id!} storeName={store.name} advancePercent={store.advance_percent || 0} />
