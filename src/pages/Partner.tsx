@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Store, ShoppingCart, Package, Wrench, Bike, CheckCircle2, ExternalLink } from "lucide-react";
 
+import RiderVerification, { type RiderKycState } from "@/components/partner/RiderVerification";
+
 type PartnerType = "restaurant" | "grocery" | "wholesale" | "service_provider" | "rider";
 
 const TYPES: { value: PartnerType; label: string; urdu: string; icon: any; desc: string }[] = [
@@ -61,6 +63,11 @@ const Partner = () => {
   const [shopFile, setShopFile] = useState<File | null>(null);
   const [platefile, setPlateFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [kyc, setKyc] = useState<RiderKycState>({
+    verified: false, status: "none", biometric: false,
+    cnicFrontPath: null, cnicBackPath: null, selfiePath: null, bikePath: null, platePath: null,
+  });
+
 
   useEffect(() => {
     supabase.from("cities").select("id,name").order("name").then(({ data }) => setCities(data || []));
@@ -96,12 +103,11 @@ const Partner = () => {
       return;
     }
     if (isRider) {
-      if (!form.cnic.trim()) { toast.error("شناختی کارڈ نمبر ضروری ہے"); return; }
+      if (form.cnic.replace(/\D/g, "").length !== 13) { toast.error("شناختی کارڈ نمبر 13 ہندسوں کا لکھیں"); return; }
       if (!form.city_id) { toast.error("شہر منتخب کریں"); return; }
-      if (!cnicFile) { toast.error("CNIC کی تصویر لازمی ہے"); return; }
-      if (!shopFile) { toast.error("بائیک/گاڑی کی تصویر لازمی ہے"); return; }
-      if (!platefile) { toast.error("نمبر پلیٹ کی تصویر لازمی ہے"); return; }
-      if (!selfieFile) { toast.error("سیلفی لازمی ہے"); return; }
+      if (form.address.trim().length < 10) { toast.error("مکمل پتہ لکھیں (کارڈ کے پتے سے میل کھاتا)"); return; }
+      if (!kyc.verified) { toast.error("پہلے شناخت کی تصدیق مکمل کریں"); return; }
+      if (!kyc.biometric) { toast.error("فنگر پرنٹ / بایومیٹرک رجسٹر کرنا لازمی ہے"); return; }
     }
     setSubmitting(true);
 
@@ -109,10 +115,15 @@ const Partner = () => {
     let shop_image_url: string | null = null;
     let numberplate_url: string | null = null;
     let selfie_url: string | null = null;
-    if (cnicFile) cnic_image_url = await uploadDoc(cnicFile, "cnic");
-    if (shopFile) shop_image_url = await uploadDoc(shopFile, "shop");
-    if (platefile) numberplate_url = await uploadDoc(platefile, "plate");
-    if (selfieFile) selfie_url = await uploadDoc(selfieFile, "selfie");
+    if (isRider) {
+      cnic_image_url = kyc.cnicFrontPath;
+      shop_image_url = kyc.bikePath;
+      numberplate_url = kyc.platePath;
+      selfie_url = kyc.selfiePath;
+    } else {
+      if (cnicFile) cnic_image_url = await uploadDoc(cnicFile, "cnic");
+      if (shopFile) shop_image_url = await uploadDoc(shopFile, "shop");
+    }
 
     // Resolve referral code -> referrer user id (optional)
     let referred_by: string | null = null;
@@ -127,8 +138,13 @@ const Partner = () => {
     if (referred_by) extra.referred_by = referred_by;
     if (numberplate_url) extra.numberplate_url = numberplate_url;
     if (selfie_url) extra.selfie_url = selfie_url;
+    if (isRider) {
+      extra.cnic_back_url = kyc.cnicBackPath;
+      extra.kyc_status = kyc.status;
+      extra.biometric_registered = kyc.biometric;
+    }
 
-    const { error } = await supabase.from("partner_applications").insert({
+    const { data: inserted, error } = await supabase.from("partner_applications").insert({
       user_id: user.id,
       applicant_type: tab,
       business_name,
@@ -139,7 +155,10 @@ const Partner = () => {
       cnic_image_url,
       shop_image_url,
       extra,
-    });
+    }).select("id").maybeSingle();
+    if (!error && isRider && inserted?.id) {
+      await supabase.from("rider_verifications").update({ application_id: inserted.id }).eq("user_id", user.id);
+    }
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("درخواست جمع ہو گئی! ایڈمن جلد رابطہ کرے گا۔");
@@ -255,34 +274,14 @@ const Partner = () => {
                   onChange={e => setForm({ ...form, address: e.target.value })} rows={2} />
 
                 {tab === "rider" ? (
-                  <div className="space-y-3">
-                    <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
-                      رائیڈر کے لیے تمام دستاویزات لازمی ہیں (تصدیق کے لیے)
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className="text-xs space-y-1">
-                        <span className="text-muted-foreground">CNIC تصویر *</span>
-                        <Input type="file" accept="image/*" onChange={e => setCnicFile(e.target.files?.[0] || null)} />
-                        {cnicFile && <span className="text-[10px] text-primary">✓ {cnicFile.name}</span>}
-                      </label>
-                      <label className="text-xs space-y-1">
-                        <span className="text-muted-foreground">بائیک/گاڑی تصویر *</span>
-                        <Input type="file" accept="image/*" onChange={e => setShopFile(e.target.files?.[0] || null)} />
-                        {shopFile && <span className="text-[10px] text-primary">✓ {shopFile.name}</span>}
-                      </label>
-                      <label className="text-xs space-y-1">
-                        <span className="text-muted-foreground">نمبر پلیٹ تصویر *</span>
-                        <Input type="file" accept="image/*" onChange={e => setPlateFile(e.target.files?.[0] || null)} />
-                        {platefile && <span className="text-[10px] text-primary">✓ {platefile.name}</span>}
-                      </label>
-                      <label className="text-xs space-y-1">
-                        <span className="text-muted-foreground">سیلفی (چہرہ) *</span>
-                        <Input type="file" accept="image/*" capture="user" onChange={e => setSelfieFile(e.target.files?.[0] || null)} />
-                        {selfieFile && <span className="text-[10px] text-primary">✓ {selfieFile.name}</span>}
-                      </label>
-                    </div>
-                  </div>
+                  <RiderVerification
+                    cnic={form.cnic}
+                    fullName={form.business_name}
+                    address={form.address}
+                    onChange={setKyc}
+                  />
                 ) : (
+
                   <div className="grid grid-cols-2 gap-3">
                     <label className="text-xs space-y-1">
                       <span className="text-muted-foreground">CNIC تصویر (اختیاری)</span>

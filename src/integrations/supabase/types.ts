@@ -1875,6 +1875,101 @@ export type Database = {
           },
         ]
       }
+      rider_verifications: {
+        Row: {
+          address_match: boolean
+          ai_checks: Json
+          ai_score: number
+          application_id: string | null
+          back_url: string | null
+          biometric_registered: boolean
+          cnic_address: string | null
+          cnic_expiry: string | null
+          cnic_match: boolean
+          cnic_name: string | null
+          cnic_number: string
+          created_at: string
+          declared_address: string | null
+          declared_name: string | null
+          expiry_valid: boolean
+          face_match: boolean
+          failure_reason: string | null
+          front_url: string | null
+          id: string
+          liveness_ok: boolean
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_match?: boolean
+          ai_checks?: Json
+          ai_score?: number
+          application_id?: string | null
+          back_url?: string | null
+          biometric_registered?: boolean
+          cnic_address?: string | null
+          cnic_expiry?: string | null
+          cnic_match?: boolean
+          cnic_name?: string | null
+          cnic_number: string
+          created_at?: string
+          declared_address?: string | null
+          declared_name?: string | null
+          expiry_valid?: boolean
+          face_match?: boolean
+          failure_reason?: string | null
+          front_url?: string | null
+          id?: string
+          liveness_ok?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_match?: boolean
+          ai_checks?: Json
+          ai_score?: number
+          application_id?: string | null
+          back_url?: string | null
+          biometric_registered?: boolean
+          cnic_address?: string | null
+          cnic_expiry?: string | null
+          cnic_match?: boolean
+          cnic_name?: string | null
+          cnic_number?: string
+          created_at?: string
+          declared_address?: string | null
+          declared_name?: string | null
+          expiry_valid?: boolean
+          face_match?: boolean
+          failure_reason?: string | null
+          front_url?: string | null
+          id?: string
+          liveness_ok?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_verifications_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "partner_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       riders: {
         Row: {
           city_id: string | null
