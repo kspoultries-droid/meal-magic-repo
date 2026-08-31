@@ -91,6 +91,8 @@ const RiderRemittancesTab = () => {
                     <p className="text-xs text-muted-foreground">{names[r.rider_id] || r.rider_id.slice(0, 8)}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {new Date(r.created_at).toLocaleString("ur-PK")} • {r.method}
+                      {r.account_id ? ` • ${accounts[r.account_id] || "اکاؤنٹ"}` : ""}
+                      {r.reference_no ? ` • ریفرنس ${r.reference_no}` : ""}
                     </p>
                     {r.note && <p className="text-xs mt-1">📝 {r.note}</p>}
                   </div>
