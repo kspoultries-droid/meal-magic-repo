@@ -67,9 +67,8 @@ const Wholesale = () => {
     const fetchAll = async () => {
       setLoading(true); setVisible(20);
       let query: any = supabase.from("grocery_stores").select("id, name, image_url, category, rating, minimum_order, is_active, ships_nationwide, city_id").eq("store_type", "wholesale").neq("subscription_status", "paused");
-      if (selectedCity) query = query.eq("city_id", selectedCity);
-      if (activeCategory && activeCategory !== "All") query = query.eq("category", activeCategory);
-      if (activeShopCategory) query = query.eq("shop_category", activeShopCategory);
+       if (selectedCity) query = query.eq("city_id", selectedCity);
+       if (activeShopCategory) query = query.eq("shop_category", activeShopCategory);
       const { data: storeData, error: storeError } = await query.order("sort_order").order("created_at", { ascending: false });
       if (storeError) console.error("Bazar stores could not load", storeError);
       const list = storeData || [];
@@ -85,13 +84,13 @@ const Wholesale = () => {
     const min = Number(filters.minPrice) || 0;
     const max = Number(filters.maxPrice) || Number.POSITIVE_INFINITY;
     const storeById = new Map(stores.map((store) => [store.id, store]));
-    return products.filter((p) => {
-      const price = p.wholesale_price ?? p.discount_price ?? p.price;
-      const variants = readVariants(p);
-      const sizes = variants.map((v) => v.size || v.label || v.name || "").filter(Boolean);
-      const colors = variants.map((v) => v.color || "").filter(Boolean);
-      return price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.nationwide || storeById.get(p.store_id)?.ships_nationwide) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase())));
-    }).sort((a, b) => {
+     return products.filter((p) => {
+       const price = p.wholesale_price ?? p.discount_price ?? p.price;
+       const variants = readVariants(p);
+       const sizes = variants.map((v) => v.size || v.label || v.name || "").filter(Boolean);
+       const colors = variants.map((v) => v.color || "").filter(Boolean);
+       return (!activeCategory || activeCategory === "All" || p.category === activeCategory) && price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.nationwide || storeById.get(p.store_id)?.ships_nationwide) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase())));
+     }).sort((a, b) => {
       const priceA = a.wholesale_price ?? a.discount_price ?? a.price; const priceB = b.wholesale_price ?? b.discount_price ?? b.price;
       if (filters.sort === "price-low") return priceA - priceB;
       if (filters.sort === "price-high") return priceB - priceA;

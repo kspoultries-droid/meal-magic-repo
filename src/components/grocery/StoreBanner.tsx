@@ -391,10 +391,11 @@ const StoreBanner = ({
                   <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>
                     {groceryCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
-                  <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
-                  <Textarea placeholder="پروڈکٹ کی تفصیل / Product details (optional)" rows={3} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
-                  <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
-                  <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
+                   <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
+                   <Textarea placeholder="پروڈکٹ کی تفصیل / Product details (optional)" rows={3} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
+                   <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                   <div className="space-y-1"><label className="text-xs font-bold text-muted-foreground">متعدد تصاویر / Multiple photos</label><Input type="file" accept="image/*" multiple onChange={(e) => setNewProduct({...newProduct, imageFiles: Array.from(e.target.files || [])})} /><p className="text-[10px] text-muted-foreground">ایک پروڈکٹ کی کئی تصاویر منتخب کریں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر منتخب ہیں</p>}</div>
+                   <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
                 </div>
               </DialogContent>
             </Dialog>
