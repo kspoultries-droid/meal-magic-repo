@@ -122,6 +122,75 @@
   }
 }
 
+/* ── Bazar (marketplace) scoped theme: Premium Ink & Amber ───────────── */
+@layer base {
+  .theme-bazar {
+    --background: 40 33% 98%;
+    --foreground: 0 0% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
+
+    --primary: 38 92% 50%;
+    --primary-foreground: 0 0% 8%;
+
+    --secondary: 43 18% 94%;
+    --secondary-foreground: 0 0% 12%;
+
+    --muted: 43 18% 92%;
+    --muted-foreground: 30 5% 42%;
+
+    --accent: 38 90% 94%;
+    --accent-foreground: 30 70% 26%;
+
+    --destructive: 4 78% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 12% 88%;
+    --input: 40 12% 88%;
+    --ring: 38 92% 50%;
+
+    --radius: 0.875rem;
+
+    --primary-glow: 44 96% 62%;
+    --gradient-primary: linear-gradient(135deg, hsl(36 94% 48%), hsl(46 96% 58%));
+    --gradient-hero: linear-gradient(120deg, hsl(0 0% 10%) 0%, hsl(24 18% 16%) 55%, hsl(34 40% 20%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(40 33% 99%), hsl(43 18% 95%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(40 25% 99%));
+    --shadow-elegant: 0 12px 34px -14px hsl(30 40% 20% / 0.28);
+    --shadow-glow: 0 0 40px hsl(44 96% 62% / 0.35);
+    --shadow-soft: 0 2px 12px -2px hsl(30 20% 20% / 0.08);
+    --shadow-card: 0 6px 24px -12px hsl(30 25% 18% / 0.16);
+
+    font-family: "DM Sans", "Nunito Sans", sans-serif;
+  }
+
+  .theme-bazar h1,
+  .theme-bazar h2,
+  .theme-bazar h3 {
+    font-family: "Space Grotesk", "Nunito Sans", sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .shimmer {
+    background: linear-gradient(100deg, transparent 20%, hsl(0 0% 100% / 0.55) 50%, transparent 80%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite linear;
+  }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
 @layer utilities {
   .bg-gradient-primary { background: var(--gradient-primary); }
   .bg-gradient-hero { background: var(--gradient-hero); }
