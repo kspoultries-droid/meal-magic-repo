@@ -47,42 +47,36 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
   }, [placement]);
 
   if (loaded && ads.length === 0) return null;
-  if (!loaded) return <div className="min-h-[220px]" />;
+  if (!loaded) return <div className="min-h-[170px]" />;
 
   return (
-    <section className={`px-3 py-3 ${className}`}>
+    <section className={`px-3 py-2 ${className}`}>
       <Carousel
         opts={{ loop: true, align: "start" }}
-        plugins={[Autoplay({ delay: 3000, stopOnInteraction: false })]}
+        plugins={[Autoplay({ delay: 3200, stopOnInteraction: false })]}
         className="w-full"
       >
         <CarouselContent className="-ml-2">
           {ads.map((ad) => (
-            <CarouselItem key={ad.id} className="pl-2 basis-[92%] sm:basis-[48%] lg:basis-[33%]">
+            <CarouselItem key={ad.id} className="pl-2 basis-[88%] sm:basis-[48%] lg:basis-[33%]">
               <a
                 href={ad.link_url || "#"}
                 target={ad.link_url ? "_blank" : undefined}
                 rel="noopener noreferrer"
-                className="block rounded-2xl overflow-hidden border bg-card hover:shadow-lg transition-shadow cursor-pointer relative"
+                className="relative block overflow-hidden rounded-xl border border-border/70 bg-card shadow-card transition-shadow hover:shadow-elegant"
               >
                 {ad.image_url ? (
-                  <img
-                    src={ad.image_url}
-                    alt={ad.title}
-                    className="w-full h-44 sm:h-40 object-cover"
-                  />
+                  <img src={ad.image_url} alt={ad.title} className="h-36 w-full object-cover sm:h-32" />
                 ) : (
-                  <div className="w-full h-44 sm:h-40 bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                    <span className="text-primary-foreground text-xl font-extrabold">{ad.brand_name}</span>
+                  <div className="flex h-36 w-full items-center justify-center bg-gradient-primary sm:h-32">
+                    <span className="text-xl font-extrabold text-primary-foreground">{ad.brand_name}</span>
                   </div>
                 )}
-                <div className="p-3">
-                  <p className="font-bold text-foreground text-sm truncate">{ad.title}</p>
+                <div className="p-2.5">
+                  <p className="truncate text-sm font-bold text-foreground">{ad.title}</p>
                   <p className="text-xs text-muted-foreground">{ad.brand_name}</p>
                 </div>
-                <span className="absolute top-2 right-2 bg-foreground/60 text-background text-[10px] px-1.5 py-0.5 rounded font-medium">
-                  AD
-                </span>
+                <span className="absolute right-2 top-2 rounded bg-foreground/60 px-1.5 py-0.5 text-[10px] font-medium text-background">AD</span>
               </a>
             </CarouselItem>
           ))}

@@ -30,10 +30,10 @@ const BazarFilterBar = ({ filters, onChange, resultCount, grid, onGridChange, si
   const clear = () => onChange({ sort: "featured", minPrice: "", maxPrice: "", minRating: "", size: "", color: "", discountOnly: false, nationwide: false, wishlistOnly: false });
 
   return (
-    <div className="sticky top-0 z-20 border-y bg-background/95 py-2 backdrop-blur-md">
-      <div className="container mx-auto flex items-center gap-2 px-4">
+    <div className="sticky top-0 z-20 border-y border-border/70 bg-background/95 py-1.5 backdrop-blur-md">
+      <div className="container mx-auto flex items-center gap-1.5 px-4">
         <Sheet>
-          <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1.5"><SlidersHorizontal className="size-3.5" /> فلٹرز {activeCount > 0 && <span className="grid size-4 place-items-center rounded-full bg-primary text-[9px] text-primary-foreground">{activeCount}</span>}</Button></SheetTrigger>
+          <SheetTrigger asChild><Button variant="outline" size="sm" className="h-8 gap-1 px-2 text-[10px]"><SlidersHorizontal className="size-3" /> فلٹرز {activeCount > 0 && <span className="grid size-4 place-items-center rounded-full bg-primary text-[9px] text-primary-foreground">{activeCount}</span>}</Button></SheetTrigger>
           <SheetContent side="right" className="w-[min(88vw,380px)] overflow-y-auto">
             <SheetHeader><SheetTitle className="font-display">فلٹرز</SheetTitle></SheetHeader>
             <div className="space-y-6 pt-6">
@@ -46,9 +46,9 @@ const BazarFilterBar = ({ filters, onChange, resultCount, grid, onGridChange, si
             </div>
           </SheetContent>
         </Sheet>
-        <select value={filters.sort} onChange={(e) => update({ sort: e.target.value as BazarFilters["sort"] })} className="h-9 rounded-md border bg-card px-2 text-xs font-semibold text-foreground outline-none"><option value="featured">نمایاں</option><option value="price-low">قیمت: کم سے زیادہ</option><option value="price-high">قیمت: زیادہ سے کم</option><option value="rating">بہترین ریٹنگ</option><option value="discount">زیادہ ڈسکاؤنٹ</option></select>
+        <select value={filters.sort} onChange={(e) => update({ sort: e.target.value as BazarFilters["sort"] })} className="h-8 max-w-[9.5rem] rounded-md border bg-card px-1.5 text-[10px] font-semibold text-foreground outline-none"><option value="featured">نمایاں</option><option value="price-low">قیمت: کم سے زیادہ</option><option value="price-high">قیمت: زیادہ سے کم</option><option value="rating">بہترین ریٹنگ</option><option value="discount">زیادہ ڈسکاؤنٹ</option></select>
         <span className="mr-auto text-[10px] text-muted-foreground">{resultCount} نتائج</span>
-        <Button variant={grid ? "secondary" : "ghost"} size="icon" aria-label="گرڈ ویو" onClick={() => onGridChange(true)} className="size-8"><Grid2X2 className="size-4" /></Button><Button variant={!grid ? "secondary" : "ghost"} size="icon" aria-label="لسٹ ویو" onClick={() => onGridChange(false)} className="size-8"><List className="size-4" /></Button>
+        <Button variant={grid ? "secondary" : "ghost"} size="icon" aria-label="گرڈ ویو" onClick={() => onGridChange(true)} className="size-8"><Grid2X2 className="size-3.5" /></Button><Button variant={!grid ? "secondary" : "ghost"} size="icon" aria-label="لسٹ ویو" onClick={() => onGridChange(false)} className="size-8"><List className="size-3.5" /></Button>
       </div>
     </div>
   );
