@@ -23,7 +23,8 @@ const ProductDetail = () => {
     if (!id) return;
     const load = async () => {
       setLoading(true);
-      const { data: productData, error } = await supabase.from("grocery_products").select("*").eq("id", id).maybeSingle();
+      const { data: productDataRaw, error } = await supabase.from("grocery_products").select("*").eq("id", id).maybeSingle();
+      const productData = productDataRaw as any;
       if (error || !productData) {
         setProduct(null);
         setLoading(false);

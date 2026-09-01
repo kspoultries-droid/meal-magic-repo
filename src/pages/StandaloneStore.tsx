@@ -279,12 +279,15 @@ const StandaloneStore = () => {
                           غیر فعال
                         </div>
                       )}
-                      <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
-                        )}
+                       <div
+                         className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
+                         onClick={() => !isOwner && window.history.pushState({}, "", `/product/${product.id}`) && window.dispatchEvent(new PopStateEvent("popstate"))}
+                       >
+                         {product.image_url ? (
+                           <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                         ) : (
+                           <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
+                         )}
                         {isOwner && (
                           <div className="absolute bottom-1 right-1 flex gap-1">
                             <label className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md">

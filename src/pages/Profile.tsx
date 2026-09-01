@@ -246,21 +246,15 @@ const Profile = () => {
         )}
       </div>
 
-      {/* Quick Actions */}
-      <div className="px-4 py-4 grid grid-cols-3 gap-3">
-        <button onClick={() => setShowOrders(!showOrders)} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-md transition-shadow">
-          <ShoppingBag className="w-6 h-6 text-muted-foreground" />
-          <span className="text-xs font-semibold text-foreground">Orders</span>
-        </button>
-        <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-md transition-shadow">
-          <Heart className="w-6 h-6 text-muted-foreground" />
-          <span className="text-xs font-semibold text-foreground">Favourites</span>
-        </button>
-        <button onClick={openAddresses} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border hover:shadow-md transition-shadow">
-          <MapPin className="w-6 h-6 text-primary" />
-          <span className="text-xs font-semibold text-foreground">Addresses</span>
-        </button>
-      </div>
+       {/* Quick Actions */}
+       <div className="px-4 py-4">
+         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+           <AccountTile icon={<ShoppingBag className="w-5 h-5" />} label="میرے آرڈرز" value={`${orders.length} آرڈرز`} active={showOrders} onClick={() => setShowOrders(!showOrders)} />
+           <AccountTile icon={<Heart className="w-5 h-5" />} label="پسندیدہ" value="محفوظ آئٹمز" onClick={() => toast.info("پسندیدہ آئٹمز جلد دستیاب ہوں گے")} />
+           <AccountTile icon={<MapPin className="w-5 h-5" />} label="محفوظ پتے" value={`${addresses.length || ""} پتے`} onClick={openAddresses} />
+           <AccountTile icon={<Wallet className="w-5 h-5" />} label="والیٹ" value="بیلنس دیکھیں" onClick={() => navigate("/wallet")} />
+         </div>
+       </div>
 
       {/* Addresses Dialog */}
       <Dialog open={showAddresses} onOpenChange={setShowAddresses}>
