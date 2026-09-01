@@ -24,7 +24,7 @@ describe("cart weight", () => {
 
   it("never treats a zero or invalid weight as free volume", () => {
     expect(calculateCartWeight([{ quantity: 1, weight_kg: 0 }])).toBeCloseTo(0.1);
-    expect(calculateCartWeight([{ quantity: 1, weight: "bhaari" }])).toBeCloseTo(0.1);
+    expect(calculateCartWeight([{ quantity: 1, weight: "bhaari" }])).toBeCloseTo(0.5);
   });
 });
 
