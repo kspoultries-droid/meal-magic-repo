@@ -19,6 +19,7 @@ import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
 import ApplicationsTab from "@/components/admin/ApplicationsTab";
 import GroceryDispatchTab from "@/components/admin/GroceryDispatchTab";
 import CitySettingsTab from "@/components/admin/CitySettingsTab";
+import DeliveryRatesTab from "@/components/admin/DeliveryRatesTab";
 import AuditLogTab from "@/components/admin/AuditLogTab";
 import VouchersTab from "@/components/admin/VouchersTab";
 import ReelsTab from "@/components/admin/ReelsTab";
