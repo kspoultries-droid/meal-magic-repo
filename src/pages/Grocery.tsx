@@ -191,7 +191,7 @@ const Grocery = () => {
               return (
                 <button
                   key={p.id}
-                  onClick={() => navigate(`/grocery/${p.store_id}`)}
+                  onClick={() => navigate(`/product/${p.id}`)}
                   className="w-36 shrink-0 bg-gradient-card rounded-2xl border border-border/60 shadow-card overflow-hidden text-left active:scale-95 transition-transform"
                 >
                   <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
@@ -236,7 +236,7 @@ const Grocery = () => {
             {topSelling.map((p, i) => (
               <button
                 key={p.id}
-                onClick={() => navigate(`/grocery/${p.store_id}`)}
+                onClick={() => navigate(`/product/${p.id}`)}
                 className="w-36 shrink-0 bg-gradient-card rounded-2xl border border-border/60 shadow-card overflow-hidden text-left active:scale-95 transition-transform"
               >
                 <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
