@@ -83,6 +83,8 @@ const StandaloneStore = () => {
       restaurant: store?.name || "Grocery",
       price: effectivePrice,
       image: product.image_url || "",
+      source: "grocery",
+      sourceId: store?.id,
     });
   };
 

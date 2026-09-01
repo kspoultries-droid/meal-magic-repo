@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, BadgeCheck, Check, ChevronRight, Clock3, Heart, MapPin, MessageCircle, Minus, Plus, Share2, ShoppingBag, Store, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, BadgeCheck, Check, ChevronRight, Clock3, Heart, MapPin, Minus, Plus, Share2, ShoppingBag, Store, Truck } from "lucide-react";
+import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import ProductGallery from "@/components/product/ProductGallery";
 import RelatedProducts, { type RelatedItem } from "@/components/product/RelatedProducts";
-import { toast } from "sonner";
+
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -163,7 +164,7 @@ const ProductDetail = () => {
   );
 };
 
-const InfoTile = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => <div className="rounded-xl border border-border bg-card p-3"><div className="flex items-center gap-1.5 text-primary">{icon}<span className="text-[10px] font-bold text-muted-foreground">{label}</span></div><p className="mt-1 text-xs font-extrabold text-foreground">{value}</p></div>;
+const InfoTile = ({ icon, label, value }: { icon: ReactNode; label: string; value: string }) => <div className="rounded-xl border border-border bg-card p-3"><div className="flex items-center gap-1.5 text-primary">{icon}<span className="text-[10px] font-bold text-muted-foreground">{label}</span></div><p className="mt-1 text-xs font-extrabold text-foreground">{value}</p></div>;
 
 const DetailsBlock = ({ specs, sku, brand, weight, unit }: { specs: unknown; sku?: string; brand?: string; weight?: string; unit?: string }) => {
   const entries = specs && typeof specs === "object" && !Array.isArray(specs) ? Object.entries(specs as Record<string, unknown>) : [];
