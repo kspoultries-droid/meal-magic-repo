@@ -76,6 +76,7 @@ const MechanicDashboard = lazyWithRetry(() => import("./pages/MechanicDashboard"
 const StandaloneStore = lazyWithRetry(() => import("./pages/StandaloneStore"));
 const ServiceManagerDashboard = lazyWithRetry(() => import("./pages/ServiceManagerDashboard"));
 const Wholesale = lazyWithRetry(() => import("./pages/Wholesale"));
+const ProductDetail = lazyWithRetry(() => import("./pages/ProductDetail"));
 const OrderConfirmation = lazyWithRetry(() => import("./pages/OrderConfirmation"));
 const Partner = lazyWithRetry(() => import("./pages/Partner"));
 const Operations = lazyWithRetry(() => import("./pages/Operations"));
@@ -168,6 +169,7 @@ const App = () => (
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/install" element={<Install />} />
                   <Route path="/grocery" element={<Grocery />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/grocery/:id" element={<GroceryStoreDetail />} />
                   <Route path="/bazar/:id" element={<GroceryStoreDetail />} />
                   <Route path="/order-tracking/:id" element={<OrderTracking />} />

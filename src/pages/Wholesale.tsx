@@ -43,7 +43,7 @@ const Wholesale = () => {
     if (ids.length === 0) return [] as any[];
     let pq: any = supabase
       .from("grocery_products")
-      .select("id, store_id, name, price, discount_price, wholesale_price, image_url, unit, min_order_qty, is_available")
+       .select("id, store_id, name, price, discount_price, wholesale_price, image_url, images, unit, min_order_qty, is_available")
       .in("store_id", ids)
       .eq("is_available", true)
       .order("sort_order", { ascending: true, nullsFirst: false })
@@ -117,7 +117,7 @@ const Wholesale = () => {
     [products]
   );
 
-  const openProduct = (p: BazarProduct) => navigate(`/bazar/${p.store_id}`);
+  const openProduct = (p: BazarProduct) => navigate(`/product/${p.id}`);
 
   const allCats = [...shopCategories, ...categories.filter((c) => c.name !== "All")];
 
