@@ -238,9 +238,17 @@ const ProductDetail = () => {
 
 const InfoTile = ({ icon, label, value }: { icon: ReactNode; label: string; value: string }) => <div className="rounded-xl border border-border bg-card p-3"><div className="flex items-center gap-1.5 text-primary">{icon}<span className="text-[10px] font-bold text-muted-foreground">{label}</span></div><p className="mt-1 text-xs font-extrabold text-foreground">{value}</p></div>;
 
-const DetailsBlock = ({ specs, sku, brand, weight, unit }: { specs: unknown; sku?: string; brand?: string; weight?: string; unit?: string }) => {
-  const entries = specs && typeof specs === "object" && !Array.isArray(specs) ? Object.entries(specs as Record<string, unknown>) : [];
-  return <div className="rounded-2xl border border-border bg-card p-4"><h2 className="text-sm font-extrabold text-foreground">پروڈکٹ کی تفصیل</h2><div className="mt-3 divide-y divide-border">{[["برانڈ", brand], ["وزن", weight], ["یونٹ", unit], ["SKU", sku], ...entries.map(([key, value]) => [key, String(value)])].filter(([, value]) => value).map(([key, value]) => <div key={String(key)} className="flex items-center justify-between gap-4 py-2 text-xs"><span className="text-muted-foreground">{key}</span><span className="font-bold text-foreground">{value}</span></div>)}</div></div>;
-};
+ const DetailsBlock = ({ specs, sku, brand, weight, unit }: { specs: unknown; sku?: string; brand?: string; weight?: string; unit?: string }) => {
+   const entries = specs && typeof specs === "object" && !Array.isArray(specs) ? Object.entries(specs as Record<string, unknown>) : [];
+   return <div className="rounded-2xl border border-border bg-card p-4"><h2 className="text-sm font-extrabold text-foreground">پروڈکٹ کی تفصیل</h2><div className="mt-3 divide-y divide-border">{[["برانڈ", brand], ["وزن", weight], ["یونٹ", unit], ["SKU", sku], ...entries.map(([key, value]) => [key, String(value)])].filter(([, value]) => value).map(([key, value]) => <div key={String(key)} className="flex items-center justify-between gap-4 py-2 text-xs"><span className="text-muted-foreground">{key}</span><span className="font-bold text-foreground">{value}</span></div>)}</div></div>;
+ };
+
+ const ReviewList = ({ reviews, store }: { reviews: any[]; store: any }) => {
+   const average = reviews.length ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length : Number(store?.rating || 0);
+   return <div className="space-y-3">
+     <div className="rounded-2xl border border-border bg-card p-4"><div className="flex items-center gap-3"><div><p className="text-3xl font-black text-primary">{average ? average.toFixed(1) : "نئی"}</p><div className="flex text-primary">{[1, 2, 3, 4, 5].map((star) => <Star key={star} className={`size-3.5 ${star <= Math.round(average) ? "fill-primary" : "text-muted"}`} />)}</div></div><div className="text-xs text-muted-foreground"><p className="font-bold text-foreground">{store?.name}</p><p>{reviews.length} customer reviews · shop ranking</p></div></div></div>
+     {reviews.length === 0 ? <div className="rounded-2xl border border-border bg-card p-8 text-center"><Heart className="mx-auto h-8 w-8 text-muted-foreground/40" /><p className="mt-2 text-sm font-bold text-foreground">ابھی کوئی ریٹنگ نہیں</p><p className="mt-1 text-xs text-muted-foreground">خریداری کے بعد اپنی رائے ضرور دیں۔</p></div> : reviews.map((review) => <article key={review.id} className="rounded-2xl border border-border bg-card p-4"><div className="flex items-center gap-2"><div className="flex text-primary">{[1, 2, 3, 4, 5].map((star) => <Star key={star} className={`size-3 ${star <= Number(review.rating) ? "fill-primary" : "text-muted"}`} />)}</div><span className="text-[10px] text-muted-foreground">{new Date(review.created_at).toLocaleDateString()}</span></div>{review.comment && <p className="mt-2 text-sm leading-6 text-muted-foreground">{review.comment}</p>}{Array.isArray(review.photo_urls) && review.photo_urls.length > 0 && <div className="mt-3 grid grid-cols-3 gap-2">{review.photo_urls.map((url: string) => <img key={url} src={url} alt="customer review" className="aspect-square rounded-lg object-cover" loading="lazy" />)}</div>}{review.video_url && <video controls preload="metadata" className="mt-3 max-h-64 w-full rounded-lg"><source src={review.video_url} /></video>}</article>)}
+   </div>;
+ };
 
 export default ProductDetail;
