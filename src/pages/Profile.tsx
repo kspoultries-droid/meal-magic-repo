@@ -60,6 +60,7 @@ const Profile = () => {
         { data: ownedStores },
         { data: serviceProvider },
         { data: riderProfile },
+        { data: walletData },
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("orders").select("*, order_items(*)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
