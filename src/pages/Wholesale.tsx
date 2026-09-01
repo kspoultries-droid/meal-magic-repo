@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as LucideIcons from "lucide-react";
-import { ChevronRight, Flame, MapPin, Package, Search, Star, Store, Truck, Zap } from "lucide-react";
+import { BadgeCheck, ChevronRight, Flame, MapPin, Package, Search, Star, Store, Truck, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
