@@ -1,0 +1,5 @@
+DROP POLICY IF EXISTS "Admins manage all grocery products" ON public.grocery_products;
+DROP POLICY IF EXISTS "Store owners manage own products" ON public.grocery_products;
+CREATE POLICY "Admins manage all grocery products" ON public.grocery_products FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Store owners manage own products" ON public.grocery_products FOR ALL TO authenticated USING (EXISTS (SELECT 1 FROM public.grocery_stores WHERE grocery_stores.id = grocery_products.store_id AND grocery_stores.owner_id = auth.uid())) WITH CHECK (EXISTS (SELECT 1 FROM public.grocery_stores WHERE grocery_stores.id = grocery_products.store_id AND grocery_stores.owner_id = auth.uid()));
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM anon;

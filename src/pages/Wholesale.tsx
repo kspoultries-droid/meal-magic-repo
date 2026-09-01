@@ -84,12 +84,13 @@ const Wholesale = () => {
   const filteredProducts = useMemo(() => {
     const min = Number(filters.minPrice) || 0;
     const max = Number(filters.maxPrice) || Number.POSITIVE_INFINITY;
+    const storeById = new Map(stores.map((store) => [store.id, store]));
     return products.filter((p) => {
       const price = p.wholesale_price ?? p.discount_price ?? p.price;
       const variants = readVariants(p);
       const sizes = variants.map((v) => v.size || v.label || v.name || "").filter(Boolean);
       const colors = variants.map((v) => v.color || "").filter(Boolean);
-      return price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase())));
+      return price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.nationwide || storeById.get(p.store_id)?.ships_nationwide) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase())));
     }).sort((a, b) => {
       const priceA = a.wholesale_price ?? a.discount_price ?? a.price; const priceB = b.wholesale_price ?? b.discount_price ?? b.price;
       if (filters.sort === "price-low") return priceA - priceB;
@@ -98,7 +99,7 @@ const Wholesale = () => {
       if (filters.sort === "discount") return (1 - priceB / b.price) - (1 - priceA / a.price);
       return 0;
     });
-  }, [products, filters, wishlist]);
+  }, [products, stores, filters, wishlist]);
 
   const loadMore = async () => {
     if (visible + 20 <= products.length) { setVisible((v) => v + 20); return; }
@@ -135,7 +136,7 @@ const Wholesale = () => {
 
     <BazarFilterBar filters={filters} onChange={setFilters} resultCount={filteredProducts.length} grid={grid} onGridChange={setGrid} sizes={variantValues.sizes} colors={variantValues.colors} />
     <section className="container mx-auto px-4 pt-5"><div className="mb-3 flex items-center gap-2"><Flame className="size-4 text-destructive" /><h2 className="font-display text-xl font-bold">آپ کے لیے منتخب</h2><span className="text-xs text-muted-foreground">Just For You</span></div>
-      {loading ? <StoreGridSkeleton count={6} /> : filteredProducts.length === 0 ? <div className="rounded-xl border bg-card py-12 text-center"><Package className="mx-auto mb-2 size-8 text-muted-foreground" /><p className="text-sm font-semibold">اس فلٹر میں کوئی پروڈکٹ نہیں ملی</p><p className="mt-1 text-xs text-muted-foreground">فلٹرز تبدیل کر کے دوبارہ کوشش کریں</p></div> : <><div className={grid ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" : "space-y-2"}>{filteredProducts.slice(0, visible).map((p) => <BazarProductCard key={p.id} product={p} onClick={() => openProduct(p)} isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div>{(visible < filteredProducts.length || hasMore) && <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="mx-auto mt-5 flex">{loadingMore ? "لوڈ ہو رہا ہے…" : "مزید دیکھیں"}<ChevronRight className="size-4" /></Button>}</>}
+      {loading ? <StoreGridSkeleton count={6} /> : filteredProducts.length === 0 ? <div className="rounded-xl border bg-card py-12 text-center"><Package className="mx-auto mb-2 size-8 text-muted-foreground" /><p className="text-sm font-semibold">اس فلٹر میں کوئی پروڈکٹ نہیں ملی</p><p className="mt-1 text-xs text-muted-foreground">فلٹرز تبدیل کر کے دوبارہ کوشش کریں</p></div> : <><div className={grid ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" : "space-y-2"}>{filteredProducts.slice(0, visible).map((p) => <BazarProductCard key={p.id} product={p} list={!grid} onClick={() => openProduct(p)} isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div>{(visible < filteredProducts.length || hasMore) && <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="mx-auto mt-5 flex">{loadingMore ? "لوڈ ہو رہا ہے…" : "مزید دیکھیں"}<ChevronRight className="size-4" /></Button>}</>}
     </section>
     <AppShareButton section="grocery" /><BottomTabBar />
   </div>;

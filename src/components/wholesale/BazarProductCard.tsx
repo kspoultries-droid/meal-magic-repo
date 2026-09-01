@@ -21,19 +21,20 @@ interface Props {
   product: BazarProduct;
   onClick: () => void;
   compact?: boolean;
+  list?: boolean;
   isWishlisted?: boolean;
   onToggleWishlist?: () => void;
 }
 
-const BazarProductCard = ({ product, onClick, compact, isWishlisted = false, onToggleWishlist }: Props) => {
+const BazarProductCard = ({ product, onClick, compact, list = false, isWishlisted = false, onToggleWishlist }: Props) => {
   const effective = product.wholesale_price ?? product.discount_price ?? product.price;
   const hasDiscount = effective < product.price;
   const off = hasDiscount ? Math.round(((product.price - effective) / product.price) * 100) : 0;
 
   return (
     <article className={`group relative overflow-hidden rounded-xl border bg-card shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elegant ${compact ? "w-36 shrink-0" : ""}`}>
-      <button onClick={onClick} className="block w-full text-left" aria-label={`${product.name} دیکھیں`}>
-        <div className="relative aspect-square w-full overflow-hidden bg-secondary">
+      <button onClick={onClick} className={list ? "flex w-full items-center gap-3 p-2 text-left" : "block w-full text-left"} aria-label={`${product.name} دیکھیں`}>
+        <div className={`relative shrink-0 overflow-hidden bg-secondary ${list ? "size-24 rounded-lg" : "aspect-square w-full"}`}>
           {product.image_url ? (
             <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           ) : <Package className="absolute inset-0 m-auto size-8 text-muted-foreground" />}
@@ -42,8 +43,8 @@ const BazarProductCard = ({ product, onClick, compact, isWishlisted = false, onT
             <Heart className={`size-4 ${isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}`} />
           </Button>}
         </div>
-        <div className="space-y-1 p-2.5">
-          <p className="line-clamp-2 min-h-[2.25rem] text-xs font-semibold leading-tight text-card-foreground">{product.name}</p>
+        <div className={`min-w-0 space-y-1 ${list ? "flex-1 py-1" : "p-2.5"}`}>
+          <p className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{product.name}</p>
           <div className="flex items-end justify-between gap-1">
             <div><p className="font-display text-base font-bold text-primary">Rs {effective.toLocaleString()}</p>{hasDiscount && <p className="text-[10px] text-muted-foreground line-through">Rs {product.price.toLocaleString()}</p>}</div>
             {product.rating && <span className="flex items-center gap-0.5 text-[10px] font-semibold text-muted-foreground"><Star className="size-3 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
