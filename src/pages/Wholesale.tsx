@@ -55,7 +55,7 @@ const Wholesale = () => {
   const fetchProductPage = async (list: StoreRow[], from: number) => {
     const ids = list.map((s) => s.id);
     if (!ids.length) return [] as (BazarProduct & { variants?: unknown })[];
-    let query: any = supabase.from("grocery_products").select("id, store_id, name, price, discount_price, wholesale_price, image_url, images, unit, min_order_qty, is_available, rating, category, variants").in("store_id", ids).eq("is_available", true).order("sort_order", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).order("id", { ascending: true }).range(from, from + PAGE_SIZE - 1);
+    let query: any = supabase.from("grocery_products").select("id, store_id, name, price, discount_price, wholesale_price, image_url, images, unit, min_order_qty, is_available, rating, sold_count, category, variants").in("store_id", ids).eq("is_available", true).order("sort_order", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).order("id", { ascending: true }).range(from, from + PAGE_SIZE - 1);
     if (searchQuery.trim()) query = query.ilike("name", `%${searchQuery.trim()}%`);
     const { data, error } = await query;
     if (error) console.error("Bazar products could not load", error);
@@ -67,9 +67,8 @@ const Wholesale = () => {
     const fetchAll = async () => {
       setLoading(true); setVisible(20);
       let query: any = supabase.from("grocery_stores").select("id, name, image_url, category, rating, minimum_order, is_active, ships_nationwide, city_id").eq("store_type", "wholesale").neq("subscription_status", "paused");
-      if (selectedCity) query = query.eq("city_id", selectedCity);
-      if (activeCategory && activeCategory !== "All") query = query.eq("category", activeCategory);
-      if (activeShopCategory) query = query.eq("shop_category", activeShopCategory);
+       if (selectedCity) query = query.eq("city_id", selectedCity);
+       if (activeShopCategory) query = query.eq("shop_category", activeShopCategory);
       const { data: storeData, error: storeError } = await query.order("sort_order").order("created_at", { ascending: false });
       if (storeError) console.error("Bazar stores could not load", storeError);
       const list = storeData || [];
@@ -85,13 +84,13 @@ const Wholesale = () => {
     const min = Number(filters.minPrice) || 0;
     const max = Number(filters.maxPrice) || Number.POSITIVE_INFINITY;
     const storeById = new Map(stores.map((store) => [store.id, store]));
-    return products.filter((p) => {
-      const price = p.wholesale_price ?? p.discount_price ?? p.price;
-      const variants = readVariants(p);
-      const sizes = variants.map((v) => v.size || v.label || v.name || "").filter(Boolean);
-      const colors = variants.map((v) => v.color || "").filter(Boolean);
-      return price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.nationwide || storeById.get(p.store_id)?.ships_nationwide) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase())));
-    }).sort((a, b) => {
+     return products.filter((p) => {
+       const price = p.wholesale_price ?? p.discount_price ?? p.price;
+       const variants = readVariants(p);
+       const sizes = variants.map((v) => v.size || v.label || v.name || "").filter(Boolean);
+       const colors = variants.map((v) => v.color || "").filter(Boolean);
+       return (!activeCategory || activeCategory === "All" || p.category === activeCategory) && price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.nationwide || storeById.get(p.store_id)?.ships_nationwide) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase())));
+     }).sort((a, b) => {
       const priceA = a.wholesale_price ?? a.discount_price ?? a.price; const priceB = b.wholesale_price ?? b.discount_price ?? b.price;
       if (filters.sort === "price-low") return priceA - priceB;
       if (filters.sort === "price-high") return priceB - priceA;
@@ -115,22 +114,27 @@ const Wholesale = () => {
     return { sizes: [...sizes].slice(0, 12), colors: [...colors].slice(0, 12) };
   }, [products]);
   const recentProducts = recent.map((id) => products.find((p) => p.id === id)).filter((p): p is (BazarProduct & { variants?: unknown }) => Boolean(p)).slice(0, 8);
-  const flashDeals = [...products].filter((p) => (p.wholesale_price ?? p.discount_price ?? p.price) < p.price).sort((a, b) => ((b.price - (b.wholesale_price ?? b.discount_price ?? b.price)) / b.price) - ((a.price - (a.wholesale_price ?? a.discount_price ?? a.price)) / a.price)).slice(0, 10);
+   const flashDeals = [...products].filter((p) => (p.wholesale_price ?? p.discount_price ?? p.price) < p.price).sort((a, b) => ((b.price - (b.wholesale_price ?? b.discount_price ?? b.price)) / b.price) - ((a.price - (a.wholesale_price ?? a.discount_price ?? a.price)) / a.price)).slice(0, 10);
+   const topRanked = [...products].sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0)).slice(0, 10);
+   const bestSelling = [...products].sort((a, b) => Number(b.sold_count || 0) - Number(a.sold_count || 0)).slice(0, 10);
 
   return <div className="theme-bazar min-h-screen bg-background pb-20">
     <Navbar />
-    <BazarHero searchQuery={searchQuery} onSearchChange={setSearchQuery} storeCount={filteredStores.length} />
+    <BazarHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-    {allCats.length > 0 && <section className="container mx-auto px-4 py-4"><div className="grid grid-cols-4 gap-2 rounded-xl border bg-card p-3 sm:grid-cols-8">
-      {allCats.slice(0, 8).map((cat: any) => { const Icon = (LucideIcons as any)[cat.icon] || Package; const isShop = cat.kind === "shop"; const isActive = isShop ? activeShopCategory === cat.name : activeCategory === cat.name; return <Button key={cat.id} variant="ghost" onClick={() => isShop ? setActiveShopCategory(isActive ? null : cat.name) : setActiveCategory(isActive ? null : cat.name)} className="h-auto flex-col gap-1.5 py-1.5 text-[10px] font-semibold"><span className={`grid size-11 place-items-center rounded-xl transition-colors ${isActive ? "bg-primary text-primary-foreground" : "bg-secondary text-primary"}`}><Icon className="size-5" /></span><span className="line-clamp-2 text-center">{cat.name_ur || cat.name}</span></Button>; })}
-    </div></section>}
+     {allCats.length > 0 && <section className="container mx-auto px-4 py-3"><div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+       <Button variant={!activeCategory && !activeShopCategory ? "default" : "outline"} onClick={() => { setActiveCategory(null); setActiveShopCategory(null); }} className="h-auto shrink-0 gap-1.5 rounded-xl px-3 py-2 text-[10px] font-bold">تمام</Button>
+       {allCats.map((cat: any) => { const Icon = (LucideIcons as any)[cat.icon] || Package; const isShop = cat.kind === "shop"; const isActive = isShop ? activeShopCategory === cat.name : activeCategory === cat.name; return <Button key={cat.id} variant={isActive ? "default" : "outline"} onClick={() => { if (isShop) { setActiveShopCategory(isActive ? null : cat.name); setActiveCategory(null); } else { setActiveCategory(isActive ? null : cat.name); setActiveShopCategory(null); } }} className="h-auto shrink-0 gap-1.5 rounded-xl px-2.5 py-2 text-[10px] font-semibold"><span className="grid size-7 place-items-center rounded-lg bg-accent"><Icon className="size-3.5" /></span><span>{cat.name_ur || cat.name}</span></Button>; })}
+     </div></section>}
 
     <BazarDeals />
-    {flashDeals.length > 0 && <section className="container mx-auto py-3"><div className="mb-2 flex items-center gap-2 px-4"><Zap className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">فلیش سیل</h2><span className="text-xs text-muted-foreground">Flash Sale</span></div><div className="no-scrollbar flex gap-3 overflow-x-auto px-4">{flashDeals.map((p) => <BazarProductCard key={p.id} product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div></section>}
+     {flashDeals.length > 0 && <section className="container mx-auto py-3"><div className="mb-2 flex items-center gap-2 px-4"><Zap className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">فلیش سیل</h2><span className="text-xs text-muted-foreground">Flash Sale</span></div><div className="no-scrollbar flex gap-3 overflow-x-auto px-4">{flashDeals.map((p) => <BazarProductCard key={p.id} product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div></section>}
+     {topRanked.length > 0 && <section className="container mx-auto py-3"><div className="mb-2 flex items-center gap-2 px-4"><Star className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">ٹاپ رینکنگ</h2><span className="text-xs text-muted-foreground">Top Rated</span></div><div className="no-scrollbar flex gap-3 overflow-x-auto px-4">{topRanked.map((p) => <BazarProductCard key={p.id} product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div></section>}
+     {bestSelling.length > 0 && <section className="container mx-auto py-3"><div className="mb-2 flex items-center gap-2 px-4"><Flame className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">سب سے زیادہ فروخت</h2><span className="text-xs text-muted-foreground">Best Selling</span></div><div className="no-scrollbar flex gap-3 overflow-x-auto px-4">{bestSelling.map((p) => <BazarProductCard key={p.id} product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div></section>}
 
-    <section className="container mx-auto py-4"><div className="mb-3 flex items-center justify-between px-4"><div className="flex items-center gap-2"><Store className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">تصدیق شدہ ہول سیلرز</h2></div><label className="flex items-center gap-1 text-[10px] text-muted-foreground"><MapPin className="size-3" /><select value={selectedCity || ""} onChange={(e) => setSelectedCity(e.target.value || null)} className="rounded-md border bg-card px-2 py-1 text-xs text-foreground outline-none"><option value="">تمام شہر</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label></div>
-      {loading ? <div className="px-4"><StoreGridSkeleton count={4} /></div> : <div className="no-scrollbar flex gap-3 overflow-x-auto px-4">{filteredStores.map((store) => <Button key={store.id} variant="ghost" onClick={() => navigate(`/bazar/${store.id}`)} className={`h-auto w-40 shrink-0 flex-col items-stretch overflow-hidden rounded-xl border bg-card p-0 text-left shadow-card ${!store.is_active ? "opacity-60 grayscale" : ""}`}><div className="relative grid h-24 place-items-center overflow-hidden bg-secondary">{store.image_url ? <img src={store.image_url} alt={store.name} loading="lazy" className="h-full w-full object-cover" /> : <Store className="size-8 text-muted-foreground" />}{store.ships_nationwide && <span className="absolute right-1.5 top-1.5 rounded-md bg-background/90 px-1.5 py-0.5 text-[9px] font-bold text-primary"><Truck className="mr-0.5 inline size-2.5" /> ملک بھر میں</span>}</div><div className="w-full p-2.5"><p className="truncate text-xs font-bold text-card-foreground">{store.name}</p><div className="mt-1 flex justify-between text-[10px] text-muted-foreground"><span>{store.rating ? <><Star className="mr-0.5 inline size-3 fill-primary text-primary" />{store.rating}</> : store.category}</span>{store.minimum_order ? <span className="font-bold text-destructive">Min {store.minimum_order}</span> : null}</div></div></Button>)}</div>}
-    </section>
+     <section className="container mx-auto py-4"><div className="mb-3 flex items-center justify-between px-4"><div className="flex items-center gap-2"><Store className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">تصدیق شدہ ہول سیلرز</h2></div><label className="flex items-center gap-1 text-[10px] text-muted-foreground"><MapPin className="size-3" /><select value={selectedCity || ""} onChange={(e) => setSelectedCity(e.target.value || null)} className="rounded-md border bg-card px-2 py-1 text-xs text-foreground outline-none"><option value="">تمام شہر</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label></div>
+       {loading ? <div className="px-4"><StoreGridSkeleton count={4} /></div> : <div className="no-scrollbar grid grid-cols-2 gap-3 px-4 sm:grid-cols-3 lg:grid-cols-4">{filteredStores.slice(0, 8).map((store) => <Button key={store.id} variant="ghost" onClick={() => navigate(`/bazar/${store.id}`)} className={`h-auto items-stretch overflow-hidden rounded-xl border bg-card p-0 text-left shadow-card ${!store.is_active ? "opacity-60 grayscale" : ""}`}><div className="relative grid h-20 place-items-center overflow-hidden bg-secondary">{store.image_url ? <img src={store.image_url} alt={store.name} loading="lazy" className="h-full w-full object-cover" /> : <Store className="size-7 text-muted-foreground" />}{store.ships_nationwide && <span className="absolute right-1.5 top-1.5 rounded-md bg-background/90 px-1.5 py-0.5 text-[9px] font-bold text-primary"><Truck className="mr-0.5 inline size-2.5" /> ملک بھر میں</span>}</div><div className="w-full p-2"><p className="truncate text-xs font-bold text-card-foreground">{store.name}</p><div className="mt-1 text-[10px] text-muted-foreground"><span>{store.rating ? <><Star className="mr-0.5 inline size-3 fill-primary text-primary" />{store.rating}</> : store.category}</span></div></div></Button>)}</div>}
+     </section>
 
     {recentProducts.length > 0 && <section className="container mx-auto py-3"><div className="mb-2 flex items-center gap-2 px-4"><Search className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">حال ہی میں دیکھے گئے</h2><span className="text-xs text-muted-foreground">Recently viewed</span></div><div className="no-scrollbar flex gap-3 overflow-x-auto px-4">{recentProducts.map((p) => <BazarProductCard key={p.id} product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div></section>}
 

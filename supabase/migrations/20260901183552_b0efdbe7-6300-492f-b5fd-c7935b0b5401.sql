@@ -1,0 +1,2 @@
+ALTER TABLE public.grocery_reviews ADD COLUMN IF NOT EXISTS photo_urls text[] NOT NULL DEFAULT '{}', ADD COLUMN IF NOT EXISTS video_url text;
+ALTER TABLE public.order_reviews ADD COLUMN IF NOT EXISTS photo_urls text[] NOT NULL DEFAULT '{}', ADD COLUMN IF NOT EXISTS video_url text;

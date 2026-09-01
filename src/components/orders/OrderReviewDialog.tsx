@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Star, Bike } from "lucide-react";
+import { Star, Bike, ImagePlus, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
@@ -43,6 +43,10 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [existing, setExisting] = useState<any>(null);
+  const [reviewPhotos, setReviewPhotos] = useState<File[]>([]);
+  const [reviewVideo, setReviewVideo] = useState<File | null>(null);
+  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
+  const [existingVideo, setExistingVideo] = useState<string | null>(null);
   const [riderRating, setRiderRating] = useState(0);
   const [riderComment, setRiderComment] = useState("");
   const [existingRider, setExistingRider] = useState<any>(null);
@@ -61,11 +65,15 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
       .maybeSingle()
       .then(({ data }: any) => {
         if (data) {
-          setExisting(data);
-          setRating(data.rating);
-          setComment(data.comment || "");
-        } else {
-          setExisting(null); setRating(0); setComment("");
+           setExisting(data);
+           setRating(data.rating);
+           setComment(data.comment || "");
+           setExistingPhotos(Array.isArray(data.photo_urls) ? data.photo_urls : []);
+           setExistingVideo(data.video_url || null);
+           setReviewPhotos([]);
+           setReviewVideo(null);
+         } else {
+           setExisting(null); setRating(0); setComment(""); setExistingPhotos([]); setExistingVideo(null); setReviewPhotos([]); setReviewVideo(null);
         }
       });
   }, [open, orderId, customerId, table]);
@@ -84,17 +92,37 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
       });
   }, [open, orderId, customerId, riderId]);
 
+  const uploadReviewFile = async (file: File, suffix: string) => {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+    const path = `reviews/${customerId}/${orderId}-${Date.now()}-${suffix}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file);
+    if (error) throw error;
+    return supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+  };
+
   const submit = async () => {
     if (rating === 0) { toast.error("پہلے ستارے دیں / Give a rating"); return; }
     setSubmitting(true);
     let error;
+    let photoUrls = existingPhotos;
+    let videoUrl = existingVideo;
+    try {
+      const uploadedPhotos = await Promise.all(reviewPhotos.map((file, index) => uploadReviewFile(file, `photo-${index}`)));
+      photoUrls = [...existingPhotos, ...uploadedPhotos];
+      if (reviewVideo) videoUrl = await uploadReviewFile(reviewVideo, "video");
+    } catch (uploadError: any) {
+      setSubmitting(false);
+      toast.error(uploadError?.message || "میڈیا اپلوڈ نہیں ہو سکا");
+      return;
+    }
+    const reviewData = { rating, comment: comment.trim() || null, photo_urls: photoUrls, video_url: videoUrl };
     if (existing) {
-      ({ error } = await supabase.from(table as any).update({ rating, comment: comment.trim() || null }).eq("id", existing.id));
+      ({ error } = await (supabase.from(table as any) as any).update(reviewData).eq("id", existing.id));
     } else {
       const payload: any = kind === "grocery"
-        ? { order_id: orderId, store_id: restaurantId, customer_id: customerId, rating, comment: comment.trim() || null }
-        : { order_id: orderId, restaurant_id: restaurantId, customer_id: customerId, rating, comment: comment.trim() || null };
-      ({ error } = await supabase.from(table as any).insert(payload));
+        ? { order_id: orderId, store_id: restaurantId, customer_id: customerId, ...reviewData }
+        : { order_id: orderId, restaurant_id: restaurantId, customer_id: customerId, ...reviewData };
+      ({ error } = await (supabase.from(table as any) as any).insert(payload));
     }
 
     if (!error && riderId && riderRating > 0) {
@@ -144,7 +172,12 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
           <p className="text-center text-sm text-muted-foreground">
             {rating === 0 ? "ستارے پر ٹیپ کریں" : rating <= 2 ? "😞 بہتری چاہیے" : rating <= 3 ? "😐 ٹھیک ہے" : rating <= 4 ? "😊 اچھا" : "🤩 بہترین!"}
           </p>
-          <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="اپنی رائے لکھیں (اختیاری)..." rows={3} maxLength={500} className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm resize-none" />
+           <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="اپنی رائے لکھیں (اختیاری)..." rows={3} maxLength={500} className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm resize-none" />
+           <div className="grid grid-cols-2 gap-2">
+             <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-secondary/30 px-2 py-3 text-xs font-bold text-muted-foreground"><ImagePlus className="size-4 text-primary" /> تصاویر {reviewPhotos.length > 0 && `(${reviewPhotos.length})`}<input type="file" accept="image/*" multiple className="hidden" onChange={(e) => setReviewPhotos(Array.from(e.target.files || []))} /></label>
+             <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-secondary/30 px-2 py-3 text-xs font-bold text-muted-foreground"><Video className="size-4 text-primary" /> ویڈیو {reviewVideo ? "منتخب" : "شامل کریں"}<input type="file" accept="video/*" className="hidden" onChange={(e) => setReviewVideo(e.target.files?.[0] || null)} /></label>
+           </div>
+           {(existingPhotos.length > 0 || existingVideo) && <p className="text-[10px] text-muted-foreground">آپ کا سابقہ میڈیا بھی اس ریویو کے ساتھ محفوظ ہے</p>}
 
           {riderId && (
             <div className="rounded-2xl border bg-secondary/20 p-3 space-y-2">

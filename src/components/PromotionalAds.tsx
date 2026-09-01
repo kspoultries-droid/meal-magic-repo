@@ -17,7 +17,7 @@ interface Ad {
 }
 
 interface PromotionalAdsProps {
-  placement: "home" | "grocery" | "restaurant" | "checkout";
+  placement: "home" | "grocery" | "restaurant" | "checkout" | "bazar";
   className?: string;
 }
 
@@ -27,20 +27,19 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
 
   useEffect(() => {
     const fetchAds = async () => {
-      // Home and restaurant are the same page, so fetch ads for both placements
       const placements = placement === "home" ? ["home", "restaurant", "services"] : [placement];
-      
-      // Fetch ads that match ANY of the placements
       const { data } = await supabase
         .from("promotional_ads")
-        .select("id, title, brand_name, image_url, link_url, sort_order, placements")
+        .select("id, title, brand_name, image_url, link_url, sort_order, placements, payment_status, start_date, end_date")
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
-      
-      // Filter client-side: ad must contain at least one of our target placements
-      const filtered = (data || []).filter(ad => 
-        (ad as any).placements?.some((p: string) => placements.includes(p))
-      );
+      const today = new Date().toISOString().slice(0, 10);
+      const filtered = (data || []).filter((ad: any) => {
+        const placementMatch = ad.placements?.some((p: string) => placements.includes(p));
+        const paidForBazar = placement !== "bazar" || ad.payment_status === "paid";
+        const inDateRange = placement !== "bazar" || (!ad.start_date || ad.start_date <= today) && (!ad.end_date || ad.end_date >= today);
+        return placementMatch && paidForBazar && inDateRange;
+      });
       setAds(filtered);
       setLoaded(true);
     };
@@ -59,7 +58,7 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
       >
         <CarouselContent className="-ml-2">
           {ads.map((ad) => (
-            <CarouselItem key={ad.id} className="pl-2 basis-full sm:basis-[48%] lg:basis-[33%]">
+            <CarouselItem key={ad.id} className="pl-2 basis-[92%] sm:basis-[48%] lg:basis-[33%]">
               <a
                 href={ad.link_url || "#"}
                 target={ad.link_url ? "_blank" : undefined}
