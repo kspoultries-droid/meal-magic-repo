@@ -19,6 +19,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [liked, setLiked] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState<string>("");
 
   useEffect(() => {
     if (!id) return;

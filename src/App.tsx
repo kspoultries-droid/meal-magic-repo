@@ -123,24 +123,37 @@ const RoutePrefetcher = () => {
         () => import("./pages/RestaurantDetail"),
         () => import("./pages/GroceryStoreDetail"),
         () => import("./pages/Wholesale"),
+        () => import("./pages/ProductDetail"),
         () => import("./pages/Services"),
         () => import("./pages/Reels"),
         () => import("./pages/SearchPage"),
         () => import("./pages/Checkout"),
         () => import("./pages/Profile"),
       ];
-      loaders.forEach((l, i) => setTimeout(() => l().catch(() => {}), i * 250));
+      loaders.forEach((l, i) => setTimeout(() => l().catch(() => {}), i * 200));
     };
     const ric = (window as any).requestIdleCallback;
     if (typeof ric === "function") {
-      const id = ric(warm, { timeout: 3000 });
+      const id = ric(warm, { timeout: 2500 });
       return () => (window as any).cancelIdleCallback?.(id);
     }
-    const t = setTimeout(warm, 1500);
+    const t = setTimeout(warm, 1000);
     return () => clearTimeout(t);
   }, []);
   return null;
 };
+
+const RouteLoading = () => (
+  <div className="min-h-screen bg-background px-4 py-6" aria-live="polite" aria-label="صفحہ لوڈ ہو رہا ہے">
+    <div className="mx-auto max-w-5xl space-y-4">
+      <div className="h-14 rounded-2xl bg-muted animate-pulse" />
+      <div className="h-36 rounded-3xl bg-muted animate-pulse" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => <div key={index} className="aspect-square rounded-2xl bg-muted animate-pulse" />)}
+      </div>
+    </div>
+  </div>
+);
 
 
 const App = () => (
@@ -156,7 +169,7 @@ const App = () => (
               <RoutePrefetcher />
               <CartDrawer />
               <FloatingCartBar />
-              <Suspense fallback={<div className="min-h-screen bg-background" />}>
+              <Suspense fallback={<RouteLoading />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
