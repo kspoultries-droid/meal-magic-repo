@@ -139,7 +139,17 @@ const ProductDetail = () => {
                 </div>
                 <div className="rounded-2xl border border-border bg-card p-4">
                   <h2 className="text-sm font-extrabold text-foreground">اس پروڈکٹ کے بارے میں</h2>
-                  <p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted-foreground">{product.description || "اس پروڈکٹ کی تفصیلی معلومات جلد شامل کی جائیں گی۔"}</p>
+                  {product.description ? (
+                    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted-foreground">{product.description}</p>
+                  ) : (
+                    <ul className="mt-2 space-y-1.5 text-sm leading-7 text-muted-foreground">
+                      <li>{product.name}{product.brand ? ` — ${product.brand}` : ""}</li>
+                      {product.weight && <li>وزن / سائز: {product.weight}</li>}
+                      {product.unit && <li>یونٹ: فی {product.unit}</li>}
+                      <li>قیمت: Rs. {effectivePrice.toLocaleString()}{product.min_order_qty > 1 ? ` · کم از کم ${product.min_order_qty} عدد` : ""}</li>
+                      <li>{store.name} سے تصدیق شدہ، محفوظ پیکنگ کے ساتھ ڈیلیوری۔</li>
+                    </ul>
+                  )}
                   {Array.isArray(product.tags) && product.tags.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{product.tags.map((tag: string) => <span key={tag} className="rounded-full bg-accent px-3 py-1 text-[10px] font-bold text-accent-foreground">{tag}</span>)}</div>}
                 </div>
               </>
