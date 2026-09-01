@@ -696,11 +696,13 @@ export type Database = {
           customer_id: string
           id: string
           order_id: string
+          photo_urls: string[]
           rating: number
           replied_at: string | null
           reply: string | null
           store_id: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           comment?: string | null
@@ -708,11 +710,13 @@ export type Database = {
           customer_id: string
           id?: string
           order_id: string
+          photo_urls?: string[]
           rating: number
           replied_at?: string | null
           reply?: string | null
           store_id: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           comment?: string | null
@@ -720,11 +724,13 @@ export type Database = {
           customer_id?: string
           id?: string
           order_id?: string
+          photo_urls?: string[]
           rating?: number
           replied_at?: string | null
           reply?: string | null
           store_id?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
@@ -1029,11 +1035,13 @@ export type Database = {
           customer_id: string
           id: string
           order_id: string
+          photo_urls: string[]
           rating: number
           replied_at: string | null
           reply: string | null
           restaurant_id: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           comment?: string | null
@@ -1041,11 +1049,13 @@ export type Database = {
           customer_id: string
           id?: string
           order_id: string
+          photo_urls?: string[]
           rating: number
           replied_at?: string | null
           reply?: string | null
           restaurant_id: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           comment?: string | null
@@ -1053,11 +1063,13 @@ export type Database = {
           customer_id?: string
           id?: string
           order_id?: string
+          photo_urls?: string[]
           rating?: number
           replied_at?: string | null
           reply?: string | null
           restaurant_id?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
