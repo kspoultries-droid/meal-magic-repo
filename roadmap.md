@@ -5,4 +5,5 @@
 - [x] Dispatch status labels and retry control
 - [x] Rider day-wise history and collapsed completed orders
 - [x] Admin realtime remittance alerts and pending badges
+- [x] Premium product detail, related products, account tiles, and cart upgrades
 - [x] Tests and runtime smoke check

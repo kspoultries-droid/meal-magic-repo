@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +20,7 @@ const GROCERY_CATEGORIES = [
 
 const StandaloneStore = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { items: cartItems, addItem, updateQuantity } = useCart();
   const [store, setStore] = useState<any>(null);
@@ -82,6 +83,8 @@ const StandaloneStore = () => {
       restaurant: store?.name || "Grocery",
       price: effectivePrice,
       image: product.image_url || "",
+      source: "grocery",
+      sourceId: store?.id,
     });
   };
 
@@ -279,12 +282,16 @@ const StandaloneStore = () => {
                           غیر فعال
                         </div>
                       )}
-                      <div className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
-                        )}
+                        <div
+                          className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
+                          onClick={() => { if (!isOwner) navigate(`/product/${product.id}`); }}
+                        >
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
+                          )}
+                          {!isOwner && product.rating > 0 && <span className="absolute bottom-1 left-1 rounded-md bg-foreground/70 px-1.5 py-0.5 text-[9px] font-bold text-background">★ {Number(product.rating).toFixed(1)}</span>}
                         {isOwner && (
                           <div className="absolute bottom-1 right-1 flex gap-1">
                             <label className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md">
@@ -304,9 +311,11 @@ const StandaloneStore = () => {
                           </div>
                         )}
                       </div>
-                      <div className="p-3">
-                        <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
-                        {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
+                       <div className="p-3">
+                         <button type="button" className="block max-w-full text-left" onClick={() => !isOwner && navigate(`/product/${product.id}`)}>
+                           <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
+                           {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
+                         </button>
 
                         {isEditing ? (
                           <div className="mt-2 space-y-1.5">

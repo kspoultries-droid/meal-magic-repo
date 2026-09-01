@@ -8,6 +8,7 @@ export interface BazarProduct {
   discount_price: number | null;
   wholesale_price: number | null;
   image_url: string | null;
+  images?: string[];
   unit: string | null;
   min_order_qty: number | null;
   storeName?: string;
