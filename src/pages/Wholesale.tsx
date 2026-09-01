@@ -57,7 +57,8 @@ const Wholesale = () => {
     if (!ids.length) return [] as (BazarProduct & { variants?: unknown })[];
     let query: any = supabase.from("grocery_products").select("id, store_id, name, price, discount_price, wholesale_price, image_url, images, unit, min_order_qty, is_available, rating, category, variants").in("store_id", ids).eq("is_available", true).order("sort_order", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).order("id", { ascending: true }).range(from, from + PAGE_SIZE - 1);
     if (searchQuery.trim()) query = query.ilike("name", `%${searchQuery.trim()}%`);
-    const { data } = await query;
+    const { data, error } = await query;
+    if (error) console.error("Bazar products could not load", error);
     const nameById = new Map(list.map((s) => [s.id, s.name]));
     return (data || []).map((p: any) => ({ ...p, storeName: nameById.get(p.store_id) }));
   };
@@ -69,7 +70,8 @@ const Wholesale = () => {
       if (selectedCity) query = query.eq("city_id", selectedCity);
       if (activeCategory && activeCategory !== "All") query = query.eq("category", activeCategory);
       if (activeShopCategory) query = query.eq("shop_category", activeShopCategory);
-      const { data: storeData } = await query.order("sort_order").order("created_at", { ascending: false });
+      const { data: storeData, error: storeError } = await query.order("sort_order").order("created_at", { ascending: false });
+      if (storeError) console.error("Bazar stores could not load", storeError);
       const list = storeData || [];
       setStores(list);
       const page = await fetchProductPage(list, 0);
