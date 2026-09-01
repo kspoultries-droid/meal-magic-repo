@@ -242,7 +242,10 @@ const GroceryStoreDetail = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3 pt-3">
                 {filtered.map((product, idx) => {
-                  const cartLine = getCartLine(product.id);
+                  const productVariants = getVariants(product);
+                  const selectedKey = selectedVariants[product.id] || (productVariants[0] ? variantKey(productVariants[0], 0) : null);
+                  const selectedVariant = productVariants.find((variant: any, index: number) => variantKey(variant, index) === selectedKey);
+                  const cartLine = getCartLine(product.id, selectedVariant?.id || selectedVariant?.label || null);
                   const qty = cartLine?.quantity || 0;
                   const isEditing = editingId === product.id;
                   return (
