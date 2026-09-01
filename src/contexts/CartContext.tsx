@@ -9,6 +9,11 @@ export interface CartItemOption {
   price_delta: number;
 }
 
+export interface CartVoucher {
+  code: string;
+  discount: number;
+}
+
 export interface CartItem {
   id: string; // composite line id: menu_item_id[|variant_id][|choice_ids]
   menu_item_id: string;
@@ -39,6 +44,8 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  voucher: CartVoucher | null;
+  setVoucher: (voucher: CartVoucher | null) => void;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
 }
@@ -53,6 +60,7 @@ const buildLineId = (item: AddItemInput) => {
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const addItem = useCallback((raw: AddItemInput) => {
@@ -100,13 +108,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => {
+    setItems([]);
+    setVoucher(null);
+  }, []);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, isOpen, setIsOpen }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, voucher, setVoucher, isOpen, setIsOpen }}>
       {children}
     </CartContext.Provider>
   );

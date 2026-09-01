@@ -19,6 +19,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [liked, setLiked] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState<string>("");
 
   useEffect(() => {
     if (!id) return;
@@ -47,22 +48,35 @@ const ProductDetail = () => {
     const extra = Array.isArray(product?.images) ? product.images : [];
     return Array.from(new Set([product?.image_url, ...extra].filter(Boolean)));
   }, [product]);
-  const effectivePrice = product?.wholesale_price ?? product?.discount_price ?? product?.price ?? 0;
+  const variants = useMemo(() => {
+    if (!Array.isArray(product?.variants)) return [];
+    return product.variants.filter((variant: any) => variant && (variant.label || variant.name));
+  }, [product]);
+  const selectedVariant = variants.find((variant: any) => String(variant.id || variant.label) === selectedVariantId);
+  const basePrice = Number(product?.wholesale_price ?? product?.discount_price ?? product?.price ?? 0);
+  const effectivePrice = Math.max(0, basePrice + Number(selectedVariant?.price_delta || 0));
   const hasDiscount = effectivePrice < (product?.price ?? 0);
   const discount = hasDiscount ? Math.round(((product.price - effectivePrice) / product.price) * 100) : 0;
-  const cartLine = items.find((item) => item.menu_item_id === id && item.sourceId === product?.store_id);
+  const cartLine = items.find((item) => item.menu_item_id === id && item.sourceId === product?.store_id && (item.variant_id || null) === (selectedVariant?.id || null));
   const quantity = cartLine?.quantity || 0;
+
+  useEffect(() => {
+    setSelectedVariantId(variants[0] ? String(variants[0].id || variants[0].label) : "");
+  }, [product?.id, variants]);
 
   const addToCart = () => {
     if (!product || !store) return;
+    const variantLabel = selectedVariant?.label || selectedVariant?.name;
     addItem({
       id: product.id,
-      name: product.name,
+      name: variantLabel ? `${product.name} — ${variantLabel}` : product.name,
       restaurant: store.name,
       price: effectivePrice,
       image: product.image_url || images[0] || "",
       source: "grocery",
       sourceId: store.id,
+      variant_id: selectedVariant?.id || null,
+      variant_label: variantLabel || null,
     });
   };
 
@@ -71,7 +85,15 @@ const ProductDetail = () => {
     navigate("/checkout");
   };
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-background px-4 py-5" aria-live="polite" aria-label="پروڈکٹ لوڈ ہو رہی ہے">
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="h-14 rounded-2xl bg-muted animate-pulse" />
+        <div className="aspect-square max-h-[430px] rounded-3xl bg-muted animate-pulse" />
+        <div className="space-y-3"><div className="h-7 w-2/3 rounded-lg bg-muted animate-pulse" /><div className="h-5 w-1/3 rounded-lg bg-muted animate-pulse" /><div className="h-24 rounded-2xl bg-muted animate-pulse" /></div>
+      </div>
+    </div>
+  );
   if (!product || !store) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3"><p className="text-muted-foreground">پروڈکٹ نہیں ملی</p><Button onClick={() => navigate(-1)}>واپس جائیں</Button></div>;
 
   return (
@@ -106,11 +128,24 @@ const ProductDetail = () => {
               {hasDiscount && <span className="text-sm text-muted-foreground line-through">Rs. {Number(product.price).toLocaleString()}</span>}
             </div>
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">کم از کم آرڈر: {product.min_order_qty} عدد</p>}
-            {Array.isArray(product.variants) && product.variants.length > 0 && (
+            {variants.length > 0 && (
               <div className="mt-4">
-                <p className="mb-2 text-xs font-extrabold text-foreground">آپشن منتخب کریں</p>
-                <div className="flex flex-wrap gap-2">
-                  {product.variants.map((variant: any, index: number) => <span key={variant.id || index} className="rounded-xl border border-primary/30 bg-accent px-3 py-2 text-xs font-bold text-accent-foreground">{variant.name || variant.label || String(variant)}</span>)}
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-xs font-extrabold text-foreground">سائز منتخب کریں</p>
+                  <span className="text-[10px] font-bold text-primary">لازمی</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {variants.map((variant: any, index: number) => {
+                    const variantId = String(variant.id || variant.label || index);
+                    const label = variant.label || variant.name || String(variant);
+                    const active = selectedVariantId === variantId;
+                    return (
+                      <button key={variantId} type="button" onClick={() => setSelectedVariantId(variantId)} className={`rounded-xl border-2 px-3 py-2 text-xs font-bold transition-colors ${active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card text-foreground"}`} aria-pressed={active}>
+                        <span className="block truncate">{label}</span>
+                        {Number(variant.price_delta || 0) !== 0 && <span className="mt-0.5 block text-[10px] text-muted-foreground">{Number(variant.price_delta) > 0 ? "+" : ""}Rs {variant.price_delta}</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

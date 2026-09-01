@@ -70,15 +70,20 @@ const GroceryStoreDetail = () => {
     cartItems.find((i) => i.menu_item_id === productId || i.id === productId);
 
   const handleAdd = (product: any) => {
-    const effectivePrice = product.discount_price || product.price;
+    const effectivePrice = product.wholesale_price || product.discount_price || product.price;
+    const variants = Array.isArray(product.variants) ? product.variants.filter((variant: any) => variant && (variant.label || variant.name)) : [];
+    const variant = variants[0];
+    const variantLabel = variant?.label || variant?.name;
     addItem({
       id: product.id,
-      name: product.name,
+      name: variantLabel ? `${product.name} — ${variantLabel}` : product.name,
       restaurant: store?.name || "Grocery",
-      price: effectivePrice,
+      price: effectivePrice + Number(variant?.price_delta || 0),
       image: product.image_url || "",
       source: "grocery",
       sourceId: id,
+      variant_id: variant?.id || null,
+      variant_label: variantLabel || null,
     });
   };
 
@@ -308,9 +313,9 @@ const GroceryStoreDetail = () => {
                         ) : (
                           <div className="flex items-center justify-between mt-2">
                             <div>
-                              {product.discount_price ? (
+                              {product.wholesale_price || product.discount_price ? (
                                 <>
-                                  <span className="text-sm font-extrabold text-destructive">Rs {product.discount_price}</span>
+                                  <span className="text-sm font-extrabold text-destructive">Rs {product.wholesale_price || product.discount_price}</span>
                                   <span className="text-xs text-muted-foreground line-through ml-1">Rs {product.price}</span>
                                 </>
                               ) : (

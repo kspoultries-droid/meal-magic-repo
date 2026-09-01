@@ -22,6 +22,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
+  const [walletBalance, setWalletBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone: "", address: "", email: "" });
@@ -59,6 +60,7 @@ const Profile = () => {
         { data: ownedStores },
         { data: serviceProvider },
         { data: riderProfile },
+        { data: walletData },
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("orders").select("*, order_items(*)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
@@ -67,6 +69,7 @@ const Profile = () => {
         supabase.from("grocery_stores").select("id,name,store_type,is_active").eq("owner_id", user.id).order("created_at", { ascending: false }),
         supabase.from("service_providers").select("id,name,is_available,is_active").eq("user_id", user.id).maybeSingle(),
         supabase.from("riders").select("id,is_available").eq("id", user.id).maybeSingle(),
+        supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
       ]);
       if (profileError) console.error("Profile load error:", profileError);
       const nextProfile = prof || fallbackProfile;
@@ -79,6 +82,7 @@ const Profile = () => {
         serviceProvider: serviceProvider || null,
         rider: riderProfile || null,
       });
+      setWalletBalance(Number((walletData as any)?.balance || 0));
       setForm({
         full_name: nextProfile.full_name || "",
         phone: nextProfile.phone || "",
