@@ -38,6 +38,8 @@ const GroceryStoreDetail = () => {
   const [editPrice, setEditPrice] = useState("");
   const [editDiscount, setEditDiscount] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg", discount_price: "", description: "", image_url: "" });
 
@@ -66,13 +68,19 @@ const GroceryStoreDetail = () => {
   const categories = ["All", "🔥 Special Offers", ...Array.from(new Set(products.map((p) => p.category || "General")))];
   const filtered = activeCategory === "All" ? products : activeCategory === "🔥 Special Offers" ? products.filter((p) => p.is_special_offer) : products.filter((p) => p.category === activeCategory);
 
-  const getCartLine = (productId: string) =>
-    cartItems.find((i) => i.menu_item_id === productId || i.id === productId);
+  const getVariants = (product: any) =>
+    Array.isArray(product.variants) ? product.variants.filter((variant: any) => variant && (variant.label || variant.name)) : [];
+
+  const variantKey = (variant: any, index: number) => String(variant.id || variant.label || variant.name || index);
+
+  const getCartLine = (productId: string, variantId?: string | null) =>
+    cartItems.find((item) => item.menu_item_id === productId && (item.variant_id || null) === (variantId || null));
 
   const handleAdd = (product: any) => {
     const effectivePrice = product.wholesale_price || product.discount_price || product.price;
-    const variants = Array.isArray(product.variants) ? product.variants.filter((variant: any) => variant && (variant.label || variant.name)) : [];
-    const variant = variants[0];
+    const variants = getVariants(product);
+    const selectedKey = selectedVariants[product.id];
+    const variant = variants.find((value: any, index: number) => variantKey(value, index) === selectedKey) || variants[0];
     const variantLabel = variant?.label || variant?.name;
     addItem({
       id: product.id,
@@ -82,10 +90,11 @@ const GroceryStoreDetail = () => {
       image: product.image_url || "",
       source: "grocery",
       sourceId: id,
-      variant_id: variant?.id || null,
+      variant_id: variant?.id || variantLabel || null,
       variant_label: variantLabel || null,
     });
   };
+
 
   // Owner functions
   const startEdit = (product: any) => {
@@ -233,7 +242,10 @@ const GroceryStoreDetail = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3 pt-3">
                 {filtered.map((product, idx) => {
-                  const cartLine = getCartLine(product.id);
+                  const productVariants = getVariants(product);
+                  const selectedKey = selectedVariants[product.id] || (productVariants[0] ? variantKey(productVariants[0], 0) : null);
+                  const selectedVariant = productVariants.find((variant: any, index: number) => variantKey(variant, index) === selectedKey);
+                  const cartLine = getCartLine(product.id, selectedVariant?.id || selectedVariant?.label || null);
                   const qty = cartLine?.quantity || 0;
                   const isEditing = editingId === product.id;
                   return (
@@ -286,6 +298,32 @@ const GroceryStoreDetail = () => {
                            <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
                            {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
                          </button>
+
+                        {!isOwner && getVariants(product).length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-[10px] font-bold text-muted-foreground">سائز منتخب کریں</p>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {getVariants(product).map((variant: any, index: number) => {
+                                const key = variantKey(variant, index);
+                                const active = (selectedVariants[product.id] || variantKey(getVariants(product)[0], 0)) === key;
+                                return (
+                                  <button
+                                    key={key}
+                                    type="button"
+                                    aria-pressed={active}
+                                    onClick={() => setSelectedVariants((prev) => ({ ...prev, [product.id]: key }))}
+                                    className={`rounded-lg border px-2 py-1 text-[10px] font-bold transition-colors ${active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card text-muted-foreground"}`}
+                                  >
+                                    {variant.label || variant.name}
+                                    {Number(variant.price_delta || 0) !== 0 && <span className="ms-1 text-[9px]">{Number(variant.price_delta) > 0 ? "+" : ""}{variant.price_delta}</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+
 
                         {isEditing ? (
                           <div className="mt-2 space-y-1.5">
