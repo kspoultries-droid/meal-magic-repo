@@ -82,6 +82,7 @@ const Profile = () => {
         serviceProvider: serviceProvider || null,
         rider: riderProfile || null,
       });
+      setWalletBalance(Number((walletData as any)?.balance || 0));
       setForm({
         full_name: nextProfile.full_name || "",
         phone: nextProfile.phone || "",
