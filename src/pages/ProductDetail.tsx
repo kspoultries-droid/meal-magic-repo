@@ -106,6 +106,14 @@ const ProductDetail = () => {
               {hasDiscount && <span className="text-sm text-muted-foreground line-through">Rs. {Number(product.price).toLocaleString()}</span>}
             </div>
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">کم از کم آرڈر: {product.min_order_qty} عدد</p>}
+            {Array.isArray(product.variants) && product.variants.length > 0 && (
+              <div className="mt-4">
+                <p className="mb-2 text-xs font-extrabold text-foreground">آپشن منتخب کریں</p>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.map((variant: any, index: number) => <span key={variant.id || index} className="rounded-xl border border-primary/30 bg-accent px-3 py-2 text-xs font-bold text-accent-foreground">{variant.name || variant.label || String(variant)}</span>)}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -141,11 +149,13 @@ const ProductDetail = () => {
           </section>
         )}
 
-        <section className="mx-4 mt-3 rounded-2xl border border-border bg-card p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary"><Store className="h-5 w-5" /></div>
-            <div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-foreground">{store.name}</p><p className="text-xs text-muted-foreground">{store.rating ? `★ ${store.rating}` : "نئی دکان"} · تصدیق شدہ شاپ</p></div>
-            <Button variant="outline" size="sm" onClick={() => navigate(`/bazar/${store.id}`)}>دکان دیکھیں <ChevronRight className="ms-1 h-3 w-3" /></Button>
+        <section className="mx-4 mt-3 space-y-3">
+          <div className="rounded-2xl border border-primary/20 bg-accent/50 p-4">
+            <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Truck className="h-5 w-5" /></div><div><p className="text-sm font-extrabold text-foreground">ڈیلیوری کا طریقہ</p><p className="text-xs text-muted-foreground">{store.ships_nationwide ? "ملک بھر میں کورئیر دستیاب" : "مقامی رائیڈر کے ذریعے محفوظ ڈیلیوری"}</p></div></div>
+            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-accent-foreground"><span className="rounded-full bg-background px-3 py-1.5">{product.delivery_days || "1–3 دن"}</span><span className="rounded-full bg-background px-3 py-1.5">محفوظ پیکنگ</span><span className="rounded-full bg-background px-3 py-1.5">آرڈر ٹریکنگ</span></div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary"><Store className="h-5 w-5" /></div><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-foreground">{store.name}</p><p className="text-xs text-muted-foreground">{store.rating ? `★ ${store.rating}` : "نئی دکان"} · تصدیق شدہ شاپ</p></div><Button variant="outline" size="sm" onClick={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)}>دکان دیکھیں <ChevronRight className="ms-1 h-3 w-3" /></Button></div>
           </div>
         </section>
 

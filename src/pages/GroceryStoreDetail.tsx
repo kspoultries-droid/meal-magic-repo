@@ -246,11 +246,12 @@ const GroceryStoreDetail = () => {
                          className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
                          onClick={() => !isOwner && navigate(`/product/${product.id}`)}
                        >
-                         {product.image_url ? (
-                           <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                         ) : (
-                           <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
-                         )}
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
+                          )}
+                          {!isOwner && product.rating > 0 && <span className="absolute bottom-1 left-1 rounded-md bg-foreground/70 px-1.5 py-0.5 text-[9px] font-bold text-background">★ {Number(product.rating).toFixed(1)}</span>}
                          {isOwner && (
                           <div className="absolute bottom-1 right-1 flex gap-1">
                             <label className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md" title="کیمرہ / Camera">
