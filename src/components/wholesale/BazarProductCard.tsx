@@ -14,6 +14,7 @@ export interface BazarProduct {
   min_order_qty: number | null;
   rating?: number | null;
   category?: string | null;
+  sold_count?: number | null;
   storeName?: string;
 }
 

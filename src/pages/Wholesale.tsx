@@ -55,7 +55,7 @@ const Wholesale = () => {
   const fetchProductPage = async (list: StoreRow[], from: number) => {
     const ids = list.map((s) => s.id);
     if (!ids.length) return [] as (BazarProduct & { variants?: unknown })[];
-    let query: any = supabase.from("grocery_products").select("id, store_id, name, price, discount_price, wholesale_price, image_url, images, unit, min_order_qty, is_available, rating, category, variants").in("store_id", ids).eq("is_available", true).order("sort_order", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).order("id", { ascending: true }).range(from, from + PAGE_SIZE - 1);
+    let query: any = supabase.from("grocery_products").select("id, store_id, name, price, discount_price, wholesale_price, image_url, images, unit, min_order_qty, is_available, rating, sold_count, category, variants").in("store_id", ids).eq("is_available", true).order("sort_order", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).order("id", { ascending: true }).range(from, from + PAGE_SIZE - 1);
     if (searchQuery.trim()) query = query.ilike("name", `%${searchQuery.trim()}%`);
     const { data, error } = await query;
     if (error) console.error("Bazar products could not load", error);
