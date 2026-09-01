@@ -14,6 +14,7 @@ import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 import CustomerGroceryHistory from "@/components/grocery/CustomerGroceryHistory";
+import AccountTile from "@/components/profile/AccountTile";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
