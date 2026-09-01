@@ -47,13 +47,14 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
         <div className={`min-w-0 space-y-1 ${list ? "flex-1 py-1" : "p-2.5"}`}>
           <p className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{product.name}</p>
           <div className="flex items-end justify-between gap-1">
-            <div><p className="font-display text-base font-bold text-primary">Rs {effective.toLocaleString()}</p>{hasDiscount && <p className="text-[10px] text-muted-foreground line-through">Rs {product.price.toLocaleString()}</p>}</div>
-            {product.rating && <span className="flex items-center gap-0.5 text-[10px] font-semibold text-muted-foreground"><Star className="size-3 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
-          </div>
-          <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground">
-            <span className="truncate">{product.storeName || product.unit || "خریداری کریں"}</span>
-            {!!product.min_order_qty && product.min_order_qty > 1 && <span className="shrink-0 font-semibold text-destructive">MOQ {product.min_order_qty}</span>}
-          </div>
+             <div><p className="font-display text-base font-bold text-primary">Rs {effective.toLocaleString()}</p>{hasDiscount && <p className="text-[10px] text-muted-foreground line-through">Rs {product.price.toLocaleString()}</p>}</div>
+             {product.rating && <span className="flex items-center gap-0.5 text-[10px] font-semibold text-muted-foreground"><Star className="size-3 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
+           </div>
+           <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground">
+             <span className="truncate">{product.storeName || product.unit || "خریداری کریں"}</span>
+             {!!product.min_order_qty && product.min_order_qty > 1 && <span className="shrink-0 font-semibold text-destructive">MOQ {product.min_order_qty}</span>}
+           </div>
+           {!!product.sold_count && product.sold_count > 0 && <p className="text-[9px] font-semibold text-muted-foreground">{product.sold_count.toLocaleString()} فروخت</p>}
         </div>
       </button>
     </article>
