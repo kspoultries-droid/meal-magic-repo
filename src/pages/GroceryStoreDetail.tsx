@@ -68,19 +68,19 @@ const GroceryStoreDetail = () => {
   const categories = ["All", "🔥 Special Offers", ...Array.from(new Set(products.map((p) => p.category || "General")))];
   const filtered = activeCategory === "All" ? products : activeCategory === "🔥 Special Offers" ? products.filter((p) => p.is_special_offer) : products.filter((p) => p.category === activeCategory);
 
-  const getCartLine = (productId: string) =>
-    cartItems.find((i) => i.menu_item_id === productId || i.id === productId);
-
   const getVariants = (product: any) =>
     Array.isArray(product.variants) ? product.variants.filter((variant: any) => variant && (variant.label || variant.name)) : [];
 
   const variantKey = (variant: any, index: number) => String(variant.id || variant.label || variant.name || index);
 
+  const getCartLine = (productId: string, variantId?: string | null) =>
+    cartItems.find((item) => item.menu_item_id === productId && (item.variant_id || null) === (variantId || null));
+
   const handleAdd = (product: any) => {
     const effectivePrice = product.wholesale_price || product.discount_price || product.price;
     const variants = getVariants(product);
     const selectedKey = selectedVariants[product.id];
-    const variant = variants.find((v: any, i: number) => variantKey(v, i) === selectedKey) || variants[0];
+    const variant = variants.find((value: any, index: number) => variantKey(value, index) === selectedKey) || variants[0];
     const variantLabel = variant?.label || variant?.name;
     addItem({
       id: product.id,
