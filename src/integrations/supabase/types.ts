@@ -355,6 +355,178 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_quotes: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          distance_km: number
+          id: string
+          mode: string
+          note: string | null
+          order_id: string | null
+          order_kind: string
+          status: string
+          store_id: string | null
+          updated_at: string
+          vehicle_type_id: string | null
+          weight_kg: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          distance_km?: number
+          id?: string
+          mode?: string
+          note?: string | null
+          order_id?: string | null
+          order_kind?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          vehicle_type_id?: string | null
+          weight_kg?: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          distance_km?: number
+          id?: string
+          mode?: string
+          note?: string | null
+          order_id?: string | null
+          order_kind?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          vehicle_type_id?: string | null
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_quotes_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_rate_cards: {
+        Row: {
+          base_fee: number
+          city_id: string | null
+          created_at: string
+          free_above_amount: number | null
+          free_km: number
+          id: string
+          is_active: boolean
+          label: string | null
+          max_fee: number | null
+          max_weight_kg: number | null
+          min_fee: number
+          mode: string
+          per_km: number
+          sort_order: number
+          updated_at: string
+          vehicle_type_id: string | null
+        }
+        Insert: {
+          base_fee?: number
+          city_id?: string | null
+          created_at?: string
+          free_above_amount?: number | null
+          free_km?: number
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          max_fee?: number | null
+          max_weight_kg?: number | null
+          min_fee?: number
+          mode: string
+          per_km?: number
+          sort_order?: number
+          updated_at?: string
+          vehicle_type_id?: string | null
+        }
+        Update: {
+          base_fee?: number
+          city_id?: string | null
+          created_at?: string
+          free_above_amount?: number | null
+          free_km?: number
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          max_fee?: number | null
+          max_weight_kg?: number | null
+          min_fee?: number
+          mode?: string
+          per_km?: number
+          sort_order?: number
+          updated_at?: string
+          vehicle_type_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_rate_cards_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_rate_cards_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_weight_slabs: {
+        Row: {
+          created_at: string
+          extra_fee: number
+          id: string
+          max_kg: number | null
+          min_kg: number
+          per_kg_fee: number
+          rate_card_id: string
+        }
+        Insert: {
+          created_at?: string
+          extra_fee?: number
+          id?: string
+          max_kg?: number | null
+          min_kg?: number
+          per_kg_fee?: number
+          rate_card_id: string
+        }
+        Update: {
+          created_at?: string
+          extra_fee?: number
+          id?: string
+          max_kg?: number | null
+          min_kg?: number
+          per_kg_fee?: number
+          rate_card_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_weight_slabs_rate_card_id_fkey"
+            columns: ["rate_card_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_rate_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_tokens: {
         Row: {
           created_at: string
@@ -384,6 +556,7 @@ export type Database = {
       }
       grocery_cart_orders: {
         Row: {
+          billable_weight_kg: number
           city_id: string | null
           courier_name: string | null
           courier_payment_type: string
@@ -397,8 +570,11 @@ export type Database = {
           delivery_lat: number | null
           delivery_lng: number | null
           delivery_method: string
+          delivery_mode_calc: string | null
           discount_amount: number
           dispatch_state: string
+          distance_km: number
+          fee_breakdown: Json
           id: string
           is_gift: boolean | null
           items: Json
@@ -415,9 +591,11 @@ export type Database = {
           total_amount: number
           tracking_number: string | null
           updated_at: string
+          vehicle_type_id: string | null
           voucher_code: string | null
         }
         Insert: {
+          billable_weight_kg?: number
           city_id?: string | null
           courier_name?: string | null
           courier_payment_type?: string
@@ -431,8 +609,11 @@ export type Database = {
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
+          delivery_mode_calc?: string | null
           discount_amount?: number
           dispatch_state?: string
+          distance_km?: number
+          fee_breakdown?: Json
           id?: string
           is_gift?: boolean | null
           items?: Json
@@ -449,9 +630,11 @@ export type Database = {
           total_amount?: number
           tracking_number?: string | null
           updated_at?: string
+          vehicle_type_id?: string | null
           voucher_code?: string | null
         }
         Update: {
+          billable_weight_kg?: number
           city_id?: string | null
           courier_name?: string | null
           courier_payment_type?: string
@@ -465,8 +648,11 @@ export type Database = {
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
+          delivery_mode_calc?: string | null
           discount_amount?: number
           dispatch_state?: string
+          distance_km?: number
+          fee_breakdown?: Json
           id?: string
           is_gift?: boolean | null
           items?: Json
@@ -483,6 +669,7 @@ export type Database = {
           total_amount?: number
           tracking_number?: string | null
           updated_at?: string
+          vehicle_type_id?: string | null
           voucher_code?: string | null
         }
         Relationships: [
@@ -498,6 +685,13 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grocery_cart_orders_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
             referencedColumns: ["id"]
           },
         ]
@@ -607,6 +801,7 @@ export type Database = {
           name: string
           price: number
           rating: number
+          shipping_class: string
           sku: string | null
           sold_count: number
           sort_order: number | null
@@ -617,6 +812,7 @@ export type Database = {
           unit: string | null
           variants: Json
           weight: string | null
+          weight_kg: number
           wholesale_price: number | null
         }
         Insert: {
@@ -637,6 +833,7 @@ export type Database = {
           name: string
           price: number
           rating?: number
+          shipping_class?: string
           sku?: string | null
           sold_count?: number
           sort_order?: number | null
@@ -647,6 +844,7 @@ export type Database = {
           unit?: string | null
           variants?: Json
           weight?: string | null
+          weight_kg?: number
           wholesale_price?: number | null
         }
         Update: {
@@ -667,6 +865,7 @@ export type Database = {
           name?: string
           price?: number
           rating?: number
+          shipping_class?: string
           sku?: string | null
           sold_count?: number
           sort_order?: number | null
@@ -677,6 +876,7 @@ export type Database = {
           unit?: string | null
           variants?: Json
           weight?: string | null
+          weight_kg?: number
           wholesale_price?: number | null
         }
         Relationships: [
@@ -846,6 +1046,70 @@ export type Database = {
           },
         ]
       }
+      intercity_routes: {
+        Row: {
+          created_at: string
+          distance_km: number
+          flat_fee: number
+          from_city_id: string
+          id: string
+          is_active: boolean
+          per_kg_fee: number
+          to_city_id: string | null
+          to_name: string
+          updated_at: string
+          vehicle_type_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          distance_km?: number
+          flat_fee?: number
+          from_city_id: string
+          id?: string
+          is_active?: boolean
+          per_kg_fee?: number
+          to_city_id?: string | null
+          to_name: string
+          updated_at?: string
+          vehicle_type_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          distance_km?: number
+          flat_fee?: number
+          from_city_id?: string
+          id?: string
+          is_active?: boolean
+          per_kg_fee?: number
+          to_city_id?: string | null
+          to_name?: string
+          updated_at?: string
+          vehicle_type_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intercity_routes_from_city_id_fkey"
+            columns: ["from_city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intercity_routes_to_city_id_fkey"
+            columns: ["to_city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intercity_routes_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           category: string | null
@@ -859,6 +1123,7 @@ export type Database = {
           price: number
           restaurant_id: string
           variants: Json
+          weight_kg: number
         }
         Insert: {
           category?: string | null
@@ -872,6 +1137,7 @@ export type Database = {
           price: number
           restaurant_id: string
           variants?: Json
+          weight_kg?: number
         }
         Update: {
           category?: string | null
@@ -885,6 +1151,7 @@ export type Database = {
           price?: number
           restaurant_id?: string
           variants?: Json
+          weight_kg?: number
         }
         Relationships: [
           {
@@ -1090,6 +1357,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          billable_weight_kg: number
           city_id: string
           created_at: string | null
           customer_id: string
@@ -1098,8 +1366,11 @@ export type Database = {
           delivery_fee_payer: string
           delivery_lat: number | null
           delivery_lng: number | null
+          delivery_mode_calc: string | null
           discount_amount: number
           dispatch_state: string
+          distance_km: number
+          fee_breakdown: Json
           id: string
           is_gift: boolean | null
           notes: string | null
@@ -1115,6 +1386,7 @@ export type Database = {
           voucher_code: string | null
         }
         Insert: {
+          billable_weight_kg?: number
           city_id: string
           created_at?: string | null
           customer_id: string
@@ -1123,8 +1395,11 @@ export type Database = {
           delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_mode_calc?: string | null
           discount_amount?: number
           dispatch_state?: string
+          distance_km?: number
+          fee_breakdown?: Json
           id?: string
           is_gift?: boolean | null
           notes?: string | null
@@ -1140,6 +1415,7 @@ export type Database = {
           voucher_code?: string | null
         }
         Update: {
+          billable_weight_kg?: number
           city_id?: string
           created_at?: string | null
           customer_id?: string
@@ -1148,8 +1424,11 @@ export type Database = {
           delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_mode_calc?: string | null
           discount_amount?: number
           dispatch_state?: string
+          distance_km?: number
+          fee_breakdown?: Json
           id?: string
           is_gift?: boolean | null
           notes?: string | null
@@ -2168,6 +2447,7 @@ export type Database = {
       riders: {
         Row: {
           acceptance_rate: number
+          capacity_kg: number
           city_id: string | null
           current_lat: number | null
           current_lng: number | null
@@ -2179,10 +2459,12 @@ export type Database = {
           total_earnings: number | null
           total_reviews: number
           updated_at: string | null
+          vehicle_type_id: string | null
           wallet_balance: number | null
         }
         Insert: {
           acceptance_rate?: number
+          capacity_kg?: number
           city_id?: string | null
           current_lat?: number | null
           current_lng?: number | null
@@ -2194,10 +2476,12 @@ export type Database = {
           total_earnings?: number | null
           total_reviews?: number
           updated_at?: string | null
+          vehicle_type_id?: string | null
           wallet_balance?: number | null
         }
         Update: {
           acceptance_rate?: number
+          capacity_kg?: number
           city_id?: string | null
           current_lat?: number | null
           current_lng?: number | null
@@ -2209,6 +2493,7 @@ export type Database = {
           total_earnings?: number | null
           total_reviews?: number
           updated_at?: string | null
+          vehicle_type_id?: string | null
           wallet_balance?: number | null
         }
         Relationships: [
@@ -2217,6 +2502,13 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "riders_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
             referencedColumns: ["id"]
           },
         ]
@@ -2609,6 +2901,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_types: {
+        Row: {
+          capacity_kg: number
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          name_ur: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          capacity_kg?: number
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ur?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          capacity_kg?: number
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ur?: string | null
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3102,6 +3430,18 @@ export type Database = {
           _salary: number
         }
         Returns: string
+      }
+      quote_delivery: {
+        Args: {
+          _city_id: string
+          _lat: number
+          _lng: number
+          _store_id: string
+          _store_kind: string
+          _subtotal: number
+          _weight_kg: number
+        }
+        Returns: Json
       }
       record_commission:
         | {

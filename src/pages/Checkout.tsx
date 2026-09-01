@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, CreditCard, ShoppingBag, LocateFixed, Gift, User, Phone, Ticket, X } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, ShoppingBag, LocateFixed, Gift, User, Phone, Ticket, X, Truck, Scale, Route } from "lucide-react";
+import { calculateCartWeight, formatDeliveryMode, formatFeeBreakdown, type DeliveryQuote } from "@/lib/deliveryPricing";
 import Navbar from "@/components/Navbar";
 import PromotionalAds from "@/components/PromotionalAds";
 
@@ -21,6 +22,8 @@ const Checkout = () => {
   const [cities, setCities] = useState<any[]>([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [locating, setLocating] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -70,7 +73,7 @@ const Checkout = () => {
     });
   }, []);
 
-  // City is derived from the shop being ordered from (no manual city picker)
+  // Food and local grocery use the shop's city; wholesale may choose a destination city.
   useEffect(() => {
     const sourceId = items[0]?.sourceId;
     if (!sourceId) return;
@@ -79,7 +82,7 @@ const Checkout = () => {
       ? supabase.from("restaurants").select("city_id").eq("id", sourceId).maybeSingle()
       : supabase.from("grocery_stores").select("city_id, store_type").eq("id", sourceId).maybeSingle();
     q.then(({ data }) => {
-      if ((data as any)?.city_id) setSelectedCity((data as any).city_id);
+      if ((data as any)?.city_id && (isRest || (data as any)?.store_type !== "wholesale")) setSelectedCity((c) => c || (data as any).city_id);
       setStoreType(isRest ? "restaurant" : ((data as any)?.store_type || "grocery"));
     });
   }, [items]);
@@ -88,10 +91,36 @@ const Checkout = () => {
   const [vendorPaysDelivery, setVendorPaysDelivery] = useState(false);
 
   useEffect(() => {
-    const city = cities.find((c) => c.id === selectedCity);
-    const baseFee = city?.delivery_fee || 0;
-    setDeliveryFee(restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : baseFee);
-  }, [selectedCity, cities, restaurantDeliveryMode, vendorPaysDelivery]);
+    const sourceId = items[0]?.sourceId;
+    const isFood = items.every((item) => (item.source || "restaurant") === "restaurant");
+    const isGrocery = items.every((item) => item.source === "grocery");
+    if (!sourceId || !selectedCity || items.length === 0 || (!isFood && !isGrocery)) return;
+    let cancelled = false;
+    const totalWeight = calculateCartWeight(items);
+    setQuoteLoading(true);
+    (supabase.rpc as any)("quote_delivery", {
+      _store_kind: isFood ? "food" : "grocery",
+      _store_id: sourceId,
+      _city_id: selectedCity,
+      _lat: coords?.lat ?? null,
+      _lng: coords?.lng ?? null,
+      _weight_kg: totalWeight,
+      _subtotal: totalPrice,
+    }).then(({ data, error }: { data: DeliveryQuote | null; error: any }) => {
+      if (cancelled) return;
+      const city = cities.find((value) => value.id === selectedCity);
+      if (error || !data) {
+        const fallback = city?.delivery_fee || 0;
+        setDeliveryQuote(null);
+        setDeliveryFee(restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : fallback);
+      } else {
+        setDeliveryQuote(data);
+        setDeliveryFee(restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : Number(data.fee || 0));
+      }
+      setQuoteLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [items, selectedCity, coords, cities, totalPrice, restaurantDeliveryMode, vendorPaysDelivery]);
 
   // Detect restaurant delivery mode
   useEffect(() => {
@@ -329,8 +358,19 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">ڈلیوری فیس</span>
-                <span className="font-semibold">Rs {deliveryFee}</span>
+                <span className="font-semibold">{quoteLoading ? "حساب ہو رہا ہے…" : `Rs ${deliveryFee}`}</span>
               </div>
+              {deliveryQuote && (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-foreground">
+                    <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5 text-primary" />{formatDeliveryMode(deliveryQuote.mode)}</span>
+                    <span className="flex items-center gap-1"><Scale className="h-3.5 w-3.5 text-primary" />{deliveryQuote.weight_kg.toFixed(1)} کلو</span>
+                    {deliveryQuote.distance_km > 0 && <span className="flex items-center gap-1"><Route className="h-3.5 w-3.5 text-primary" />{deliveryQuote.distance_km.toFixed(1)} کلومیٹر</span>}
+                  </div>
+                  <p className="mt-1">{formatFeeBreakdown(deliveryQuote)}{deliveryQuote.vehicle_name ? ` · گاڑی: ${deliveryQuote.vehicle_name}` : ""}</p>
+                  {deliveryQuote.needs_quote && <p className="mt-1 font-bold text-destructive">اس bulk آرڈر کے لیے حتمی کرایہ دکاندار/ایڈمن کی منظوری کے بعد آئے گا۔</p>}
+                </div>
+              )}
               {voucher && (
                 <div className="flex justify-between text-xs text-success">
                   <span className="font-semibold">واؤچر ({voucher.code})</span>
@@ -379,6 +419,15 @@ const Checkout = () => {
             </div>
             ڈلیوری کی معلومات
           </h2>
+          {storeType === "wholesale" && cities.length > 0 && (
+            <div className="mb-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
+              <label className="mb-1 block text-xs font-bold text-foreground">مال کہاں پہنچانا ہے؟</label>
+              <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
+                {cities.map((city) => <option key={city.id} value={city.id}>{city.name}</option>)}
+              </select>
+              <p className="mt-1 text-[11px] text-muted-foreground">شہر بدلنے سے intercity یا courier delivery quote خودکار دوبارہ بنے گا۔</p>
+            </div>
+          )}
           <div className="space-y-3">
             {savedAddresses.length > 0 && (
               <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">

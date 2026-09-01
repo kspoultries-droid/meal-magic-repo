@@ -24,6 +24,8 @@ export interface CartItem {
   image: string;
   source?: "restaurant" | "grocery";
   sourceId?: string;
+  weight_kg?: number | null;
+  weight?: string | null;
   variant_id?: string | null;
   variant_label?: string | null;
   option_ids?: string[];
