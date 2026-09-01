@@ -48,22 +48,35 @@ const ProductDetail = () => {
     const extra = Array.isArray(product?.images) ? product.images : [];
     return Array.from(new Set([product?.image_url, ...extra].filter(Boolean)));
   }, [product]);
-  const effectivePrice = product?.wholesale_price ?? product?.discount_price ?? product?.price ?? 0;
+  const variants = useMemo(() => {
+    if (!Array.isArray(product?.variants)) return [];
+    return product.variants.filter((variant: any) => variant && (variant.label || variant.name));
+  }, [product]);
+  const selectedVariant = variants.find((variant: any) => String(variant.id || variant.label) === selectedVariantId);
+  const basePrice = Number(product?.wholesale_price ?? product?.discount_price ?? product?.price ?? 0);
+  const effectivePrice = Math.max(0, basePrice + Number(selectedVariant?.price_delta || 0));
   const hasDiscount = effectivePrice < (product?.price ?? 0);
   const discount = hasDiscount ? Math.round(((product.price - effectivePrice) / product.price) * 100) : 0;
-  const cartLine = items.find((item) => item.menu_item_id === id && item.sourceId === product?.store_id);
+  const cartLine = items.find((item) => item.menu_item_id === id && item.sourceId === product?.store_id && (item.variant_id || null) === (selectedVariant?.id || null));
   const quantity = cartLine?.quantity || 0;
+
+  useEffect(() => {
+    setSelectedVariantId(variants[0] ? String(variants[0].id || variants[0].label) : "");
+  }, [product?.id, variants]);
 
   const addToCart = () => {
     if (!product || !store) return;
+    const variantLabel = selectedVariant?.label || selectedVariant?.name;
     addItem({
       id: product.id,
-      name: product.name,
+      name: variantLabel ? `${product.name} — ${variantLabel}` : product.name,
       restaurant: store.name,
       price: effectivePrice,
       image: product.image_url || images[0] || "",
       source: "grocery",
       sourceId: store.id,
+      variant_id: selectedVariant?.id || null,
+      variant_label: variantLabel || null,
     });
   };
 
