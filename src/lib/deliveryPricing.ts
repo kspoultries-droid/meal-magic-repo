@@ -28,12 +28,14 @@ export const formatDeliveryMode = (mode?: string | null) => {
   }
 };
 
+/** Billable cart weight in kg. Missing or unreadable weights fall back to a 0.5 kg parcel,
+ *  and a real but tiny/zero weight is still charged a 0.1 kg minimum. */
 export const calculateCartWeight = (items: Array<{ quantity: number; weight_kg?: number | null; weight?: string | null }>) =>
   items.reduce((total, item) => {
     const raw = item.weight_kg ?? item.weight;
-    const parsed = Number(raw);
-    const fallback = raw === undefined || raw === null || raw === "" ? 0.5 : 0.1;
-    return total + Math.max(0.1, Number.isFinite(parsed) ? parsed : fallback) * item.quantity;
+    const parsed = raw === undefined || raw === null || raw === "" ? NaN : Number(raw);
+    const perUnit = Number.isFinite(parsed) ? Math.max(0.1, parsed) : 0.5;
+    return total + perUnit * item.quantity;
   }, 0);
 
 export const formatFeeBreakdown = (quote: DeliveryQuote) => {

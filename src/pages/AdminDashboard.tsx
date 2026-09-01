@@ -19,6 +19,7 @@ import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
 import ApplicationsTab from "@/components/admin/ApplicationsTab";
 import GroceryDispatchTab from "@/components/admin/GroceryDispatchTab";
 import CitySettingsTab from "@/components/admin/CitySettingsTab";
+import DeliveryRatesTab from "@/components/admin/DeliveryRatesTab";
 import AuditLogTab from "@/components/admin/AuditLogTab";
 import VouchersTab from "@/components/admin/VouchersTab";
 import ReelsTab from "@/components/admin/ReelsTab";
@@ -110,7 +111,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="settings">
-            <Tabs defaultValue="city-settings"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="city-settings">شہر سیٹنگز</TabsTrigger><TabsTrigger value="cities">شہر</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
+            <Tabs defaultValue="city-settings"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="city-settings">شہر سیٹنگز</TabsTrigger><TabsTrigger value="delivery-rates">ڈلیوری کرایہ</TabsTrigger><TabsTrigger value="cities">شہر</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
           </TabsContent>
         </Tabs>
       </div>

@@ -22,7 +22,7 @@ describe("cart weight", () => {
     expect(calculateCartWeight([{ quantity: 4 }])).toBe(2);
   });
 
-  it("never treats a zero or invalid weight as free volume", () => {
+  it("keeps zero at the minimum and uses the parcel fallback for invalid text", () => {
     expect(calculateCartWeight([{ quantity: 1, weight_kg: 0 }])).toBeCloseTo(0.1);
     expect(calculateCartWeight([{ quantity: 1, weight: "bhaari" }])).toBeCloseTo(0.5);
   });
