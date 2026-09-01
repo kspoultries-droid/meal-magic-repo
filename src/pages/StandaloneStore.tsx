@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +20,7 @@ const GROCERY_CATEGORIES = [
 
 const StandaloneStore = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { items: cartItems, addItem, updateQuantity } = useCart();
   const [store, setStore] = useState<any>(null);
@@ -279,10 +280,10 @@ const StandaloneStore = () => {
                           غیر فعال
                         </div>
                       )}
-                       <div
-                         className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
-                         onClick={() => !isOwner && window.history.pushState({}, "", `/product/${product.id}`) && window.dispatchEvent(new PopStateEvent("popstate"))}
-                       >
+                        <div
+                          className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
+                          onClick={() => { if (!isOwner) navigate(`/product/${product.id}`); }}
+                        >
                          {product.image_url ? (
                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                          ) : (
