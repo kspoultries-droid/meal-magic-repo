@@ -2,6 +2,7 @@ import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -391,6 +392,7 @@ const StoreBanner = ({
                     {groceryCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
                   <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
+                  <Textarea placeholder="پروڈکٹ کی تفصیل / Product details (optional)" rows={3} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
                   <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
                   <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
                 </div>

@@ -25,6 +25,7 @@ const Checkout = () => {
   const [locating, setLocating] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [restaurantDeliveryMode, setRestaurantDeliveryMode] = useState<string>("platform");
+  const [storeType, setStoreType] = useState<string>("grocery");
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [saveThisAddress, setSaveThisAddress] = useState(false);
 
@@ -76,8 +77,11 @@ const Checkout = () => {
     const isRest = items.every((i) => (i.source || "restaurant") === "restaurant");
     const q = isRest
       ? supabase.from("restaurants").select("city_id").eq("id", sourceId).maybeSingle()
-      : supabase.from("grocery_stores").select("city_id").eq("id", sourceId).maybeSingle();
-    q.then(({ data }) => { if ((data as any)?.city_id) setSelectedCity((data as any).city_id); });
+      : supabase.from("grocery_stores").select("city_id, store_type").eq("id", sourceId).maybeSingle();
+    q.then(({ data }) => {
+      if ((data as any)?.city_id) setSelectedCity((data as any).city_id);
+      setStoreType(isRest ? "restaurant" : ((data as any)?.store_type || "grocery"));
+    });
   }, [items]);
 
 
@@ -228,7 +232,7 @@ const Checkout = () => {
 
         if (error) throw error;
         await redeemVoucherOnOrder("grocery", newId);
-        toast.success("گروسری آرڈر کامیابی سے دیا گیا! 🛒🎉");
+        toast.success(storeType === "wholesale" ? "بازار آرڈر کامیابی سے دیا گیا! 🎉" : "گروسری آرڈر کامیابی سے دیا گیا! 🛒🎉");
         clearCart();
         navigate(`/order-confirmation/grocery/${newId}`);
       } else {

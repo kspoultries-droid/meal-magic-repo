@@ -11,6 +11,7 @@ import ShopkeeperListOrders from "@/components/grocery/ShopkeeperListOrders";
 import ShopkeeperCartOrders from "@/components/grocery/ShopkeeperCartOrders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MyReelsManager from "@/components/reels/MyReelsManager";
@@ -36,8 +37,9 @@ const GroceryStoreDetail = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
   const [editDiscount, setEditDiscount] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [showAddProduct, setShowAddProduct] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg", discount_price: "", image_url: "" });
+  const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg", discount_price: "", description: "", image_url: "" });
 
   const fetchData = async () => {
     setLoading(true);
@@ -85,12 +87,14 @@ const GroceryStoreDetail = () => {
     setEditingId(product.id);
     setEditPrice(String(product.price));
     setEditDiscount(product.discount_price ? String(product.discount_price) : "");
+    setEditDescription(product.description || "");
   };
 
   const savePrice = async (productId: string) => {
     const updates: any = { price: Number(editPrice) };
     updates.discount_price = editDiscount ? Number(editDiscount) : null;
     updates.is_special_offer = !!editDiscount;
+    updates.description = editDescription.trim() || null;
     const { error } = await supabase.from("grocery_products").update(updates).eq("id", productId);
     if (error) { toast.error(error.message); return; }
     toast.success("قیمت اپڈیٹ ہو گئی / Price updated");
@@ -146,11 +150,12 @@ const GroceryStoreDetail = () => {
       unit: newProduct.unit,
       discount_price: newProduct.discount_price ? Number(newProduct.discount_price) : null,
       is_special_offer: !!newProduct.discount_price,
+      description: newProduct.description?.trim() || null,
       image_url: newProduct.image_url || null,
     });
     if (error) { toast.error(error.message); return; }
     toast.success("پروڈکٹ شامل / Product added");
-    setNewProduct({ name: "", price: "", category: "General", unit: "kg", discount_price: "", image_url: "" });
+    setNewProduct({ name: "", price: "", category: "General", unit: "kg", discount_price: "", description: "", image_url: "" });
     setShowAddProduct(false);
     fetchData();
   };
@@ -286,6 +291,10 @@ const GroceryStoreDetail = () => {
                             <div className="flex items-center gap-1">
                               <span className="text-[10px] text-muted-foreground w-12">ڈسکاؤنٹ:</span>
                               <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder="خالی = بغیر ڈسکاؤنٹ" className="h-7 text-xs" />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-muted-foreground">تفصیل / Details:</span>
+                              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="پروڈکٹ کی تفصیل لکھیں..." rows={3} className="mt-1 text-xs" />
                             </div>
                             <div className="flex gap-1">
                               <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>

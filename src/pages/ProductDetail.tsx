@@ -139,7 +139,17 @@ const ProductDetail = () => {
                 </div>
                 <div className="rounded-2xl border border-border bg-card p-4">
                   <h2 className="text-sm font-extrabold text-foreground">اس پروڈکٹ کے بارے میں</h2>
-                  <p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted-foreground">{product.description || "اس پروڈکٹ کی تفصیلی معلومات جلد شامل کی جائیں گی۔"}</p>
+                  {product.description ? (
+                    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted-foreground">{product.description}</p>
+                  ) : (
+                    <ul className="mt-2 space-y-1.5 text-sm leading-7 text-muted-foreground">
+                      <li>{product.name}{product.brand ? ` — ${product.brand}` : ""}</li>
+                      {product.weight && <li>وزن / سائز: {product.weight}</li>}
+                      {product.unit && <li>یونٹ: فی {product.unit}</li>}
+                      <li>قیمت: Rs. {effectivePrice.toLocaleString()}{product.min_order_qty > 1 ? ` · کم از کم ${product.min_order_qty} عدد` : ""}</li>
+                      <li>{store.name} سے تصدیق شدہ، محفوظ پیکنگ کے ساتھ ڈیلیوری۔</li>
+                    </ul>
+                  )}
                   {Array.isArray(product.tags) && product.tags.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{product.tags.map((tag: string) => <span key={tag} className="rounded-full bg-accent px-3 py-1 text-[10px] font-bold text-accent-foreground">{tag}</span>)}</div>}
                 </div>
               </>
@@ -163,11 +173,23 @@ const ProductDetail = () => {
         {activeTab !== "related" && <RelatedProducts items={related} />}
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-5xl items-center gap-2">
-          {quantity > 0 ? <div className="flex h-11 items-center gap-3 rounded-xl border border-border bg-card px-2"><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => cartLine && updateQuantity(cartLine.id, quantity - 1)}><Minus className="h-4 w-4" /></Button><span className="w-4 text-center text-sm font-extrabold">{quantity}</span><Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={addToCart}><Plus className="h-4 w-4" /></Button></div> : <Button variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label="کارٹ میں شامل کریں" onClick={addToCart}><ShoppingBag className="h-5 w-5" /></Button>}
-          <Button variant="outline" className="h-11 flex-1 font-bold" onClick={addToCart}><ShoppingBag className="me-2 h-4 w-4" /> کارٹ میں شامل کریں</Button>
-          <Button className="h-11 flex-1 font-bold" onClick={buyNow}>ابھی خریدیں <ArrowLeft className="ms-2 h-4 w-4" /></Button>
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_hsl(var(--foreground)/0.25)] backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-5xl items-center gap-2 overflow-hidden">
+          {quantity > 0 && (
+            <div className="flex h-11 shrink-0 items-center gap-1 rounded-xl border border-border bg-card px-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="کم کریں" onClick={() => cartLine && updateQuantity(cartLine.id, quantity - 1)}><Minus className="h-4 w-4" /></Button>
+              <span className="w-5 text-center text-sm font-extrabold">{quantity}</span>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" aria-label="بڑھائیں" onClick={addToCart}><Plus className="h-4 w-4" /></Button>
+            </div>
+          )}
+          <Button variant="outline" className="h-11 min-w-0 flex-1 rounded-xl border-primary/40 px-2 text-[13px] font-extrabold text-primary shadow-sm" onClick={addToCart}>
+            <ShoppingBag className="me-1.5 h-4 w-4 shrink-0" />
+            <span className="truncate">کارٹ میں شامل</span>
+          </Button>
+          <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={buyNow}>
+            <span className="truncate">ابھی خریدیں</span>
+            <ArrowLeft className="ms-1.5 h-4 w-4 shrink-0" />
+          </Button>
         </div>
       </div>
     </div>
