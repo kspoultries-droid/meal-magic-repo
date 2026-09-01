@@ -38,7 +38,7 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
   const load = async () => {
     if (!user) return;
     const [{ data: accs }, { data }] = await Promise.all([
-      supabase.from("payment_accounts").select("*").eq("is_active", true).order("sort_order"),
+      supabase.rpc("list_deposit_accounts" as any),
       supabase.from("rider_remittances").select("*").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(15),
     ]);
     setAccounts(accs || []);

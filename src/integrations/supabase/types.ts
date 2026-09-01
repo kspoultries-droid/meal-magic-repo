@@ -2945,6 +2945,17 @@ export type Database = {
       }
       increment_reel_views: { Args: { _reel_id: string }; Returns: undefined }
       like_reel: { Args: { _reel_id: string }; Returns: undefined }
+      list_deposit_accounts: {
+        Args: never
+        Returns: {
+          account_number: string
+          account_title: string
+          bank_name: string
+          id: string
+          label: string
+          method: string
+        }[]
+      }
       list_public_service_providers: {
         Args: { _category_id?: string }
         Returns: {
