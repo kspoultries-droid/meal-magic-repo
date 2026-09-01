@@ -313,9 +313,9 @@ const GroceryStoreDetail = () => {
                         ) : (
                           <div className="flex items-center justify-between mt-2">
                             <div>
-                              {product.discount_price ? (
+                              {product.wholesale_price || product.discount_price ? (
                                 <>
-                                  <span className="text-sm font-extrabold text-destructive">Rs {product.discount_price}</span>
+                                  <span className="text-sm font-extrabold text-destructive">Rs {product.wholesale_price || product.discount_price}</span>
                                   <span className="text-xs text-muted-foreground line-through ml-1">Rs {product.price}</span>
                                 </>
                               ) : (
