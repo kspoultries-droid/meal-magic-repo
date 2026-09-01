@@ -85,7 +85,15 @@ const ProductDetail = () => {
     navigate("/checkout");
   };
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-background px-4 py-5" aria-live="polite" aria-label="پروڈکٹ لوڈ ہو رہی ہے">
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="h-14 rounded-2xl bg-muted animate-pulse" />
+        <div className="aspect-square max-h-[430px] rounded-3xl bg-muted animate-pulse" />
+        <div className="space-y-3"><div className="h-7 w-2/3 rounded-lg bg-muted animate-pulse" /><div className="h-5 w-1/3 rounded-lg bg-muted animate-pulse" /><div className="h-24 rounded-2xl bg-muted animate-pulse" /></div>
+      </div>
+    </div>
+  );
   if (!product || !store) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3"><p className="text-muted-foreground">پروڈکٹ نہیں ملی</p><Button onClick={() => navigate(-1)}>واپس جائیں</Button></div>;
 
   return (
