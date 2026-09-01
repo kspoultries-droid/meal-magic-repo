@@ -84,12 +84,13 @@ const Wholesale = () => {
   const filteredProducts = useMemo(() => {
     const min = Number(filters.minPrice) || 0;
     const max = Number(filters.maxPrice) || Number.POSITIVE_INFINITY;
+    const storeById = new Map(stores.map((store) => [store.id, store]));
     return products.filter((p) => {
       const price = p.wholesale_price ?? p.discount_price ?? p.price;
       const variants = readVariants(p);
       const sizes = variants.map((v) => v.size || v.label || v.name || "").filter(Boolean);
       const colors = variants.map((v) => v.color || "").filter(Boolean);
-      return price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase())));
+      return price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.nationwide || storeById.get(p.store_id)?.ships_nationwide) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase())));
     }).sort((a, b) => {
       const priceA = a.wholesale_price ?? a.discount_price ?? a.price; const priceB = b.wholesale_price ?? b.discount_price ?? b.price;
       if (filters.sort === "price-low") return priceA - priceB;
@@ -98,7 +99,7 @@ const Wholesale = () => {
       if (filters.sort === "discount") return (1 - priceB / b.price) - (1 - priceA / a.price);
       return 0;
     });
-  }, [products, filters, wishlist]);
+  }, [products, stores, filters, wishlist]);
 
   const loadMore = async () => {
     if (visible + 20 <= products.length) { setVisible((v) => v + 20); return; }
