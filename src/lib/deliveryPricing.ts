@@ -30,8 +30,10 @@ export const formatDeliveryMode = (mode?: string | null) => {
 
 export const calculateCartWeight = (items: Array<{ quantity: number; weight_kg?: number | null; weight?: string | null }>) =>
   items.reduce((total, item) => {
-    const parsed = Number(item.weight_kg ?? item.weight ?? 0.5);
-    return total + Math.max(0.1, Number.isFinite(parsed) ? parsed : 0.5) * item.quantity;
+    const raw = item.weight_kg ?? item.weight;
+    const parsed = Number(raw);
+    const fallback = raw === undefined || raw === null || raw === "" ? 0.5 : 0.1;
+    return total + Math.max(0.1, Number.isFinite(parsed) ? parsed : fallback) * item.quantity;
   }, 0);
 
 export const formatFeeBreakdown = (quote: DeliveryQuote) => {
