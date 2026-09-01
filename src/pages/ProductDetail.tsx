@@ -138,7 +138,7 @@ const ProductDetail = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {variants.map((variant: any, index: number) => {
-                    const variantId = String(variant.id || variant.label || index);
+                    const variantId = variantKey(variant, index);
                     const label = variant.label || variant.name || String(variant);
                     const active = selectedVariantId === variantId;
                     return (
