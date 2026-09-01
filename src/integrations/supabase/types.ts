@@ -590,60 +590,93 @@ export type Database = {
       }
       grocery_products: {
         Row: {
+          brand: string | null
           bulk_tier_price: number | null
           bulk_tier_qty: number | null
           category: string | null
           created_at: string | null
+          delivery_days: string | null
           description: string | null
           discount_price: number | null
           id: string
           image_url: string | null
+          images: string[]
           is_available: boolean | null
           is_special_offer: boolean | null
           min_order_qty: number
           name: string
           price: number
+          rating: number
+          sku: string | null
+          sold_count: number
           sort_order: number | null
+          specs: Json
+          stock_qty: number | null
           store_id: string
+          tags: string[]
           unit: string | null
+          variants: Json
+          weight: string | null
           wholesale_price: number | null
         }
         Insert: {
+          brand?: string | null
           bulk_tier_price?: number | null
           bulk_tier_qty?: number | null
           category?: string | null
           created_at?: string | null
+          delivery_days?: string | null
           description?: string | null
           discount_price?: number | null
           id?: string
           image_url?: string | null
+          images?: string[]
           is_available?: boolean | null
           is_special_offer?: boolean | null
           min_order_qty?: number
           name: string
           price: number
+          rating?: number
+          sku?: string | null
+          sold_count?: number
           sort_order?: number | null
+          specs?: Json
+          stock_qty?: number | null
           store_id: string
+          tags?: string[]
           unit?: string | null
+          variants?: Json
+          weight?: string | null
           wholesale_price?: number | null
         }
         Update: {
+          brand?: string | null
           bulk_tier_price?: number | null
           bulk_tier_qty?: number | null
           category?: string | null
           created_at?: string | null
+          delivery_days?: string | null
           description?: string | null
           discount_price?: number | null
           id?: string
           image_url?: string | null
+          images?: string[]
           is_available?: boolean | null
           is_special_offer?: boolean | null
           min_order_qty?: number
           name?: string
           price?: number
+          rating?: number
+          sku?: string | null
+          sold_count?: number
           sort_order?: number | null
+          specs?: Json
+          stock_qty?: number | null
           store_id?: string
+          tags?: string[]
           unit?: string | null
+          variants?: Json
+          weight?: string | null
           wholesale_price?: number | null
         }
         Relationships: [
