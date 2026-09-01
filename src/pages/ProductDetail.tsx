@@ -11,7 +11,7 @@ import { toast } from "sonner";
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { items, addItem, updateQuantity } = useCart();
+  const { items, addItem, updateQuantity, setIsOpen } = useCart();
   const [product, setProduct] = useState<any>(null);
   const [store, setStore] = useState<any>(null);
   const [related, setRelated] = useState<RelatedItem[]>([]);
@@ -80,7 +80,7 @@ const ProductDetail = () => {
           <Button variant="ghost" size="icon" aria-label="واپس" onClick={() => navigate(-1)}><ArrowRight className="h-5 w-5" /></Button>
           <div className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">پروڈکٹ تلاش کریں</div>
           <Button variant="ghost" size="icon" aria-label="پسندیدہ" onClick={() => setLiked((value) => !value)}><Heart className={`h-5 w-5 ${liked ? "fill-destructive text-destructive" : ""}`} /></Button>
-          <Button variant="ghost" size="icon" aria-label="کارٹ" onClick={() => navigate("/")}><ShoppingBag className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" aria-label="کارٹ" onClick={() => setIsOpen(true)}><ShoppingBag className="h-5 w-5" /></Button>
         </div>
       </header>
 

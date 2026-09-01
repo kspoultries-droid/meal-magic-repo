@@ -308,9 +308,11 @@ const StandaloneStore = () => {
                           </div>
                         )}
                       </div>
-                      <div className="p-3">
-                        <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
-                        {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
+                       <div className="p-3">
+                         <button type="button" className="block max-w-full text-left" onClick={() => !isOwner && navigate(`/product/${product.id}`)}>
+                           <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
+                           {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
+                         </button>
 
                         {isEditing ? (
                           <div className="mt-2 space-y-1.5">
