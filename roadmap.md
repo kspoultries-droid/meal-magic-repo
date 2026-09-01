@@ -14,3 +14,7 @@
 - [x] Support multiple product photos and richer product descriptions
 - [x] Add customer review photo/video attachments and visible shop rankings
 - [x] Add admin controls for creating, editing, activating, and deleting Bazar categories
+- [x] Weight/distance based delivery pricing engine (rider, loader, intercity, courier) with vehicle selection
+- [x] Checkout shows live quote with weight, distance, vehicle and fee breakdown
+- [x] Product form captures billable weight and shipping class
+- [x] Admin screen for delivery rate cards and intercity routes
