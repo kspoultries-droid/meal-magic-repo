@@ -68,6 +68,7 @@ const Profile = () => {
         supabase.from("grocery_stores").select("id,name,store_type,is_active").eq("owner_id", user.id).order("created_at", { ascending: false }),
         supabase.from("service_providers").select("id,name,is_available,is_active").eq("user_id", user.id).maybeSingle(),
         supabase.from("riders").select("id,is_available").eq("id", user.id).maybeSingle(),
+        supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
       ]);
       if (profileError) console.error("Profile load error:", profileError);
       const nextProfile = prof || fallbackProfile;
