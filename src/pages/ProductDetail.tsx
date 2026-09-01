@@ -52,12 +52,14 @@ const ProductDetail = () => {
     if (!Array.isArray(product?.variants)) return [];
     return product.variants.filter((variant: any) => variant && (variant.label || variant.name));
   }, [product]);
-  const selectedVariant = variants.find((variant: any) => String(variant.id || variant.label) === selectedVariantId);
+  const variantKey = (variant: any, index: number) => String(variant.id || variant.label || variant.name || index);
+  const selectedVariant = variants.find((variant: any, index: number) => variantKey(variant, index) === selectedVariantId);
+  const selectedVariantCartId = selectedVariant ? (selectedVariant.id || selectedVariant.label || null) : null;
   const basePrice = Number(product?.wholesale_price ?? product?.discount_price ?? product?.price ?? 0);
   const effectivePrice = Math.max(0, basePrice + Number(selectedVariant?.price_delta || 0));
   const hasDiscount = effectivePrice < (product?.price ?? 0);
   const discount = hasDiscount ? Math.round(((product.price - effectivePrice) / product.price) * 100) : 0;
-  const cartLine = items.find((item) => item.menu_item_id === id && item.sourceId === product?.store_id && (item.variant_id || null) === (selectedVariant?.id || null));
+  const cartLine = items.find((item) => item.menu_item_id === id && item.sourceId === product?.store_id && (item.variant_id || null) === selectedVariantCartId);
   const quantity = cartLine?.quantity || 0;
 
   useEffect(() => {
