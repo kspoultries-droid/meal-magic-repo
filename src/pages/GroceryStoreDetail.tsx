@@ -71,10 +71,16 @@ const GroceryStoreDetail = () => {
   const getCartLine = (productId: string) =>
     cartItems.find((i) => i.menu_item_id === productId || i.id === productId);
 
+  const getVariants = (product: any) =>
+    Array.isArray(product.variants) ? product.variants.filter((variant: any) => variant && (variant.label || variant.name)) : [];
+
+  const variantKey = (variant: any, index: number) => String(variant.id || variant.label || variant.name || index);
+
   const handleAdd = (product: any) => {
     const effectivePrice = product.wholesale_price || product.discount_price || product.price;
-    const variants = Array.isArray(product.variants) ? product.variants.filter((variant: any) => variant && (variant.label || variant.name)) : [];
-    const variant = variants[0];
+    const variants = getVariants(product);
+    const selectedKey = selectedVariants[product.id];
+    const variant = variants.find((v: any, i: number) => variantKey(v, i) === selectedKey) || variants[0];
     const variantLabel = variant?.label || variant?.name;
     addItem({
       id: product.id,
@@ -84,10 +90,11 @@ const GroceryStoreDetail = () => {
       image: product.image_url || "",
       source: "grocery",
       sourceId: id,
-      variant_id: variant?.id || null,
+      variant_id: variant?.id || variantLabel || null,
       variant_label: variantLabel || null,
     });
   };
+
 
   // Owner functions
   const startEdit = (product: any) => {
