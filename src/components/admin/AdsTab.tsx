@@ -14,6 +14,7 @@ const PLACEMENT_LABELS: Record<string, string> = {
   grocery: "🛒 گروسری",
   restaurant: "🍔 ریسٹورنٹ",
   checkout: "💳 چیک آؤٹ",
+  bazar: "📦 بازار ہیرو",
 };
 
 const AdsTab = () => {
