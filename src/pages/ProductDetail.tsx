@@ -75,17 +75,19 @@ const ProductDetail = () => {
   const addToCart = () => {
     if (!product || !store) return;
     const variantLabel = selectedVariant?.label || selectedVariant?.name;
-    addItem({
-      id: product.id,
-      name: variantLabel ? `${product.name} — ${variantLabel}` : product.name,
-      restaurant: store.name,
-      price: effectivePrice,
-      image: product.image_url || images[0] || "",
-      source: "grocery",
-      sourceId: store.id,
-      variant_id: selectedVariant?.id || null,
-      variant_label: variantLabel || null,
-    });
+      addItem({
+        id: product.id,
+        name: variantLabel ? `${product.name} — ${variantLabel}` : product.name,
+        restaurant: store.name,
+        price: effectivePrice,
+        image: product.image_url || images[0] || "",
+        source: "grocery",
+        sourceId: store.id,
+        weight_kg: product.weight_kg,
+        weight: product.weight,
+        variant_id: selectedVariant?.id || null,
+        variant_label: variantLabel || null,
+      });
   };
 
   const buyNow = () => {
