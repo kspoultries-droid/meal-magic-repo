@@ -101,86 +101,35 @@ const StoreBanner = ({
         </Button>
       </div>
 
-      <div className="relative overflow-hidden">
-        {/* Grocery Images Collage Background */}
+      <div className="relative isolate overflow-hidden">
         {store.image_url ? (
-          <img src={store.image_url} alt={store.name} className="w-full h-72 sm:h-80 object-cover" />
+          <img src={store.image_url} alt={store.name} className="h-56 w-full object-cover sm:h-72" />
         ) : (
-          <div className="w-full h-72 sm:h-80 grid grid-cols-4 grid-rows-2">
-            {collageImages.slice(0, 8).map((img, i) => (
-              <img key={i} src={img} alt="" className="w-full h-full object-cover" />
-            ))}
+          <div className="grid h-56 w-full grid-cols-4 grid-rows-2 sm:h-72">
+            {collageImages.slice(0, 8).map((img, i) => <img key={i} src={img} alt="" className="h-full w-full object-cover" />)}
           </div>
         )}
-
-        {/* Overlay */}
-        {theme.gradient && <div className={`absolute inset-0 bg-gradient-to-b ${theme.gradient}`} />}
-
-        {/* Owner: Banner change & theme buttons */}
-        {isOwner && (
-          <div className="absolute top-4 right-4 z-20 flex gap-1.5">
-            <label className="flex items-center gap-1 bg-card/90 backdrop-blur text-foreground text-xs font-bold px-3 py-1.5 rounded-full cursor-pointer shadow-md border">
-              <Camera className="w-3.5 h-3.5" /> بینر تبدیل
-              <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const ext = file.name.split('.').pop();
-                const path = `store-banners/${storeId}.${ext}`;
-                const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
-                if (upErr) { toast.error(upErr.message); return; }
-                const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-                await updateStore({ image_url: urlData.publicUrl });
-              }} />
-            </label>
-          </div>
-        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-foreground/10 via-transparent to-foreground/70" />
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
+          <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className="truncate text-xl font-extrabold sm:text-3xl">{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p></div>
+          {isOwner && <label className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-border/70 bg-card/90 px-2.5 py-2 text-[10px] font-bold text-foreground shadow-elegant backdrop-blur"><Camera className="size-3.5" /> بینر تبدیل<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const ext = file.name.split('.').pop(); const path = `store-banners/${storeId}.${ext}`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, { upsert: true }); if (upErr) { toast.error(upErr.message); return; } const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); await updateStore({ image_url: urlData.publicUrl }); }} /></label>}
+        </div>
       </div>
 
-      {/* Store Info - Below Banner */}
-      <div className="px-4 py-3 bg-card border-b">
-        <div className="flex items-center gap-2">
-          <h1
-            className={`flex-1 ${nameStyle.className} ${nameSize.className}`}
-            style={{ color: nameColor === "#ffffff" ? undefined : nameColor }}
-          >
-            {store.name}
-          </h1>
-          {isOwner && (
-            <button className="text-muted-foreground hover:text-foreground" onClick={async () => {
-              const newName = prompt("دکان کا نام / Store Name:", store.name);
-              if (newName && newName.trim() && newName.trim() !== store.name) {
-                await updateStore({ name: newName.trim() });
-              }
-            }}>
-              <Pencil className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
-          <span className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400" /> {store.rating || "New"}</span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4" /> {store.delivery_time}
-            {isOwner && (
-              <button className="text-muted-foreground hover:text-foreground ml-0.5" onClick={async () => {
-                const val = prompt("ڈلیوری ٹائم / Delivery Time:", store.delivery_time);
-                if (val && val.trim()) await updateStore({ delivery_time: val.trim() });
-              }}>
-                <Pencil className="w-3 h-3" />
-              </button>
-            )}
-          </span>
-          <span className="font-semibold text-foreground flex items-center gap-1">
-            {store.category}
-            {isOwner && (
-              <button className="text-muted-foreground hover:text-foreground" onClick={async () => {
-                const val = prompt("کیٹیگری / Category:\n" + groceryCategories.join(", "), store.category);
-                if (val && val.trim()) await updateStore({ category: val.trim() });
-              }}>
-                <Pencil className="w-3 h-3" />
-              </button>
-            )}
-          </span>
-        </div>
+       {/* Store details and owner controls */}
+       <div className="border-b bg-card px-4 py-3">
+         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+           <span className="flex items-center gap-1"><Star className="size-4 text-primary" /> {store.rating || "New"}</span>
+           <span className="flex items-center gap-1">
+             <Clock className="size-4" /> {store.delivery_time || "تیز ڈیلیوری"}
+             {isOwner && <button className="text-muted-foreground hover:text-foreground" aria-label="ڈیلیوری وقت تبدیل کریں" onClick={async () => { const val = prompt("ڈلیوری ٹائم / Delivery Time:", store.delivery_time); if (val && val.trim()) await updateStore({ delivery_time: val.trim() }); }}><Pencil className="size-3" /></button>}
+           </span>
+           <span className="flex items-center gap-1 font-semibold text-foreground">
+             {store.category}
+             {isOwner && <button className="text-muted-foreground hover:text-foreground" aria-label="کیٹیگری تبدیل کریں" onClick={async () => { const val = prompt("کیٹیگری / Category:\n" + groceryCategories.join(", "), store.category); if (val && val.trim()) await updateStore({ category: val.trim() }); }}><Pencil className="size-3" /></button>}
+           </span>
+           {isOwner && <button className="ms-auto text-muted-foreground hover:text-foreground" aria-label="دکان کا نام تبدیل کریں" onClick={async () => { const newName = prompt("دکان کا نام / Store Name:", store.name); if (newName && newName.trim() && newName.trim() !== store.name) await updateStore({ name: newName.trim() }); }}><Pencil className="size-4" /></button>}
+         </div>
 
         {/* Shop Timing & Open/Close Toggle for Owner */}
         {isOwner && (
@@ -377,25 +326,20 @@ const StoreBanner = ({
               </div>
             )}
 
-            {/* Add Product */}
             <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="h-7 text-xs"><Plus className="h-3 w-3 mr-1" /> پروڈکٹ شامل</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>نئی پروڈکٹ / New Product</DialogTitle></DialogHeader>
-                <div className="space-y-3">
-                  <Input placeholder="نام / Name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-                  <Input placeholder="قیمت / Price (Rs)" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                  <Input placeholder="ڈسکاؤنٹ قیمت / Discount Price (optional)" type="number" value={newProduct.discount_price} onChange={(e) => setNewProduct({...newProduct, discount_price: e.target.value})} />
-                  <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>
-                    {groceryCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                  </select>
-                   <Input placeholder="یونٹ / Unit (kg, piece, dozen)" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
-                   <Textarea placeholder="پروڈکٹ کی تفصیل / Product details (optional)" rows={3} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
-                   <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
-                   <div className="space-y-1"><label className="text-xs font-bold text-muted-foreground">متعدد تصاویر / Multiple photos</label><Input type="file" accept="image/*" multiple onChange={(e) => setNewProduct({...newProduct, imageFiles: Array.from(e.target.files || [])})} /><p className="text-[10px] text-muted-foreground">ایک پروڈکٹ کی کئی تصاویر منتخب کریں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر منتخب ہیں</p>}</div>
-                   <Button onClick={addProduct} className="w-full">شامل کریں / Add</Button>
+              <DialogTrigger asChild><Button size="sm" className="h-7 text-xs"><Plus className="me-1 h-3 w-3" /> پروڈکٹ شامل</Button></DialogTrigger>
+              <DialogContent className="max-h-[88vh] max-w-2xl overflow-y-auto">
+                <DialogHeader><DialogTitle>مکمل پروڈکٹ تفصیل / Product information</DialogTitle></DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid gap-2 sm:grid-cols-2"><Input placeholder="نام / Product name *" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} /><Input placeholder="برانڈ / Brand" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} /><Input placeholder="قیمت / Price (Rs) *" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} /><Input placeholder="ڈسکاؤنٹ قیمت / Sale price" type="number" value={newProduct.discount_price} onChange={(e) => setNewProduct({...newProduct, discount_price: e.target.value})} /></div>
+                  <div className="grid gap-2 sm:grid-cols-3"><select className="w-full rounded-md border bg-background p-2 text-sm text-foreground" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>{groceryCategories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}</select><Input placeholder="یونٹ / Unit" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} /><Input placeholder="اسٹاک / Stock quantity" type="number" value={newProduct.stock_qty} onChange={(e) => setNewProduct({...newProduct, stock_qty: e.target.value})} /></div>
+                  <div><p className="mb-2 text-xs font-extrabold text-foreground">لباس، جوتے اور variants</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="سائز / Sizes — S, M, L, 40, 41" value={newProduct.sizes} onChange={(e) => setNewProduct({...newProduct, sizes: e.target.value})} /><Input placeholder="رنگ / Colours — کالا, سفید" value={newProduct.colors} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value})} /></div></div>
+                  <div><p className="mb-2 text-xs font-extrabold text-foreground">مکمل specifications</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="SKU / ماڈل نمبر" value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} /><Input placeholder="وزن / Weight" value={newProduct.weight} onChange={(e) => setNewProduct({...newProduct, weight: e.target.value})} /><Input placeholder="سائز یا dimensions" value={newProduct.dimensions} onChange={(e) => setNewProduct({...newProduct, dimensions: e.target.value})} /><Input placeholder="مواد / Material" value={newProduct.material} onChange={(e) => setNewProduct({...newProduct, material: e.target.value})} /><Input placeholder="وولٹیج / Voltage" value={newProduct.voltage} onChange={(e) => setNewProduct({...newProduct, voltage: e.target.value})} /><Input placeholder="موبائل اسکرین سائز" value={newProduct.screen_size} onChange={(e) => setNewProduct({...newProduct, screen_size: e.target.value})} /><Input placeholder="RAM" value={newProduct.ram} onChange={(e) => setNewProduct({...newProduct, ram: e.target.value})} /><Input placeholder="Storage / میموری" value={newProduct.storage} onChange={(e) => setNewProduct({...newProduct, storage: e.target.value})} /></div></div>
+                  <Textarea placeholder="مکمل تفصیل / Made from, استعمال، خصوصیات، compatibility اور warranty" rows={4} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
+                  <Input placeholder="Tags — نیا, premium, wholesale" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
+                  <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                  <div className="space-y-1"><label className="text-xs font-bold text-muted-foreground">متعدد تصاویر / Multiple photos</label><Input type="file" accept="image/*" multiple onChange={(e) => setNewProduct({...newProduct, imageFiles: Array.from(e.target.files || [])})} /><p className="text-[10px] text-muted-foreground">ایک پروڈکٹ کی کئی تصاویر منتخب کریں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر منتخب ہیں</p>}</div>
+                  <Button onClick={addProduct} className="w-full">پروڈکٹ محفوظ کریں</Button>
                 </div>
               </DialogContent>
             </Dialog>

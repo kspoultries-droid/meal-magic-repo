@@ -41,7 +41,10 @@ const GroceryStoreDetail = () => {
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
 
    const [showAddProduct, setShowAddProduct] = useState(false);
-   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg", discount_price: "", description: "", image_url: "", imageFiles: [] as File[] });
+   const [newProduct, setNewProduct] = useState({
+     name: "", price: "", category: "General", unit: "piece", discount_price: "", description: "", image_url: "", imageFiles: [] as File[],
+     brand: "", sku: "", weight: "", dimensions: "", material: "", voltage: "", screen_size: "", ram: "", storage: "", stock_qty: "", tags: "", colors: "", sizes: "",
+   });
 
   const fetchData = async () => {
     setLoading(true);
@@ -156,34 +159,28 @@ const GroceryStoreDetail = () => {
 
    const addProduct = async () => {
      if (!newProduct.name.trim() || !newProduct.price) { toast.error("نام اور قیمت درکار / Name & price required"); return; }
+     const sizes = newProduct.sizes.split(",").map((value) => value.trim()).filter(Boolean);
+     const colors = newProduct.colors.split(",").map((value) => value.trim()).filter(Boolean);
+     const variants = [...sizes, ...colors].map((label, index) => ({ id: `${index + 1}`, label, size: sizes.includes(label) ? label : undefined, color: colors.includes(label) ? label : undefined }));
+     const specs = Object.fromEntries(Object.entries({ برانڈ: newProduct.brand, SKU: newProduct.sku, وزن: newProduct.weight, پیمائش: newProduct.dimensions, مواد: newProduct.material, وولٹیج: newProduct.voltage, "اسکرین سائز": newProduct.screen_size, RAM: newProduct.ram, اسٹوریج: newProduct.storage }).filter(([, value]) => value.trim()));
      const { data: createdProduct, error } = await supabase.from("grocery_products").insert({
-       store_id: id,
-       name: newProduct.name,
-       price: Number(newProduct.price),
-       category: newProduct.category,
-       unit: newProduct.unit,
-       discount_price: newProduct.discount_price ? Number(newProduct.discount_price) : null,
-       is_special_offer: !!newProduct.discount_price,
-       description: newProduct.description?.trim() || null,
-       image_url: newProduct.image_url || null,
+       store_id: id, name: newProduct.name.trim(), price: Number(newProduct.price), category: newProduct.category, unit: newProduct.unit || null,
+       discount_price: newProduct.discount_price ? Number(newProduct.discount_price) : null, is_special_offer: !!newProduct.discount_price,
+       description: newProduct.description?.trim() || null, image_url: newProduct.image_url || null, brand: newProduct.brand.trim() || null,
+       sku: newProduct.sku.trim() || null, weight: newProduct.weight.trim() || null, stock_qty: newProduct.stock_qty ? Number(newProduct.stock_qty) : null,
+       tags: newProduct.tags.split(",").map((value) => value.trim()).filter(Boolean), variants, specs,
      }).select("id").single();
      if (error || !createdProduct) { toast.error(error?.message || "پروڈکٹ شامل نہیں ہو سکی"); return; }
      const imageUrls = await Promise.all((newProduct.imageFiles || []).map(async (file, index) => {
-       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-       const path = `products/${createdProduct.id}-${index}-${Date.now()}.${ext}`;
-       const { error: uploadError } = await supabase.storage.from("product-images").upload(path, file);
-       if (uploadError) return null;
+       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"; const path = `products/${createdProduct.id}-${index}-${Date.now()}.${ext}`;
+       const { error: uploadError } = await supabase.storage.from("product-images").upload(path, file); if (uploadError) return null;
        return supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
      }));
      const validImages = imageUrls.filter((url): url is string => Boolean(url));
-     if (validImages.length > 0) {
-       const { error: imageError } = await supabase.from("grocery_products").update({ image_url: newProduct.image_url || validImages[0], images: validImages }).eq("id", createdProduct.id);
-       if (imageError) toast.error(imageError.message);
-     }
+     if (validImages.length > 0) { const { error: imageError } = await supabase.from("grocery_products").update({ image_url: newProduct.image_url || validImages[0], images: validImages }).eq("id", createdProduct.id); if (imageError) toast.error(imageError.message); }
      toast.success("پروڈکٹ شامل / Product added");
-     setNewProduct({ name: "", price: "", category: "General", unit: "kg", discount_price: "", description: "", image_url: "", imageFiles: [] });
-     setShowAddProduct(false);
-     fetchData();
+     setNewProduct({ name: "", price: "", category: "General", unit: "piece", discount_price: "", description: "", image_url: "", imageFiles: [], brand: "", sku: "", weight: "", dimensions: "", material: "", voltage: "", screen_size: "", ram: "", storage: "", stock_qty: "", tags: "", colors: "", sizes: "" });
+     setShowAddProduct(false); fetchData();
    };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;

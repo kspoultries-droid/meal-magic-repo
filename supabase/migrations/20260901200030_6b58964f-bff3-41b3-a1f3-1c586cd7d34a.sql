@@ -1,0 +1,1 @@
+-- No-op migration intentionally omitted: the product_questions table, grants, and row-level access rules are already applied.
