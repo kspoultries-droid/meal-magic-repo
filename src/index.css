@@ -124,47 +124,36 @@
 
 /* ── Bazar (marketplace) scoped theme: Premium Ink & Amber ───────────── */
 @layer base {
-   .theme-bazar {
-     --background: 40 33% 98%;
-     --foreground: 0 0% 8%;
-
-     --card: 0 0% 100%;
-     --card-foreground: 0 0% 8%;
-
-     --popover: 0 0% 100%;
-     --popover-foreground: 0 0% 8%;
-
-     --primary: 38 92% 50%;
-     --primary-foreground: 0 0% 100%;
-
-    --secondary: 43 18% 94%;
-    --secondary-foreground: 0 0% 12%;
-
-    --muted: 43 18% 92%;
-    --muted-foreground: 30 5% 42%;
-
-    --accent: 38 90% 94%;
-    --accent-foreground: 30 70% 26%;
-
+  .theme-bazar {
+    --background: 40 25% 98%;
+    --foreground: 25 18% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 25 18% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 18% 13%;
+    --primary: 31 86% 43%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 38 18% 94%;
+    --secondary-foreground: 25 18% 13%;
+    --muted: 38 16% 92%;
+    --muted-foreground: 25 7% 44%;
+    --accent: 37 88% 93%;
+    --accent-foreground: 25 68% 25%;
     --destructive: 4 78% 52%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 40 12% 88%;
-    --input: 40 12% 88%;
-    --ring: 38 92% 50%;
-
-    --radius: 0.875rem;
-
-    --primary-glow: 44 96% 62%;
-    --gradient-primary: linear-gradient(135deg, hsl(36 94% 48%), hsl(46 96% 58%));
-    --gradient-hero: linear-gradient(120deg, hsl(0 0% 10%) 0%, hsl(24 18% 16%) 55%, hsl(34 40% 20%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(40 33% 99%), hsl(43 18% 95%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(40 25% 99%));
-    --shadow-elegant: 0 12px 34px -14px hsl(30 40% 20% / 0.28);
-    --shadow-glow: 0 0 40px hsl(44 96% 62% / 0.35);
-    --shadow-soft: 0 2px 12px -2px hsl(30 20% 20% / 0.08);
-    --shadow-card: 0 6px 24px -12px hsl(30 25% 18% / 0.16);
-
+    --border: 36 14% 87%;
+    --input: 36 14% 87%;
+    --ring: 31 86% 43%;
+    --radius: 0.75rem;
+    --primary-glow: 37 92% 58%;
+    --gradient-primary: linear-gradient(135deg, hsl(28 82% 42%), hsl(40 88% 48%));
+    --gradient-hero: linear-gradient(135deg, hsl(38 92% 94%) 0%, hsl(31 82% 90%) 58%, hsl(24 70% 86%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(40 25% 99%), hsl(38 18% 95%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(38 24% 99%));
+    --shadow-elegant: 0 12px 34px -14px hsl(25 38% 22% / 0.2);
+    --shadow-glow: 0 0 30px hsl(37 92% 58% / 0.25);
+    --shadow-soft: 0 2px 12px -2px hsl(25 20% 20% / 0.08);
+    --shadow-card: 0 6px 24px -12px hsl(25 25% 18% / 0.16);
     font-family: "DM Sans", "Nunito Sans", sans-serif;
   }
 
@@ -172,7 +161,7 @@
   .theme-bazar h2,
   .theme-bazar h3 {
     font-family: "Space Grotesk", "Nunito Sans", sans-serif;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 }
 
