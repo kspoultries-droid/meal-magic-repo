@@ -128,11 +128,24 @@ const ProductDetail = () => {
               {hasDiscount && <span className="text-sm text-muted-foreground line-through">Rs. {Number(product.price).toLocaleString()}</span>}
             </div>
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">کم از کم آرڈر: {product.min_order_qty} عدد</p>}
-            {Array.isArray(product.variants) && product.variants.length > 0 && (
+            {variants.length > 0 && (
               <div className="mt-4">
-                <p className="mb-2 text-xs font-extrabold text-foreground">آپشن منتخب کریں</p>
-                <div className="flex flex-wrap gap-2">
-                  {product.variants.map((variant: any, index: number) => <span key={variant.id || index} className="rounded-xl border border-primary/30 bg-accent px-3 py-2 text-xs font-bold text-accent-foreground">{variant.name || variant.label || String(variant)}</span>)}
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-xs font-extrabold text-foreground">سائز منتخب کریں</p>
+                  <span className="text-[10px] font-bold text-primary">لازمی</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {variants.map((variant: any, index: number) => {
+                    const variantId = String(variant.id || variant.label || index);
+                    const label = variant.label || variant.name || String(variant);
+                    const active = selectedVariantId === variantId;
+                    return (
+                      <button key={variantId} type="button" onClick={() => setSelectedVariantId(variantId)} className={`rounded-xl border-2 px-3 py-2 text-xs font-bold transition-colors ${active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card text-foreground"}`} aria-pressed={active}>
+                        <span className="block truncate">{label}</span>
+                        {Number(variant.price_delta || 0) !== 0 && <span className="mt-0.5 block text-[10px] text-muted-foreground">{Number(variant.price_delta) > 0 ? "+" : ""}Rs {variant.price_delta}</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
