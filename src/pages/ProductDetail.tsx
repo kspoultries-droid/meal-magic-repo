@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, BadgeCheck, Check, ChevronRight, Clock3, Heart, MapPin, Minus, Plus, Share2, ShoppingBag, Store, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, BadgeCheck, Check, ChevronRight, Clock3, Heart, MapPin, Minus, Plus, Share2, ShoppingBag, Star, Store, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
@@ -15,11 +15,12 @@ const ProductDetail = () => {
   const { items, addItem, updateQuantity, setIsOpen } = useCart();
   const [product, setProduct] = useState<any>(null);
   const [store, setStore] = useState<any>(null);
-  const [related, setRelated] = useState<RelatedItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [liked, setLiked] = useState(false);
-  const [selectedVariantId, setSelectedVariantId] = useState<string>("");
+   const [related, setRelated] = useState<RelatedItem[]>([]);
+   const [reviews, setReviews] = useState<any[]>([]);
+   const [loading, setLoading] = useState(true);
+   const [activeTab, setActiveTab] = useState("overview");
+   const [liked, setLiked] = useState(false);
+   const [selectedVariantId, setSelectedVariantId] = useState<string>("");
 
   useEffect(() => {
     if (!id) return;
@@ -32,14 +33,16 @@ const ProductDetail = () => {
         setLoading(false);
         return;
       }
-      const [{ data: storeData }, { data: relatedData }] = await Promise.all([
-        supabase.from("grocery_stores").select("*").eq("id", productData.store_id).maybeSingle(),
-        supabase.from("grocery_products").select("id,name,price,discount_price,wholesale_price,image_url").eq("store_id", productData.store_id).neq("id", id).eq("is_available", true).limit(6),
-      ]);
-      setProduct(productData);
-      setStore(storeData);
-      setRelated(relatedData || []);
-      setLoading(false);
+       const [{ data: storeData }, { data: relatedData }, { data: reviewData }] = await Promise.all([
+         supabase.from("grocery_stores").select("*").eq("id", productData.store_id).maybeSingle(),
+         supabase.from("grocery_products").select("id,name,price,discount_price,wholesale_price,image_url").eq("store_id", productData.store_id).neq("id", id).eq("is_available", true).limit(6),
+         (supabase.from("grocery_reviews" as any).select("id,rating,comment,photo_urls,video_url,created_at").eq("store_id", productData.store_id).order("created_at", { ascending: false }).limit(20) as any),
+       ]);
+       setProduct(productData);
+       setStore(storeData);
+       setRelated(relatedData || []);
+       setReviews(reviewData || []);
+       setLoading(false);
     };
     load();
   }, [id]);
@@ -191,8 +194,8 @@ const ProductDetail = () => {
                 </div>
               </>
             )}
-            {activeTab === "details" && <DetailsBlock specs={product.specs} sku={product.sku} brand={product.brand} weight={product.weight} unit={product.unit} />}
-            {activeTab === "reviews" && <div className="rounded-2xl border border-border bg-card p-8 text-center"><Heart className="mx-auto h-8 w-8 text-muted-foreground/40" /><p className="mt-2 text-sm font-bold text-foreground">ابھی کوئی ریٹنگ نہیں</p><p className="mt-1 text-xs text-muted-foreground">خریداری کے بعد اپنی رائے ضرور دیں۔</p></div>}
+             {activeTab === "details" && <DetailsBlock specs={product.specs} sku={product.sku} brand={product.brand} weight={product.weight} unit={product.unit} />}
+             {activeTab === "reviews" && <ReviewList reviews={reviews} store={store} />}
           </section>
         )}
 
