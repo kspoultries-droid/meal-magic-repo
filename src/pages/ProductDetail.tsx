@@ -6,7 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import ProductGallery from "@/components/product/ProductGallery";
+import ProductQuestions from "@/components/product/ProductQuestions";
 import RelatedProducts, { type RelatedItem } from "@/components/product/RelatedProducts";
+
+
 
 
 const ProductDetail = () => {
@@ -158,13 +161,13 @@ const ProductDetail = () => {
         </section>
 
         <nav className="sticky top-14 z-30 mt-3 border-y border-border/60 bg-background/95 px-4 backdrop-blur-xl sm:rounded-2xl sm:border">
-          <div className="flex gap-5 overflow-x-auto scrollbar-hide">
-            {[{ id: "overview", label: "جائزہ" }, { id: "details", label: "تفصیل" }, { id: "reviews", label: "ریٹنگز" }, { id: "related", label: "ملتی جلتی اشیاء" }].map((tab) => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`shrink-0 border-b-2 py-3 text-xs font-bold transition-colors ${activeTab === tab.id ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}>
-                {tab.label}
-              </button>
-            ))}
-          </div>
+           <div className="flex gap-5 overflow-x-auto scrollbar-hide">
+             {[{ id: "overview", label: "جائزہ" }, { id: "details", label: "تفصیل" }, { id: "reviews", label: "ریٹنگز" }, { id: "questions", label: "سوالات" }, { id: "related", label: "ملتی جلتی اشیاء" }].map((tab) => (
+               <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`shrink-0 border-b-2 py-3 text-xs font-bold transition-colors ${activeTab === tab.id ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}>
+                 {tab.label}
+               </button>
+             ))}
+           </div>
         </nav>
 
         {activeTab !== "related" && (
@@ -196,7 +199,8 @@ const ProductDetail = () => {
             )}
              {activeTab === "details" && <DetailsBlock specs={product.specs} sku={product.sku} brand={product.brand} weight={product.weight} unit={product.unit} />}
              {activeTab === "reviews" && <ReviewList reviews={reviews} store={store} />}
-          </section>
+             {activeTab === "questions" && <ProductQuestions productId={product.id} storeId={store.id} storeOwnerId={store.owner_id} />}
+           </section>
         )}
 
         <section className="mx-4 mt-3 space-y-3">

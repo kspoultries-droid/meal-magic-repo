@@ -1471,6 +1471,60 @@ export type Database = {
         }
         Relationships: []
       }
+      product_questions: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
+          asked_by: string
+          created_at: string
+          id: string
+          product_id: string
+          question: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          asked_by: string
+          created_at?: string
+          id?: string
+          product_id: string
+          question: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          asked_by?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          question?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_questions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_questions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
