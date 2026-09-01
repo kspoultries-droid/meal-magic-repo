@@ -38,6 +38,8 @@ const GroceryStoreDetail = () => {
   const [editPrice, setEditPrice] = useState("");
   const [editDiscount, setEditDiscount] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg", discount_price: "", description: "", image_url: "" });
 
