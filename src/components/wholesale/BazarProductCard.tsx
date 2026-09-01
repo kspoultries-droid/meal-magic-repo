@@ -1,4 +1,5 @@
-import { Package } from "lucide-react";
+import { Heart, Package, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface BazarProduct {
   id: string;
@@ -11,6 +12,8 @@ export interface BazarProduct {
   images?: string[];
   unit: string | null;
   min_order_qty: number | null;
+  rating?: number | null;
+  category?: string | null;
   storeName?: string;
 }
 
@@ -18,48 +21,40 @@ interface Props {
   product: BazarProduct;
   onClick: () => void;
   compact?: boolean;
+  isWishlisted?: boolean;
+  onToggleWishlist?: () => void;
 }
 
-const BazarProductCard = ({ product, onClick, compact }: Props) => {
+const BazarProductCard = ({ product, onClick, compact, isWishlisted = false, onToggleWishlist }: Props) => {
   const effective = product.wholesale_price ?? product.discount_price ?? product.price;
   const hasDiscount = effective < product.price;
   const off = hasDiscount ? Math.round(((product.price - effective) / product.price) * 100) : 0;
 
   return (
-    <button
-      onClick={onClick}
-      className={`text-left bg-card rounded-2xl border overflow-hidden hover:shadow-md active:scale-[0.98] transition-all ${
-        compact ? "shrink-0 w-32" : ""
-      }`}
-    >
-      <div className="relative w-full aspect-square bg-secondary flex items-center justify-center overflow-hidden">
-        {product.image_url ? (
-          <img src={product.image_url} alt={product.name} loading="lazy" className="w-full h-full object-cover" />
-        ) : (
-          <Package className="w-7 h-7 text-muted-foreground" />
-        )}
-        {off > 0 && (
-          <span className="absolute top-1.5 right-1.5 bg-destructive text-destructive-foreground text-[9px] font-extrabold px-1.5 py-0.5 rounded-md">
-            -{off}%
-          </span>
-        )}
-      </div>
-      <div className="p-2">
-        <p className="text-[11px] font-semibold text-foreground line-clamp-2 leading-tight min-h-[26px]">{product.name}</p>
-        <div className="flex items-baseline gap-1 mt-1">
-          <span className="text-sm font-extrabold text-primary">Rs {effective}</span>
-          {hasDiscount && <span className="text-[10px] text-muted-foreground line-through">Rs {product.price}</span>}
+    <article className={`group relative overflow-hidden rounded-xl border bg-card shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elegant ${compact ? "w-36 shrink-0" : ""}`}>
+      <button onClick={onClick} className="block w-full text-left" aria-label={`${product.name} دیکھیں`}>
+        <div className="relative aspect-square w-full overflow-hidden bg-secondary">
+          {product.image_url ? (
+            <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          ) : <Package className="absolute inset-0 m-auto size-8 text-muted-foreground" />}
+          {off > 0 && <span className="absolute left-2 top-2 rounded-md bg-destructive px-1.5 py-1 text-[10px] font-bold text-destructive-foreground">-{off}%</span>}
+          {onToggleWishlist && <Button type="button" variant="secondary" size="icon" aria-label={isWishlisted ? "محفوظ فہرست سے ہٹائیں" : "محفوظ کریں"} onClick={(event) => { event.stopPropagation(); onToggleWishlist(); }} className="absolute right-2 top-2 size-8 rounded-full bg-background/90 shadow-sm hover:bg-background">
+            <Heart className={`size-4 ${isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}`} />
+          </Button>}
         </div>
-        <div className="flex items-center justify-between mt-0.5">
-          {product.storeName && (
-            <span className="text-[9px] text-muted-foreground truncate max-w-[70%]">{product.storeName}</span>
-          )}
-          {product.min_order_qty && product.min_order_qty > 1 && (
-            <span className="text-[9px] font-bold text-destructive">MOQ {product.min_order_qty}</span>
-          )}
+        <div className="space-y-1 p-2.5">
+          <p className="line-clamp-2 min-h-[2.25rem] text-xs font-semibold leading-tight text-card-foreground">{product.name}</p>
+          <div className="flex items-end justify-between gap-1">
+            <div><p className="font-display text-base font-bold text-primary">Rs {effective.toLocaleString()}</p>{hasDiscount && <p className="text-[10px] text-muted-foreground line-through">Rs {product.price.toLocaleString()}</p>}</div>
+            {product.rating && <span className="flex items-center gap-0.5 text-[10px] font-semibold text-muted-foreground"><Star className="size-3 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
+          </div>
+          <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground">
+            <span className="truncate">{product.storeName || product.unit || "خریداری کریں"}</span>
+            {!!product.min_order_qty && product.min_order_qty > 1 && <span className="shrink-0 font-semibold text-destructive">MOQ {product.min_order_qty}</span>}
+          </div>
         </div>
-      </div>
-    </button>
+      </button>
+    </article>
   );
 };
 
