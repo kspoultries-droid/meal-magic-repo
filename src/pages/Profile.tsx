@@ -22,6 +22,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
+  const [walletBalance, setWalletBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone: "", address: "", email: "" });
