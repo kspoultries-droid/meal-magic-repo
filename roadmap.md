@@ -18,3 +18,4 @@
 - [x] Checkout shows live quote with weight, distance, vehicle and fee breakdown
 - [x] Product form captures billable weight and shipping class
 - [x] Admin screen for delivery rate cards and intercity routes
+- [x] Dispatch respects vehicle capacity and skips courier/intercity orders
