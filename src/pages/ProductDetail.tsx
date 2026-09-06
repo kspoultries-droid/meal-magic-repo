@@ -85,7 +85,7 @@ const ProductDetail = () => {
         sourceId: store.id,
         weight_kg: product.weight_kg,
         weight: product.weight,
-        variant_id: selectedVariant?.id || null,
+        variant_id: selectedVariantCartId,
         variant_label: variantLabel || null,
       });
   };
