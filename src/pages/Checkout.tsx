@@ -243,7 +243,12 @@ const Checkout = () => {
       if (isGroceryOrder) {
         const storeId = items[0]?.sourceId;
         if (!storeId) { toast.error("اسٹور کی معلومات نہیں ملیں"); setSubmitting(false); return; }
-        const orderItems = items.map(item => ({ id: item.menu_item_id, quantity: item.quantity }));
+        const orderItems = items.map(item => ({
+          id: item.menu_item_id,
+          quantity: item.quantity,
+          variant_id: item.variant_id || null,
+          variant_label: item.variant_label || null,
+        }));
 
         const { data: newId, error } = await supabase.rpc("create_grocery_cart_order", {
           _store_id: storeId,
