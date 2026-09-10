@@ -125,7 +125,7 @@ const AdminDashboard = () => {
 
           <TabsContent value="people"><UsersTab /></TabsContent>
 
-          <TabsContent value="finance">
+          <TabsContent value="finance" className="admin-compact">
             <Tabs value={financeTab} onValueChange={setFinanceTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="banks">بینک اور اسٹیٹمنٹ</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
           </TabsContent>
 
