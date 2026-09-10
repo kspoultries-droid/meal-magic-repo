@@ -174,7 +174,12 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
           {hits.length > 0 && (
             <div className="space-y-1">
               {hits.map((h, i) => (
-                <div key={`${h.kind}-${h.label}-${i}`} className="flex items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.(h.section, h.subTab)}
+                  key={`${h.kind}-${h.label}-${i}`}
+                  className="flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-xs transition hover:border-primary hover:bg-primary/5"
+                >
                   <Badge variant="secondary" className="shrink-0 text-[10px]">{h.kind}</Badge>
                   <span className="flex-1 truncate font-bold">{h.label}</span>
                   <span className="shrink-0 text-muted-foreground">{h.sub}</span>
