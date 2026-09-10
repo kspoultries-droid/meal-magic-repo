@@ -104,14 +104,14 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
 
   const cards = data
     ? [
-        { label: "آج کے آرڈرز", value: `${Number(data.food_today) + Number(data.grocery_today)}`, sub: `فوڈ ${data.food_today} • گروسری ${data.grocery_today}`, icon: ShoppingBag, tone: "text-foreground" },
-        { label: "آج کی سیل", value: `Rs ${Math.round(Number(data.gross_today))}`, sub: `کمیشن Rs ${Math.round(Number(data.commission_today))}`, icon: Wallet, tone: "text-primary" },
-        { label: "زیرِ عمل آرڈرز", value: `${data.pending_orders}`, sub: `بغیر رائیڈر ${data.unassigned_orders}`, icon: RefreshCw, tone: "text-foreground" },
-        { label: "رُکے ہوئے آرڈرز", value: `${data.stuck_orders}`, sub: "45 منٹ سے زیادہ", icon: AlertTriangle, tone: data.stuck_orders ? "text-destructive" : "text-muted-foreground" },
-        { label: "آن لائن رائیڈرز", value: `${data.riders_online}/${data.riders_total}`, sub: "ابھی دستیاب", icon: Bike, tone: "text-success" },
-        { label: "بند دکانیں", value: `${data.shops_closed}/${data.shops_total}`, sub: "ریسٹورنٹس", icon: Store, tone: "text-foreground" },
-        { label: "نئی درخواستیں", value: `${data.pending_applications}`, sub: "منظوری کی منتظر", icon: Store, tone: data.pending_applications ? "text-warning" : "text-muted-foreground" },
-        { label: "زیرِ التوا ادائیگیاں", value: `${Number(data.pending_payouts) + Number(data.pending_remittances)}`, sub: `سلپس ${data.pending_remittances}`, icon: Wallet, tone: "text-foreground" },
+        { label: "آج کے آرڈرز", value: `${Number(data.food_today) + Number(data.grocery_today)}`, sub: `فوڈ ${data.food_today} • گروسری ${data.grocery_today}`, icon: ShoppingBag, tone: "text-foreground", section: "operations", subTab: "orders" },
+        { label: "آج کی سیل", value: `Rs ${Math.round(Number(data.gross_today))}`, sub: `کمیشن Rs ${Math.round(Number(data.commission_today))}`, icon: Wallet, tone: "text-primary", section: "finance", subTab: "revenue" },
+        { label: "زیرِ عمل آرڈرز", value: `${data.pending_orders}`, sub: `بغیر رائیڈر ${data.unassigned_orders}`, icon: RefreshCw, tone: "text-foreground", section: "operations", subTab: "orders" },
+        { label: "رُکے ہوئے آرڈرز", value: `${data.stuck_orders}`, sub: "45 منٹ سے زیادہ", icon: AlertTriangle, tone: data.stuck_orders ? "text-destructive" : "text-muted-foreground", section: "operations", subTab: "grocery-dispatch" },
+        { label: "آن لائن رائیڈرز", value: `${data.riders_online}/${data.riders_total}`, sub: "ابھی دستیاب", icon: Bike, tone: "text-success", section: "partners", subTab: "riders" },
+        { label: "بند دکانیں", value: `${data.shops_closed}/${data.shops_total}`, sub: "ریسٹورنٹس", icon: Store, tone: "text-foreground", section: "partners", subTab: "restaurants" },
+        { label: "نئی درخواستیں", value: `${data.pending_applications}`, sub: "منظوری کی منتظر", icon: Store, tone: data.pending_applications ? "text-warning" : "text-muted-foreground", section: "partners", subTab: "applications" },
+        { label: "زیرِ التوا ادائیگیاں", value: `${Number(data.pending_payouts) + Number(data.pending_remittances)}`, sub: `سلپس ${data.pending_remittances}`, icon: Wallet, tone: "text-foreground", section: "finance", subTab: "payouts" },
       ]
     : [];
 
