@@ -590,17 +590,24 @@ const OwnerOrdersTab = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  // Re-ring every 5 minutes while an order is still un-accepted (pending)
+  // Every pending order rings again after 5 minutes, until it is accepted
+  const remindedRef = useRef<Record<string, number>>({});
   useEffect(() => {
-    const timer = setInterval(() => {
-      const stale = orders.filter(
-        (o) => o.status === "pending" && Date.now() - new Date(o.created_at).getTime() > 5 * 60 * 1000
-      );
-      if (stale.length > 0) {
-        triggerAlert(`${stale.length} آرڈر ابھی تک قبول نہیں کیا گیا!`);
-        toast.warning(`⏰ ${stale.length} آرڈر 5 منٹ سے زیادہ سے زیرِ التوا ہے — فوراً قبول کریں`);
-      }
-    }, 5 * 60 * 1000);
+    const check = () => {
+      const now = Date.now();
+      const due = orders.filter((o) => {
+        if (o.status !== "pending") return false;
+        const age = now - new Date(o.created_at).getTime();
+        const last = remindedRef.current[o.id] || 0;
+        return age > 5 * 60 * 1000 && now - last > 5 * 60 * 1000;
+      });
+      if (due.length === 0) return;
+      due.forEach((o) => { remindedRef.current[o.id] = now; });
+      triggerAlert(`${due.length} آرڈر ابھی تک قبول نہیں کیا گیا!`);
+      toast.warning(`⏰ ${due.length} آرڈر 5 منٹ سے زیادہ سے زیرِ التوا ہے — فوراً قبول کریں`, { id: "pending-reminder" });
+    };
+    check();
+    const timer = setInterval(check, 30 * 1000);
     return () => clearInterval(timer);
   }, [orders, triggerAlert]);
 
