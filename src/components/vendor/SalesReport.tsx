@@ -3,8 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, RefreshCw, ShoppingBag } from "lucide-react";
+import { BarChart3, Download, RefreshCw, ShoppingBag } from "lucide-react";
 import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
+import TrendChart from "@/components/common/TrendChart";
+import { downloadCsv } from "@/lib/csv";
 
 const DELIVERED = ["delivered", "completed"];
 const WINDOW_DAYS = 60;
