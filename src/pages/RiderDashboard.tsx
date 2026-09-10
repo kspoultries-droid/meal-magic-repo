@@ -404,9 +404,25 @@ const RiderDashboard = () => {
                       )}
 
                       {o.status === "delivering" && (
-                        <Button size="sm" className="w-full h-9 text-xs font-extrabold" onClick={() => markDelivered(o)}>
-                          ڈلیور ہو گیا ✅
-                        </Button>
+                        <div className="space-y-1.5">
+                          <label className="flex h-9 w-full cursor-pointer items-center justify-center rounded-md border border-dashed text-[11px] font-bold text-muted-foreground hover:bg-muted">
+                            {o.delivery_proof_path ? "📷 تصویر لگ چکی — بدلیں" : "📷 ڈلیوری کی تصویر لگائیں"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="hidden"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) uploadProof(o, f);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          <Button size="sm" className="w-full h-9 text-xs font-extrabold" onClick={() => markDelivered(o)}>
+                            ڈلیور ہو گیا ✅
+                          </Button>
+                        </div>
                       )}
                     </div>
                   );
