@@ -28,9 +28,11 @@ interface Overview {
 
 interface TrendRow { day: string; orders_count: number; gross: number; commission: number }
 
-interface SearchHit { kind: string; label: string; sub: string }
+interface SearchHit { kind: string; label: string; sub: string; section: string; subTab?: string }
 
-const OverviewTab = () => {
+type NavFn = (section: string, sub?: string) => void;
+
+const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
   const [data, setData] = useState<Overview | null>(null);
   const [trend, setTrend] = useState<TrendRow[]>([]);
   const [loading, setLoading] = useState(true);
