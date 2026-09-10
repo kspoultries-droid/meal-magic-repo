@@ -85,28 +85,22 @@ const BookingsSection = () => {
       </CardHeader>
       <CardContent>
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
-          <div className="space-y-3">
-            {bookings.length === 0 && <p className="text-center text-muted-foreground py-8">کوئی بکنگ نہیں / No bookings</p>}
+          <div className="space-y-1.5">
+            {bookings.length === 0 && <p className="text-center text-muted-foreground py-4 text-xs">کوئی بکنگ نہیں / No bookings</p>}
             {bookings.map((b) => (
-              <div key={b.id} className="border rounded-xl p-4 space-y-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <span className="font-mono text-xs text-muted-foreground">#{b.id.slice(0, 8)}</span>
-                    <span className="ml-3 font-bold">{getServiceName(b.service_id)}</span>
-                    <span className="ml-2 font-bold">Rs {b.total_amount}</span>
-                  </div>
-                  <Badge className={statusColor(b.status)}>{b.status}</Badge>
+              <div key={b.id} className="rounded-lg border px-2.5 py-2 space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-[11px] text-muted-foreground">#{b.id.slice(0, 8)}</span>
+                  <span className="text-xs font-bold">{getServiceName(b.service_id)}</span>
+                  <span className="text-xs font-bold">Rs {b.total_amount}</span>
+                  <Badge className={`${statusColor(b.status)} h-5 px-1.5 text-[10px]`}>{b.status}</Badge>
+                  <span className="ms-auto text-[10px] text-muted-foreground">{b.scheduled_date} · {b.scheduled_time}</span>
                 </div>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>📅 {b.scheduled_date} — {b.scheduled_time}</p>
-                  <p>📍 {b.address}</p>
-                  {b.notes && <p>📝 {b.notes}</p>}
-                  <p>💳 {b.payment_method}</p>
-                </div>
+                <p className="truncate text-[11px] text-muted-foreground">📍 {b.address} · 💳 {b.payment_method}{b.notes ? ` · 📝 ${b.notes}` : ""}</p>
                 <div className="flex gap-1 flex-wrap">
                   {["confirmed", "in_progress", "completed", "cancelled"].map((s) =>
                     s !== b.status ? (
-                      <Button key={s} size="sm" variant="ghost" className="text-xs h-7 px-2" onClick={() => updateStatus(b.id, s)}>
+                      <Button key={s} size="sm" variant="ghost" className="text-[11px] h-6 px-2" onClick={() => updateStatus(b.id, s)}>
                         {s}
                       </Button>
                     ) : null
@@ -116,6 +110,7 @@ const BookingsSection = () => {
             ))}
           </div>
         )}
+
       </CardContent>
     </Card>
   );
