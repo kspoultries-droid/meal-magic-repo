@@ -85,10 +85,10 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
         : Promise.resolve({ data: [] as any[] }),
     ]);
     const out: SearchHit[] = [
-      ...((rests.data || []) as any[]).map((r) => ({ kind: "ریسٹورنٹ", label: r.name, sub: r.is_active ? "کھلا" : "بند" })),
-      ...((stores.data || []) as any[]).map((s) => ({ kind: "گروسری", label: s.name, sub: s.is_active ? "کھلا" : "بند" })),
-      ...((people.data || []) as any[]).map((p) => ({ kind: "صارف", label: p.full_name || p.id.slice(0, 8), sub: p.phone || "—" })),
-      ...((order.data || []) as any[]).map((o) => ({ kind: "آرڈر", label: o.id.slice(0, 8), sub: `${o.status} • Rs ${Math.round(Number(o.total_amount || 0))}` })),
+      ...((rests.data || []) as any[]).map((r) => ({ kind: "ریسٹورنٹ", label: r.name, sub: r.is_active ? "کھلا" : "بند", section: "partners", subTab: "restaurants" })),
+      ...((stores.data || []) as any[]).map((s) => ({ kind: "گروسری", label: s.name, sub: s.is_active ? "کھلا" : "بند", section: "partners", subTab: "grocery" })),
+      ...((people.data || []) as any[]).map((p) => ({ kind: "صارف", label: p.full_name || p.id.slice(0, 8), sub: p.phone || "—", section: "people" })),
+      ...((order.data || []) as any[]).map((o) => ({ kind: "آرڈر", label: o.id.slice(0, 8), sub: `${o.status} • Rs ${Math.round(Number(o.total_amount || 0))}`, section: "operations", subTab: "orders" })),
     ];
     setHits(out);
     setSearching(false);
