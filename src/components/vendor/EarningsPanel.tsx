@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "./vendorEarnings";
-import { Wallet } from "lucide-react";
+import { ExternalLink, Wallet } from "lucide-react";
 import VendorBankAccounts from "./VendorBankAccounts";
 
 const PERIODS: { key: Period; label: string }[] = [
@@ -18,6 +19,12 @@ const EarningsPanel = () => {
   const [row, setRow] = useState<VendorRow | null>(null);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const viewReceipt = async (path: string) => {
+    const { data, error } = await supabase.storage.from("payout-receipts").createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) return;
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -64,9 +71,6 @@ const EarningsPanel = () => {
               </div>
             </div>
           )}
-          <p className="text-[11px] text-muted-foreground">
-            نوٹ: ڈلیوری فیس رائیڈر/پلیٹ فارم کی ہے، اس لیے آپ کی سیل میں شامل نہیں۔ ادائیگی ایڈمن کی طرف سے آپ کے شیڈول (ہفتہ وار / 15 دن / ماہانہ) کے مطابق ہوتی ہے۔
-          </p>
         </CardContent>
       </Card>
 
@@ -77,12 +81,19 @@ const EarningsPanel = () => {
         <CardContent className="space-y-2">
           {payouts.length === 0 && <p className="text-sm text-muted-foreground">ابھی کوئی ادائیگی وصول نہیں ہوئی</p>}
           {payouts.map((p) => (
-            <div key={p.id} className="flex items-center justify-between text-xs border-b pb-1.5">
+            <div key={p.id} className="flex items-center justify-between gap-2 text-xs border-b pb-1.5">
               <span className="text-muted-foreground">
                 {p.period_start} → {p.period_end} • {p.payout_method}
                 {p.reference_no ? ` • ${p.reference_no}` : ""}
               </span>
-              <span className="font-bold">Rs {p.amount}</span>
+              <span className="flex shrink-0 items-center gap-2 font-bold">
+                Rs {p.amount}
+                {p.receipt_path && (
+                  <Button type="button" size="icon" variant="outline" className="h-7 w-7" title="بینک رسید دیکھیں" onClick={() => viewReceipt(p.receipt_path)}>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </span>
             </div>
           ))}
         </CardContent>

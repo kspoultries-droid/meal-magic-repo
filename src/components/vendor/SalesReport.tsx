@@ -163,23 +163,23 @@ const SalesReport = () => {
   }, [orders, day]);
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-1.5">
       <Card className="border-border/60 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardHeader className="flex flex-row items-center justify-between px-3 py-2">
           <CardTitle className="flex items-center gap-2 text-sm"><BarChart3 className="w-4 h-4" /> سیل رپورٹ</CardTitle>
           <Button size="sm" variant="outline" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-1.5 px-3 pb-2">
           {loading ? (
             <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
           ) : (
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-3 gap-1.5 text-center">
               {([
                 { label: "آج", s: stats.today },
                 { label: "7 دن", s: stats.week },
                 { label: "30 دن", s: stats.month },
               ] as const).map((b) => (
-                <div key={b.label} className="rounded-xl bg-secondary/50 py-3 px-1">
+                <div key={b.label} className="rounded-lg bg-secondary/50 px-1 py-1.5">
                   <p className="text-[11px] text-muted-foreground">{b.label}</p>
                   <p className="text-sm font-extrabold">Rs {b.s.gross}</p>
                   <p className="text-[10px] text-muted-foreground">{b.s.orders} آرڈرز • اوسط Rs {b.s.avg}</p>
@@ -193,16 +193,16 @@ const SalesReport = () => {
 
       {/* دن کے حساب سے */}
       <Card className="border-border/60 shadow-sm">
-        <CardHeader className="flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <CardHeader className="flex flex-col gap-1.5 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-sm">📅 دن کے حساب سے</CardTitle>
           <DayNavigator date={day} onChange={setDay} />
         </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
-            <div className="rounded-xl bg-secondary/50 py-2"><p className="text-muted-foreground">کل آرڈرز</p><p className="text-sm font-extrabold">{dayStats.orders}</p></div>
-            <div className="rounded-xl bg-secondary/50 py-2"><p className="text-muted-foreground">کل آئٹمز (مقدار)</p><p className="text-sm font-extrabold">{dayStats.qty}</p></div>
-            <div className="rounded-xl bg-primary/10 py-2"><p className="text-muted-foreground">سیل</p><p className="text-sm font-extrabold text-primary">Rs {dayStats.gross}</p></div>
-            <div className="rounded-xl bg-secondary/50 py-2"><p className="text-muted-foreground">اوسط آرڈر</p><p className="text-sm font-extrabold">Rs {dayStats.avg}</p></div>
+        <CardContent className="space-y-1.5 px-3 pb-2">
+          <div className="grid grid-cols-2 gap-1.5 text-center text-[11px] sm:grid-cols-4">
+            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">کل آرڈرز</p><p className="text-xs font-extrabold">{dayStats.orders}</p></div>
+            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">کل آئٹمز</p><p className="text-xs font-extrabold">{dayStats.qty}</p></div>
+            <div className="rounded-lg bg-primary/10 py-1.5"><p className="text-muted-foreground">سیل</p><p className="text-xs font-extrabold text-primary">Rs {dayStats.gross}</p></div>
+            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">اوسط</p><p className="text-xs font-extrabold">Rs {dayStats.avg}</p></div>
           </div>
 
           <div className="rounded-lg border p-1.5">
@@ -212,7 +212,7 @@ const SalesReport = () => {
                 <button
                   key={d.key}
                   onClick={() => setDay(new Date(d.key))}
-                  className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors ${
+                   className={`flex w-full items-center justify-between rounded-lg px-2 py-1 text-[11px] transition-colors ${
                     d.key === dayKey(day) ? "bg-primary/10 font-bold" : "hover:bg-secondary/50"
                   }`}
                 >
@@ -228,16 +228,16 @@ const SalesReport = () => {
 
       {/* اس دن کی ڈش وائز رپورٹ */}
       <Card className="border-border/60 shadow-sm">
-        <CardHeader className="pb-3">
+        <CardHeader className="px-3 py-2">
           <CardTitle className="flex items-center gap-2 text-sm">
             <ShoppingBag className="h-4 w-4" /> ڈش وائز (منتخب دن)
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 pb-2">
           {dayItems.length === 0 ? (
             <p className="py-3 text-center text-xs text-muted-foreground">اس دن کوئی سیل نہیں</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {dayItems.map((i) => (
                 <div key={i.name} className="flex items-center justify-between gap-2 border-b pb-1 text-xs">
                   <span className="truncate">{i.name}</span>
@@ -251,16 +251,16 @@ const SalesReport = () => {
       </Card>
 
       <Card className="border-border/60 shadow-sm">
-        <CardHeader className="pb-3">
+        <CardHeader className="px-3 py-2">
           <CardTitle className="text-sm">آئٹم وائز سیل (30 دن)</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 pb-2">
           {loading ? (
             <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
           ) : monthItems.length === 0 ? (
             <p className="py-3 text-center text-xs text-muted-foreground">اس عرصے میں کوئی سیل نہیں</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {monthItems.map((i) => (
                 <div key={i.name} className="flex items-center justify-between gap-2 border-b pb-1 text-xs">
                   <span className="truncate">{i.name}</span>
