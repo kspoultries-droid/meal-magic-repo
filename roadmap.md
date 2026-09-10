@@ -23,3 +23,10 @@
 - [ ] Menu selections show independent quantities for variants and add-ons
 - [ ] Food checkout hides freight details and confirms with delivery fee
 - [ ] Compact premium checkout verified on mobile and desktop
+
+- [ ] Fix restaurant banner and menu-item camera/gallery uploads with owner-scoped storage paths
+- [ ] Show restaurant customer reviews to the owning restaurant dashboard
+- [ ] Use full weekday/date labels and fully compact the sales report
+- [ ] Remove the earnings explanatory note
+- [ ] Add private admin payout-slip attachment and vendor-side viewing
+- [ ] Verify upload, reviews, sales, earnings, and payout receipt flows
