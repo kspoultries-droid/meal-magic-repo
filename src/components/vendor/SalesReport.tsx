@@ -163,15 +163,15 @@ const SalesReport = () => {
   }, [orders, day]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="flex items-center gap-2 text-base"><BarChart3 className="w-4 h-4" /> سیل رپورٹ</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-sm"><BarChart3 className="w-4 h-4" /> سیل رپورٹ</CardTitle>
           <Button size="sm" variant="outline" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           {loading ? (
-            <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>
+            <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
           ) : (
             <div className="grid grid-cols-3 gap-2 text-center">
               {([
@@ -181,7 +181,7 @@ const SalesReport = () => {
               ] as const).map((b) => (
                 <div key={b.label} className="rounded-xl bg-secondary/50 py-3 px-1">
                   <p className="text-[11px] text-muted-foreground">{b.label}</p>
-                  <p className="text-base font-extrabold">Rs {b.s.gross}</p>
+                  <p className="text-sm font-extrabold">Rs {b.s.gross}</p>
                   <p className="text-[10px] text-muted-foreground">{b.s.orders} آرڈرز • اوسط Rs {b.s.avg}</p>
                 </div>
               ))}
@@ -194,18 +194,18 @@ const SalesReport = () => {
       {/* دن کے حساب سے */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-base">📅 دن کے حساب سے</CardTitle>
+          <CardTitle className="text-sm">📅 دن کے حساب سے</CardTitle>
           <DayNavigator date={day} onChange={setDay} />
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           <div className="grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
-            <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">کل آرڈرز</p><p className="text-lg font-extrabold">{dayStats.orders}</p></div>
-            <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">کل آئٹمز (مقدار)</p><p className="text-lg font-extrabold">{dayStats.qty}</p></div>
-            <div className="rounded-xl bg-primary/10 py-3"><p className="text-muted-foreground">سیل</p><p className="text-lg font-extrabold text-primary">Rs {dayStats.gross}</p></div>
-            <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">اوسط آرڈر</p><p className="text-lg font-extrabold">Rs {dayStats.avg}</p></div>
+            <div className="rounded-xl bg-secondary/50 py-2"><p className="text-muted-foreground">کل آرڈرز</p><p className="text-sm font-extrabold">{dayStats.orders}</p></div>
+            <div className="rounded-xl bg-secondary/50 py-2"><p className="text-muted-foreground">کل آئٹمز (مقدار)</p><p className="text-sm font-extrabold">{dayStats.qty}</p></div>
+            <div className="rounded-xl bg-primary/10 py-2"><p className="text-muted-foreground">سیل</p><p className="text-sm font-extrabold text-primary">Rs {dayStats.gross}</p></div>
+            <div className="rounded-xl bg-secondary/50 py-2"><p className="text-muted-foreground">اوسط آرڈر</p><p className="text-sm font-extrabold">Rs {dayStats.avg}</p></div>
           </div>
 
-          <div className="rounded-xl border p-2">
+          <div className="rounded-lg border p-1.5">
             <p className="mb-1.5 text-[11px] font-bold text-muted-foreground">پچھلے 7 دن</p>
             <div className="space-y-1">
               {last7.map((d) => (
@@ -229,17 +229,17 @@ const SalesReport = () => {
       {/* اس دن کی ڈش وائز رپورٹ */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2 text-sm">
             <ShoppingBag className="h-4 w-4" /> ڈش وائز (منتخب دن)
           </CardTitle>
         </CardHeader>
         <CardContent>
           {dayItems.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">اس دن کوئی سیل نہیں</p>
+            <p className="py-3 text-center text-xs text-muted-foreground">اس دن کوئی سیل نہیں</p>
           ) : (
             <div className="space-y-1.5">
               {dayItems.map((i) => (
-                <div key={i.name} className="flex items-center justify-between gap-2 border-b pb-1.5 text-sm">
+                <div key={i.name} className="flex items-center justify-between gap-2 border-b pb-1 text-xs">
                   <span className="truncate">{i.name}</span>
                   <span className="shrink-0 rounded-full bg-secondary px-2 text-xs font-bold">×{i.qty}</span>
                   <span className="shrink-0 font-extrabold">Rs {Math.round(i.amount)}</span>
@@ -252,17 +252,17 @@ const SalesReport = () => {
 
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">آئٹم وائز سیل (30 دن)</CardTitle>
+          <CardTitle className="text-sm">آئٹم وائز سیل (30 دن)</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>
+            <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
           ) : monthItems.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">اس عرصے میں کوئی سیل نہیں</p>
+            <p className="py-3 text-center text-xs text-muted-foreground">اس عرصے میں کوئی سیل نہیں</p>
           ) : (
             <div className="space-y-1.5">
               {monthItems.map((i) => (
-                <div key={i.name} className="flex items-center justify-between gap-2 border-b pb-1.5 text-sm">
+                <div key={i.name} className="flex items-center justify-between gap-2 border-b pb-1 text-xs">
                   <span className="truncate">{i.name}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">×{i.qty}</span>
                   <span className="shrink-0 font-extrabold">Rs {Math.round(i.amount)}</span>
