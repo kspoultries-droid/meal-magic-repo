@@ -532,10 +532,38 @@ const MenuTab = () => {
         </Dialog>
       </CardHeader>
       <CardContent>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="آئٹم تلاش کریں..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-8 w-full max-w-[220px] text-xs"
+          />
+          <select
+            className="h-8 rounded-md border bg-background px-2 text-xs text-foreground"
+            value={catFilter}
+            onChange={(e) => setCatFilter(e.target.value)}
+          >
+            <option value="all">تمام کیٹگریز</option>
+            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <span className="text-[11px] text-muted-foreground">{visibleItems.length} آئٹمز</span>
+          {selected.length > 0 && (
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-2 py-1">
+              <span className="text-[11px]">{selected.length} منتخب</span>
+              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => bulkAvailability(true)}>سب فعال</Button>
+              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => bulkAvailability(false)}>سب بند</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setSelected([])}>منسوخ</Button>
+            </div>
+          )}
+        </div>
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8">
+                  <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAll} aria-label="سب منتخب" />
+                </TableHead>
                 <TableHead>نام</TableHead>
                 <TableHead>کیٹگری</TableHead>
                 <TableHead>قیمت</TableHead>
@@ -544,8 +572,11 @@ const MenuTab = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {menuItems.map((m) => (
+              {visibleItems.map((m) => (
                 <TableRow key={m.id}>
+                  <TableCell>
+                    <input type="checkbox" checked={selected.includes(m.id)} onChange={() => toggleSelect(m.id)} aria-label={m.name} />
+                  </TableCell>
                   <TableCell className="font-medium">{m.name}</TableCell>
                   <TableCell>{m.category}</TableCell>
                   <TableCell>Rs {m.price}</TableCell>
@@ -567,7 +598,7 @@ const MenuTab = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {menuItems.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">کوئی آئٹم نہیں</TableCell></TableRow>}
+              {visibleItems.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی آئٹم نہیں</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
