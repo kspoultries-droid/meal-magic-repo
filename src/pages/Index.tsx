@@ -24,14 +24,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle pb-24">
       <Navbar />
-      <div className="container mx-auto max-w-3xl px-4 pt-3">
-        <LocationBar />
-      </div>
       <HomeHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       {!foodLive ? (
         <ServiceUnavailableNotice kind="food" city={city} cities={cities} onCityChange={setCityId} />
       ) : (
       <>
+      {!isSearching && !quickFilter && <HeroPromo />}
       <QuickCategories
         active={quickFilter}
         onChange={(f) => {
