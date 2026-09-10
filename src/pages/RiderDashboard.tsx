@@ -293,6 +293,8 @@ const RiderDashboard = () => {
 
         {user && <RiderOfferCard riderId={user.id} onChanged={() => fetchData(false)} />}
 
+        {user && <RiderInsights riderId={user.id} />}
+
         <div className="rounded-xl border bg-card p-3 space-y-2">
           <p className="text-xs font-extrabold">آرڈر ہسٹری کا دن</p>
           <div className="grid grid-cols-4 gap-1">
