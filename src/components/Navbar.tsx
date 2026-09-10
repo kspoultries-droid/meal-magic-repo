@@ -2,6 +2,7 @@ import { User, LogOut, Shield, Store, Bike, Menu, X, Headphones, Wrench, Clipboa
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import LocationPill from "@/components/location/LocationPill";
 
 const Navbar = () => {
   const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, signOut } = useAuth();
@@ -18,10 +19,12 @@ const Navbar = () => {
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm flex items-center justify-center transition-transform group-hover:scale-105 group-hover:rotate-3 shadow-glow">
             <span className="text-primary-foreground font-extrabold text-base sm:text-lg">EL</span>
           </div>
-          <span className="text-lg sm:text-xl font-extrabold text-primary-foreground tracking-tight">
+          <span className="hidden text-lg sm:inline sm:text-xl font-extrabold text-primary-foreground tracking-tight">
             Easy<span className="text-primary-foreground/80">Life</span>
           </span>
         </div>
+
+        <LocationPill className="mx-2 flex-1 justify-center sm:flex-none" />
 
         {/* Desktop role links */}
         <div className="hidden md:flex items-center gap-2">
