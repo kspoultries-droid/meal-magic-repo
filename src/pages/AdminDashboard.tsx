@@ -109,7 +109,7 @@ const AdminDashboard = () => {
 
           <TabsContent value="overview" className="space-y-4"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>
 
-          <TabsContent value="operations">
+          <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={setOpsTab}>
               <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">آرڈرز</TabsTrigger><TabsTrigger value="grocery-dispatch">ڈسپیچ</TabsTrigger><TabsTrigger value="photo-orders">فوٹو آرڈرز</TabsTrigger><TabsTrigger value="audit">آڈٹ لاگ</TabsTrigger></TabsList>
               <TabsContent value="orders"><OrdersTab /></TabsContent><TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent><TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent><TabsContent value="audit"><AuditLogTab /></TabsContent>
