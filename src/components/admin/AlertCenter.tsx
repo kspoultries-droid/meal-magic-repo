@@ -112,7 +112,11 @@ const AlertCenter = ({ onNavigate }: { onNavigate?: (section: string, sub?: stri
             const isRead = read.has(a.id);
             return (
               <div key={a.id} className={`flex items-start justify-between gap-2 rounded-lg border px-2.5 py-1.5 ${isRead ? "opacity-60" : a.severity === "high" ? "border-destructive/40 bg-destructive/5" : "bg-secondary/30"}`}>
-                <div className="min-w-0">
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-start"
+                  onClick={() => { markRead(a.id); const [s, sub] = target(a.kind); onNavigate?.(s, sub); }}
+                >
                   <p className="truncate text-xs font-bold">{a.title}</p>
                   <p className="truncate text-[11px] text-muted-foreground">{a.detail}</p>
                   <p className="text-[10px] text-muted-foreground">{new Date(a.at).toLocaleString("ur-PK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
