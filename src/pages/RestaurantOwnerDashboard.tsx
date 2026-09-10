@@ -38,6 +38,33 @@ const RestaurantOwnerDashboard = () => {
     }
   }, [user]);
 
+  // Live count of orders still waiting for the owner's acceptance
+  const [pendingCount, setPendingCount] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const count = async () => {
+      const { data: rests } = await supabase.from("restaurants").select("id").eq("owner_id", user.id);
+      const ids = (rests || []).map((r) => r.id);
+      if (!ids.length) { if (!cancelled) setPendingCount(0); return; }
+      const { count: n } = await supabase
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .in("restaurant_id", ids)
+        .eq("status", "pending");
+      if (!cancelled) setPendingCount(n || 0);
+    };
+    count();
+    const timer = setInterval(count, 30000);
+    const channel = supabase
+      .channel("owner-pending-count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, count)
+      .subscribe();
+    return () => { cancelled = true; clearInterval(timer); supabase.removeChannel(channel); };
+  }, [user]);
+
+
+
   if (loading || hasRole === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
 
   if (!hasRole) return (
