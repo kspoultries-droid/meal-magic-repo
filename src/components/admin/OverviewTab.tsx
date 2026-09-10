@@ -183,7 +183,7 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
                   <Badge variant="secondary" className="shrink-0 text-[10px]">{h.kind}</Badge>
                   <span className="flex-1 truncate font-bold">{h.label}</span>
                   <span className="shrink-0 text-muted-foreground">{h.sub}</span>
-                </div>
+                </button>
               ))}
             </div>
           )}
