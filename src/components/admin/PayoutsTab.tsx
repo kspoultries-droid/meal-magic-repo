@@ -131,9 +131,13 @@ const PayoutsTab = () => {
       _reference_no: refs[row.vendorId]?.trim() || null,
       _notes: `${row.shopNames.join(", ")} — کمیشن ${row.commissionRate}%`,
     });
+    if (error && receiptPath) {
+      await supabase.storage.from("payout-receipts").remove([receiptPath]);
+    }
     if (!error && payoutId && receiptPath) {
-      const { error: receiptError } = await (supabase.from("payouts") as any).update({ receipt_path: receiptPath }).eq("id", payoutId);
+      const { error: receiptError } = await supabase.from("payouts").update({ receipt_path: receiptPath }).eq("id", payoutId);
       if (receiptError) {
+        await supabase.storage.from("payout-receipts").remove([receiptPath]);
         if (!silent) { setBusy(null); toast.error("ادائیگی درج ہوئی مگر رسید منسلک نہیں ہوئی"); }
         return false;
       }
