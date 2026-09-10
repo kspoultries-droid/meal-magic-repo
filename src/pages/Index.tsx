@@ -4,13 +4,14 @@ import HomeHero from "@/components/home/HomeHero";
 import TopPicksRail from "@/components/home/TopPicksRail";
 import QuickCategories, { QuickFilter } from "@/components/QuickCategories";
 import PromotionalAds from "@/components/PromotionalAds";
-import CategoryChips from "@/components/CategoryChips";
+import CategoryRail from "@/components/home/CategoryRail";
+import HeroPromo from "@/components/home/HeroPromo";
 import RestaurantGrid from "@/components/RestaurantGrid";
 import Footer from "@/components/Footer";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
 import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
-import LocationBar from "@/components/location/LocationBar";
+
 import { useCityServices } from "@/hooks/useCityServices";
 
 const Index = () => {
@@ -23,14 +24,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle pb-24">
       <Navbar />
-      <div className="container mx-auto max-w-3xl px-4 pt-3">
-        <LocationBar />
-      </div>
       <HomeHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       {!foodLive ? (
         <ServiceUnavailableNotice kind="food" city={city} cities={cities} onCityChange={setCityId} />
       ) : (
       <>
+      {!isSearching && !quickFilter && <HeroPromo />}
       <QuickCategories
         active={quickFilter}
         onChange={(f) => {
@@ -47,7 +46,7 @@ const Index = () => {
           <TopPicksRail />
         </>
       )}
-      <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+      <CategoryRail />
       <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} quickFilter={quickFilter} onClearQuickFilter={() => setQuickFilter(null)} />
       </>
       )}

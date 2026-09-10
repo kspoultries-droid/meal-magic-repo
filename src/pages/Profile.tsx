@@ -313,28 +313,30 @@ const Profile = () => {
       {/* Referral Card */}
       {profile?.referral_code && (
         <div className="px-4 pb-2">
-          <div className="rounded-2xl p-4 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground">اپنا ریفرل کوڈ شیئر کریں</p>
-                <p className="font-mono text-2xl font-extrabold text-primary tracking-widest">{profile.referral_code}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">دوست join کریں گے تو دونوں کو بونس ملے گا</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Button size="sm" variant="outline" onClick={() => {
-                  navigator.clipboard.writeText(profile.referral_code);
-                  toast.success("کوڈ کاپی ہو گیا");
-                }}>
-                  <Copy className="w-4 h-4 mr-1" /> کاپی
-                </Button>
-                <Button size="sm" onClick={() => {
-                  const msg = `EasyLife app join کریں اور بہترین آفرز پائیں! میرا ریفرل کوڈ: ${profile.referral_code}\n\nhttps://easylife.apnahub.online`;
-                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
-                }} className="bg-green-600 hover:bg-green-700">
-                  WhatsApp
-                </Button>
-              </div>
-            </div>
+          <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
+            <span className="shrink-0 text-[11px] text-muted-foreground">ریفرل کوڈ</span>
+            <span className="min-w-0 flex-1 truncate font-mono text-sm font-extrabold tracking-widest text-primary">
+              {profile.referral_code}
+            </span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(profile.referral_code);
+                toast.success("کوڈ کاپی ہو گیا");
+              }}
+              aria-label="کاپی"
+              className="rounded-lg border bg-card p-1.5 active:scale-95 transition-transform"
+            >
+              <Copy className="h-3.5 w-3.5 text-primary" />
+            </button>
+            <button
+              onClick={() => {
+                const msg = `EasyLife app join کریں اور بہترین آفرز پائیں! میرا ریفرل کوڈ: ${profile.referral_code}\n\nhttps://easylife.apnahub.online`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+              }}
+              className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground active:scale-95 transition-transform"
+            >
+              شیئر
+            </button>
           </div>
         </div>
       )}
