@@ -465,6 +465,28 @@ const MenuTab = () => {
     fetchMenu();
   };
 
+  const categories = Array.from(new Set(menuItems.map((m) => m.category || "Main")));
+  const visibleItems = menuItems.filter((m) =>
+    (catFilter === "all" || (m.category || "Main") === catFilter) &&
+    (!search.trim() || (m.name || "").toLowerCase().includes(search.trim().toLowerCase()))
+  );
+  const allVisibleSelected = visibleItems.length > 0 && visibleItems.every((m) => selected.includes(m.id));
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const toggleSelectAll = () =>
+    setSelected(allVisibleSelected ? [] : visibleItems.map((m) => m.id));
+
+  const bulkAvailability = async (value: boolean) => {
+    if (selected.length === 0) return;
+    const { error } = await supabase.from("menu_items").update({ is_available: value }).in("id", selected);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${selected.length} آئٹمز ${value ? "فعال" : "بند"} کر دی گئیں`);
+    setSelected([]);
+    fetchMenu();
+  };
+
   if (restaurants.length === 0) return <Card><CardContent className="p-8 text-center text-muted-foreground">پہلے ریسٹورنٹ شامل کریں</CardContent></Card>;
 
   return (
