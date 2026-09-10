@@ -285,7 +285,7 @@ const GroceryStoreDetail = () => {
                         </div>
                       )}
                        <div
-                         className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
+                         className="aspect-square bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
                          onClick={() => !isOwner && navigate(`/product/${product.id}`)}
                        >
                           {product.image_url ? (
