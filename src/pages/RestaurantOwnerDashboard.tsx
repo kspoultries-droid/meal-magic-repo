@@ -122,7 +122,7 @@ const RestaurantOwnerDashboard = () => {
           <TabsContent value="orders"><OwnerOrdersTab /></TabsContent>
           <TabsContent value="reels"><MyReelsManager /></TabsContent>
           <TabsContent value="earnings"><EarningsPanel /></TabsContent>
-          <TabsContent value="sales"><SalesReport /></TabsContent>
+          <TabsContent value="sales" className="space-y-3"><RestaurantScore /><SalesReport /></TabsContent>
           <TabsContent value="reviews" className="space-y-4">
             <VendorReviewsPanel kind="food" />
             <VendorReviewsPanel kind="grocery" />
