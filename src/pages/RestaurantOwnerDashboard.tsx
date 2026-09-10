@@ -144,12 +144,29 @@ const MyRestaurantTab = () => {
       </CardHeader>
       <CardContent>
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : restaurants.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">ابھی کوئی ریسٹورنٹ نہیں — اوپر سے شامل کریں</p>
+          <p className="text-center text-muted-foreground py-8">ابھی کوئی ریسٹورنٹ نہیں — ایڈمن سے منظوری کے بعد یہاں نظر آئے گا</p>
         ) : (
           <div className="grid gap-4">
             {restaurants.map((r) => (
               <div key={r.id} className="flex flex-col sm:flex-row gap-4 bg-secondary/30 rounded-xl p-3 sm:p-4 border overflow-hidden">
-                {r.image_url && <img src={r.image_url} alt={r.name} className="w-full h-32 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0" />}
+                <div className="w-full shrink-0 space-y-1.5 sm:w-28">
+                  {r.image_url ? (
+                    <img src={r.image_url} alt={r.name} className="h-32 w-full rounded-lg object-cover sm:h-28" />
+                  ) : (
+                    <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed bg-background text-[11px] text-muted-foreground sm:h-28">
+                      تصویر نہیں
+                    </div>
+                  )}
+                  <ProductPhotoUploader
+                    aspect="wide"
+                    label="اپنی تصویر لگائیں"
+                    onDone={async (photos) => {
+                      const photo = photos[0];
+                      if (photo) await uploadBanner(r.id, photo.file);
+                    }}
+                  />
+                  {uploading && <p className="text-[10px] text-muted-foreground">اپلوڈ ہو رہی ہے…</p>}
+                </div>
                 <div className="flex-1 min-w-0 w-full">
                   <h3 className="font-bold text-foreground break-words">{r.name}</h3>
                   <p className="text-sm text-muted-foreground">{r.description}</p>
