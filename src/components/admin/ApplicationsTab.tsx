@@ -159,6 +159,9 @@ const ApplicationsTab = () => {
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1 min-w-[200px]">
                     <div className="flex items-center gap-2 mb-1">
+                      {app.status === "pending" && (
+                        <input type="checkbox" checked={sel.includes(app.id)} onChange={() => toggleSel(app.id)} aria-label={app.business_name} />
+                      )}
                       <h3 className="font-bold">{app.business_name}</h3>
                       <Badge variant="outline">{app.applicant_type}</Badge>
                     </div>
