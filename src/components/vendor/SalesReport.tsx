@@ -266,6 +266,11 @@ const SalesReport = () => {
         </CardContent>
       </Card>
 
+      <Card className="border-border/60 shadow-sm">
+        <CardHeader className="px-3 py-2"><CardTitle className="text-sm">30 دن کا سیل رجحان</CardTitle></CardHeader>
+        <CardContent className="px-1 pb-2"><TrendChart data={trend30} valueLabel="سیل" height={170} /></CardContent>
+      </Card>
+
       {/* اس دن کی ڈش وائز رپورٹ */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="px-3 py-2">
