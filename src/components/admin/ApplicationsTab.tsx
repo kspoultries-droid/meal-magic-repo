@@ -86,8 +86,32 @@ const ApplicationsTab = () => {
     else toast.error("فائل نہیں کھلی");
   };
 
-  const filtered = apps.filter(a => a.status === filter);
+  const filtered = apps.filter(a =>
+    a.status === filter &&
+    (!q.trim() || `${a.business_name || ""} ${a.owner_name || ""} ${a.phone || ""}`.toLowerCase().includes(q.trim().toLowerCase()))
+  );
   const pendingCount = apps.filter(a => a.status === "pending").length;
+
+  const toggleSel = (id: string) => setSel(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const allSelected = filtered.length > 0 && filtered.every(a => sel.includes(a.id));
+
+  const bulkApprove = async () => {
+    const targets = apps.filter(a => sel.includes(a.id) && a.status === "pending");
+    if (targets.length === 0) return toast.error("کوئی زیر جائزہ درخواست منتخب نہیں");
+    if (!window.confirm(`${targets.length} درخواستیں منظور کی جائیں؟`)) return;
+    let ok = 0; let skipped = 0;
+    for (const app of targets) {
+      if (app.applicant_type === "rider") {
+        const k = kycMap[app.user_id];
+        if (!k || k.status === "failed") { skipped++; continue; }
+      }
+      const { error } = await supabase.rpc("approve_partner_application", { _application_id: app.id });
+      if (error) skipped++; else ok++;
+    }
+    toast.success(`${ok} منظور${skipped ? ` — ${skipped} چھوڑ دی گئیں (تصدیق درکار)` : ""}`);
+    setSel([]);
+    fetchApps();
+  };
 
   return (
     <div className="space-y-4">
