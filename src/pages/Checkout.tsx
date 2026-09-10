@@ -501,15 +501,15 @@ const Checkout = () => {
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground shrink-0" />
                 <Input placeholder="وصول کنندہ کا نام" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} className="h-11 rounded-xl bg-background/80" />
-           </div>
-         </details>
+               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
                 <Input placeholder="وصول کنندہ کا فون نمبر *" value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} required className="h-11 rounded-xl bg-background/80" />
               </div>
             </div>
           )}
-        </div>
+           </div>
+         </details>
 
         {/* Payment - Glass */}
          <div className="glass rounded-2xl p-4 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "180ms" }}>
