@@ -1,43 +1,55 @@
 import { ArrowRight, MapPin, Search, ShieldCheck, Sparkles, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PromotionalAds from "@/components/PromotionalAds";
+import HeroEditor from "@/components/common/HeroEditor";
+import { useHeroSettings } from "@/hooks/useHeroSettings";
+import { bazarHeroDefaults, heroBackgroundStyle } from "@/lib/heroConfig";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   searchQuery: string;
   onSearchChange: (v: string) => void;
 }
 
-const BazarHero = ({ searchQuery, onSearchChange }: Props) => (
-  <header className="relative isolate overflow-hidden border-b border-border bg-gradient-hero text-foreground">
-    <div className="relative z-10 mx-auto w-full max-w-7xl px-3 pb-4 pt-3 sm:px-6 sm:pb-5 sm:pt-5">
-      <div className="flex items-center gap-2 text-xs font-semibold text-foreground/70">
-        <MapPin className="size-3.5 shrink-0 text-primary" />
-        <span>پاکستان بھر سے ہول سیل خریداری</span>
-      </div>
-      <div className="mt-3 grid min-w-0 gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div className="min-w-0 max-w-2xl">
-          <p className="mb-1 flex items-center gap-1.5 text-xs font-bold text-primary"><Sparkles className="size-3.5 shrink-0" /> آج کی بہترین مارکیٹ ڈیلز</p>
-          <h1 className="font-display text-[1.7rem] font-bold leading-tight sm:text-4xl">بہتر قیمت، زیادہ بچت</h1>
-          <p className="mt-1 text-xs text-foreground/65 sm:text-sm">تصدیق شدہ دکانداروں سے براہِ راست خریداری</p>
+const BazarHero = ({ searchQuery, onSearchChange }: Props) => {
+  const { isAdmin } = useAuth();
+  const { config, save } = useHeroSettings("hero_bazar", bazarHeroDefaults);
+
+  return (
+    <header className="relative isolate overflow-hidden border-b border-border">
+      <div style={heroBackgroundStyle(config)} className="relative z-10">
+        <div className="mx-auto w-full max-w-7xl px-3 sm:px-6">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-semibold opacity-75">
+              <MapPin className="size-3.5 shrink-0" style={{ color: config.accentColor }} />
+              <span>پاکستان بھر سے ہول سیل خریداری</span>
+            </div>
+            {isAdmin && <HeroEditor config={config} defaults={bazarHeroDefaults} onSave={save} />}
+          </div>
+          <div className="mt-3 min-w-0" style={{ textAlign: config.align }}>
+            <p className="mb-1 flex items-center gap-1.5 text-xs font-bold" style={{ color: config.accentColor, justifyContent: config.align === "center" ? "center" : config.align === "left" ? "flex-start" : "flex-end" }}>
+              <Sparkles className="size-3.5 shrink-0" /> {config.eyebrow}
+            </p>
+            <h1 className="font-display font-bold leading-tight" style={{ fontSize: config.titleSize }}>{config.title}</h1>
+            <p className="mt-1 text-xs opacity-70 sm:text-sm">{config.subtitle}</p>
+          </div>
+          <label className="mt-4 flex h-11 min-w-0 items-center gap-2 rounded-xl border border-border/80 bg-card px-3 shadow-elegant focus-within:ring-2 focus-within:ring-ring">
+            <Search className="size-5 shrink-0 text-muted-foreground" />
+            <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={config.searchPlaceholder} className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
+            <Button type="button" size="sm" className="hidden shrink-0 sm:inline-flex">تلاش کریں <ArrowRight className="size-3.5" /></Button>
+          </label>
         </div>
-        <div className="hidden items-center gap-5 text-[10px] font-semibold text-foreground/70 sm:flex">
-          <span className="flex items-center gap-1"><ShieldCheck className="size-3.5 text-primary" /> تصدیق شدہ</span>
-          <span className="flex items-center gap-1"><Truck className="size-3.5 text-primary" /> ملک بھر میں</span>
-        </div>
       </div>
-      <label className="mt-4 flex h-11 min-w-0 items-center gap-2 rounded-xl border border-border/80 bg-card px-3 shadow-elegant focus-within:ring-2 focus-within:ring-ring">
-        <Search className="size-5 shrink-0 text-muted-foreground" />
-        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder="پروڈکٹ، برانڈ یا دکان تلاش کریں" className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
-        <Button type="button" size="sm" className="hidden shrink-0 sm:inline-flex">تلاش کریں <ArrowRight className="size-3.5" /></Button>
-      </label>
-    </div>
-    <PromotionalAds placement="bazar" className="relative z-10 mx-auto w-full max-w-7xl px-3 pb-3 sm:px-6" />
-    <div className="relative z-10 flex min-h-9 items-center justify-center gap-4 border-t border-border/70 bg-card/80 px-3 py-2 text-[10px] font-semibold text-muted-foreground sm:gap-10">
-      <span className="flex items-center gap-1.5"><ShieldCheck className="size-3.5 shrink-0 text-primary" /> تصدیق شدہ دکاندار</span>
-      <span className="flex items-center gap-1.5"><Truck className="size-3.5 shrink-0 text-primary" /> ملک بھر میں ڈیلیوری</span>
-      <span className="hidden items-center gap-1.5 sm:flex"><Sparkles className="size-3.5 shrink-0 text-primary" /> روزانہ نئی ڈیلز</span>
-    </div>
-  </header>
-);
+      <PromotionalAds placement="bazar" className="relative z-10 mx-auto w-full max-w-7xl px-3 py-3 sm:px-6" />
+      {config.showBadges && (
+        <div className="relative z-10 flex min-h-9 items-center justify-center gap-4 border-t border-border/70 bg-card/80 px-3 py-2 text-[10px] font-semibold text-muted-foreground sm:gap-10">
+          <span className="flex items-center gap-1.5"><ShieldCheck className="size-3.5 shrink-0 text-primary" /> {config.badge1}</span>
+          <span className="flex items-center gap-1.5"><Truck className="size-3.5 shrink-0 text-primary" /> {config.badge2}</span>
+          <span className="hidden items-center gap-1.5 sm:flex"><Sparkles className="size-3.5 shrink-0 text-primary" /> {config.badge3}</span>
+        </div>
+      )}
+    </header>
+  );
+};
 
 export default BazarHero;

@@ -84,6 +84,10 @@ const GroceryStoreDetail = () => {
   const handleAdd = (product: any) => {
     const effectivePrice = product.wholesale_price || product.discount_price || product.price;
     const variants = getVariants(product);
+    if (variants.length > 0) {
+      navigate(`/product/${product.id}`);
+      return;
+    }
     const selectedKey = selectedVariants[product.id];
     const variant = variants.find((value: any, index: number) => variantKey(value, index) === selectedKey) || variants[0];
     const variantLabel = variant?.label || variant?.name;
@@ -281,7 +285,7 @@ const GroceryStoreDetail = () => {
                         </div>
                       )}
                        <div
-                         className="h-28 bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
+                         className="aspect-square bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
                          onClick={() => !isOwner && navigate(`/product/${product.id}`)}
                        >
                           {product.image_url ? (
@@ -303,29 +307,13 @@ const GroceryStoreDetail = () => {
                            {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
                          </button>
 
-                        {!isOwner && getVariants(product).length > 0 && (
-                          <div className="mt-2">
-                            <p className="text-[10px] font-bold text-muted-foreground">سائز منتخب کریں</p>
-                            <div className="mt-1 flex flex-wrap gap-1">
-                              {getVariants(product).map((variant: any, index: number) => {
-                                const key = variantKey(variant, index);
-                                const active = (selectedVariants[product.id] || variantKey(getVariants(product)[0], 0)) === key;
-                                return (
-                                  <button
-                                    key={key}
-                                    type="button"
-                                    aria-pressed={active}
-                                    onClick={() => setSelectedVariants((prev) => ({ ...prev, [product.id]: key }))}
-                                    className={`rounded-lg border px-2 py-1 text-[10px] font-bold transition-colors ${active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card text-muted-foreground"}`}
-                                  >
-                                    {variant.label || variant.name}
-                                    {Number(variant.price_delta || 0) !== 0 && <span className="ms-1 text-[9px]">{Number(variant.price_delta) > 0 ? "+" : ""}{variant.price_delta}</span>}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                        {!isOwner && productVariants.length > 0 && (
+                          <button type="button" onClick={() => navigate(`/product/${product.id}`)} className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-bold text-accent-foreground">
+                            {productVariants.length} آپشنز · سائز/رنگ منتخب کریں
+                          </button>
                         )}
+
+
 
 
 

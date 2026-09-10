@@ -19,6 +19,9 @@ import {
 import HelplineSection from "@/components/services/HelplineSection";
 import FeedbackDialog from "@/components/services/FeedbackDialog";
 import PromotionalAds from "@/components/PromotionalAds";
+import HeroEditor from "@/components/common/HeroEditor";
+import { useHeroSettings } from "@/hooks/useHeroSettings";
+import { servicesHeroDefaults, heroBackgroundStyle } from "@/lib/heroConfig";
 
 const iconMap: Record<string, any> = {
   AirVent, Wrench, Zap, Sparkles, Paintbrush, Hammer, Car,
@@ -57,7 +60,8 @@ const Services = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locatingUser, setLocatingUser] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
+  const { config: heroConfig, save: saveHero } = useHeroSettings("hero_services", servicesHeroDefaults);
   const servicesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -258,23 +262,38 @@ const Services = () => {
     <div className="min-h-screen bg-background pb-20">
       <Navbar />
 
-      {/* Header - Premium gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 pt-4 pb-6 px-4">
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary-foreground/10 blur-2xl" />
-        <div className="absolute -bottom-16 -left-10 w-52 h-52 rounded-full bg-primary-foreground/5 blur-3xl" />
+      {/* Header - editable premium hero */}
+      <div className="relative overflow-hidden px-4" style={heroBackgroundStyle(heroConfig)}>
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-foreground/5 blur-2xl" />
+        <div className="absolute -bottom-16 -left-10 w-52 h-52 rounded-full bg-foreground/5 blur-3xl" />
         <div className="relative">
-          <h1 className="text-xl font-extrabold text-primary-foreground mb-0.5 tracking-tight">Home Services / ہوم سروسز</h1>
-          <p className="text-primary-foreground/80 text-xs mb-3">Professional services at your doorstep 🏠</p>
-          <div className="flex items-center gap-3 bg-card/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl ring-1 ring-primary-foreground/20">
+          {isAdmin && (
+            <div className="mb-2 flex justify-end">
+              <HeroEditor config={heroConfig} defaults={servicesHeroDefaults} onSave={saveHero} />
+            </div>
+          )}
+          <div style={{ textAlign: heroConfig.align }}>
+            <p className="text-[11px] font-bold mb-0.5" style={{ color: heroConfig.accentColor }}>{heroConfig.eyebrow}</p>
+            <h1 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: heroConfig.titleSize }}>{heroConfig.title}</h1>
+            <p className="text-xs opacity-80 mb-3">{heroConfig.subtitle}</p>
+          </div>
+          <div className="flex items-center gap-3 bg-card/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl ring-1 ring-foreground/10">
             <Search className="w-5 h-5 text-primary shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search services / سروس تلاش کریں..."
+              placeholder={heroConfig.searchPlaceholder}
               className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
             />
           </div>
+          {heroConfig.showBadges && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-bold">
+              {[heroConfig.badge1, heroConfig.badge2, heroConfig.badge3].filter(Boolean).map((badge) => (
+                <span key={badge} className="rounded-full bg-card/85 px-2.5 py-1 text-foreground shadow-sm">{badge}</span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
