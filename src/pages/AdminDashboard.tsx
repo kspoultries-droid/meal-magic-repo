@@ -38,6 +38,24 @@ const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [pendingRemittances, setPendingRemittances] = useState(0);
+  const [tab, setTab] = useState("overview");
+  const [opsTab, setOpsTab] = useState("orders");
+  const [partnersTab, setPartnersTab] = useState("applications");
+  const [financeTab, setFinanceTab] = useState("revenue");
+  const [contentTab, setContentTab] = useState("ads");
+  const [settingsTab, setSettingsTab] = useState("city-settings");
+
+  const goto = useCallback((section: string, sub?: string) => {
+    setTab(section);
+    if (sub) {
+      if (section === "operations") setOpsTab(sub);
+      else if (section === "partners") setPartnersTab(sub);
+      else if (section === "finance") setFinanceTab(sub);
+      else if (section === "content") setContentTab(sub);
+      else if (section === "settings") setSettingsTab(sub);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     if (!isAdmin) return;
