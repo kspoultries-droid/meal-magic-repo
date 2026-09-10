@@ -175,6 +175,28 @@
   }
 }
 
+/* Compact density for admin sub-pages (orders, finance, settings, bookings) */
+.admin-compact { font-size: 0.8125rem; }
+.admin-compact [class*="rounded-lg border bg-card"] { border-radius: 0.65rem; }
+.admin-compact .space-y-4 > * + * { margin-top: 0.5rem; }
+.admin-compact .space-y-3 > * + * { margin-top: 0.375rem; }
+.admin-compact [data-slot="card-header"],
+.admin-compact .p-6 { padding: 0.625rem 0.75rem; }
+.admin-compact .pt-0 { padding-top: 0; }
+.admin-compact .p-4 { padding: 0.5rem 0.625rem; }
+.admin-compact .py-3 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.admin-compact .py-8 { padding-top: 1rem; padding-bottom: 1rem; }
+.admin-compact h3 { font-size: 0.875rem; line-height: 1.2; }
+.admin-compact .text-base { font-size: 0.875rem; }
+.admin-compact .text-lg { font-size: 1rem; }
+.admin-compact .text-2xl { font-size: 1.25rem; }
+.admin-compact table th,
+.admin-compact table td { padding: 0.3rem 0.5rem; font-size: 0.75rem; }
+.admin-compact button { font-size: 0.75rem; }
+.admin-compact input,
+.admin-compact select { height: 2rem; font-size: 0.75rem; }
+
+
 @keyframes shimmer {
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
