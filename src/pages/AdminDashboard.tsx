@@ -88,6 +88,8 @@ const AdminDashboard = () => {
             <TabsTrigger value="settings" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="overview"><OverviewTab /></TabsContent>
+
           <TabsContent value="operations">
             <Tabs defaultValue="orders">
               <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">آرڈرز</TabsTrigger><TabsTrigger value="grocery-dispatch">ڈسپیچ</TabsTrigger><TabsTrigger value="photo-orders">فوٹو آرڈرز</TabsTrigger><TabsTrigger value="audit">آڈٹ لاگ</TabsTrigger></TabsList>
