@@ -77,7 +77,7 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
       : Number(item.price) * baseQty;
     const extras = groups.reduce((sum, group) => sum + group.choices.reduce((groupSum, choice) => groupSum + Number(choice.price_delta || 0) * (choiceQty[choice.id] || 0), 0), 0);
     return mains + extras;
-  }, [baseQty, choiceQty, groups, item.price, variantQty, variants]);
+  }, [baseQty, choiceQty, groups, item?.price, variantQty, variants]);
 
   if (!item || !restaurant) return null;
 
