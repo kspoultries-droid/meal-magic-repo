@@ -70,15 +70,16 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
     }
   }, [item?.id]);
 
-  if (!item || !restaurant) return null;
-
   const total = useMemo(() => {
+    if (!item) return 0;
     const mains = variants.length > 0
       ? variants.reduce((sum, variant) => sum + Number(variant.price) * (variantQty[variant.id] || 0), 0)
       : Number(item.price) * baseQty;
     const extras = groups.reduce((sum, group) => sum + group.choices.reduce((groupSum, choice) => groupSum + Number(choice.price_delta || 0) * (choiceQty[choice.id] || 0), 0), 0);
     return mains + extras;
   }, [baseQty, choiceQty, groups, item.price, variantQty, variants]);
+
+  if (!item || !restaurant) return null;
 
   const changeQty = (setter: React.Dispatch<React.SetStateAction<Record<string, number>>>, id: string, delta: number) => {
     setter((previous) => ({ ...previous, [id]: Math.max(0, (previous[id] || 0) + delta) }));
