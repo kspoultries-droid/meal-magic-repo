@@ -28,9 +28,11 @@ interface Overview {
 
 interface TrendRow { day: string; orders_count: number; gross: number; commission: number }
 
-interface SearchHit { kind: string; label: string; sub: string }
+interface SearchHit { kind: string; label: string; sub: string; section: string; subTab?: string }
 
-const OverviewTab = () => {
+type NavFn = (section: string, sub?: string) => void;
+
+const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
   const [data, setData] = useState<Overview | null>(null);
   const [trend, setTrend] = useState<TrendRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,10 +85,10 @@ const OverviewTab = () => {
         : Promise.resolve({ data: [] as any[] }),
     ]);
     const out: SearchHit[] = [
-      ...((rests.data || []) as any[]).map((r) => ({ kind: "ریسٹورنٹ", label: r.name, sub: r.is_active ? "کھلا" : "بند" })),
-      ...((stores.data || []) as any[]).map((s) => ({ kind: "گروسری", label: s.name, sub: s.is_active ? "کھلا" : "بند" })),
-      ...((people.data || []) as any[]).map((p) => ({ kind: "صارف", label: p.full_name || p.id.slice(0, 8), sub: p.phone || "—" })),
-      ...((order.data || []) as any[]).map((o) => ({ kind: "آرڈر", label: o.id.slice(0, 8), sub: `${o.status} • Rs ${Math.round(Number(o.total_amount || 0))}` })),
+      ...((rests.data || []) as any[]).map((r) => ({ kind: "ریسٹورنٹ", label: r.name, sub: r.is_active ? "کھلا" : "بند", section: "partners", subTab: "restaurants" })),
+      ...((stores.data || []) as any[]).map((s) => ({ kind: "گروسری", label: s.name, sub: s.is_active ? "کھلا" : "بند", section: "partners", subTab: "grocery" })),
+      ...((people.data || []) as any[]).map((p) => ({ kind: "صارف", label: p.full_name || p.id.slice(0, 8), sub: p.phone || "—", section: "people" })),
+      ...((order.data || []) as any[]).map((o) => ({ kind: "آرڈر", label: o.id.slice(0, 8), sub: `${o.status} • Rs ${Math.round(Number(o.total_amount || 0))}`, section: "operations", subTab: "orders" })),
     ];
     setHits(out);
     setSearching(false);
@@ -102,14 +104,14 @@ const OverviewTab = () => {
 
   const cards = data
     ? [
-        { label: "آج کے آرڈرز", value: `${Number(data.food_today) + Number(data.grocery_today)}`, sub: `فوڈ ${data.food_today} • گروسری ${data.grocery_today}`, icon: ShoppingBag, tone: "text-foreground" },
-        { label: "آج کی سیل", value: `Rs ${Math.round(Number(data.gross_today))}`, sub: `کمیشن Rs ${Math.round(Number(data.commission_today))}`, icon: Wallet, tone: "text-primary" },
-        { label: "زیرِ عمل آرڈرز", value: `${data.pending_orders}`, sub: `بغیر رائیڈر ${data.unassigned_orders}`, icon: RefreshCw, tone: "text-foreground" },
-        { label: "رُکے ہوئے آرڈرز", value: `${data.stuck_orders}`, sub: "45 منٹ سے زیادہ", icon: AlertTriangle, tone: data.stuck_orders ? "text-destructive" : "text-muted-foreground" },
-        { label: "آن لائن رائیڈرز", value: `${data.riders_online}/${data.riders_total}`, sub: "ابھی دستیاب", icon: Bike, tone: "text-success" },
-        { label: "بند دکانیں", value: `${data.shops_closed}/${data.shops_total}`, sub: "ریسٹورنٹس", icon: Store, tone: "text-foreground" },
-        { label: "نئی درخواستیں", value: `${data.pending_applications}`, sub: "منظوری کی منتظر", icon: Store, tone: data.pending_applications ? "text-warning" : "text-muted-foreground" },
-        { label: "زیرِ التوا ادائیگیاں", value: `${Number(data.pending_payouts) + Number(data.pending_remittances)}`, sub: `سلپس ${data.pending_remittances}`, icon: Wallet, tone: "text-foreground" },
+        { label: "آج کے آرڈرز", value: `${Number(data.food_today) + Number(data.grocery_today)}`, sub: `فوڈ ${data.food_today} • گروسری ${data.grocery_today}`, icon: ShoppingBag, tone: "text-foreground", section: "operations", subTab: "orders" },
+        { label: "آج کی سیل", value: `Rs ${Math.round(Number(data.gross_today))}`, sub: `کمیشن Rs ${Math.round(Number(data.commission_today))}`, icon: Wallet, tone: "text-primary", section: "finance", subTab: "revenue" },
+        { label: "زیرِ عمل آرڈرز", value: `${data.pending_orders}`, sub: `بغیر رائیڈر ${data.unassigned_orders}`, icon: RefreshCw, tone: "text-foreground", section: "operations", subTab: "orders" },
+        { label: "رُکے ہوئے آرڈرز", value: `${data.stuck_orders}`, sub: "45 منٹ سے زیادہ", icon: AlertTriangle, tone: data.stuck_orders ? "text-destructive" : "text-muted-foreground", section: "operations", subTab: "grocery-dispatch" },
+        { label: "آن لائن رائیڈرز", value: `${data.riders_online}/${data.riders_total}`, sub: "ابھی دستیاب", icon: Bike, tone: "text-success", section: "partners", subTab: "riders" },
+        { label: "بند دکانیں", value: `${data.shops_closed}/${data.shops_total}`, sub: "ریسٹورنٹس", icon: Store, tone: "text-foreground", section: "partners", subTab: "restaurants" },
+        { label: "نئی درخواستیں", value: `${data.pending_applications}`, sub: "منظوری کی منتظر", icon: Store, tone: data.pending_applications ? "text-warning" : "text-muted-foreground", section: "partners", subTab: "applications" },
+        { label: "زیرِ التوا ادائیگیاں", value: `${Number(data.pending_payouts) + Number(data.pending_remittances)}`, sub: `سلپس ${data.pending_remittances}`, icon: Wallet, tone: "text-foreground", section: "finance", subTab: "payouts" },
       ]
     : [];
 
@@ -131,13 +133,18 @@ const OverviewTab = () => {
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {cards.map((c) => (
-                <div key={c.label} className="rounded-xl border bg-card px-3 py-2.5">
+                <button
+                  key={c.label}
+                  type="button"
+                  onClick={() => onNavigate?.(c.section, c.subTab)}
+                  className="rounded-xl border bg-card px-3 py-2.5 text-start transition hover:border-primary hover:bg-primary/5 active:scale-[0.98]"
+                >
                   <div className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <c.icon className="h-3.5 w-3.5" /> {c.label}
                   </div>
                   <p className={`text-lg font-extrabold leading-none ${c.tone}`}>{c.value}</p>
                   <p className="mt-1 text-[10px] text-muted-foreground">{c.sub}</p>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -167,11 +174,16 @@ const OverviewTab = () => {
           {hits.length > 0 && (
             <div className="space-y-1">
               {hits.map((h, i) => (
-                <div key={`${h.kind}-${h.label}-${i}`} className="flex items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.(h.section, h.subTab)}
+                  key={`${h.kind}-${h.label}-${i}`}
+                  className="flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-xs transition hover:border-primary hover:bg-primary/5"
+                >
                   <Badge variant="secondary" className="shrink-0 text-[10px]">{h.kind}</Badge>
                   <span className="flex-1 truncate font-bold">{h.label}</span>
                   <span className="shrink-0 text-muted-foreground">{h.sub}</span>
-                </div>
+                </button>
               ))}
             </div>
           )}
