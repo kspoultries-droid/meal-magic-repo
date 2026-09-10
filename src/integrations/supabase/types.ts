@@ -1649,6 +1649,7 @@ export type Database = {
           period_start: string
           processed_at: string | null
           processed_by: string | null
+          receipt_path: string | null
           reference_no: string | null
           status: string
           vendor_account_id: string | null
@@ -1666,6 +1667,7 @@ export type Database = {
           period_start: string
           processed_at?: string | null
           processed_by?: string | null
+          receipt_path?: string | null
           reference_no?: string | null
           status?: string
           vendor_account_id?: string | null
@@ -1683,6 +1685,7 @@ export type Database = {
           period_start?: string
           processed_at?: string | null
           processed_by?: string | null
+          receipt_path?: string | null
           reference_no?: string | null
           status?: string
           vendor_account_id?: string | null
