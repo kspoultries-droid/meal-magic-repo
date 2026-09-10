@@ -130,6 +130,27 @@ const ApplicationsTab = () => {
         </TabsList>
 
         <TabsContent value={filter} className="space-y-3 mt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="نام، مالک یا فون سے تلاش کریں..."
+              className="h-8 w-full max-w-[240px] rounded-md border bg-background px-2 text-xs text-foreground"
+            />
+            {filter === "pending" && filtered.length > 0 && (
+              <>
+                <Button size="sm" variant="outline" className="h-8 text-[11px]"
+                  onClick={() => setSel(allSelected ? [] : filtered.map(a => a.id))}>
+                  {allSelected ? "سب غیر منتخب" : "سب منتخب"}
+                </Button>
+                {sel.length > 0 && (
+                  <Button size="sm" className="h-8 text-[11px]" onClick={bulkApprove}>
+                    {sel.length} منظور کریں
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
           {loading ? <p>لوڈ ہو رہا ہے...</p> :
            filtered.length === 0 ? <p className="text-muted-foreground text-center py-8">کوئی درخواست نہیں</p> :
            filtered.map(app => (
