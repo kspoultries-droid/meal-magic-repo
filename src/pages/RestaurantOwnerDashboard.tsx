@@ -651,33 +651,33 @@ const OwnerOrdersTab = () => {
     const canSend = o.status === "preparing" && (!needsPlatformRider || o.rider_id);
     const restaurantCanFinish = o.status === "delivering" && (deliveryMode === "self" || (deliveryMode === "both" && !o.rider_id));
     return (
-      <div key={o.id} className="border rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-            <span className="ml-3 font-bold">Rs {o.total_amount}</span>
-          </div>
+      <div key={o.id} className="rounded-lg border p-2.5 space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
           <div className="flex items-center gap-2">
-            <Badge className={statusColor(o.status)}>{o.status}</Badge>
-            {deliveryMode === "self" && <Badge variant="outline">خود ڈلیوری</Badge>}
-            {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="gap-1"><Bike className="w-3 h-3" /> رائیڈر اسائن</Badge>}
-            <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+            <span className="font-mono text-[10px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
+            <span className="text-sm font-extrabold">Rs {o.total_amount}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status}</Badge>
+            {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
+            {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px]"><Bike className="w-3 h-3" /> رائیڈر</Badge>}
+            <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
           </div>
         </div>
 
-        <button className="text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
+        <button className="text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
           {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
         </button>
         {expandedOrder === o.id && o.order_items?.length > 0 && (
-          <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
+          <div className="space-y-0.5 rounded-md bg-secondary/30 p-2">
             {o.order_items.map((item: any) => (
-              <div key={item.id} className="text-sm">
-                <div className="flex justify-between">
-                  <span>{item.name}{item.variant_label ? ` — ${item.variant_label}` : ""} × {item.quantity}</span>
-                  <span className="font-bold">Rs {item.price * item.quantity}</span>
+              <div key={item.id} className="text-xs">
+                <div className="flex justify-between gap-2">
+                  <span className="truncate">{item.name}{item.variant_label ? ` — ${item.variant_label}` : ""} × {item.quantity}</span>
+                  <span className="shrink-0 font-bold">Rs {item.price * item.quantity}</span>
                 </div>
                 {Array.isArray(item.options) && item.options.length > 0 && (
-                  <p className="text-[11px] text-muted-foreground pr-2">
+                  <p className="text-[10px] text-muted-foreground pr-2">
                     {item.options.map((o: any) => o.choice).join(" • ")}
                   </p>
                 )}
@@ -686,10 +686,10 @@ const OwnerOrdersTab = () => {
           </div>
         )}
 
-        {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
-        {o.notes && <p className="text-xs text-muted-foreground">📝 {o.notes}</p>}
+        {o.delivery_address && <p className="text-[11px] text-muted-foreground line-clamp-1">📍 {o.delivery_address}</p>}
+        {o.notes && <p className="text-[11px] text-muted-foreground line-clamp-1">📝 {o.notes}</p>}
 
-        <div className="pt-2">
+        <div className="pt-1">
           <div className="grid grid-cols-4 gap-1.5">
             {[
               { key: "confirmed", label: "✅ قبول", active: o.status === "pending", disabledReason: "" },
