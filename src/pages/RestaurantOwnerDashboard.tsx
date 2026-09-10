@@ -816,6 +816,28 @@ const OwnerOrdersTab = () => {
         {o.delivery_address && <p className="text-[11px] text-muted-foreground line-clamp-1">📍 {o.delivery_address}</p>}
         {o.notes && <p className="text-[11px] text-muted-foreground line-clamp-1">📝 {o.notes}</p>}
 
+        {!["delivering", "delivered", "completed", "cancelled"].includes(o.status) && (
+          <div className="flex flex-wrap items-center gap-1.5 rounded-md bg-secondary/30 px-2 py-1.5">
+            <span className="text-[10px] font-bold text-muted-foreground">⏱ تیاری کا وقت:</span>
+            {[10, 20, 30].map((mins) => (
+              <button
+                key={mins}
+                onClick={async () => {
+                  const { error } = await supabase.from("orders").update({ prep_minutes: mins } as any).eq("id", o.id);
+                  if (error) { toast.error(error.message); return; }
+                  toast.success(`${mins} منٹ سیٹ ہو گئے`);
+                  fetchOrders();
+                }}
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                  o.prep_minutes === mins ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+                }`}
+              >
+                {mins} منٹ
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="pt-1">
           <div className="grid grid-cols-4 gap-1.5">
             {[
