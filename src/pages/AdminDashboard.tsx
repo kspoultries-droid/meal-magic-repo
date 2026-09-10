@@ -116,7 +116,7 @@ const AdminDashboard = () => {
             </Tabs>
           </TabsContent>
 
-          <TabsContent value="partners">
+          <TabsContent value="partners" className="admin-compact">
             <Tabs value={partnersTab} onValueChange={setPartnersTab}>
               <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="applications">درخواستیں</TabsTrigger><TabsTrigger value="restaurants">ریسٹورنٹس</TabsTrigger><TabsTrigger value="riders">رائیڈرز</TabsTrigger><TabsTrigger value="grocery">گروسری</TabsTrigger><TabsTrigger value="services">سروسز</TabsTrigger><TabsTrigger value="wholesale-cats">بازار کیٹیگریز</TabsTrigger></TabsList>
               <TabsContent value="applications"><ApplicationsTab /></TabsContent><TabsContent value="restaurants"><RestaurantsTab /></TabsContent><TabsContent value="riders"><RidersTab /></TabsContent><TabsContent value="grocery"><GroceryTab /></TabsContent><TabsContent value="services"><ServicesTab /></TabsContent><TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
