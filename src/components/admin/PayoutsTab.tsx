@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Wallet, RefreshCw, Copy } from "lucide-react";
+import { Wallet, RefreshCw, Copy, Paperclip, ReceiptText } from "lucide-react";
 import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "@/components/vendor/vendorEarnings";
 
 const PERIODS: { key: Period; label: string }[] = [
@@ -32,6 +32,7 @@ const PayoutsTab = () => {
   const [busy, setBusy] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<Record<string, string>>({});
   const [lastPaid, setLastPaid] = useState<Record<string, string>>({});
+  const [receipts, setReceipts] = useState<Record<string, File | undefined>>({});
   const [onlyDue, setOnlyDue] = useState(false);
   
 
@@ -101,7 +102,26 @@ const PayoutsTab = () => {
     if (!source) { if (!silent) toast.error("EasyLife اکاؤنٹ منتخب کریں"); return false; }
     if (!dest) { if (!silent) toast.error("اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا"); return false; }
     if (!silent) setBusy(row.vendorId);
-    const { error } = await supabase.rpc("admin_pay_vendor", {
+    const receipt = receipts[row.vendorId];
+    let receiptPath: string | null = null;
+    if (receipt) {
+      if (!receipt.type.startsWith("image/") && receipt.type !== "application/pdf") {
+        if (!silent) { setBusy(null); toast.error("رسید تصویر یا PDF ہونی چاہیے"); }
+        return false;
+      }
+      if (receipt.size > 10 * 1024 * 1024) {
+        if (!silent) { setBusy(null); toast.error("رسید 10MB سے کم ہونی چاہیے"); }
+        return false;
+      }
+      const ext = (receipt.name.split(".").pop() || "jpg").toLowerCase();
+      receiptPath = `${row.vendorId}/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("payout-receipts").upload(receiptPath, receipt);
+      if (uploadError) {
+        if (!silent) { setBusy(null); toast.error("رسید اپلوڈ نہیں ہوئی: " + uploadError.message); }
+        return false;
+      }
+    }
+    const { data: payoutId, error } = await supabase.rpc("admin_pay_vendor", {
       _vendor_id: row.vendorId,
       _amount: amount,
       _from_account_id: source,
@@ -111,12 +131,20 @@ const PayoutsTab = () => {
       _reference_no: refs[row.vendorId]?.trim() || null,
       _notes: `${row.shopNames.join(", ")} — کمیشن ${row.commissionRate}%`,
     });
+    if (!error && payoutId && receiptPath) {
+      const { error: receiptError } = await (supabase.from("payouts") as any).update({ receipt_path: receiptPath }).eq("id", payoutId);
+      if (receiptError) {
+        if (!silent) { setBusy(null); toast.error("ادائیگی درج ہوئی مگر رسید منسلک نہیں ہوئی"); }
+        return false;
+      }
+    }
     if (!silent) setBusy(null);
     if (error) { if (!silent) toast.error(error.message); return false; }
     if (!silent) {
       toast.success("ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓");
       setAmounts({ ...amounts, [row.vendorId]: "" });
       setRefs({ ...refs, [row.vendorId]: "" });
+      setReceipts({ ...receipts, [row.vendorId]: undefined });
       load();
     }
     return true;
@@ -223,6 +251,11 @@ const PayoutsTab = () => {
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
+              <label className="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed bg-secondary/30 px-3 text-xs font-bold text-muted-foreground">
+                <Paperclip className="h-3.5 w-3.5" />
+                {receipts[r.vendorId]?.name || "بینک رسید منسلک کریں (تصویر یا PDF)"}
+                <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setReceipts({ ...receipts, [r.vendorId]: e.target.files?.[0] })} />
+              </label>
               <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => pay(r)}>
                 {busy === r.vendorId ? "درج ہو رہا ہے…" : "ادائیگی درج کریں (بینک سے ادا کرنے کے بعد)"}
               </Button>
@@ -237,9 +270,9 @@ const PayoutsTab = () => {
         <CardContent className="space-y-2">
           {history.length === 0 && <p className="text-sm text-muted-foreground">ابھی کوئی ادائیگی نہیں</p>}
           {history.map((h) => (
-            <div key={h.id} className="flex items-center justify-between text-xs border-b pb-1.5">
+            <div key={h.id} className="flex items-center justify-between gap-2 text-xs border-b pb-1.5">
               <span className="truncate pr-2">{h.notes || h.vendor_id.slice(0, 8)}{h.reference_no ? ` • ${h.reference_no}` : ""}</span>
-              <span className="font-bold shrink-0">Rs {h.amount} • {h.period_start} → {h.period_end}</span>
+              <span className="flex shrink-0 items-center gap-1 font-bold">{h.receipt_path && <ReceiptText className="h-3.5 w-3.5 text-primary" />} Rs {h.amount} • {h.period_start} → {h.period_end}</span>
             </div>
           ))}
         </CardContent>

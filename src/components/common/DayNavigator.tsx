@@ -24,12 +24,12 @@ export const addDays = (d: Date, n: number) => {
 };
 
 const label = (d: Date) => {
-  const today = dayKey(new Date());
-  const yest = dayKey(addDays(new Date(), -1));
-  const k = dayKey(d);
-  if (k === today) return "آج";
-  if (k === yest) return "کل";
-  return d.toLocaleDateString("ur-PK", { day: "numeric", month: "short", year: "numeric" });
+  return d.toLocaleDateString("ur-PK", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 };
 
 interface Props {

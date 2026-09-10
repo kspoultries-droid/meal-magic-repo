@@ -159,8 +159,8 @@ const MyRestaurantTab = () => {
   const uploadBanner = async (restaurantId: string, file: File) => {
     setUploading(true);
     const ext = (file.name.split(".").pop() || "webp").toLowerCase();
-    const path = `restaurants/${restaurantId}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    const path = `restaurants/${restaurantId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file);
     if (error) { setUploading(false); toast.error("اپلوڈ ناکام: " + error.message); return; }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     const { error: updErr } = await supabase.from("restaurants").update({ image_url: data.publicUrl }).eq("id", restaurantId);
@@ -380,8 +380,8 @@ const MenuTab = () => {
     if (file.size > 5 * 1024 * 1024) { toast.error("تصویر 5MB سے کم ہونی چاہیے"); return null; }
     setUploading(true);
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const path = `menu/${selectedRest}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    const path = `menu/${selectedRest}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file);
     setUploading(false);
     if (error) { toast.error("اپلوڈ ناکام: " + error.message); return null; }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
