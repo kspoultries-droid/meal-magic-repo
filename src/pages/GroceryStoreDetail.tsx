@@ -292,22 +292,10 @@ const GroceryStoreDetail = () => {
                           {!isOwner && product.rating > 0 && <span className="absolute bottom-1 left-1 rounded-md bg-foreground/70 px-1.5 py-0.5 text-[9px] font-bold text-background">★ {Number(product.rating).toFixed(1)}</span>}
                          {isOwner && (
                           <div className="absolute bottom-1 right-1 flex gap-1">
-                            <label className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md" title="کیمرہ / Camera">
-                              <Camera className="w-3.5 h-3.5" />
-                              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) uploadProductImage(product.id, file);
-                              }} />
-                            </label>
-                            <label className="w-7 h-7 rounded-full bg-accent text-foreground flex items-center justify-center cursor-pointer shadow-md" title="گیلری / Gallery">
-                              <Plus className="w-3.5 h-3.5" />
-                              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) uploadProductImage(product.id, file);
-                              }} />
-                            </label>
+                            <ProductPhotoUploader compact onDone={async (photos) => { if (photos[0]) await uploadProductImage(product.id, photos[0]); }} />
                           </div>
                         )}
+
                       </div>
                        <div className="p-3">
                          <button type="button" className="block max-w-full text-left" onClick={() => !isOwner && navigate(`/product/${product.id}`)}>
