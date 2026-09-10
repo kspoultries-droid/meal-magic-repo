@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus } from "lucide-react";
-import { useCart, type CartItemOption } from "@/contexts/CartContext";
+import { useCart, type AddItemInput, type CartItemOption } from "@/contexts/CartContext";
 import { toast } from "sonner";
 
 export interface MenuVariant {
@@ -52,95 +52,70 @@ export const withBaseVariant = (item: MenuItemLike | null): MenuVariant[] => {
 };
 
 const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
-  const { addItem } = useCart();
+  const { addItems } = useCart();
   const variants = withBaseVariant(item);
   const groups = (item?.option_groups || []) as MenuOptionGroup[];
 
-  const [variantId, setVariantId] = useState<string>(variants[0]?.id || "");
-  const [selected, setSelected] = useState<Record<string, string[]>>({});
-  const [qty, setQty] = useState(1);
+  const [variantQty, setVariantQty] = useState<Record<string, number>>({});
+  const [choiceQty, setChoiceQty] = useState<Record<string, number>>({});
+  const [baseQty, setBaseQty] = useState(1);
 
   // Reset when item changes
-  useMemo(() => {
+  useEffect(() => {
     if (item) {
-      setVariantId(withBaseVariant(item)[0]?.id || "");
-      const init: Record<string, string[]> = {};
-      ((item.option_groups as MenuOptionGroup[]) || []).forEach((g) => {
-        // Auto-select first choice only for strictly required single-choice groups
-        if (g.min >= 1 && g.max === 1 && g.choices[0]) init[g.id] = [g.choices[0].id];
-        else init[g.id] = [];
-      });
-      setSelected(init);
-      setQty(1);
+      const availableVariants = withBaseVariant(item);
+      setVariantQty(availableVariants.length > 0 && availableVariants[0] ? { [availableVariants[0].id]: 1 } : {});
+      setChoiceQty({});
+      setBaseQty(1);
     }
   }, [item?.id]);
 
+  const total = useMemo(() => {
+    if (!item) return 0;
+    const mains = variants.length > 0
+      ? variants.reduce((sum, variant) => sum + Number(variant.price) * (variantQty[variant.id] || 0), 0)
+      : Number(item.price) * baseQty;
+    const extras = groups.reduce((sum, group) => sum + group.choices.reduce((groupSum, choice) => groupSum + Number(choice.price_delta || 0) * (choiceQty[choice.id] || 0), 0), 0);
+    return mains + extras;
+  }, [baseQty, choiceQty, groups, item?.price, variantQty, variants]);
+
   if (!item || !restaurant) return null;
 
-  const variant = variants.find((v) => v.id === variantId);
-  const basePrice = variant ? variant.price : item.price;
-
-  let optionsDelta = 0;
-  const selectedOptions: CartItemOption[] = [];
-  const selectedIds: string[] = [];
-  groups.forEach((g) => {
-    (selected[g.id] || []).forEach((cid) => {
-      const c = g.choices.find((x) => x.id === cid);
-      if (!c) return;
-      optionsDelta += Number(c.price_delta || 0);
-      selectedIds.push(cid);
-      selectedOptions.push({
-        group_id: g.id, group: g.name,
-        choice_id: c.id, choice: c.label,
-        price_delta: Number(c.price_delta || 0),
-      });
-    });
-  });
-
-  const unitPrice = Math.max(0, basePrice + optionsDelta);
-  const total = unitPrice * qty;
-
-  const toggleChoice = (g: MenuOptionGroup, cid: string) => {
-    setSelected((prev) => {
-      const cur = prev[g.id] || [];
-      const has = cur.includes(cid);
-      let next: string[];
-      if (g.max === 1) {
-        next = has && g.min === 0 ? [] : [cid];
-      } else {
-        next = has ? cur.filter((x) => x !== cid) : [...cur, cid];
-        if (next.length > g.max) return prev;
-      }
-      return { ...prev, [g.id]: next };
-    });
+  const changeQty = (setter: React.Dispatch<React.SetStateAction<Record<string, number>>>, id: string, delta: number) => {
+    setter((previous) => ({ ...previous, [id]: Math.max(0, (previous[id] || 0) + delta) }));
   };
 
   const handleAdd = () => {
-    // Validate group min/max
+    const selectedMainQty = variants.length > 0
+      ? Object.values(variantQty).reduce((sum, value) => sum + value, 0)
+      : baseQty;
+    if (selectedMainQty < 1) { toast.error("کم از کم ایک سائز منتخب کریں"); return; }
+
     for (const g of groups) {
-      const count = (selected[g.id] || []).length;
+      const count = g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0);
       if (count < g.min) { toast.error(`"${g.name}" میں کم از کم ${g.min} منتخب کریں`); return; }
       if (count > g.max) { toast.error(`"${g.name}" میں زیادہ سے زیادہ ${g.max} چن سکتے ہیں`); return; }
     }
-    if (variants.length > 0 && !variantId) { toast.error("سائز منتخب کریں"); return; }
 
-    const isBase = !!variant && (variant.id === "base" || variant.id === "__base");
-    const showVariant = !!variant && !isBase;
-    const sentVariantId = variant && variant.id !== "__base" ? variant.id : null;
-    addItem({
-      menu_item_id: item.id,
-      name: item.name + (showVariant ? ` — ${variant!.label}` : ""),
-      restaurant: restaurant.name,
-      price: unitPrice,
-      image: item.image_url || restaurant.image_url || "",
-      source: "restaurant",
-      sourceId: restaurant.id,
-      variant_id: sentVariantId,
-      variant_label: showVariant ? variant!.label : null,
-      option_ids: selectedIds,
-      options: selectedOptions,
-      quantity: qty,
-    });
+    const common = { menu_item_id: item.id, restaurant: restaurant.name, image: item.image_url || restaurant.image_url || "", source: "restaurant" as const, sourceId: restaurant.id };
+    const lines: AddItemInput[] = [];
+    if (variants.length > 0) {
+      variants.forEach((variant) => {
+        const quantity = variantQty[variant.id] || 0;
+        if (quantity < 1) return;
+        const isSyntheticBase = variant.id === "__base";
+        lines.push({ ...common, name: `${item.name} — ${variant.label}`, price: Number(variant.price), variant_id: isSyntheticBase ? null : variant.id, variant_label: variant.label, line_type: "main", quantity });
+      });
+    } else {
+      lines.push({ ...common, name: item.name, price: Number(item.price), line_type: "main", quantity: baseQty });
+    }
+    groups.forEach((group) => group.choices.forEach((choice) => {
+      const quantity = choiceQty[choice.id] || 0;
+      if (quantity < 1) return;
+      const option: CartItemOption = { group_id: group.id, group: group.name, choice_id: choice.id, choice: choice.label, price_delta: Number(choice.price_delta || 0) };
+      lines.push({ ...common, name: choice.label, price: Number(choice.price_delta || 0), line_type: "addon", choice_id: choice.id, options: [option], quantity });
+    }));
+    addItems(lines);
     onClose();
   };
 
@@ -165,15 +140,17 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
                 <span className="text-[10px] font-bold text-primary">لازمی</span>
               </div>
               <div className="space-y-2">
-                {variants.map((v) => (
-                  <label key={v.id} className={`flex items-center justify-between gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${variantId === v.id ? "border-primary bg-primary/5" : "border-border"}`}>
-                    <div className="flex items-center gap-2">
-                      <input type="radio" name="variant" checked={variantId === v.id} onChange={() => setVariantId(v.id)} className="accent-primary" />
-                      <span className="text-sm font-semibold">{v.label}</span>
+                {variants.map((v) => {
+                  const quantity = variantQty[v.id] || 0;
+                  return <div key={v.id} className={`flex items-center justify-between gap-3 p-3 border-2 rounded-xl transition-all ${quantity > 0 ? "border-primary bg-primary/5" : "border-border"}`}>
+                    <div><span className="text-sm font-semibold">{v.label}</span><p className="text-xs font-extrabold text-primary">Rs {v.price}</p></div>
+                    <div className="flex items-center gap-1 rounded-full border bg-background p-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => changeQty(setVariantQty, v.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
+                      <span className="w-5 text-center text-sm font-extrabold">{quantity}</span>
+                      <Button size="icon" className="h-7 w-7 rounded-full" onClick={() => changeQty(setVariantQty, v.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
                     </div>
-                    <span className="text-sm font-extrabold text-primary">Rs {v.price}</span>
-                  </label>
-                ))}
+                  </div>;
+                })}
               </div>
             </section>
           )}
@@ -188,20 +165,19 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
               </div>
               <div className="space-y-2">
                 {g.choices.map((c) => {
-                  const isSel = (selected[g.id] || []).includes(c.id);
-                  const single = g.max === 1;
+                  const quantity = choiceQty[c.id] || 0;
                   return (
-                    <label key={c.id} className={`flex items-center justify-between gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${isSel ? "border-primary bg-primary/5" : "border-border"}`}>
-                      <div className="flex items-center gap-2">
-                        <input type={single ? "radio" : "checkbox"} name={`grp-${g.id}`} checked={isSel} onChange={() => toggleChoice(g, c.id)} className="accent-primary" />
+                    <div key={c.id} className={`flex items-center justify-between gap-3 p-3 border-2 rounded-xl transition-all ${quantity > 0 ? "border-primary bg-primary/5" : "border-border"}`}>
+                      <div>
                         <span className="text-sm font-semibold">{c.label}</span>
+                        <p className="text-xs font-bold text-primary">Rs {c.price_delta}</p>
                       </div>
-                      {Number(c.price_delta) !== 0 && (
-                        <span className={`text-xs font-bold ${c.price_delta > 0 ? "text-foreground" : "text-success"}`}>
-                          {c.price_delta > 0 ? "+" : ""}Rs {c.price_delta}
-                        </span>
-                      )}
-                    </label>
+                      <div className="flex items-center gap-1 rounded-full border bg-background p-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => changeQty(setChoiceQty, c.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
+                        <span className="w-5 text-center text-sm font-extrabold">{quantity}</span>
+                        <Button size="icon" className="h-7 w-7 rounded-full" disabled={g.max > 0 && g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0) >= g.max} onClick={() => changeQty(setChoiceQty, c.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -210,17 +186,8 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
         </div>
 
         <div className="border-t bg-background/95 backdrop-blur px-5 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-secondary rounded-full p-1">
-            <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-8 h-8 rounded-full bg-background flex items-center justify-center">
-              <Minus className="w-4 h-4" />
-            </button>
-            <span className="w-6 text-center font-extrabold">{qty}</span>
-            <button onClick={() => setQty(qty + 1)} className="w-8 h-8 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center">
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
           <Button className="flex-1 h-12 font-extrabold bg-gradient-primary shadow-glow" onClick={handleAdd}>
-            کارٹ میں شامل — Rs {total}
+            منتخب اشیاء شامل کریں — Rs {total}
           </Button>
         </div>
       </SheetContent>

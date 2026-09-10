@@ -1,0 +1,4 @@
+REVOKE ALL ON FUNCTION public.create_order(uuid, uuid, text, text, text, jsonb, text, text, boolean, double precision, double precision) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.create_order(uuid, uuid, text, text, text, jsonb, text, text, boolean, double precision, double precision) FROM anon;
+GRANT EXECUTE ON FUNCTION public.create_order(uuid, uuid, text, text, text, jsonb, text, text, boolean, double precision, double precision) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_order(uuid, uuid, text, text, text, jsonb, text, text, boolean, double precision, double precision) TO service_role;

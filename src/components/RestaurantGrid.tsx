@@ -24,6 +24,7 @@ export interface Restaurant {
   cuisines: string[];
   discount?: string;
   menuItems: MenuItem[];
+  matchingItems?: MenuItem[];
   isActive: boolean;
   createdAt?: string | null;
   pickupAddress?: string | null;
@@ -73,7 +74,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
           deliveryMode: r.delivery_mode,
           paysDeliveryFee: r.pays_delivery_fee === true,
           minPrice: (menus || []).filter((m) => m.restaurant_id === r.id).reduce<number | null>((min, m) => (min === null || m.price < min ? m.price : min), null),
-          menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).slice(0, 3).map((m) => ({
+          menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).map((m) => ({
             id: m.id, name: m.name, price: m.price,
             description: (m as any).description, image_url: (m as any).image_url,
             variants: ((m as any).variants || []) as any[],
@@ -91,7 +92,8 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
 
   const filtered = restaurants.filter((r) => {
     const matchesCategory = activeCategory === "All" || r.cuisines.some((c) => c.toLowerCase().includes(activeCategory.toLowerCase()));
-    const matchesSearch = searchQuery === "" || r.name.toLowerCase().includes(searchQuery.toLowerCase()) || r.cuisines.some((c) => c.toLowerCase().includes(searchQuery.toLowerCase()));
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch = query === "" || r.name.toLowerCase().includes(query) || r.cuisines.some((c) => c.toLowerCase().includes(query)) || r.menuItems.some((item) => item.name.toLowerCase().includes(query) || item.description?.toLowerCase().includes(query));
     let matchesQuick = true;
     if (quickFilter === "offers") matchesQuick = r.minPrice !== null && r.minPrice !== undefined && r.minPrice <= 500;
     else if (quickFilter === "new") matchesQuick = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
@@ -146,7 +148,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((r, i) => (
             <div key={r.id} className="animate-fade-in-up cursor-pointer" style={{ animationDelay: `${i * 80}ms` }} onClick={() => navigate(`/restaurant/${r.id}`)}>
-              <RestaurantCard restaurant={r} index={i} />
+               <RestaurantCard restaurant={{ ...r, menuItems: searchQuery.trim() ? r.menuItems.filter((item) => item.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || item.description?.toLowerCase().includes(searchQuery.trim().toLowerCase())).slice(0, 3) : r.menuItems.slice(0, 3) }} index={i} />
             </div>
           ))}
         </div>

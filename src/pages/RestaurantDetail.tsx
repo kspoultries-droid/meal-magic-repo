@@ -4,14 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Star, Clock, Plus } from "lucide-react";
+import { ArrowLeft, Star, Clock, Plus, Minus, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MenuItemSheet from "@/components/menu/MenuItemSheet";
 
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { items, addItem, updateQuantity } = useCart();
   const [restaurant, setRestaurant] = useState<any>(null);
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,8 +115,12 @@ const RestaurantDetail = () => {
             <div className="grid gap-3">
               {menuItems
                 .filter((m) => (m.category || "Main") === cat)
-                .map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 bg-card rounded-xl p-4 border hover:shadow-md transition-shadow">
+                .map((item) => {
+                  const cartLines = items.filter((line) => line.menu_item_id === item.id);
+                  const selectedQty = cartLines.reduce((sum, line) => sum + line.quantity, 0);
+                  const simpleLine = cartLines.find((line) => !line.variant_id && line.line_type !== "addon");
+                  return (
+                  <div key={item.id} className={`flex items-center gap-3 rounded-xl p-3 border transition-all ${selectedQty > 0 ? "bg-primary/5 border-primary/40 shadow-card" : "bg-card border-border hover:shadow-md"}`}>
                     {item.image_url && (
                       <img src={item.image_url} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
                     )}
@@ -125,18 +129,17 @@ const RestaurantDetail = () => {
                       {item.description && <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>}
                       {(() => {
                         const vs = (item.variants || []) as any[];
-                        const base = vs.find((v) => v.id === "base");
                         const prices = vs.map((v) => Number(v.price) || 0).filter((n) => n > 0);
                         const min = prices.length ? Math.min(item.price > 0 ? item.price : Infinity, ...prices) : item.price;
                         return (
                           <p className="text-primary font-extrabold mt-1">
-                            Rs. {min}{vs.length > 1 ? " سے" : ""}
-                            {base?.label && <span className="text-xs font-semibold text-muted-foreground"> / {base.label}</span>}
+                             Rs. {min}{vs.length > 1 ? " سے" : ""}
                           </p>
                         );
                       })()}
                     </div>
-                    <Button
+                    {selectedQty > 0 && <span className="self-start rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground"><Check className="inline h-3 w-3" /> {selectedQty} منتخب</span>}
+                    {(item.variants?.length || item.option_groups?.length) ? <Button
                       size="sm"
                       className="rounded-full h-10 w-10 p-0"
                       onClick={() => {
@@ -157,9 +160,17 @@ const RestaurantDetail = () => {
                       }}
                     >
                       <Plus className="w-5 h-5" />
-                    </Button>
+                    </Button> : simpleLine ? (
+                      <div className="flex shrink-0 items-center gap-1 rounded-full border border-primary/30 bg-background p-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => updateQuantity(simpleLine.id, simpleLine.quantity - 1)}><Minus className="h-3.5 w-3.5" /></Button>
+                        <span className="w-5 text-center text-sm font-extrabold">{simpleLine.quantity}</span>
+                        <Button size="icon" className="h-7 w-7 rounded-full" onClick={() => updateQuantity(simpleLine.id, simpleLine.quantity + 1)}><Plus className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    ) : (
+                      <Button size="sm" className="rounded-full h-10 w-10 p-0" onClick={() => addItem({ menu_item_id: item.id, name: item.name, restaurant: restaurant.name, price: item.price, image: item.image_url || restaurant.image_url || "", source: "restaurant", sourceId: restaurant.id })}><Plus className="w-5 h-5" /></Button>
+                    )}
                   </div>
-                ))}
+                )})}
             </div>
           </div>
         ))}

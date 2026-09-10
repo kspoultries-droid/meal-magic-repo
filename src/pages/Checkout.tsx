@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, CreditCard, ShoppingBag, LocateFixed, Gift, User, Phone, Ticket, X, Truck, Scale, Route } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, ShoppingBag, LocateFixed, Gift, User, Phone, Ticket, X, Truck, Scale, Route, Minus, Plus } from "lucide-react";
 import { calculateCartWeight, formatDeliveryMode, formatFeeBreakdown, type DeliveryQuote } from "@/lib/deliveryPricing";
 import Navbar from "@/components/Navbar";
 import PromotionalAds from "@/components/PromotionalAds";
 
 const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, updateQuantity } = useCart();
   const navigate = useNavigate();
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
@@ -284,6 +284,8 @@ const Checkout = () => {
           quantity: item.quantity,
           variant_id: item.variant_id || null,
           option_ids: item.option_ids || [],
+          line_type: item.line_type || "main",
+          choice_id: item.choice_id || null,
         }));
 
         const { data: orderId, error: orderError } = await supabase.rpc("create_order", {
@@ -344,7 +346,7 @@ const Checkout = () => {
           </h2>
           <div className="space-y-2">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm gap-2">
+              <div key={item.id} className="flex items-center justify-between text-sm gap-2 rounded-lg bg-secondary/35 px-2.5 py-2">
                 <div className="min-w-0">
                   <p className="text-foreground/90 truncate">{item.name} <span className="text-muted-foreground">× {item.quantity}</span></p>
                   {(item.variant_label || (item.options && item.options.length > 0)) && (
@@ -353,7 +355,14 @@ const Checkout = () => {
                     </p>
                   )}
                 </div>
-                <span className="font-bold shrink-0">Rs {item.price * item.quantity}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex items-center rounded-full border bg-background p-0.5">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus className="h-3 w-3" /></Button>
+                    <span className="w-4 text-center text-xs font-bold">{item.quantity}</span>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="h-3 w-3" /></Button>
+                  </div>
+                  <span className="font-bold">Rs {item.price * item.quantity}</span>
+                </div>
               </div>
             ))}
             <div className="border-t border-dashed pt-2.5 mt-2.5 space-y-1.5">
@@ -365,7 +374,7 @@ const Checkout = () => {
                 <span className="text-muted-foreground">ڈلیوری فیس</span>
                 <span className="font-semibold">{quoteLoading ? "حساب ہو رہا ہے…" : `Rs ${deliveryFee}`}</span>
               </div>
-              {deliveryQuote && (
+              {deliveryQuote && !isRestaurantOrder && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-foreground">
                     <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5 text-primary" />{formatDeliveryMode(deliveryQuote.mode)}</span>
@@ -417,7 +426,7 @@ const Checkout = () => {
         </div>
 
         {/* Delivery Info - Glass */}
-        <div className="glass rounded-2xl p-5 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "60ms" }}>
+         <div className="glass rounded-2xl p-4 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "60ms" }}>
           <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
               <MapPin className="w-3.5 h-3.5" />
@@ -477,13 +486,12 @@ const Checkout = () => {
         </div>
 
         {/* Gift Delivery - Glass */}
-        <div className="glass rounded-2xl p-5 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "120ms" }}>
-          <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-500 to-purple-500 text-white flex items-center justify-center shadow-md">
-              <Gift className="w-3.5 h-3.5" />
-            </div>
-            گفٹ ڈلیوری
-          </h2>
+         <details className="glass rounded-2xl border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "120ms" }}>
+           <summary className="flex cursor-pointer list-none items-center gap-2 p-4 text-sm font-extrabold text-foreground">
+             <div className="w-7 h-7 rounded-lg bg-secondary text-primary flex items-center justify-center"><Gift className="w-3.5 h-3.5" /></div>
+             گفٹ ڈلیوری <span className="ms-auto text-[11px] font-normal text-muted-foreground">اختیاری</span>
+           </summary>
+           <div className="px-4 pb-4">
           <label className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${isGift ? "border-primary bg-primary/10 shadow-glow" : "border-border hover:border-primary/30"}`}>
             <input type="checkbox" checked={isGift} onChange={(e) => setIsGift(e.target.checked)} className="accent-primary w-4 h-4" />
             <span className="font-semibold text-sm">کسی اور کو ڈلیور کریں 🎁</span>
@@ -493,17 +501,18 @@ const Checkout = () => {
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground shrink-0" />
                 <Input placeholder="وصول کنندہ کا نام" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} className="h-11 rounded-xl bg-background/80" />
-              </div>
+               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
                 <Input placeholder="وصول کنندہ کا فون نمبر *" value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} required className="h-11 rounded-xl bg-background/80" />
               </div>
             </div>
           )}
-        </div>
+           </div>
+         </details>
 
         {/* Payment - Glass */}
-        <div className="glass rounded-2xl p-5 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "180ms" }}>
+         <div className="glass rounded-2xl p-4 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "180ms" }}>
           <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
               <CreditCard className="w-3.5 h-3.5" />
@@ -514,7 +523,6 @@ const Checkout = () => {
             <span className="text-lg">💵</span>
             <span className="font-semibold text-sm">کیش آن ڈلیوری (COD)</span>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-2">آن لائن بینک/والیٹ ادائیگی جلد شامل کی جائے گی۔</p>
         </div>
 
         <PromotionalAds placement="checkout" className="!px-0" />

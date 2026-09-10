@@ -30,6 +30,8 @@ export interface CartItem {
   variant_label?: string | null;
   option_ids?: string[];
   options?: CartItemOption[];
+  line_type?: "main" | "addon";
+  choice_id?: string | null;
 }
 
 export type AddItemInput = Omit<CartItem, "quantity" | "id" | "menu_item_id"> & {
@@ -41,6 +43,7 @@ export type AddItemInput = Omit<CartItem, "quantity" | "id" | "menu_item_id"> & 
 interface CartContextType {
   items: CartItem[];
   addItem: (item: AddItemInput) => void;
+  addItems: (items: AddItemInput[]) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -54,16 +57,44 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const buildLineId = (item: AddItemInput) => {
+export const buildLineId = (item: AddItemInput) => {
   const opts = [...(item.option_ids || [])].sort().join(",");
   const mid = item.menu_item_id || item.id || "";
-  return [mid, item.variant_id || "", opts].join("|");
+  return [mid, item.line_type || "main", item.variant_id || "", item.choice_id || "", opts].join("|");
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+
+  const mergeItems = useCallback((previous: CartItem[], rawItems: AddItemInput[]) => {
+    let next = [...previous];
+    for (const raw of rawItems) {
+      const menuItemId = raw.menu_item_id || raw.id || "";
+      const lineId = buildLineId({ ...raw, menu_item_id: menuItemId });
+      const qty = raw.quantity ?? 1;
+      const item: CartItem = {
+        ...raw,
+        menu_item_id: menuItemId,
+        id: lineId,
+        quantity: qty,
+        option_ids: raw.option_ids || [],
+        options: raw.options || [],
+      };
+      const first = next[0];
+      if (first) {
+        const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
+        const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
+        if (!sameSource || !sameShop) next = [];
+      }
+      const existing = next.find((value) => value.id === lineId);
+      next = existing
+        ? next.map((value) => value.id === lineId ? { ...value, quantity: value.quantity + qty } : value)
+        : [...next, item];
+    }
+    return next;
+  }, []);
 
   const addItem = useCallback((raw: AddItemInput) => {
     const menuItemId = raw.menu_item_id || raw.id || "";
@@ -89,14 +120,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return [item];
         }
       }
-      const existing = prev.find((i) => i.id === lineId);
-      if (existing) {
-        return prev.map((i) => i.id === lineId ? { ...i, quantity: i.quantity + qty } : i);
-      }
-      return [...prev, item];
+      return mergeItems(prev, [item]);
     });
     toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 });
-  }, []);
+  }, [mergeItems]);
+
+  const addItems = useCallback((rawItems: AddItemInput[]) => {
+    const validItems = rawItems.filter((item) => (item.quantity ?? 0) > 0);
+    if (validItems.length === 0) return;
+    setItems((prev) => mergeItems(prev, validItems));
+    toast.success(`${validItems.length} انتخاب کارٹ میں شامل ہو گئے ✓`, { id: "cart-add-batch", duration: 1600 });
+  }, [mergeItems]);
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
@@ -119,7 +153,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, voucher, setVoucher, isOpen, setIsOpen }}>
+    <CartContext.Provider value={{ items, addItem, addItems, removeItem, updateQuantity, clearCart, totalItems, totalPrice, voucher, setVoucher, isOpen, setIsOpen }}>
       {children}
     </CartContext.Provider>
   );
