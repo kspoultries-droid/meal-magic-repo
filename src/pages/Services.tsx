@@ -157,11 +157,27 @@ const Services = () => {
 
   // Fetch nearby providers (phone numbers are never exposed in public listing)
   const fetchNearbyProviders = async (catId?: string | null) => {
-    const { data } = await supabase.rpc("list_public_service_providers", {
-      _category_id: catId ?? null,
-    });
+    let rows: any[] = [];
 
-    let providers: any[] = (data || [])
+    const { data: session } = await supabase.auth.getSession();
+    if (session?.session) {
+      const { data } = await supabase.rpc("list_public_service_providers", {
+        _category_id: catId ?? null,
+      });
+      rows = (data as any[]) || [];
+    } else {
+      // Signed-out visitors read the public, non-identifying provider columns only
+      let q = supabase
+        .from("service_providers")
+        .select("id,name,category_id,city_id,latitude,longitude,address,rating,total_reviews,is_available,is_active,bio,image_url, service_categories(name)")
+        .eq("is_active", true)
+        .order("rating", { ascending: false, nullsFirst: false });
+      if (catId) q = q.eq("category_id", catId);
+      const { data } = await q;
+      rows = ((data as any[]) || []).map((p) => ({ ...p, category_name: p.service_categories?.name }));
+    }
+
+    let providers: any[] = rows
       .filter((p: any) => p.is_available)
       .slice(0, 20)
       .map((p: any) => ({ ...p, service_categories: { name: p.category_name } }));

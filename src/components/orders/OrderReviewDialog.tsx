@@ -57,11 +57,20 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
 
   useEffect(() => {
     if (!open) return;
-    supabase
-      .from(table as any)
-      .select("*")
-      .eq("order_id", orderId)
-      .eq("customer_id", customerId)
+    const ownFilter =
+      kind === "grocery"
+        // customer identity column is not readable by clients on grocery reviews
+        ? supabase
+            .from(table as any)
+            .select("id,order_id,store_id,rating,comment,reply,replied_at,created_at,photo_urls,video_url")
+            .eq("order_id", orderId)
+        : supabase
+            .from(table as any)
+            .select("*")
+            .eq("order_id", orderId)
+            .eq("customer_id", customerId);
+
+    ownFilter
       .maybeSingle()
       .then(({ data }: any) => {
         if (data) {
