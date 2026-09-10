@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket, Clapperboard, BellRing } from "lucide-react";
+import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket, Clapperboard, BellRing, LayoutDashboard } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import GroceryTab from "@/components/admin/GroceryTab";
 import ServicesTab from "@/components/admin/ServicesTab";
@@ -29,6 +29,7 @@ import RevenueTab from "@/components/admin/RevenueTab";
 import CommissionRulesTab from "@/components/admin/CommissionRulesTab";
 import BankAccountsTab from "@/components/admin/BankAccountsTab";
 import RiderPayTab from "@/components/admin/RiderPayTab";
+import OverviewTab from "@/components/admin/OverviewTab";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 
@@ -76,8 +77,9 @@ const AdminDashboard = () => {
       </header>
 
       <div className="p-6">
-        <Tabs defaultValue="operations">
-          <TabsList className="mb-6 grid h-auto grid-cols-2 gap-2 bg-transparent sm:grid-cols-3 lg:grid-cols-6">
+        <Tabs defaultValue="overview">
+          <TabsList className="mb-6 grid h-auto grid-cols-2 gap-2 bg-transparent sm:grid-cols-4 lg:grid-cols-7">
+            <TabsTrigger value="overview" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> کمانڈ سینٹر</TabsTrigger>
             <TabsTrigger value="operations" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> آپریشنز</TabsTrigger>
             <TabsTrigger value="partners" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> پارٹنرز</TabsTrigger>
             <TabsTrigger value="people" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> لوگ اور رولز</TabsTrigger>
@@ -85,6 +87,8 @@ const AdminDashboard = () => {
             <TabsTrigger value="content" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> مواد اور آفرز</TabsTrigger>
             <TabsTrigger value="settings" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview"><OverviewTab /></TabsContent>
 
           <TabsContent value="operations">
             <Tabs defaultValue="orders">

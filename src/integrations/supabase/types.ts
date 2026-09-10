@@ -3204,6 +3204,15 @@ export type Database = {
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
+      admin_daily_trend: {
+        Args: { _days?: number }
+        Returns: {
+          commission: number
+          day: string
+          gross: number
+          orders_count: number
+        }[]
+      }
       admin_offer_order_to_rider: {
         Args: {
           _delivery_fee?: number
@@ -3213,6 +3222,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_overview: { Args: never; Returns: Json }
       admin_pay_vendor: {
         Args: {
           _amount: number

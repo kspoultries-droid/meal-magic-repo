@@ -12,6 +12,7 @@ import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 import RiderOfferCard from "@/components/rider/RiderOfferCard";
 import OrderChat from "@/components/orders/OrderChat";
+import RiderInsights from "@/components/rider/RiderInsights";
 
 
 
@@ -291,6 +292,8 @@ const RiderDashboard = () => {
         ) : null}
 
         {user && <RiderOfferCard riderId={user.id} onChanged={() => fetchData(false)} />}
+
+        {user && <RiderInsights riderId={user.id} />}
 
         <div className="rounded-xl border bg-card p-3 space-y-2">
           <p className="text-xs font-extrabold">آرڈر ہسٹری کا دن</p>

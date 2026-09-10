@@ -30,3 +30,8 @@
 - [x] Remove the earnings explanatory note
 - [x] Add private admin payout-slip attachment and vendor-side viewing
 - [x] Verify upload, reviews, sales, earnings, and payout receipt flows
+
+## ڈیش بورڈ اپ گریڈ
+- [x] مرحلہ 1: ایڈمن کمانڈ سینٹر، چارٹس، CSV ایکسپورٹ، گلوبل سرچ
+- [ ] مرحلہ 2: بلک ایکشنز، مینو سرچ/بزی موڈ، رائیڈر پروف فوٹو
+- [ ] مرحلہ 3: پرفارمنس سکور، الرٹ سینٹر، موبائل بہتری
