@@ -122,17 +122,23 @@ const autoLevels = (data: Uint8ClampedArray) => {
         break;
       }
     }
-    if (hi - lo < 24) {
+    // Low-contrast channels (flat backgrounds, single-colour products) must not be
+    // stretched: doing so crushes the real product colour to black.
+    if (hi - lo < 96) {
       lo = 0;
       hi = 255;
     }
     return { lo, hi };
   });
 
+  // Gentle: blend the stretched value with the original so colours stay true.
+  const strength = 0.5;
   for (let i = 0; i < data.length; i += 4) {
     for (let c = 0; c < 3; c++) {
       const { lo, hi } = bounds[c];
-      const v = ((data[i + c] - lo) * 255) / (hi - lo);
+      const src = data[i + c];
+      const stretched = ((src - lo) * 255) / (hi - lo);
+      const v = src + (stretched - src) * strength;
       data[i + c] = v < 0 ? 0 : v > 255 ? 255 : v;
     }
   }
