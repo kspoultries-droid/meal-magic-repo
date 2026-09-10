@@ -249,6 +249,43 @@ const MyRestaurantTab = () => {
                     </button>
                   </div>
 
+                  {/* Busy / temporary pause */}
+                  <div className="mt-2 flex items-center gap-2 flex-wrap rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2">
+                    <span className="text-xs font-bold text-muted-foreground">⏳ مصروف موڈ:</span>
+                    {[15, 30, 60].map((mins) => (
+                      <button
+                        key={mins}
+                        onClick={async () => {
+                          const until = new Date(Date.now() + mins * 60000).toISOString();
+                          const { error } = await supabase.from("restaurants").update({ busy_until: until } as any).eq("id", r.id);
+                          if (error) { toast.error(error.message); return; }
+                          toast.success(`${mins} منٹ کے لیے مصروف`); fetchAll();
+                        }}
+                        className="rounded-full border bg-background px-2.5 py-1 text-[11px] font-semibold hover:bg-muted"
+                      >
+                        {mins} منٹ
+                      </button>
+                    ))}
+                    {(r as any).busy_until && new Date((r as any).busy_until) > new Date() ? (
+                      <>
+                        <Badge className="bg-amber-500 text-white text-[10px]">
+                          {new Date((r as any).busy_until).toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" })} تک مصروف
+                        </Badge>
+                        <button
+                          onClick={async () => {
+                            await supabase.from("restaurants").update({ busy_until: null } as any).eq("id", r.id);
+                            toast.success("مصروف موڈ ختم"); fetchAll();
+                          }}
+                          className="text-[11px] font-semibold text-primary underline"
+                        >
+                          ختم کریں
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">نئے آرڈرز پر گاہک کو زیادہ وقت دکھایا جائے گا</span>
+                    )}
+                  </div>
+
                   {/* Delivery Mode */}
                   <div className="mt-2 flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
                     <span className="text-xs font-bold text-muted-foreground">🚚 ڈلیوری:</span>
