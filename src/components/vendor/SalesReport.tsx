@@ -164,12 +164,50 @@ const SalesReport = () => {
     return out;
   }, [orders, day]);
 
+  const trend30 = useMemo(() => {
+    const out: { label: string; value: number; secondary: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      const sel = orders.filter((o) => dayKey(o.at) === dayKey(d));
+      out.push({
+        label: d.toLocaleDateString("ur-PK", { day: "numeric", month: "short" }),
+        value: Math.round(sel.reduce((s, o) => s + o.net, 0)),
+        secondary: sel.length,
+      });
+    }
+    return out;
+  }, [orders]);
+
+  const exportCsv = () => {
+    const byDay = new Map<string, { orders: number; qty: number; gross: number }>();
+    orders.forEach((o) => {
+      const k = dayKey(o.at);
+      const cur = byDay.get(k) || { orders: 0, qty: 0, gross: 0 };
+      cur.orders += 1;
+      cur.qty += o.items.reduce((q, i) => q + i.qty, 0);
+      cur.gross += o.net;
+      byDay.set(k, cur);
+    });
+    downloadCsv(
+      `sales-report-${new Date().toISOString().slice(0, 10)}`,
+      ["تاریخ", "آرڈرز", "آئٹمز", "سیل"],
+      Array.from(byDay.entries())
+        .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+        .map(([k, v]) => [k, v.orders, v.qty, Math.round(v.gross)])
+    );
+  };
+
   return (
     <div className="space-y-1.5">
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between px-3 py-2">
           <CardTitle className="flex items-center gap-2 text-sm"><BarChart3 className="w-4 h-4" /> سیل رپورٹ</CardTitle>
-          <Button size="sm" variant="outline" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
+          <div className="flex gap-1">
+            <Button size="sm" variant="outline" onClick={exportCsv} disabled={!orders.length}><Download className="w-4 h-4" /></Button>
+            <Button size="sm" variant="outline" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-1.5 px-3 pb-2">
           {loading ? (
