@@ -172,6 +172,18 @@ const RiderDashboard = () => {
     fetchData(false);
   };
 
+  const uploadProof = async (order: any, file: File) => {
+    if (!user) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${user.id}/${order.id}-${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("delivery-proofs").upload(path, file);
+    if (error) { toast.error("تصویر اپلوڈ ناکام: " + error.message); return; }
+    const { error: updErr } = await supabase.from("orders").update({ delivery_proof_path: path } as any).eq("id", order.id);
+    if (updErr) { toast.error(updErr.message); return; }
+    toast.success("ڈلیوری کی تصویر محفوظ ہو گئی 📷");
+    fetchData(false);
+  };
+
   const markDelivered = async (order: any) => {
     if (order.status !== "delivering") { toast.error("ریسٹورنٹ کے 'بھیجا' کرنے کے بعد ہی Delivered ہو گا"); return; }
     const { error } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id);
