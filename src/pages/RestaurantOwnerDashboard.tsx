@@ -104,20 +104,12 @@ const MyRestaurantTab = () => {
   const { user } = useAuth();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "", cuisines: "", delivery_time: "30-45 min", image_url: "" });
-  const [cities, setCities] = useState<any[]>([]);
-  const [selectedCity, setSelectedCity] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
-    const [{ data: rests }, { data: citiesData }] = await Promise.all([
-      supabase.from("restaurants").select("*").eq("owner_id", user!.id),
-      supabase.from("cities").select("*").order("name"),
-    ]);
+    const { data: rests } = await supabase.from("restaurants").select("*").eq("owner_id", user!.id);
     setRestaurants(rests || []);
-    setCities(citiesData || []);
-    if (citiesData?.length && !selectedCity) setSelectedCity(citiesData[0].id);
     setLoading(false);
   };
 
@@ -130,47 +122,25 @@ const MyRestaurantTab = () => {
     fetchAll();
   };
 
-  const addRestaurant = async () => {
-    if (!form.name.trim() || !selectedCity) { toast.error("نام اور شہر درکار ہے"); return; }
-    const { error } = await supabase.from("restaurants").insert({
-      name: form.name,
-      description: form.description,
-      cuisines: form.cuisines.split(",").map((s) => s.trim()).filter(Boolean),
-      delivery_time: form.delivery_time,
-      image_url: form.image_url,
-      city_id: selectedCity,
-      owner_id: user!.id,
-    });
-    if (error) { toast.error(error.message); return; }
-    toast.success("ریسٹورنٹ شامل ہو گیا!");
-    setShowAdd(false);
-    setForm({ name: "", description: "", cuisines: "", delivery_time: "30-45 min", image_url: "" });
+  const uploadBanner = async (restaurantId: string, file: File) => {
+    setUploading(true);
+    const ext = (file.name.split(".").pop() || "webp").toLowerCase();
+    const path = `restaurants/${restaurantId}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    if (error) { setUploading(false); toast.error("اپلوڈ ناکام: " + error.message); return; }
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    const { error: updErr } = await supabase.from("restaurants").update({ image_url: data.publicUrl }).eq("id", restaurantId);
+    setUploading(false);
+    if (updErr) { toast.error(updErr.message); return; }
+    toast.success("ریسٹورنٹ کی تصویر اپڈیٹ ہو گئی");
     fetchAll();
   };
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>میرے ریسٹورنٹس</CardTitle>
-        <Dialog open={showAdd} onOpenChange={setShowAdd}>
-          <DialogTrigger asChild>
-            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> نیا ریسٹورنٹ</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>نیا ریسٹورنٹ شامل کریں</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <Input placeholder="ریسٹورنٹ کا نام" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <Input placeholder="تفصیل" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              <Input placeholder="کھانے کی اقسام (کاما سے الگ)" value={form.cuisines} onChange={(e) => setForm({ ...form, cuisines: e.target.value })} />
-              <Input placeholder="ڈلیوری وقت (مثلاً 30-45 min)" value={form.delivery_time} onChange={(e) => setForm({ ...form, delivery_time: e.target.value })} />
-              <Input placeholder="تصویر URL" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
-              <select className="w-full border rounded-md p-2 bg-background text-foreground" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
-                {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <Button className="w-full" onClick={addRestaurant}>شامل کریں</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+      <CardHeader className="py-3">
+        <CardTitle className="text-base">میرا ریسٹورنٹ</CardTitle>
+        <p className="text-[11px] text-muted-foreground">نیا ریسٹورنٹ ایڈمن کی منظوری سے شامل ہوتا ہے — پارٹنر فارم بھریں۔</p>
       </CardHeader>
       <CardContent>
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : restaurants.length === 0 ? (
