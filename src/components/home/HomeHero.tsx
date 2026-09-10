@@ -34,6 +34,7 @@ const HomeHero = ({ searchQuery, onSearchChange }: HomeHeroProps) => (
     placeholders={rotating}
     promos={promos}
     features={features}
+    showLocation={false}
   />
 );
 
