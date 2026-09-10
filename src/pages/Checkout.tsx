@@ -430,6 +430,12 @@ const Checkout = () => {
           </div>
         </div>
 
+        <BoughtTogether
+          sourceId={items[0]?.sourceId}
+          source={(items[0]?.source as "restaurant" | "grocery") || "restaurant"}
+          sourceName={items[0]?.restaurant || ""}
+        />
+
         {/* Delivery Info - Glass */}
          <div className="glass rounded-2xl p-4 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "60ms" }}>
           <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">

@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
 import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
+import LocationBar from "@/components/location/LocationBar";
 import { useCityServices } from "@/hooks/useCityServices";
 
 const Index = () => {
@@ -22,6 +23,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle pb-24">
       <Navbar />
+      <div className="container mx-auto max-w-3xl px-4 pt-3">
+        <LocationBar />
+      </div>
       <HomeHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       {!foodLive ? (
         <ServiceUnavailableNotice kind="food" city={city} cities={cities} onCityChange={setCityId} />

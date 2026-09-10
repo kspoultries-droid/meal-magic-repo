@@ -81,6 +81,7 @@ const OrderConfirmation = lazyWithRetry(() => import("./pages/OrderConfirmation"
 const Partner = lazyWithRetry(() => import("./pages/Partner"));
 const Operations = lazyWithRetry(() => import("./pages/Operations"));
 const Reels = lazyWithRetry(() => import("./pages/Reels"));
+const CategoryPage = lazyWithRetry(() => import("./pages/CategoryPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -187,6 +188,7 @@ const App = () => (
                   <Route path="/bazar/:id" element={<GroceryStoreDetail />} />
                   <Route path="/order-tracking/:id" element={<OrderTracking />} />
                   <Route path="/search" element={<SearchPage />} />
+                  <Route path="/category/:slug" element={<CategoryPage />} />
                   <Route path="/services" element={<Services />} />
                   <Route path="/wallet" element={<Wallet />} />
                   <Route path="/support-dashboard" element={<SupportDashboard />} />
