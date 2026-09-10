@@ -13,6 +13,7 @@ import NewOrderBanner from "@/components/NewOrderBanner";
 import RiderOfferCard from "@/components/rider/RiderOfferCard";
 import OrderChat from "@/components/orders/OrderChat";
 import RiderInsights from "@/components/rider/RiderInsights";
+import RiderScore from "@/components/rider/RiderScore";
 
 
 
@@ -305,6 +306,7 @@ const RiderDashboard = () => {
 
         {user && <RiderOfferCard riderId={user.id} onChanged={() => fetchData(false)} />}
 
+        {user && <RiderScore riderId={user.id} />}
         {user && <RiderInsights riderId={user.id} />}
 
         <div className="rounded-xl border bg-card p-3 space-y-2">
