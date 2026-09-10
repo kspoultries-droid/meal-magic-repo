@@ -28,6 +28,8 @@ const ApplicationsTab = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [kycMap, setKycMap] = useState<Record<string, any>>({});
+  const [q, setQ] = useState("");
+  const [sel, setSel] = useState<string[]>([]);
 
   const fetchApps = async () => {
     setLoading(true);
@@ -86,8 +88,32 @@ const ApplicationsTab = () => {
     else toast.error("فائل نہیں کھلی");
   };
 
-  const filtered = apps.filter(a => a.status === filter);
+  const filtered = apps.filter(a =>
+    a.status === filter &&
+    (!q.trim() || `${a.business_name || ""} ${a.owner_name || ""} ${a.phone || ""}`.toLowerCase().includes(q.trim().toLowerCase()))
+  );
   const pendingCount = apps.filter(a => a.status === "pending").length;
+
+  const toggleSel = (id: string) => setSel(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const allSelected = filtered.length > 0 && filtered.every(a => sel.includes(a.id));
+
+  const bulkApprove = async () => {
+    const targets = apps.filter(a => sel.includes(a.id) && a.status === "pending");
+    if (targets.length === 0) return toast.error("کوئی زیر جائزہ درخواست منتخب نہیں");
+    if (!window.confirm(`${targets.length} درخواستیں منظور کی جائیں؟`)) return;
+    let ok = 0; let skipped = 0;
+    for (const app of targets) {
+      if (app.applicant_type === "rider") {
+        const k = kycMap[app.user_id];
+        if (!k || k.status === "failed") { skipped++; continue; }
+      }
+      const { error } = await supabase.rpc("approve_partner_application", { _application_id: app.id });
+      if (error) skipped++; else ok++;
+    }
+    toast.success(`${ok} منظور${skipped ? ` — ${skipped} چھوڑ دی گئیں (تصدیق درکار)` : ""}`);
+    setSel([]);
+    fetchApps();
+  };
 
   return (
     <div className="space-y-4">
@@ -104,6 +130,27 @@ const ApplicationsTab = () => {
         </TabsList>
 
         <TabsContent value={filter} className="space-y-3 mt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="نام، مالک یا فون سے تلاش کریں..."
+              className="h-8 w-full max-w-[240px] rounded-md border bg-background px-2 text-xs text-foreground"
+            />
+            {filter === "pending" && filtered.length > 0 && (
+              <>
+                <Button size="sm" variant="outline" className="h-8 text-[11px]"
+                  onClick={() => setSel(allSelected ? [] : filtered.map(a => a.id))}>
+                  {allSelected ? "سب غیر منتخب" : "سب منتخب"}
+                </Button>
+                {sel.length > 0 && (
+                  <Button size="sm" className="h-8 text-[11px]" onClick={bulkApprove}>
+                    {sel.length} منظور کریں
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
           {loading ? <p>لوڈ ہو رہا ہے...</p> :
            filtered.length === 0 ? <p className="text-muted-foreground text-center py-8">کوئی درخواست نہیں</p> :
            filtered.map(app => (
@@ -112,6 +159,9 @@ const ApplicationsTab = () => {
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1 min-w-[200px]">
                     <div className="flex items-center gap-2 mb-1">
+                      {app.status === "pending" && (
+                        <input type="checkbox" checked={sel.includes(app.id)} onChange={() => toggleSel(app.id)} aria-label={app.business_name} />
+                      )}
                       <h3 className="font-bold">{app.business_name}</h3>
                       <Badge variant="outline">{app.applicant_type}</Badge>
                     </div>

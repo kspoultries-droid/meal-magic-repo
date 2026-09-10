@@ -1367,6 +1367,7 @@ export type Database = {
           delivery_lat: number | null
           delivery_lng: number | null
           delivery_mode_calc: string | null
+          delivery_proof_path: string | null
           discount_amount: number
           dispatch_state: string
           distance_km: number
@@ -1376,6 +1377,7 @@ export type Database = {
           notes: string | null
           payment_method: string | null
           payment_status: string | null
+          prep_minutes: number | null
           receiver_name: string | null
           receiver_phone: string | null
           restaurant_id: string
@@ -1397,6 +1399,7 @@ export type Database = {
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_mode_calc?: string | null
+          delivery_proof_path?: string | null
           discount_amount?: number
           dispatch_state?: string
           distance_km?: number
@@ -1406,6 +1409,7 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          prep_minutes?: number | null
           receiver_name?: string | null
           receiver_phone?: string | null
           restaurant_id: string
@@ -1427,6 +1431,7 @@ export type Database = {
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_mode_calc?: string | null
+          delivery_proof_path?: string | null
           discount_amount?: number
           dispatch_state?: string
           distance_km?: number
@@ -1436,6 +1441,7 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          prep_minutes?: number | null
           receiver_name?: string | null
           receiver_phone?: string | null
           restaurant_id?: string
@@ -2035,6 +2041,7 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          busy_until: string | null
           city_id: string
           closing_time: string | null
           commission_rate: number | null
@@ -2057,6 +2064,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          busy_until?: string | null
           city_id: string
           closing_time?: string | null
           commission_rate?: number | null
@@ -2079,6 +2087,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          busy_until?: string | null
           city_id?: string
           closing_time?: string | null
           commission_rate?: number | null

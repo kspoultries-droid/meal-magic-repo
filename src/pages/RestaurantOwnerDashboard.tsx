@@ -249,6 +249,43 @@ const MyRestaurantTab = () => {
                     </button>
                   </div>
 
+                  {/* Busy / temporary pause */}
+                  <div className="mt-2 flex items-center gap-2 flex-wrap rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2">
+                    <span className="text-xs font-bold text-muted-foreground">⏳ مصروف موڈ:</span>
+                    {[15, 30, 60].map((mins) => (
+                      <button
+                        key={mins}
+                        onClick={async () => {
+                          const until = new Date(Date.now() + mins * 60000).toISOString();
+                          const { error } = await supabase.from("restaurants").update({ busy_until: until } as any).eq("id", r.id);
+                          if (error) { toast.error(error.message); return; }
+                          toast.success(`${mins} منٹ کے لیے مصروف`); fetchAll();
+                        }}
+                        className="rounded-full border bg-background px-2.5 py-1 text-[11px] font-semibold hover:bg-muted"
+                      >
+                        {mins} منٹ
+                      </button>
+                    ))}
+                    {(r as any).busy_until && new Date((r as any).busy_until) > new Date() ? (
+                      <>
+                        <Badge className="bg-amber-500 text-white text-[10px]">
+                          {new Date((r as any).busy_until).toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" })} تک مصروف
+                        </Badge>
+                        <button
+                          onClick={async () => {
+                            await supabase.from("restaurants").update({ busy_until: null } as any).eq("id", r.id);
+                            toast.success("مصروف موڈ ختم"); fetchAll();
+                          }}
+                          className="text-[11px] font-semibold text-primary underline"
+                        >
+                          ختم کریں
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">نئے آرڈرز پر گاہک کو زیادہ وقت دکھایا جائے گا</span>
+                    )}
+                  </div>
+
                   {/* Delivery Mode */}
                   <div className="mt-2 flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
                     <span className="text-xs font-bold text-muted-foreground">🚚 ڈلیوری:</span>
@@ -355,6 +392,9 @@ const MenuTab = () => {
   const [editForm, setEditForm] = useState({ name: "", description: "", price: "", unit: "", category: "", image_url: "" });
   const [editVariants, setEditVariants] = useState<VariantRow[]>([]);
   const [editGroups, setEditGroups] = useState<OptionGroupRow[]>([]);
+  const [search, setSearch] = useState("");
+  const [catFilter, setCatFilter] = useState("all");
+  const [selected, setSelected] = useState<string[]>([]);
 
   useEffect(() => {
     supabase.from("restaurants").select("id,name").eq("owner_id", user!.id).then(({ data }) => {
@@ -462,6 +502,28 @@ const MenuTab = () => {
     fetchMenu();
   };
 
+  const categories = Array.from(new Set(menuItems.map((m) => m.category || "Main")));
+  const visibleItems = menuItems.filter((m) =>
+    (catFilter === "all" || (m.category || "Main") === catFilter) &&
+    (!search.trim() || (m.name || "").toLowerCase().includes(search.trim().toLowerCase()))
+  );
+  const allVisibleSelected = visibleItems.length > 0 && visibleItems.every((m) => selected.includes(m.id));
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const toggleSelectAll = () =>
+    setSelected(allVisibleSelected ? [] : visibleItems.map((m) => m.id));
+
+  const bulkAvailability = async (value: boolean) => {
+    if (selected.length === 0) return;
+    const { error } = await supabase.from("menu_items").update({ is_available: value }).in("id", selected);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${selected.length} آئٹمز ${value ? "فعال" : "بند"} کر دی گئیں`);
+    setSelected([]);
+    fetchMenu();
+  };
+
   if (restaurants.length === 0) return <Card><CardContent className="p-8 text-center text-muted-foreground">پہلے ریسٹورنٹ شامل کریں</CardContent></Card>;
 
   return (
@@ -507,10 +569,38 @@ const MenuTab = () => {
         </Dialog>
       </CardHeader>
       <CardContent>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="آئٹم تلاش کریں..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-8 w-full max-w-[220px] text-xs"
+          />
+          <select
+            className="h-8 rounded-md border bg-background px-2 text-xs text-foreground"
+            value={catFilter}
+            onChange={(e) => setCatFilter(e.target.value)}
+          >
+            <option value="all">تمام کیٹگریز</option>
+            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <span className="text-[11px] text-muted-foreground">{visibleItems.length} آئٹمز</span>
+          {selected.length > 0 && (
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-2 py-1">
+              <span className="text-[11px]">{selected.length} منتخب</span>
+              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => bulkAvailability(true)}>سب فعال</Button>
+              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => bulkAvailability(false)}>سب بند</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setSelected([])}>منسوخ</Button>
+            </div>
+          )}
+        </div>
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8">
+                  <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAll} aria-label="سب منتخب" />
+                </TableHead>
                 <TableHead>نام</TableHead>
                 <TableHead>کیٹگری</TableHead>
                 <TableHead>قیمت</TableHead>
@@ -519,8 +609,11 @@ const MenuTab = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {menuItems.map((m) => (
+              {visibleItems.map((m) => (
                 <TableRow key={m.id}>
+                  <TableCell>
+                    <input type="checkbox" checked={selected.includes(m.id)} onChange={() => toggleSelect(m.id)} aria-label={m.name} />
+                  </TableCell>
                   <TableCell className="font-medium">{m.name}</TableCell>
                   <TableCell>{m.category}</TableCell>
                   <TableCell>Rs {m.price}</TableCell>
@@ -542,7 +635,7 @@ const MenuTab = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {menuItems.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">کوئی آئٹم نہیں</TableCell></TableRow>}
+              {visibleItems.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی آئٹم نہیں</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
@@ -722,6 +815,28 @@ const OwnerOrdersTab = () => {
 
         {o.delivery_address && <p className="text-[11px] text-muted-foreground line-clamp-1">📍 {o.delivery_address}</p>}
         {o.notes && <p className="text-[11px] text-muted-foreground line-clamp-1">📝 {o.notes}</p>}
+
+        {!["delivering", "delivered", "completed", "cancelled"].includes(o.status) && (
+          <div className="flex flex-wrap items-center gap-1.5 rounded-md bg-secondary/30 px-2 py-1.5">
+            <span className="text-[10px] font-bold text-muted-foreground">⏱ تیاری کا وقت:</span>
+            {[10, 20, 30].map((mins) => (
+              <button
+                key={mins}
+                onClick={async () => {
+                  const { error } = await supabase.from("orders").update({ prep_minutes: mins } as any).eq("id", o.id);
+                  if (error) { toast.error(error.message); return; }
+                  toast.success(`${mins} منٹ سیٹ ہو گئے`);
+                  fetchOrders();
+                }}
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                  o.prep_minutes === mins ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+                }`}
+              >
+                {mins} منٹ
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="pt-1">
           <div className="grid grid-cols-4 gap-1.5">

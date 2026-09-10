@@ -172,6 +172,18 @@ const RiderDashboard = () => {
     fetchData(false);
   };
 
+  const uploadProof = async (order: any, file: File) => {
+    if (!user) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${user.id}/${order.id}-${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("delivery-proofs").upload(path, file);
+    if (error) { toast.error("تصویر اپلوڈ ناکام: " + error.message); return; }
+    const { error: updErr } = await supabase.from("orders").update({ delivery_proof_path: path } as any).eq("id", order.id);
+    if (updErr) { toast.error(updErr.message); return; }
+    toast.success("ڈلیوری کی تصویر محفوظ ہو گئی 📷");
+    fetchData(false);
+  };
+
   const markDelivered = async (order: any) => {
     if (order.status !== "delivering") { toast.error("ریسٹورنٹ کے 'بھیجا' کرنے کے بعد ہی Delivered ہو گا"); return; }
     const { error } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id);
@@ -392,9 +404,25 @@ const RiderDashboard = () => {
                       )}
 
                       {o.status === "delivering" && (
-                        <Button size="sm" className="w-full h-9 text-xs font-extrabold" onClick={() => markDelivered(o)}>
-                          ڈلیور ہو گیا ✅
-                        </Button>
+                        <div className="space-y-1.5">
+                          <label className="flex h-9 w-full cursor-pointer items-center justify-center rounded-md border border-dashed text-[11px] font-bold text-muted-foreground hover:bg-muted">
+                            {o.delivery_proof_path ? "📷 تصویر لگ چکی — بدلیں" : "📷 ڈلیوری کی تصویر لگائیں"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="hidden"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) uploadProof(o, f);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          <Button size="sm" className="w-full h-9 text-xs font-extrabold" onClick={() => markDelivered(o)}>
+                            ڈلیور ہو گیا ✅
+                          </Button>
+                        </div>
                       )}
                     </div>
                   );
