@@ -19,3 +19,7 @@
 - [x] Product form captures billable weight and shipping class
 - [x] Admin screen for delivery rate cards and intercity routes
 - [x] Dispatch respects vehicle capacity and skips courier/intercity orders
+- [ ] Food dish search finds matching menu items
+- [ ] Menu selections show independent quantities for variants and add-ons
+- [ ] Food checkout hides freight details and confirms with delivery fee
+- [ ] Compact premium checkout verified on mobile and desktop
