@@ -102,7 +102,14 @@ const RestaurantOwnerDashboard = () => {
             <TabsList className="inline-flex w-max gap-1">
               <TabsTrigger value="restaurant" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> میرا ریسٹورنٹ</TabsTrigger>
               <TabsTrigger value="menu" className="gap-1 whitespace-nowrap text-xs"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
-              <TabsTrigger value="orders" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
+              <TabsTrigger value="orders" className="relative gap-1 whitespace-nowrap text-xs">
+                <ShoppingBag className="h-4 w-4" /> آرڈرز
+                {pendingCount > 0 && (
+                  <span className="ml-1 inline-flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-destructive-foreground">
+                    {pendingCount}
+                  </span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="reels" className="gap-1 whitespace-nowrap text-xs"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
               <TabsTrigger value="earnings" className="gap-1 whitespace-nowrap text-xs"><Wallet className="h-4 w-4" /> آمدنی</TabsTrigger>
               <TabsTrigger value="sales" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
