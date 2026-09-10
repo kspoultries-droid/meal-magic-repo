@@ -96,7 +96,7 @@ const AdminDashboard = () => {
       </header>
 
       <div className="p-6">
-        <Tabs defaultValue="overview">
+        <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="mb-6 grid h-auto grid-cols-3 gap-1.5 bg-transparent sm:grid-cols-4 lg:grid-cols-7">
             <TabsTrigger value="overview" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> کمانڈ سینٹر</TabsTrigger>
             <TabsTrigger value="operations" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> آپریشنز</TabsTrigger>
@@ -107,17 +107,17 @@ const AdminDashboard = () => {
             <TabsTrigger value="settings" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4"><AlertCenter /><OverviewTab /></TabsContent>
+          <TabsContent value="overview" className="space-y-4"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>
 
           <TabsContent value="operations">
-            <Tabs defaultValue="orders">
+            <Tabs value={opsTab} onValueChange={setOpsTab}>
               <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">آرڈرز</TabsTrigger><TabsTrigger value="grocery-dispatch">ڈسپیچ</TabsTrigger><TabsTrigger value="photo-orders">فوٹو آرڈرز</TabsTrigger><TabsTrigger value="audit">آڈٹ لاگ</TabsTrigger></TabsList>
               <TabsContent value="orders"><OrdersTab /></TabsContent><TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent><TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent><TabsContent value="audit"><AuditLogTab /></TabsContent>
             </Tabs>
           </TabsContent>
 
           <TabsContent value="partners">
-            <Tabs defaultValue="applications">
+            <Tabs value={partnersTab} onValueChange={setPartnersTab}>
               <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="applications">درخواستیں</TabsTrigger><TabsTrigger value="restaurants">ریسٹورنٹس</TabsTrigger><TabsTrigger value="riders">رائیڈرز</TabsTrigger><TabsTrigger value="grocery">گروسری</TabsTrigger><TabsTrigger value="services">سروسز</TabsTrigger><TabsTrigger value="wholesale-cats">بازار کیٹیگریز</TabsTrigger></TabsList>
               <TabsContent value="applications"><ApplicationsTab /></TabsContent><TabsContent value="restaurants"><RestaurantsTab /></TabsContent><TabsContent value="riders"><RidersTab /></TabsContent><TabsContent value="grocery"><GroceryTab /></TabsContent><TabsContent value="services"><ServicesTab /></TabsContent><TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
             </Tabs>
@@ -126,15 +126,15 @@ const AdminDashboard = () => {
           <TabsContent value="people"><UsersTab /></TabsContent>
 
           <TabsContent value="finance">
-            <Tabs defaultValue={pendingRemittances > 0 ? "rider-remit" : "revenue"}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="banks">بینک اور اسٹیٹمنٹ</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
+            <Tabs value={financeTab} onValueChange={setFinanceTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="banks">بینک اور اسٹیٹمنٹ</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
           </TabsContent>
 
           <TabsContent value="content">
-            <Tabs defaultValue="ads"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="ads">ایڈز</TabsTrigger><TabsTrigger value="vouchers">واؤچرز</TabsTrigger><TabsTrigger value="reels">ریلز</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
+            <Tabs value={contentTab} onValueChange={setContentTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="ads">ایڈز</TabsTrigger><TabsTrigger value="vouchers">واؤچرز</TabsTrigger><TabsTrigger value="reels">ریلز</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
           </TabsContent>
 
           <TabsContent value="settings">
-            <Tabs defaultValue="city-settings"><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="city-settings">شہر سیٹنگز</TabsTrigger><TabsTrigger value="delivery-rates">ڈلیوری کرایہ</TabsTrigger><TabsTrigger value="cities">شہر</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
+            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="city-settings">شہر سیٹنگز</TabsTrigger><TabsTrigger value="delivery-rates">ڈلیوری کرایہ</TabsTrigger><TabsTrigger value="cities">شہر</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
           </TabsContent>
         </Tabs>
       </div>
