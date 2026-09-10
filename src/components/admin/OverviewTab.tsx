@@ -133,13 +133,18 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {cards.map((c) => (
-                <div key={c.label} className="rounded-xl border bg-card px-3 py-2.5">
+                <button
+                  key={c.label}
+                  type="button"
+                  onClick={() => onNavigate?.(c.section, c.subTab)}
+                  className="rounded-xl border bg-card px-3 py-2.5 text-start transition hover:border-primary hover:bg-primary/5 active:scale-[0.98]"
+                >
                   <div className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <c.icon className="h-3.5 w-3.5" /> {c.label}
                   </div>
                   <p className={`text-lg font-extrabold leading-none ${c.tone}`}>{c.value}</p>
                   <p className="mt-1 text-[10px] text-muted-foreground">{c.sub}</p>
-                </div>
+                </button>
               ))}
             </div>
           )}
