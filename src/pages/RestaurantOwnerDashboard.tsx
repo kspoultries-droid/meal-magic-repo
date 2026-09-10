@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +38,33 @@ const RestaurantOwnerDashboard = () => {
     }
   }, [user]);
 
+  // Live count of orders still waiting for the owner's acceptance
+  const [pendingCount, setPendingCount] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const count = async () => {
+      const { data: rests } = await supabase.from("restaurants").select("id").eq("owner_id", user.id);
+      const ids = (rests || []).map((r) => r.id);
+      if (!ids.length) { if (!cancelled) setPendingCount(0); return; }
+      const { count: n } = await supabase
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .in("restaurant_id", ids)
+        .eq("status", "pending");
+      if (!cancelled) setPendingCount(n || 0);
+    };
+    count();
+    const timer = setInterval(count, 30000);
+    const channel = supabase
+      .channel("owner-pending-count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, count)
+      .subscribe();
+    return () => { cancelled = true; clearInterval(timer); supabase.removeChannel(channel); };
+  }, [user]);
+
+
+
   if (loading || hasRole === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
 
   if (!hasRole) return (
@@ -75,7 +102,14 @@ const RestaurantOwnerDashboard = () => {
             <TabsList className="inline-flex w-max gap-1">
               <TabsTrigger value="restaurant" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> میرا ریسٹورنٹ</TabsTrigger>
               <TabsTrigger value="menu" className="gap-1 whitespace-nowrap text-xs"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
-              <TabsTrigger value="orders" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> آرڈرز</TabsTrigger>
+              <TabsTrigger value="orders" className="relative gap-1 whitespace-nowrap text-xs">
+                <ShoppingBag className="h-4 w-4" /> آرڈرز
+                {pendingCount > 0 && (
+                  <span className="ml-1 inline-flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-destructive-foreground">
+                    {pendingCount}
+                  </span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="reels" className="gap-1 whitespace-nowrap text-xs"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
               <TabsTrigger value="earnings" className="gap-1 whitespace-nowrap text-xs"><Wallet className="h-4 w-4" /> آمدنی</TabsTrigger>
               <TabsTrigger value="sales" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
@@ -104,20 +138,12 @@ const MyRestaurantTab = () => {
   const { user } = useAuth();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "", cuisines: "", delivery_time: "30-45 min", image_url: "" });
-  const [cities, setCities] = useState<any[]>([]);
-  const [selectedCity, setSelectedCity] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
-    const [{ data: rests }, { data: citiesData }] = await Promise.all([
-      supabase.from("restaurants").select("*").eq("owner_id", user!.id),
-      supabase.from("cities").select("*").order("name"),
-    ]);
+    const { data: rests } = await supabase.from("restaurants").select("*").eq("owner_id", user!.id);
     setRestaurants(rests || []);
-    setCities(citiesData || []);
-    if (citiesData?.length && !selectedCity) setSelectedCity(citiesData[0].id);
     setLoading(false);
   };
 
@@ -130,56 +156,51 @@ const MyRestaurantTab = () => {
     fetchAll();
   };
 
-  const addRestaurant = async () => {
-    if (!form.name.trim() || !selectedCity) { toast.error("نام اور شہر درکار ہے"); return; }
-    const { error } = await supabase.from("restaurants").insert({
-      name: form.name,
-      description: form.description,
-      cuisines: form.cuisines.split(",").map((s) => s.trim()).filter(Boolean),
-      delivery_time: form.delivery_time,
-      image_url: form.image_url,
-      city_id: selectedCity,
-      owner_id: user!.id,
-    });
-    if (error) { toast.error(error.message); return; }
-    toast.success("ریسٹورنٹ شامل ہو گیا!");
-    setShowAdd(false);
-    setForm({ name: "", description: "", cuisines: "", delivery_time: "30-45 min", image_url: "" });
+  const uploadBanner = async (restaurantId: string, file: File) => {
+    setUploading(true);
+    const ext = (file.name.split(".").pop() || "webp").toLowerCase();
+    const path = `restaurants/${restaurantId}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    if (error) { setUploading(false); toast.error("اپلوڈ ناکام: " + error.message); return; }
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    const { error: updErr } = await supabase.from("restaurants").update({ image_url: data.publicUrl }).eq("id", restaurantId);
+    setUploading(false);
+    if (updErr) { toast.error(updErr.message); return; }
+    toast.success("ریسٹورنٹ کی تصویر اپڈیٹ ہو گئی");
     fetchAll();
   };
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>میرے ریسٹورنٹس</CardTitle>
-        <Dialog open={showAdd} onOpenChange={setShowAdd}>
-          <DialogTrigger asChild>
-            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> نیا ریسٹورنٹ</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>نیا ریسٹورنٹ شامل کریں</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <Input placeholder="ریسٹورنٹ کا نام" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <Input placeholder="تفصیل" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              <Input placeholder="کھانے کی اقسام (کاما سے الگ)" value={form.cuisines} onChange={(e) => setForm({ ...form, cuisines: e.target.value })} />
-              <Input placeholder="ڈلیوری وقت (مثلاً 30-45 min)" value={form.delivery_time} onChange={(e) => setForm({ ...form, delivery_time: e.target.value })} />
-              <Input placeholder="تصویر URL" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
-              <select className="w-full border rounded-md p-2 bg-background text-foreground" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
-                {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <Button className="w-full" onClick={addRestaurant}>شامل کریں</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+      <CardHeader className="py-3">
+        <CardTitle className="text-base">میرا ریسٹورنٹ</CardTitle>
+        <p className="text-[11px] text-muted-foreground">نیا ریسٹورنٹ ایڈمن کی منظوری سے شامل ہوتا ہے — پارٹنر فارم بھریں۔</p>
       </CardHeader>
       <CardContent>
         {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : restaurants.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">ابھی کوئی ریسٹورنٹ نہیں — اوپر سے شامل کریں</p>
+          <p className="text-center text-muted-foreground py-8">ابھی کوئی ریسٹورنٹ نہیں — ایڈمن سے منظوری کے بعد یہاں نظر آئے گا</p>
         ) : (
           <div className="grid gap-4">
             {restaurants.map((r) => (
               <div key={r.id} className="flex flex-col sm:flex-row gap-4 bg-secondary/30 rounded-xl p-3 sm:p-4 border overflow-hidden">
-                {r.image_url && <img src={r.image_url} alt={r.name} className="w-full h-32 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0" />}
+                <div className="w-full shrink-0 space-y-1.5 sm:w-28">
+                  {r.image_url ? (
+                    <img src={r.image_url} alt={r.name} className="h-32 w-full rounded-lg object-cover sm:h-28" />
+                  ) : (
+                    <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed bg-background text-[11px] text-muted-foreground sm:h-28">
+                      تصویر نہیں
+                    </div>
+                  )}
+                  <ProductPhotoUploader
+                    aspect="wide"
+                    label="اپنی تصویر لگائیں"
+                    onDone={async (photos) => {
+                      const photo = photos[0];
+                      if (photo) await uploadBanner(r.id, photo.file);
+                    }}
+                  />
+                  {uploading && <p className="text-[10px] text-muted-foreground">اپلوڈ ہو رہی ہے…</p>}
+                </div>
                 <div className="flex-1 min-w-0 w-full">
                   <h3 className="font-bold text-foreground break-words">{r.name}</h3>
                   <p className="text-sm text-muted-foreground">{r.description}</p>
@@ -603,17 +624,24 @@ const OwnerOrdersTab = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  // Re-ring every 5 minutes while an order is still un-accepted (pending)
+  // Every pending order rings again after 5 minutes, until it is accepted
+  const remindedRef = useRef<Record<string, number>>({});
   useEffect(() => {
-    const timer = setInterval(() => {
-      const stale = orders.filter(
-        (o) => o.status === "pending" && Date.now() - new Date(o.created_at).getTime() > 5 * 60 * 1000
-      );
-      if (stale.length > 0) {
-        triggerAlert(`${stale.length} آرڈر ابھی تک قبول نہیں کیا گیا!`);
-        toast.warning(`⏰ ${stale.length} آرڈر 5 منٹ سے زیادہ سے زیرِ التوا ہے — فوراً قبول کریں`);
-      }
-    }, 5 * 60 * 1000);
+    const check = () => {
+      const now = Date.now();
+      const due = orders.filter((o) => {
+        if (o.status !== "pending") return false;
+        const age = now - new Date(o.created_at).getTime();
+        const last = remindedRef.current[o.id] || 0;
+        return age > 5 * 60 * 1000 && now - last > 5 * 60 * 1000;
+      });
+      if (due.length === 0) return;
+      due.forEach((o) => { remindedRef.current[o.id] = now; });
+      triggerAlert(`${due.length} آرڈر ابھی تک قبول نہیں کیا گیا!`);
+      toast.warning(`⏰ ${due.length} آرڈر 5 منٹ سے زیادہ سے زیرِ التوا ہے — فوراً قبول کریں`, { id: "pending-reminder" });
+    };
+    check();
+    const timer = setInterval(check, 30 * 1000);
     return () => clearInterval(timer);
   }, [orders, triggerAlert]);
 
@@ -657,33 +685,33 @@ const OwnerOrdersTab = () => {
     const canSend = o.status === "preparing" && (!needsPlatformRider || o.rider_id);
     const restaurantCanFinish = o.status === "delivering" && (deliveryMode === "self" || (deliveryMode === "both" && !o.rider_id));
     return (
-      <div key={o.id} className="border rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-            <span className="ml-3 font-bold">Rs {o.total_amount}</span>
-          </div>
+      <div key={o.id} className="rounded-lg border p-2.5 space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
           <div className="flex items-center gap-2">
-            <Badge className={statusColor(o.status)}>{o.status}</Badge>
-            {deliveryMode === "self" && <Badge variant="outline">خود ڈلیوری</Badge>}
-            {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="gap-1"><Bike className="w-3 h-3" /> رائیڈر اسائن</Badge>}
-            <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+            <span className="font-mono text-[10px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
+            <span className="text-sm font-extrabold">Rs {o.total_amount}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status}</Badge>
+            {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
+            {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px]"><Bike className="w-3 h-3" /> رائیڈر</Badge>}
+            <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
           </div>
         </div>
 
-        <button className="text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
+        <button className="text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
           {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
         </button>
         {expandedOrder === o.id && o.order_items?.length > 0 && (
-          <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
+          <div className="space-y-0.5 rounded-md bg-secondary/30 p-2">
             {o.order_items.map((item: any) => (
-              <div key={item.id} className="text-sm">
-                <div className="flex justify-between">
-                  <span>{item.name}{item.variant_label ? ` — ${item.variant_label}` : ""} × {item.quantity}</span>
-                  <span className="font-bold">Rs {item.price * item.quantity}</span>
+              <div key={item.id} className="text-xs">
+                <div className="flex justify-between gap-2">
+                  <span className="truncate">{item.name}{item.variant_label ? ` — ${item.variant_label}` : ""} × {item.quantity}</span>
+                  <span className="shrink-0 font-bold">Rs {item.price * item.quantity}</span>
                 </div>
                 {Array.isArray(item.options) && item.options.length > 0 && (
-                  <p className="text-[11px] text-muted-foreground pr-2">
+                  <p className="text-[10px] text-muted-foreground pr-2">
                     {item.options.map((o: any) => o.choice).join(" • ")}
                   </p>
                 )}
@@ -692,10 +720,10 @@ const OwnerOrdersTab = () => {
           </div>
         )}
 
-        {o.delivery_address && <p className="text-xs text-muted-foreground">📍 {o.delivery_address}</p>}
-        {o.notes && <p className="text-xs text-muted-foreground">📝 {o.notes}</p>}
+        {o.delivery_address && <p className="text-[11px] text-muted-foreground line-clamp-1">📍 {o.delivery_address}</p>}
+        {o.notes && <p className="text-[11px] text-muted-foreground line-clamp-1">📝 {o.notes}</p>}
 
-        <div className="pt-2">
+        <div className="pt-1">
           <div className="grid grid-cols-4 gap-1.5">
             {[
               { key: "confirmed", label: "✅ قبول", active: o.status === "pending", disabledReason: "" },
@@ -715,7 +743,7 @@ const OwnerOrdersTab = () => {
                   disabled={!step.active}
                   title={step.disabledReason}
                   onClick={() => updateStatus(o, step.key)}
-                  className={`h-auto min-h-10 text-[11px] font-bold px-2 py-2 rounded-lg border-2 transition-all ${
+                  className={`h-8 rounded-md border px-1.5 py-1 text-[10px] font-bold transition-all ${
                     isDone
                       ? "bg-success/20 border-success text-success"
                       : step.active

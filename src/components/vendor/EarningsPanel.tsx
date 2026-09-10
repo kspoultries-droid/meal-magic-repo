@@ -32,9 +32,9 @@ const EarningsPanel = () => {
   }, [user?.id, period]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Wallet className="h-4 w-4" /> میری کمائی</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><Wallet className="h-4 w-4" /> میری کمائی</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex gap-2">
             {PERIODS.map((p) => (
@@ -51,13 +51,13 @@ const EarningsPanel = () => {
             <p className="text-sm text-muted-foreground">اس عرصے میں کوئی مکمل آرڈر نہیں</p>
           ) : (
             <div className="grid grid-cols-2 gap-2 text-center text-xs">
-              <div className="bg-secondary/50 rounded-xl py-3"><p className="text-muted-foreground">مکمل آرڈرز</p><p className="text-lg font-extrabold">{row.orders}</p></div>
-              <div className="bg-secondary/50 rounded-xl py-3"><p className="text-muted-foreground">کل سیل</p><p className="text-lg font-extrabold">Rs {row.gross}</p></div>
-              <div className="bg-secondary/50 rounded-xl py-3"><p className="text-muted-foreground">پلیٹ فارم کمیشن ({row.commissionRate}%)</p><p className="text-lg font-extrabold text-destructive">− Rs {row.commission}</p></div>
-              <div className="bg-secondary/50 rounded-xl py-3"><p className="text-muted-foreground">وصول شدہ ادائیگی</p><p className="text-lg font-extrabold text-success">Rs {row.paid}</p></div>
-              <div className="col-span-2 bg-primary/10 rounded-xl py-3">
+              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">مکمل آرڈرز</p><p className="text-sm font-extrabold">{row.orders}</p></div>
+              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">کل سیل</p><p className="text-sm font-extrabold">Rs {row.gross}</p></div>
+              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">پلیٹ فارم کمیشن ({row.commissionRate}%)</p><p className="text-sm font-extrabold text-destructive">− Rs {row.commission}</p></div>
+              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">وصول شدہ ادائیگی</p><p className="text-sm font-extrabold text-success">Rs {row.paid}</p></div>
+              <div className="col-span-2 bg-primary/10 rounded-xl py-2">
                 <p className="text-muted-foreground">باقی ملنا ہے</p>
-                <p className="text-xl font-extrabold text-primary">Rs {row.pending}</p>
+                <p className="text-base font-extrabold text-primary">Rs {row.pending}</p>
                 {row.pending === 0 && row.paid > 0 && (
                   <p className="text-[11px] text-success">✅ تمام ادائیگی ہو چکی ہے</p>
                 )}
@@ -73,7 +73,7 @@ const EarningsPanel = () => {
       <VendorBankAccounts />
 
       <Card>
-        <CardHeader><CardTitle className="text-base">وصول شدہ ادائیگیاں</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm">وصول شدہ ادائیگیاں</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {payouts.length === 0 && <p className="text-sm text-muted-foreground">ابھی کوئی ادائیگی وصول نہیں ہوئی</p>}
           {payouts.map((p) => (

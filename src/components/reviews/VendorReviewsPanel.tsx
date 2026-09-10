@@ -110,20 +110,20 @@ const VendorReviewsPanel = ({ kind }: { kind: ReviewKind }) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle className="flex items-center gap-2 text-sm">
           <MessageSquare className="w-4 h-4" /> کسٹمر ریویوز
           {rows.length > 0 && <Badge variant="outline" className="text-[10px]">⭐ {avg} • {rows.length}</Badge>}
         </CardTitle>
         <Button size="sm" variant="outline" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {loading ? (
-          <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>
+          <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
         ) : rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">ابھی کوئی ریویو نہیں آیا</p>
+          <p className="text-xs text-muted-foreground py-6 text-center">ابھی کوئی ریویو نہیں آیا</p>
         ) : (
           rows.map((r) => (
-            <div key={r.id} className="rounded-xl border p-3 space-y-2">
+            <div key={r.id} className="rounded-lg border p-2 space-y-1.5">
               <div className="flex items-center justify-between gap-2">
                 <Stars n={r.rating} />
                 <span className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleDateString("ur-PK")}</span>
