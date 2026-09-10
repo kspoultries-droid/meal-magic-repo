@@ -60,7 +60,8 @@ const Services = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locatingUser, setLocatingUser] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
+  const { config: heroConfig, save: saveHero } = useHeroSettings("hero_services", servicesHeroDefaults);
   const servicesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
