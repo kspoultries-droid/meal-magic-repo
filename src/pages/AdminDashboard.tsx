@@ -30,6 +30,7 @@ import CommissionRulesTab from "@/components/admin/CommissionRulesTab";
 import BankAccountsTab from "@/components/admin/BankAccountsTab";
 import RiderPayTab from "@/components/admin/RiderPayTab";
 import OverviewTab from "@/components/admin/OverviewTab";
+import AlertCenter from "@/components/admin/AlertCenter";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 
@@ -88,7 +89,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="settings" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview"><OverviewTab /></TabsContent>
+          <TabsContent value="overview" className="space-y-4"><AlertCenter /><OverviewTab /></TabsContent>
 
           <TabsContent value="operations">
             <Tabs defaultValue="orders">

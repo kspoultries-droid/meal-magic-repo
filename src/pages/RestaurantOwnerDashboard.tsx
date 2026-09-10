@@ -15,6 +15,7 @@ import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import PhotoTips from "@/components/media/PhotoTips";
 import EarningsPanel from "@/components/vendor/EarningsPanel";
 import SalesReport from "@/components/vendor/SalesReport";
+import RestaurantScore from "@/components/vendor/RestaurantScore";
 import VendorReviewsPanel from "@/components/reviews/VendorReviewsPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
