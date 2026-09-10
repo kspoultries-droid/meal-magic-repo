@@ -3200,7 +3200,50 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      grocery_reviews_public: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          photo_urls: string[] | null
+          rating: number | null
+          replied_at: string | null
+          reply: string | null
+          store_id: string | null
+          video_url: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          photo_urls?: string[] | null
+          rating?: number | null
+          replied_at?: string | null
+          reply?: string | null
+          store_id?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          photo_urls?: string[] | null
+          rating?: number | null
+          replied_at?: string | null
+          reply?: string | null
+          store_id?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_reviews_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
