@@ -1383,6 +1383,7 @@ export type Database = {
           status: string | null
           total_amount: number
           updated_at: string | null
+          vehicle_type_id: string | null
           voucher_code: string | null
         }
         Insert: {
@@ -1412,6 +1413,7 @@ export type Database = {
           status?: string | null
           total_amount?: number
           updated_at?: string | null
+          vehicle_type_id?: string | null
           voucher_code?: string | null
         }
         Update: {
@@ -1441,6 +1443,7 @@ export type Database = {
           status?: string | null
           total_amount?: number
           updated_at?: string | null
+          vehicle_type_id?: string | null
           voucher_code?: string | null
         }
         Relationships: [
@@ -1456,6 +1459,13 @@ export type Database = {
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_vehicle_type_id_fkey"
+            columns: ["vehicle_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_types"
             referencedColumns: ["id"]
           },
         ]
