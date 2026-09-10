@@ -15,6 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MyReelsManager from "@/components/reels/MyReelsManager";
+import ProductPhotoUploader, { PreparedPhoto } from "@/components/media/ProductPhotoUploader";
+
 import BottomTabBar from "@/components/BottomTabBar";
 import { toast } from "sonner";
 
@@ -148,16 +150,18 @@ const GroceryStoreDetail = () => {
     fetchData();
   };
 
-  const uploadProductImage = async (productId: string, file: File) => {
-    const ext = file.name.split('.').pop();
-    const path = `products/${productId}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+  const uploadProductImage = async (productId: string, photo: PreparedPhoto) => {
+    const path = `products/${productId}-${Date.now()}.webp`;
+    const { error: uploadError } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: true, contentType: photo.file.type });
     if (uploadError) { toast.error(uploadError.message); return; }
+    const originalExt = photo.original.name.split(".").pop()?.toLowerCase() || "jpg";
+    await supabase.storage.from("product-images").upload(`originals/${productId}-${Date.now()}.${originalExt}`, photo.original, { upsert: true });
     const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
     await supabase.from("grocery_products").update({ image_url: urlData.publicUrl }).eq("id", productId);
     toast.success("تصویر اپڈیٹ / Image updated");
     fetchData();
   };
+
 
    const addProduct = async () => {
      if (!newProduct.name.trim() || !newProduct.price) { toast.error("نام اور قیمت درکار / Name & price required"); return; }
