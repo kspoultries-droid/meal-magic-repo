@@ -709,7 +709,7 @@ const OwnerOrdersTab = () => {
                   disabled={!step.active}
                   title={step.disabledReason}
                   onClick={() => updateStatus(o, step.key)}
-                  className={`h-auto min-h-10 text-[11px] font-bold px-2 py-2 rounded-lg border-2 transition-all ${
+                  className={`h-8 rounded-md border px-1.5 py-1 text-[10px] font-bold transition-all ${
                     isDone
                       ? "bg-success/20 border-success text-success"
                       : step.active
