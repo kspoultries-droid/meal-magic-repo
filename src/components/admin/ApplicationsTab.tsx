@@ -28,6 +28,8 @@ const ApplicationsTab = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [kycMap, setKycMap] = useState<Record<string, any>>({});
+  const [q, setQ] = useState("");
+  const [sel, setSel] = useState<string[]>([]);
 
   const fetchApps = async () => {
     setLoading(true);
