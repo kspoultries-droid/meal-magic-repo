@@ -21,7 +21,13 @@ const readSet = (): Set<string> => {
 };
 const persist = (s: Set<string>) => localStorage.setItem(STORE_KEY, JSON.stringify([...s].slice(-500)));
 
-const AlertCenter = () => {
+const target = (kind: Alert["kind"]): [string, string] => {
+  if (kind === "application") return ["partners", "applications"];
+  if (kind === "remittance") return ["finance", "rider-remit"];
+  return ["operations", "orders"];
+};
+
+const AlertCenter = ({ onNavigate }: { onNavigate?: (section: string, sub?: string) => void }) => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [read, setRead] = useState<Set<string>>(readSet);
   const [onlyUnread, setOnlyUnread] = useState(true);
