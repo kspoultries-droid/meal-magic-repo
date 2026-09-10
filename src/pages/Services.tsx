@@ -19,6 +19,9 @@ import {
 import HelplineSection from "@/components/services/HelplineSection";
 import FeedbackDialog from "@/components/services/FeedbackDialog";
 import PromotionalAds from "@/components/PromotionalAds";
+import HeroEditor from "@/components/common/HeroEditor";
+import { useHeroSettings } from "@/hooks/useHeroSettings";
+import { servicesHeroDefaults, heroBackgroundStyle } from "@/lib/heroConfig";
 
 const iconMap: Record<string, any> = {
   AirVent, Wrench, Zap, Sparkles, Paintbrush, Hammer, Car,
