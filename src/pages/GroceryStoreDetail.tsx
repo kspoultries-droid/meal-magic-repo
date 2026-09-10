@@ -303,29 +303,13 @@ const GroceryStoreDetail = () => {
                            {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
                          </button>
 
-                        {!isOwner && getVariants(product).length > 0 && (
-                          <div className="mt-2">
-                            <p className="text-[10px] font-bold text-muted-foreground">سائز منتخب کریں</p>
-                            <div className="mt-1 flex flex-wrap gap-1">
-                              {getVariants(product).map((variant: any, index: number) => {
-                                const key = variantKey(variant, index);
-                                const active = (selectedVariants[product.id] || variantKey(getVariants(product)[0], 0)) === key;
-                                return (
-                                  <button
-                                    key={key}
-                                    type="button"
-                                    aria-pressed={active}
-                                    onClick={() => setSelectedVariants((prev) => ({ ...prev, [product.id]: key }))}
-                                    className={`rounded-lg border px-2 py-1 text-[10px] font-bold transition-colors ${active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card text-muted-foreground"}`}
-                                  >
-                                    {variant.label || variant.name}
-                                    {Number(variant.price_delta || 0) !== 0 && <span className="ms-1 text-[9px]">{Number(variant.price_delta) > 0 ? "+" : ""}{variant.price_delta}</span>}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                        {!isOwner && productVariants.length > 0 && (
+                          <button type="button" onClick={() => navigate(`/product/${product.id}`)} className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-bold text-accent-foreground">
+                            {productVariants.length} آپشنز · سائز/رنگ منتخب کریں
+                          </button>
                         )}
+
+
 
 
 
