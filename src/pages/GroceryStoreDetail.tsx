@@ -84,6 +84,10 @@ const GroceryStoreDetail = () => {
   const handleAdd = (product: any) => {
     const effectivePrice = product.wholesale_price || product.discount_price || product.price;
     const variants = getVariants(product);
+    if (variants.length > 0) {
+      navigate(`/product/${product.id}`);
+      return;
+    }
     const selectedKey = selectedVariants[product.id];
     const variant = variants.find((value: any, index: number) => variantKey(value, index) === selectedKey) || variants[0];
     const variantLabel = variant?.label || variant?.name;
