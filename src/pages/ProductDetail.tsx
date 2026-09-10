@@ -141,7 +141,7 @@ const ProductDetail = () => {
             {variants.length > 0 && (
               <div className="mt-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-xs font-extrabold text-foreground">سائز منتخب کریں</p>
+                  <p className="text-xs font-extrabold text-foreground">سائز / رنگ منتخب کریں</p>
                   <span className="text-[10px] font-bold text-primary">لازمی</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
