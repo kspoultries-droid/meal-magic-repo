@@ -11,7 +11,7 @@ import Footer from "@/components/Footer";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
 import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
-import LocationBar from "@/components/location/LocationBar";
+
 import { useCityServices } from "@/hooks/useCityServices";
 
 const Index = () => {
