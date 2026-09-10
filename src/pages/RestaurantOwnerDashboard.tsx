@@ -355,6 +355,9 @@ const MenuTab = () => {
   const [editForm, setEditForm] = useState({ name: "", description: "", price: "", unit: "", category: "", image_url: "" });
   const [editVariants, setEditVariants] = useState<VariantRow[]>([]);
   const [editGroups, setEditGroups] = useState<OptionGroupRow[]>([]);
+  const [search, setSearch] = useState("");
+  const [catFilter, setCatFilter] = useState("all");
+  const [selected, setSelected] = useState<string[]>([]);
 
   useEffect(() => {
     supabase.from("restaurants").select("id,name").eq("owner_id", user!.id).then(({ data }) => {
