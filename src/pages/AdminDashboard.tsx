@@ -79,14 +79,14 @@ const AdminDashboard = () => {
 
       <div className="p-6">
         <Tabs defaultValue="overview">
-          <TabsList className="mb-6 grid h-auto grid-cols-2 gap-2 bg-transparent sm:grid-cols-4 lg:grid-cols-7">
-            <TabsTrigger value="overview" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> کمانڈ سینٹر</TabsTrigger>
-            <TabsTrigger value="operations" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> آپریشنز</TabsTrigger>
-            <TabsTrigger value="partners" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> پارٹنرز</TabsTrigger>
-            <TabsTrigger value="people" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> لوگ اور رولز</TabsTrigger>
-            <TabsTrigger value="finance" className="relative h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> فنانس{pendingRemittances > 0 && <Badge className="absolute end-1 top-1 h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>
-            <TabsTrigger value="content" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> مواد اور آفرز</TabsTrigger>
-            <TabsTrigger value="settings" className="h-16 flex-col gap-1 rounded-xl border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
+          <TabsList className="mb-6 grid h-auto grid-cols-3 gap-1.5 bg-transparent sm:grid-cols-4 lg:grid-cols-7">
+            <TabsTrigger value="overview" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> کمانڈ سینٹر</TabsTrigger>
+            <TabsTrigger value="operations" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> آپریشنز</TabsTrigger>
+            <TabsTrigger value="partners" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> پارٹنرز</TabsTrigger>
+            <TabsTrigger value="people" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> لوگ اور رولز</TabsTrigger>
+            <TabsTrigger value="finance" className="relative h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> فنانس{pendingRemittances > 0 && <Badge className="absolute end-1 top-1 h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>
+            <TabsTrigger value="content" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> مواد اور آفرز</TabsTrigger>
+            <TabsTrigger value="settings" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4"><AlertCenter /><OverviewTab /></TabsContent>
