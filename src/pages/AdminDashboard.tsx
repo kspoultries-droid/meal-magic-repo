@@ -529,90 +529,68 @@ const OrdersTab = () => {
               const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
               const needsRider = deliveryMode !== "self" && ["confirmed", "preparing", "delivering"].includes(o.status) && !o.rider_id;
               return (
-                <div key={o.id} className="border rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div>
-                      <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
-                      <span className="ml-3 font-bold">Rs {o.total_amount}</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className={statusColor(o.status)}>{o.status === "confirmed" ? "ریسٹورنٹ نے قبول کیا" : o.status}</Badge>
-                      {!o.rider_id && o.dispatch_state === "searching" && <Badge variant="outline">رائیڈر کو آفر بھیجی گئی</Badge>}
-                      {!o.rider_id && o.dispatch_state === "stuck" && <Badge variant="destructive">توجہ درکار</Badge>}
-                      {o.rider_id && <Badge variant="secondary">رائیڈر نے قبول کیا</Badge>}
-                      {deliveryMode === "self" && <Badge variant="outline">خود ڈلیوری</Badge>}
-                      <span className="text-xs text-muted-foreground">{o.payment_method}</span>
-                      <span className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
-                    </div>
+                <div key={o.id} className="rounded-lg border px-2.5 py-2 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
+                    <span className="font-bold text-xs">Rs {o.total_amount}</span>
+                    <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status === "confirmed" ? "قبول شدہ" : o.status}</Badge>
+                    {needsRider && <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">رائیڈر درکار</Badge>}
+                    {o.rider_id && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{getRiderName(o.rider_id)}</Badge>}
+                    {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
+                    <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+                    <button className="ms-auto text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
+                      {expandedOrder === o.id ? "بند ▲" : `تفصیل (${o.order_items?.length || 0}) ▼`}
+                    </button>
                   </div>
 
-                  {/* Order Items */}
-                  <button className="text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
-                    {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
-                  </button>
-                  {expandedOrder === o.id && o.order_items?.length > 0 && (
-                    <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
-                      {o.order_items.map((item: any) => (
-                        <div key={item.id} className="flex justify-between text-sm">
-                          <span>{item.name} × {item.quantity}</span>
-                          <span className="font-bold">Rs {item.price * item.quantity}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Address */}
-                  <div className="grid gap-1 text-xs text-muted-foreground">
-                    <p>🏪 Pickup: <span className="font-bold text-foreground">{o.restaurants?.name || "ریسٹورنٹ"}</span>{o.restaurants?.description ? ` — ${o.restaurants.description}` : ""}</p>
-                    {o.delivery_address && <p>📍 Dropoff: {o.delivery_address}</p>}
-                  </div>
-
-                  {/* Rider Assignment - show for confirmed/preparing/delivering without rider */}
-                  {needsRider && (
-                    <div className="bg-secondary/20 rounded-lg p-3 space-y-2">
-                      <p className="text-xs font-bold text-foreground">🏍️ قریب ترین رائیڈرز — تفویض کریں:</p>
-                      {nearestRiders.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">کوئی آن لائن رائیڈر نہیں (لوکیشن شیئر نہیں کی)</p>
-                      ) : (
-                        <div className="space-y-1">
-                          {nearestRiders.map((r: any) => (
-                            <div key={r.id} className="flex items-center justify-between bg-background rounded-lg px-3 py-2 border">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold truncate">{getRiderName(r.id)}</p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {getRiderPhone(r.id) && `📞 ${getRiderPhone(r.id)} · `}
-                                  {r.distance != null ? `📍 ${r.distance.toFixed(1)} km دور` : "📍 فاصلہ نامعلوم"}
-                                </p>
-                              </div>
-                              <Button size="sm" className="h-7 text-xs ml-2" onClick={() => assignRider(o.id, r.id)}>
-                                تفویض کریں
-                              </Button>
+                  {expandedOrder === o.id && (
+                    <div className="space-y-1.5">
+                      {o.order_items?.length > 0 && (
+                        <div className="rounded-md bg-secondary/30 p-2 space-y-0.5">
+                          {o.order_items.map((item: any) => (
+                            <div key={item.id} className="flex justify-between text-[11px]">
+                              <span>{item.name} × {item.quantity}</span>
+                              <span className="font-bold">Rs {item.price * item.quantity}</span>
                             </div>
                           ))}
                         </div>
                       )}
+
+                      <div className="grid gap-0.5 text-[11px] text-muted-foreground">
+                        <p>🏪 {o.restaurants?.name || "ریسٹورنٹ"} · {o.payment_method}</p>
+                        {o.delivery_address && <p>📍 {o.delivery_address}</p>}
+                        {o.rider_id && <p>🏍️ {getRiderName(o.rider_id)}{getRiderPhone(o.rider_id) && ` · 📞 ${getRiderPhone(o.rider_id)}`}</p>}
+                      </div>
+
+                      {needsRider && (
+                        <div className="rounded-md bg-secondary/20 p-2 space-y-1">
+                          <p className="text-[11px] font-bold">🏍️ قریب ترین رائیڈرز:</p>
+                          {nearestRiders.length === 0 ? (
+                            <p className="text-[11px] text-muted-foreground">کوئی آن لائن رائیڈر نہیں</p>
+                          ) : nearestRiders.map((r: any) => (
+                            <div key={r.id} className="flex items-center justify-between rounded-md border bg-background px-2 py-1">
+                              <p className="min-w-0 truncate text-[11px]">
+                                <span className="font-bold">{getRiderName(r.id)}</span>
+                                {r.distance != null ? ` · ${r.distance.toFixed(1)} km` : ""}
+                              </p>
+                              <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => assignRider(o.id, r.id)}>تفویض</Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {!o.rider_id && o.dispatch_state === "stuck" && (
+                          <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => retryDispatch(o.id)}>دوبارہ ڈسپیچ</Button>
+                        )}
+                        {!isClosed && o.status !== "delivering" && (
+                          <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>Emergency cancel</Button>
+                        )}
+                      </div>
                     </div>
                   )}
-                  {o.rider_id && (
-                    <p className="text-xs text-muted-foreground">
-                      🏍️ رائیڈر: <span className="font-bold">{getRiderName(o.rider_id)}</span>
-                      {getRiderPhone(o.rider_id) && ` · 📞 ${getRiderPhone(o.rider_id)}`}
-                    </p>
-                  )}
-                  {!o.rider_id && o.dispatch_state === "stuck" && (
-                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => retryDispatch(o.id)}>دوبارہ آٹو ڈسپیچ</Button>
-                  )}
-
-                  {/* Admin scope: assignment only, no cooking/delivery workflow */}
-                  <div className="flex gap-2 flex-wrap items-center">
-                    <Badge variant="secondary" className="text-[10px]">Status ریسٹورنٹ/رائیڈر سے اپڈیٹ ہوگا</Badge>
-                    {!isClosed && o.status !== "delivering" && (
-                      <Button size="sm" variant="ghost" className="text-xs h-7 px-2 text-destructive" onClick={() => updateStatus(o, "cancelled")}>
-                        Emergency cancel
-                      </Button>
-                    )}
-                  </div>
                 </div>
+
               );
             })}
           </div>
