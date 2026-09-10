@@ -46,7 +46,7 @@ const Index = () => {
           <TopPicksRail />
         </>
       )}
-      <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+      <CategoryRail />
       <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} quickFilter={quickFilter} onClearQuickFilter={() => setQuickFilter(null)} />
       </>
       )}
