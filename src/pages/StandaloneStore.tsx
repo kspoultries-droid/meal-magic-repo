@@ -5,6 +5,8 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera, Share2, AlertTriangle, PauseCircle } from "lucide-react";
 import StoreBanner from "@/components/grocery/StoreBanner";
+import ProductPhotoUploader, { PreparedPhoto } from "@/components/media/ProductPhotoUploader";
+
 import PhotoListOrder from "@/components/grocery/PhotoListOrder";
 import CustomerListOrders from "@/components/grocery/CustomerListOrders";
 import ShopkeeperListOrders from "@/components/grocery/ShopkeeperListOrders";
@@ -132,16 +134,18 @@ const StandaloneStore = () => {
     fetchData();
   };
 
-  const uploadProductImage = async (productId: string, file: File) => {
-    const ext = file.name.split('.').pop();
-    const path = `products/${productId}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+  const uploadProductImage = async (productId: string, photo: PreparedPhoto) => {
+    const path = `products/${productId}-${Date.now()}.webp`;
+    const { error: uploadError } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: true, contentType: photo.file.type });
     if (uploadError) { toast.error(uploadError.message); return; }
+    const originalExt = photo.original.name.split(".").pop()?.toLowerCase() || "jpg";
+    await supabase.storage.from("product-images").upload(`originals/${productId}-${Date.now()}.${originalExt}`, photo.original, { upsert: true });
     const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
     await supabase.from("grocery_products").update({ image_url: urlData.publicUrl }).eq("id", productId);
     toast.success("تصویر اپڈیٹ ہو گئی");
     fetchData();
   };
+
 
   const addProduct = async () => {
     if (!newProduct.name.trim() || !newProduct.price) { toast.error("نام اور قیمت درکار ہے"); return; }
@@ -294,22 +298,10 @@ const StandaloneStore = () => {
                           {!isOwner && product.rating > 0 && <span className="absolute bottom-1 left-1 rounded-md bg-foreground/70 px-1.5 py-0.5 text-[9px] font-bold text-background">★ {Number(product.rating).toFixed(1)}</span>}
                         {isOwner && (
                           <div className="absolute bottom-1 right-1 flex gap-1">
-                            <label className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md">
-                              <Camera className="w-3.5 h-3.5" />
-                              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) uploadProductImage(product.id, file);
-                              }} />
-                            </label>
-                            <label className="w-7 h-7 rounded-full bg-accent text-foreground flex items-center justify-center cursor-pointer shadow-md">
-                              <Plus className="w-3.5 h-3.5" />
-                              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) uploadProductImage(product.id, file);
-                              }} />
-                            </label>
+                            <ProductPhotoUploader compact onDone={async (photos) => { if (photos[0]) await uploadProductImage(product.id, photos[0]); }} />
                           </div>
                         )}
+
                       </div>
                        <div className="p-3">
                          <button type="button" className="block max-w-full text-left" onClick={() => !isOwner && navigate(`/product/${product.id}`)}>

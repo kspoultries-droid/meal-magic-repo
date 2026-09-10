@@ -6,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
+import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
+import PhotoTips from "@/components/media/PhotoTips";
+
 
 // Grocery collage images per category
 import attaRice from "@/assets/grocery/atta-rice.jpg";
@@ -112,7 +115,7 @@ const StoreBanner = ({
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/10 via-transparent to-foreground/70" />
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
           <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className="truncate text-xl font-extrabold sm:text-3xl">{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p></div>
-          {isOwner && <label className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-border/70 bg-card/90 px-2.5 py-2 text-[10px] font-bold text-foreground shadow-elegant backdrop-blur"><Camera className="size-3.5" /> بینر تبدیل<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const ext = file.name.split('.').pop(); const path = `store-banners/${storeId}.${ext}`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, { upsert: true }); if (upErr) { toast.error(upErr.message); return; } const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); await updateStore({ image_url: urlData.publicUrl }); }} /></label>}
+          {isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label="بینر تبدیل" onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${storeId}-${Date.now()}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: true, contentType: photo.file.type }); if (upErr) { toast.error(upErr.message); return; } const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); await updateStore({ image_url: urlData.publicUrl }); }} /></div>}
         </div>
       </div>
 
@@ -339,7 +342,7 @@ const StoreBanner = ({
                   <Textarea placeholder="مکمل تفصیل / Made from, استعمال، خصوصیات، compatibility اور warranty" rows={4} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
                   <Input placeholder="Tags — نیا, premium, wholesale" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
                   <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
-                  <div className="space-y-1"><label className="text-xs font-bold text-muted-foreground">متعدد تصاویر / Multiple photos</label><Input type="file" accept="image/*" multiple onChange={(e) => setNewProduct({...newProduct, imageFiles: Array.from(e.target.files || [])})} /><p className="text-[10px] text-muted-foreground">ایک پروڈکٹ کی کئی تصاویر منتخب کریں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر منتخب ہیں</p>}</div>
+                  <div className="space-y-2"><label className="text-xs font-bold text-muted-foreground">پروڈکٹ کی تصاویر / Product photos</label><ProductPhotoUploader multiple label="تصاویر منتخب کریں" onDone={(photos) => setNewProduct({ ...newProduct, imageFiles: photos.map((photo) => photo.file) })} /><p className="text-[10px] text-muted-foreground">اپنی اصل پروڈکٹ کی تصویر لیں — ایپ خود روشنی اور کٹائی بہتر کر دے گی</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر تیار ہیں</p>}<PhotoTips /></div>
                   <Button onClick={addProduct} className="w-full">پروڈکٹ محفوظ کریں</Button>
                 </div>
               </DialogContent>
