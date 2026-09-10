@@ -59,7 +59,9 @@ const VendorReviewsPanel = ({ kind }: { kind: ReviewKind }) => {
       const ids = (stores || []).map((s: any) => s.id);
       if (ids.length) {
         const { data } = await supabase
-          .from("grocery_reviews").select("*").in("store_id", ids)
+          .from("grocery_reviews")
+          .select("id,order_id,store_id,rating,comment,reply,replied_at,created_at,photo_urls,video_url")
+          .in("store_id", ids)
           .order("created_at", { ascending: false }).limit(50);
         const orderIds = (data || []).map((r: any) => r.order_id);
         const { data: orders } = orderIds.length
