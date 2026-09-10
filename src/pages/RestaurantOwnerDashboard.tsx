@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil, Bike, Clapperboard, Wallet } from "lucide-react";
 import MyReelsManager from "@/components/reels/MyReelsManager";
+import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
+import PhotoTips from "@/components/media/PhotoTips";
 import EarningsPanel from "@/components/vendor/EarningsPanel";
 import SalesReport from "@/components/vendor/SalesReport";
 import VendorReviewsPanel from "@/components/reviews/VendorReviewsPanel";
@@ -467,12 +469,12 @@ const MenuTab = () => {
               <Input placeholder="کیٹگری (مثلاً Main, Drinks)" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
               <div className="space-y-2">
                 <Input placeholder="تصویر URL (اختیاری)" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
-                <input type="file" accept="image/*" disabled={uploading} className="text-xs" onChange={async (e) => {
-                  const f = e.target.files?.[0]; if (!f) return;
-                  const url = await uploadImage(f);
+                <ProductPhotoUploader onDone={async (photos) => {
+                  const photo = photos[0]; if (!photo) return;
+                  const url = await uploadImage(photo.file);
                   if (url) setForm((prev) => ({ ...prev, image_url: url }));
-                  e.target.value = "";
                 }} />
+                <PhotoTips />
                 {uploading && <p className="text-[11px] text-muted-foreground">اپلوڈ ہو رہی ہے...</p>}
                 {form.image_url && <img src={form.image_url} alt="preview" className="w-20 h-20 rounded-lg object-cover" />}
               </div>
@@ -538,12 +540,12 @@ const MenuTab = () => {
               <Input placeholder="کیٹگری" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
               <div className="space-y-2">
                 <Input placeholder="تصویر URL (اختیاری)" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} />
-                <input type="file" accept="image/*" disabled={uploading} className="text-xs" onChange={async (e) => {
-                  const f = e.target.files?.[0]; if (!f) return;
-                  const url = await uploadImage(f);
+                <ProductPhotoUploader onDone={async (photos) => {
+                  const photo = photos[0]; if (!photo) return;
+                  const url = await uploadImage(photo.file);
                   if (url) setEditForm((prev) => ({ ...prev, image_url: url }));
-                  e.target.value = "";
                 }} />
+                <PhotoTips />
                 {uploading && <p className="text-[11px] text-muted-foreground">اپلوڈ ہو رہی ہے...</p>}
                 {editForm.image_url && <img src={editForm.image_url} alt="preview" className="w-20 h-20 rounded-lg object-cover" />}
               </div>
