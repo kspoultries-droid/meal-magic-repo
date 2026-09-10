@@ -11,6 +11,9 @@ import { ArrowLeft, MapPin, CreditCard, ShoppingBag, LocateFixed, Gift, User, Ph
 import { calculateCartWeight, formatDeliveryMode, formatFeeBreakdown, type DeliveryQuote } from "@/lib/deliveryPricing";
 import Navbar from "@/components/Navbar";
 import PromotionalAds from "@/components/PromotionalAds";
+import LocationSheet from "@/components/location/LocationSheet";
+import BoughtTogether from "@/components/checkout/BoughtTogether";
+import { setStoredLocation } from "@/hooks/useDeliveryLocation";
 
 const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
@@ -31,6 +34,8 @@ const Checkout = () => {
   const [storeType, setStoreType] = useState<string>("grocery");
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [saveThisAddress, setSaveThisAddress] = useState(false);
+  const [locSheetOpen, setLocSheetOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(false);
 
   // Voucher
   const [voucherCode, setVoucherCode] = useState("");
@@ -57,10 +62,15 @@ const Checkout = () => {
       .order("is_default", { ascending: false }).limit(6)
       .then(({ data }) => {
         setSavedAddresses(data || []);
-        const def = (data || []).find((a: any) => a.is_default) || (data || [])[0];
+        let stored: any = null;
+        try {
+          stored = JSON.parse(localStorage.getItem("easylife:delivery-location") || "null");
+        } catch { /* ignore */ }
+        const def = stored || (data || []).find((a: any) => a.is_default) || (data || [])[0];
         if (def) {
           setAddress((prev) => prev || def.address);
           if (def.lat && def.lng) setCoords({ lat: def.lat, lng: def.lng });
+          if (!stored) setStoredLocation({ label: def.label || "پتہ", address: def.address, lat: def.lat, lng: def.lng });
         }
       });
   }, [user]);
@@ -425,6 +435,12 @@ const Checkout = () => {
           </div>
         </div>
 
+        <BoughtTogether
+          sourceId={items[0]?.sourceId}
+          source={(items[0]?.source as "restaurant" | "grocery") || "restaurant"}
+          sourceName={items[0]?.restaurant || ""}
+        />
+
         {/* Delivery Info - Glass */}
          <div className="glass rounded-2xl p-4 border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "60ms" }}>
           <h2 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
@@ -443,39 +459,53 @@ const Checkout = () => {
             </div>
           )}
           <div className="space-y-3">
-            {savedAddresses.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
-                {savedAddresses.map((a) => (
-                  <button
-                    key={a.id}
-                    onClick={() => {
-                      setAddress(a.address);
-                      if (a.lat && a.lng) setCoords({ lat: a.lat, lng: a.lng });
-                      setSaveThisAddress(false);
-                    }}
-                    className={`shrink-0 max-w-[220px] text-right px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${
-                      address === a.address ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background/70"
-                    }`}
-                  >
-                    📍 {a.label} — <span className="font-normal">{a.address.slice(0, 28)}</span>
-                  </button>
-                ))}
+            <div className="flex items-start gap-2 rounded-xl border border-primary/25 bg-primary/5 p-3">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold text-muted-foreground">ڈیلیوری کا پتہ</p>
+                <p className="truncate text-xs font-extrabold text-foreground">{address || "ابھی کوئی پتہ منتخب نہیں"}</p>
               </div>
-            )}
-
-            <div className="flex gap-2">
-              <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => { setAddress(e.target.value); }} required className="flex-1 h-11 rounded-xl bg-background/80" />
-              <Button variant="outline" onClick={getCurrentLocation} disabled={locating} className="shrink-0 h-11 px-3 rounded-xl glass border-primary/30 hover:bg-primary/10">
-                <LocateFixed className={`h-4 w-4 text-primary ${locating ? "animate-spin" : ""}`} />
-              </Button>
+              <button
+                onClick={() => setLocSheetOpen(true)}
+                className="shrink-0 rounded-full bg-card px-3 py-1 text-[11px] font-bold text-primary shadow-soft active:scale-95 transition-transform"
+              >
+                {address ? "تبدیل کریں" : "شامل کریں"}
+              </button>
             </div>
+
+            <button
+              onClick={() => setEditingAddress((v) => !v)}
+              className="text-[11px] font-bold text-primary"
+            >
+              {editingAddress ? "ترمیم بند کریں" : "پتہ خود لکھیں / درست کریں"}
+            </button>
+
+            {editingAddress && (
+              <>
+                <div className="flex gap-2">
+                  <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => { setAddress(e.target.value); }} required className="flex-1 h-11 rounded-xl bg-background/80" />
+                  <Button variant="outline" onClick={getCurrentLocation} disabled={locating} className="shrink-0 h-11 px-3 rounded-xl glass border-primary/30 hover:bg-primary/10">
+                    <LocateFixed className={`h-4 w-4 text-primary ${locating ? "animate-spin" : ""}`} />
+                  </Button>
+                </div>
+                <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={saveThisAddress} onChange={(e) => setSaveThisAddress(e.target.checked)} className="accent-primary w-4 h-4" />
+                  یہ پتہ محفوظ کریں تاکہ اگلی بار دوبارہ نہ لکھنا پڑے
+                </label>
+              </>
+            )}
             {coords && (
               <p className="text-xs text-primary font-semibold">📍 GPS: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>
             )}
-            <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground cursor-pointer">
-              <input type="checkbox" checked={saveThisAddress} onChange={(e) => setSaveThisAddress(e.target.checked)} className="accent-primary w-4 h-4" />
-              یہ پتہ محفوظ کریں تاکہ اگلی بار دوبارہ نہ لکھنا پڑے
-            </label>
+            <LocationSheet
+              open={locSheetOpen}
+              onOpenChange={setLocSheetOpen}
+              onSelected={(loc) => {
+                setAddress(loc.address);
+                if (loc.lat && loc.lng) setCoords({ lat: loc.lat, lng: loc.lng });
+                setSaveThisAddress(false);
+              }}
+            />
             <Input placeholder="کوئی خاص ہدایات (اختیاری)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background/80" />
             {restaurantDeliveryMode === "self" && (
               <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
