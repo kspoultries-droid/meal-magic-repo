@@ -120,7 +120,7 @@ const AlertCenter = ({ onNavigate }: { onNavigate?: (section: string, sub?: stri
                   <p className="truncate text-xs font-bold">{a.title}</p>
                   <p className="truncate text-[11px] text-muted-foreground">{a.detail}</p>
                   <p className="text-[10px] text-muted-foreground">{new Date(a.at).toLocaleString("ur-PK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
-                </div>
+                </button>
                 {!isRead && (
                   <Button size="sm" variant="ghost" className="h-6 shrink-0 px-2 text-[10px]" onClick={() => markRead(a.id)}>پڑھ لیا</Button>
                 )}
