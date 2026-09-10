@@ -62,10 +62,15 @@ const Checkout = () => {
       .order("is_default", { ascending: false }).limit(6)
       .then(({ data }) => {
         setSavedAddresses(data || []);
-        const def = (data || []).find((a: any) => a.is_default) || (data || [])[0];
+        let stored: any = null;
+        try {
+          stored = JSON.parse(localStorage.getItem("easylife:delivery-location") || "null");
+        } catch { /* ignore */ }
+        const def = stored || (data || []).find((a: any) => a.is_default) || (data || [])[0];
         if (def) {
           setAddress((prev) => prev || def.address);
           if (def.lat && def.lng) setCoords({ lat: def.lat, lng: def.lng });
+          if (!stored) setStoredLocation({ label: def.label || "پتہ", address: def.address, lat: def.lat, lng: def.lng });
         }
       });
   }, [user]);
