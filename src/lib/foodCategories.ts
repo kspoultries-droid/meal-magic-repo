@@ -1,21 +1,37 @@
+import {
+  Beef,
+  CakeSlice,
+  Coffee,
+  CupSoda,
+  Drumstick,
+  Flame,
+  Pizza,
+  Salad,
+  Sandwich,
+  Soup,
+  Utensils,
+  Wheat,
+  type LucideIcon,
+} from "lucide-react";
+
 export interface FoodCategory {
   slug: string;
   name: string;
   ur: string;
-  emoji: string;
+  icon: LucideIcon;
 }
 
 export const foodCategories: FoodCategory[] = [
-  { slug: "biryani", name: "Biryani", ur: "بریانی", emoji: "🍛" },
-  { slug: "pizza", name: "Pizza", ur: "پیزا", emoji: "🍕" },
-  { slug: "burgers", name: "Burgers", ur: "برگر", emoji: "🍔" },
-  { slug: "bbq", name: "BBQ", ur: "بی بی کیو", emoji: "🍢" },
-  { slug: "karahi", name: "Karahi", ur: "کڑاہی", emoji: "🍲" },
-  { slug: "chinese", name: "Chinese", ur: "چائنیز", emoji: "🥡" },
-  { slug: "broast", name: "Broast", ur: "بروسٹ", emoji: "🍗" },
-  { slug: "shawarma", name: "Shawarma", ur: "شوارما", emoji: "🌯" },
-  { slug: "coffee", name: "Coffee", ur: "کافی", emoji: "☕" },
-  { slug: "desserts", name: "Desserts", ur: "میٹھا", emoji: "🍰" },
-  { slug: "juice", name: "Juice", ur: "جوس", emoji: "🥤" },
-  { slug: "healthy", name: "Healthy", ur: "ہیلتھی", emoji: "🥗" },
+  { slug: "biryani", name: "Biryani", ur: "بریانی", icon: Flame },
+  { slug: "pizza", name: "Pizza", ur: "پیزا", icon: Pizza },
+  { slug: "burgers", name: "Burgers", ur: "برگر", icon: Sandwich },
+  { slug: "bbq", name: "BBQ", ur: "بی بی کیو", icon: Beef },
+  { slug: "karahi", name: "Karahi", ur: "کڑاہی", icon: Soup },
+  { slug: "chinese", name: "Chinese", ur: "چائنیز", icon: Utensils },
+  { slug: "broast", name: "Broast", ur: "بروسٹ", icon: Drumstick },
+  { slug: "shawarma", name: "Shawarma", ur: "شوارما", icon: Wheat },
+  { slug: "coffee", name: "Coffee", ur: "کافی", icon: Coffee },
+  { slug: "desserts", name: "Desserts", ur: "میٹھا", icon: CakeSlice },
+  { slug: "juice", name: "Juice", ur: "جوس", icon: CupSoda },
+  { slug: "healthy", name: "Healthy", ur: "ہیلتھی", icon: Salad },
 ];

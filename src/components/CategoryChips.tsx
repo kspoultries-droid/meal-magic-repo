@@ -17,19 +17,22 @@ const CategoryChips = (_props: CategoryChipsProps) => {
       </div>
 
       <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-6">
-        {foodCategories.map((cat, i) => (
-          <button
-            key={cat.slug}
-            onClick={() => navigate(`/category/${cat.slug}`)}
-            style={{ animationDelay: `${i * 40}ms` }}
-            className="animate-fade-in group flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-card p-2.5 shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant active:scale-95"
-          >
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-xl transition-transform group-hover:scale-110">
-              {cat.emoji}
-            </span>
-            <span className="text-[10px] font-bold leading-tight text-foreground">{cat.ur}</span>
-          </button>
-        ))}
+        {foodCategories.map((cat, i) => {
+          const Icon = cat.icon;
+          return (
+            <button
+              key={cat.slug}
+              onClick={() => navigate(`/category/${cat.slug}`)}
+              style={{ animationDelay: `${i * 40}ms` }}
+              className="animate-fade-in group flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-card p-2.5 shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant active:scale-95"
+            >
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-primary transition-transform group-hover:scale-110">
+                <Icon className="h-5 w-5" />
+              </span>
+              <span className="text-[10px] font-bold leading-tight text-foreground">{cat.ur}</span>
+            </button>
+          );
+        })}
       </div>
     </section>
   );
