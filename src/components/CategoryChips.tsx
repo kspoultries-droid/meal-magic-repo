@@ -1,47 +1,35 @@
-import { UtensilsCrossed, Pizza, Sandwich, Coffee, IceCreamCone, Salad, Beef, Flame } from "lucide-react";
-
-const categories = [
-  { name: "All", ur: "سب", icon: UtensilsCrossed },
-  { name: "Biryani", ur: "بریانی", icon: Flame },
-  { name: "Pizza", ur: "پیزا", icon: Pizza },
-  { name: "Burgers", ur: "برگر", icon: Sandwich },
-  { name: "BBQ", ur: "بی بی کیو", icon: Beef },
-  { name: "Coffee", ur: "کافی", icon: Coffee },
-  { name: "Desserts", ur: "میٹھا", icon: IceCreamCone },
-  { name: "Healthy", ur: "ہیلتھی", icon: Salad },
-];
+import { useNavigate } from "react-router-dom";
+import { foodCategories } from "@/lib/foodCategories";
 
 interface CategoryChipsProps {
-  activeCategory: string;
-  onCategoryChange: (category: string) => void;
+  activeCategory?: string;
+  onCategoryChange?: (category: string) => void;
 }
 
-const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
+const CategoryChips = (_props: CategoryChipsProps) => {
+  const navigate = useNavigate();
+
   return (
     <section className="container mx-auto px-4 pt-4 pb-2">
-      <div className="flex items-baseline gap-2 mb-3">
+      <div className="mb-3 flex items-baseline gap-2">
         <h2 className="text-lg font-extrabold text-foreground">آج کیا کھانا ہے؟</h2>
         <span className="text-xs text-muted-foreground">What are you craving?</span>
       </div>
-      <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
-        {categories.map((cat) => {
-          const Icon = cat.icon;
-          const isActive = cat.name === activeCategory;
-          return (
-            <button
-              key={cat.name}
-              onClick={() => onCategoryChange(cat.name)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all active:scale-95 ${
-                isActive
-                  ? "bg-gradient-primary text-primary-foreground shadow-glow scale-105"
-                  : "bg-card text-foreground border border-border/60 shadow-soft hover:border-primary/40 hover:text-primary"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {cat.ur}
-            </button>
-          );
-        })}
+
+      <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-6">
+        {foodCategories.map((cat, i) => (
+          <button
+            key={cat.slug}
+            onClick={() => navigate(`/category/${cat.slug}`)}
+            style={{ animationDelay: `${i * 40}ms` }}
+            className="animate-fade-in group flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-card p-2.5 shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant active:scale-95"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-xl transition-transform group-hover:scale-110">
+              {cat.emoji}
+            </span>
+            <span className="text-[10px] font-bold leading-tight text-foreground">{cat.ur}</span>
+          </button>
+        ))}
       </div>
     </section>
   );
