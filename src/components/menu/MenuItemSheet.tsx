@@ -168,6 +168,23 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
             </section>
           )}
 
+          {variants.length === 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-bold">تعداد</h3>
+                <span className="text-xs font-extrabold text-primary">Rs {Number(item.price)} فی پلیٹ</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 p-3 border-2 rounded-xl border-primary bg-primary/5">
+                <div><span className="text-sm font-semibold">{item.name}</span></div>
+                <div className="flex items-center gap-1 rounded-full border bg-background p-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setBaseQty((q) => Math.max(0, q - 1))}><Minus className="h-3.5 w-3.5" /></Button>
+                  <span className="w-5 text-center text-sm font-extrabold">{baseQty}</span>
+                  <Button size="icon" className="h-7 w-7 rounded-full" onClick={() => setBaseQty((q) => q + 1)}><Plus className="h-3.5 w-3.5" /></Button>
+                </div>
+              </div>
+            </section>
+          )}
+
           {groups.map((g) => (
             <section key={g.id}>
               <div className="flex items-center justify-between mb-2">
@@ -186,9 +203,9 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
                         <p className="text-xs font-bold text-primary">Rs {c.price_delta}</p>
                       </div>
                       <div className="flex items-center gap-1 rounded-full border bg-background p-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => changeQty(setChoiceQty, c.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => bumpChoice(g, c.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
                         <span className="w-5 text-center text-sm font-extrabold">{quantity}</span>
-                        <Button size="icon" className="h-7 w-7 rounded-full" disabled={g.max > 0 && g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0) >= g.max} onClick={() => changeQty(setChoiceQty, c.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" className="h-7 w-7 rounded-full" disabled={g.max > 1 && g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0) >= g.max} onClick={() => bumpChoice(g, c.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
                       </div>
                     </div>
                   );
