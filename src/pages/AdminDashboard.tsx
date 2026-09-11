@@ -413,23 +413,33 @@ const OrdersTab = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [riders, setRiders] = useState<any[]>([]);
   const [riderProfiles, setRiderProfiles] = useState<any[]>([]);
+  const [customerProfiles, setCustomerProfiles] = useState<any[]>([]);
+  const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = async () => {
     setLoading(true);
-    const [{ data: ordersData }, { data: ridersData }] = await Promise.all([
+    const [{ data: ordersData }, { data: ridersData }, { data: offersData }] = await Promise.all([
       supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)").order("created_at", { ascending: false }).limit(50),
       supabase.from("riders").select("id, is_available, current_lat, current_lng"),
+      (supabase as any).from("delivery_offers").select("id,order_id,order_kind,rider_id,status,expires_at,created_at").eq("order_kind", "food").order("created_at", { ascending: false }).limit(200),
     ]);
-    setOrders(ordersData || []);
+    const list = ordersData || [];
+    setOrders(list);
+    setOffers(offersData || []);
     const allRiders = ridersData || [];
     setRiders(allRiders);
     // Fetch rider profiles for names
     if (allRiders.length > 0) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name, phone").in("id", allRiders.map(r => r.id));
       setRiderProfiles(profs || []);
+    }
+    const customerIds = Array.from(new Set(list.map((o: any) => o.customer_id).filter(Boolean)));
+    if (customerIds.length > 0) {
+      const { data: custs } = await supabase.from("profiles").select("id, full_name, phone").in("id", customerIds);
+      setCustomerProfiles(custs || []);
     }
     setLoading(false);
   };
@@ -450,8 +460,18 @@ const OrdersTab = () => {
           toast.info("✅ آرڈر قبول ہوا — رائیڈر تفویض کریں");
         }
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "delivery_offers" }, async () => {
+        const { data } = await (supabase as any)
+          .from("delivery_offers")
+          .select("id,order_id,order_kind,rider_id,status,expires_at,created_at")
+          .eq("order_kind", "food")
+          .order("created_at", { ascending: false })
+          .limit(200);
+        setOffers(data || []);
+      })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const tick = window.setInterval(() => setOffers((prev) => [...prev]), 5000);
+    return () => { window.clearInterval(tick); supabase.removeChannel(channel); };
   }, []);
 
   const updateStatus = async (order: any, status: string) => {
@@ -493,6 +513,21 @@ const OrdersTab = () => {
     return prof?.phone || "";
   };
 
+  const customerOf = (o: any) => {
+    const prof = customerProfiles.find(p => p.id === o.customer_id);
+    return {
+      name: o.receiver_name || prof?.full_name || "کسٹمر",
+      phone: o.receiver_phone || prof?.phone || "",
+    };
+  };
+
+  // Live offer info for an order (offer attempt count + pending rider)
+  const offerInfo = (orderId: string) => {
+    const list = offers.filter(f => f.order_id === orderId);
+    const active = list.find(f => f.status === "offered" && new Date(f.expires_at).getTime() > Date.now());
+    return { tries: list.length, active };
+  };
+
   // Get nearest riders sorted by distance to order's delivery location
   const getNearestRiders = (order: any) => {
     const availableRiders = riders.filter(r => r.is_available && r.current_lat && r.current_lng);
@@ -528,13 +563,18 @@ const OrdersTab = () => {
               const nearestRiders = getNearestRiders(o);
               const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
               const needsRider = deliveryMode !== "self" && ["confirmed", "preparing", "delivering"].includes(o.status) && !o.rider_id;
+              const cust = customerOf(o);
+              const dispatch = offerInfo(o.id);
               return (
                 <div key={o.id} className="rounded-lg border px-2.5 py-2 space-y-1.5">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
                     <span className="font-bold text-xs">Rs {o.total_amount}</span>
                     <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status === "confirmed" ? "قبول شدہ" : o.status}</Badge>
-                    {needsRider && <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">رائیڈر درکار</Badge>}
+                    {needsRider && (dispatch.active
+                      ? <Badge className="h-5 bg-warning px-1.5 text-[10px] text-warning-foreground">آفر بھیجی ({dispatch.tries}/3) — {getRiderName(dispatch.active.rider_id)}</Badge>
+                      : <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">{dispatch.tries >= 3 || o.dispatch_state === "stuck" ? "رائیڈر درکار (خود تفویض کریں)" : "رائیڈر تلاش جاری"}</Badge>)}
+                    <span className="text-[10px] font-bold">{cust.name}{cust.phone ? ` · ${cust.phone}` : ""}</span>
                     {o.rider_id && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{getRiderName(o.rider_id)}</Badge>}
                     {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
                     <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
@@ -558,6 +598,10 @@ const OrdersTab = () => {
 
                       <div className="grid gap-0.5 text-[11px] text-muted-foreground">
                         <p>🏪 {o.restaurants?.name || "ریسٹورنٹ"} · {o.payment_method}</p>
+                        <p>
+                          👤 {cust.name}
+                          {cust.phone && <> · <a className="text-primary underline" href={`tel:${cust.phone}`}>📞 {cust.phone}</a></>}
+                        </p>
                         {o.delivery_address && <p>📍 {o.delivery_address}</p>}
                         {o.rider_id && <p>🏍️ {getRiderName(o.rider_id)}{getRiderPhone(o.rider_id) && ` · 📞 ${getRiderPhone(o.rider_id)}`}</p>}
                       </div>
