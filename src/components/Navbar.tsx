@@ -3,10 +3,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import LocationPill from "@/components/location/LocationPill";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
   const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic || isServiceManager;
@@ -33,7 +36,7 @@ const Navbar = () => {
               onClick={() => navigate("/admin")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
             >
-              <Shield className="w-3.5 h-3.5" /> ایڈمن
+              <Shield className="w-3.5 h-3.5" /> {t("role.admin")}
             </button>
           )}
           {isRestaurantOwner && (
@@ -41,7 +44,7 @@ const Navbar = () => {
               onClick={() => navigate("/restaurant-dashboard")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
             >
-              <Store className="w-3.5 h-3.5" /> ریسٹورنٹ
+              <Store className="w-3.5 h-3.5" /> {t("role.restaurant")}
             </button>
           )}
           {isRider && (
@@ -49,7 +52,7 @@ const Navbar = () => {
               onClick={() => navigate("/rider-dashboard")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-accent text-accent-foreground hover:opacity-80 transition-colors"
             >
-              <Bike className="w-3.5 h-3.5" /> رائیڈر
+              <Bike className="w-3.5 h-3.5" /> {t("role.rider")}
             </button>
           )}
           {isSupport && (
@@ -57,7 +60,7 @@ const Navbar = () => {
               onClick={() => navigate("/support-dashboard")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-secondary text-foreground hover:opacity-80 transition-colors"
             >
-              <Headphones className="w-3.5 h-3.5" /> سپورٹ
+              <Headphones className="w-3.5 h-3.5" /> {t("role.support")}
             </button>
           )}
           {isMechanic && (
@@ -65,7 +68,7 @@ const Navbar = () => {
               onClick={() => navigate("/mechanic-dashboard")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors"
             >
-              <Wrench className="w-3.5 h-3.5" /> مکینک
+              <Wrench className="w-3.5 h-3.5" /> {t("role.mechanic")}
             </button>
           )}
           {isServiceManager && (
@@ -73,13 +76,14 @@ const Navbar = () => {
               onClick={() => navigate("/service-manager")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-700 hover:bg-teal-200 transition-colors"
             >
-              <ClipboardList className="w-3.5 h-3.5" /> سروس مینیجر
+              <ClipboardList className="w-3.5 h-3.5" /> {t("role.serviceManager")}
             </button>
           )}
         </div>
 
         {/* Right side actions */}
         <div className="flex items-center gap-1 sm:gap-2">
+          <LanguageSwitcher tone="light" />
           {user ? (
             <>
 
@@ -141,7 +145,7 @@ const Navbar = () => {
                             onClick={() => { navigate("/service-manager"); setMenuOpen(false); }}
                             className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-teal-700 hover:bg-secondary transition-colors"
                           >
-                            <ClipboardList className="w-4 h-4" /> سروس مینیجر
+                            <ClipboardList className="w-4 h-4" /> {t("role.serviceManager")}
                           </button>
                         )}
                         <div className="border-t my-1" />

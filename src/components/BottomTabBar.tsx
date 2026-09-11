@@ -2,21 +2,24 @@ import { UtensilsCrossed, Store, ShoppingBag, User, Wrench, Package, Clapperboar
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useCityServices } from "@/hooks/useCityServices";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { TranslationKey } from "@/lib/i18n/translations";
 
-const tabs = [
-  { name: "Food", icon: UtensilsCrossed, path: "/" },
-  { name: "Grocery", icon: Store, path: "/grocery" },
-  { name: "Bazar", icon: Package, path: "/wholesale" },
-  { name: "Reels", icon: Clapperboard, path: "/reels" },
-  { name: "Services", icon: Wrench, path: "/services" },
-  { name: "Cart", icon: ShoppingBag, path: "cart" },
-  { name: "Account", icon: User, path: "/profile" },
+const tabs: { name: string; key: TranslationKey; icon: any; path: string }[] = [
+  { name: "Food", key: "tab.food", icon: UtensilsCrossed, path: "/" },
+  { name: "Grocery", key: "tab.grocery", icon: Store, path: "/grocery" },
+  { name: "Bazar", key: "tab.bazar", icon: Package, path: "/wholesale" },
+  { name: "Reels", key: "tab.reels", icon: Clapperboard, path: "/reels" },
+  { name: "Services", key: "tab.services", icon: Wrench, path: "/services" },
+  { name: "Cart", key: "tab.cart", icon: ShoppingBag, path: "cart" },
+  { name: "Account", key: "tab.account", icon: User, path: "/profile" },
 ];
 
 const BottomTabBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItems, setIsOpen } = useCart();
+  const { t } = useLanguage();
   const { foodLive, groceryLive, wholesaleLive } = useCityServices();
 
   // Hide on dashboard/admin pages
@@ -66,7 +69,7 @@ const BottomTabBar = () => {
                 )}
               </div>
               <span className={`text-[10px] font-semibold transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
-                {tab.name}
+                {t(tab.key, tab.name)}
               </span>
             </button>
           );
