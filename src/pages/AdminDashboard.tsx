@@ -496,6 +496,13 @@ const OrdersTab = () => {
     fetchOrders();
   };
 
+  const forceAssignRider = async (orderId: string, riderId: string) => {
+    const { error } = await (supabase.rpc as any)("admin_force_assign_rider", { _kind: "food", _order_id: orderId, _rider_id: riderId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("رائیڈر براہِ راست تفویض کر دیا گیا ✅");
+    fetchOrders();
+  };
+
   const retryDispatch = async (orderId: string) => {
     const { error } = await (supabase.rpc as any)("retry_order_dispatch", { _kind: "food", _order_id: orderId });
     if (error) { toast.error(error.message); return; }
@@ -577,7 +584,10 @@ const OrdersTab = () => {
                     <span className="text-[10px] font-bold">{cust.name}{cust.phone ? ` · ${cust.phone}` : ""}</span>
                     {o.rider_id && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{getRiderName(o.rider_id)}</Badge>}
                     {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
-                    <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+                     <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+                    {needsRider && (
+                      <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => setExpandedOrder(o.id)}>دستی تفویض</Button>
+                    )}
                     <button className="ms-auto text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
                       {expandedOrder === o.id ? "بند ▲" : `تفصیل (${o.order_items?.length || 0}) ▼`}
                     </button>
@@ -608,18 +618,23 @@ const OrdersTab = () => {
 
                       {needsRider && (
                         <div className="rounded-md bg-secondary/20 p-2 space-y-1">
-                          <p className="text-[11px] font-bold">🏍️ قریب ترین رائیڈرز:</p>
-                          {nearestRiders.length === 0 ? (
-                            <p className="text-[11px] text-muted-foreground">کوئی آن لائن رائیڈر نہیں</p>
-                          ) : nearestRiders.map((r: any) => (
-                            <div key={r.id} className="flex items-center justify-between rounded-md border bg-background px-2 py-1">
+                          <p className="text-[11px] font-bold">🏍️ دستی تفویض (20/40/40 کا انتظار ضروری نہیں):</p>
+                          {(nearestRiders.length > 0 ? nearestRiders : riders.filter((r: any) => !r.is_suspended)).map((r: any) => (
+                            <div key={r.id} className="flex items-center justify-between gap-1.5 rounded-md border bg-background px-2 py-1">
                               <p className="min-w-0 truncate text-[11px]">
                                 <span className="font-bold">{getRiderName(r.id)}</span>
                                 {r.distance != null ? ` · ${r.distance.toFixed(1)} km` : ""}
+                                {!r.is_available && <span className="text-muted-foreground"> · آف لائن</span>}
                               </p>
-                              <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => assignRider(o.id, r.id)}>تفویض</Button>
+                              <div className="flex shrink-0 gap-1">
+                                {r.is_available && (
+                                  <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => assignRider(o.id, r.id)}>آفر</Button>
+                                )}
+                                <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => forceAssignRider(o.id, r.id)}>براہِ راست</Button>
+                              </div>
                             </div>
                           ))}
+                          {riders.length === 0 && <p className="text-[11px] text-muted-foreground">کوئی رائیڈر موجود نہیں</p>}
                         </div>
                       )}
 

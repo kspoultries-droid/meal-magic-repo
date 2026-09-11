@@ -3231,6 +3231,10 @@ export type Database = {
           orders_count: number
         }[]
       }
+      admin_force_assign_rider: {
+        Args: { _kind: string; _order_id: string; _rider_id: string }
+        Returns: undefined
+      }
       admin_offer_order_to_rider: {
         Args: {
           _delivery_fee?: number
