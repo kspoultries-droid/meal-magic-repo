@@ -1,0 +1,1 @@
+ALTER FUNCTION public.admin_set_rider_state(uuid,text,text) SECURITY INVOKER;
