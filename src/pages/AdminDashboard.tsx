@@ -460,8 +460,18 @@ const OrdersTab = () => {
           toast.info("✅ آرڈر قبول ہوا — رائیڈر تفویض کریں");
         }
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "delivery_offers" }, async () => {
+        const { data } = await (supabase as any)
+          .from("delivery_offers")
+          .select("id,order_id,order_kind,rider_id,status,expires_at,created_at")
+          .eq("order_kind", "food")
+          .order("created_at", { ascending: false })
+          .limit(200);
+        setOffers(data || []);
+      })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const tick = window.setInterval(() => setOffers((prev) => [...prev]), 5000);
+    return () => { window.clearInterval(tick); supabase.removeChannel(channel); };
   }, []);
 
   const updateStatus = async (order: any, status: string) => {
