@@ -69,16 +69,16 @@ const RestaurantOwnerDashboard = () => {
 
 
 
-  if (loading || hasRole === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (loading || hasRole === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
 
   if (!hasRole) return (
     <div className="min-h-screen flex items-center justify-center">
       <Card className="max-w-md">
         <CardContent className="p-8 text-center">
           <Store className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-xl font-bold mb-2">آپ ریسٹورنٹ اونر نہیں ہیں</h2>
-          <p className="text-muted-foreground mb-4">ایڈمن سے ریسٹورنٹ اونر کا رول حاصل کریں</p>
-          <Button variant="outline" onClick={() => navigate("/")}>واپس جائیں</Button>
+          <h2 className="text-xl font-bold mb-2">{t("rest.notOwner")}</h2>
+          <p className="text-muted-foreground mb-4">{t("rest.askAdminRole")}</p>
+          <Button variant="outline" onClick={() => navigate("/")}>{t("rider.goBack")}</Button>
         </CardContent>
       </Card>
     </div>
@@ -98,7 +98,7 @@ const RestaurantOwnerDashboard = () => {
           <div className="flex shrink-0 items-center gap-2">
           <LanguageSwitcher />
           <Button variant="outline" size="sm" className="h-8 shrink-0 px-2 text-xs" onClick={() => { signOut(); navigate("/"); }}>
-            <LogOut className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">لاگ آؤٹ</span>
+            <LogOut className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("common.logout")}</span>
           </Button>
           </div>
         </div>
@@ -107,20 +107,20 @@ const RestaurantOwnerDashboard = () => {
         <Tabs defaultValue="restaurant">
           <div className="-mx-3 mb-4 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <TabsList className="inline-flex w-max gap-1">
-              <TabsTrigger value="restaurant" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> میرا ریسٹورنٹ</TabsTrigger>
-              <TabsTrigger value="menu" className="gap-1 whitespace-nowrap text-xs"><UtensilsCrossed className="h-4 w-4" /> مینو</TabsTrigger>
+              <TabsTrigger value="restaurant" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> {t("rest.myRestaurant")}</TabsTrigger>
+              <TabsTrigger value="menu" className="gap-1 whitespace-nowrap text-xs"><UtensilsCrossed className="h-4 w-4" /> {t("common.menu")}</TabsTrigger>
               <TabsTrigger value="orders" className="relative gap-1 whitespace-nowrap text-xs">
-                <ShoppingBag className="h-4 w-4" /> آرڈرز
+                <ShoppingBag className="h-4 w-4" /> {t("common.orders")}
                 {pendingCount > 0 && (
                   <span className="ml-1 inline-flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-destructive-foreground">
                     {pendingCount}
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="reels" className="gap-1 whitespace-nowrap text-xs"><Clapperboard className="h-4 w-4" /> ریلز</TabsTrigger>
-              <TabsTrigger value="earnings" className="gap-1 whitespace-nowrap text-xs"><Wallet className="h-4 w-4" /> آمدنی</TabsTrigger>
-              <TabsTrigger value="sales" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> سیل رپورٹ</TabsTrigger>
-              <TabsTrigger value="reviews" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> ریویوز</TabsTrigger>
+              <TabsTrigger value="reels" className="gap-1 whitespace-nowrap text-xs"><Clapperboard className="h-4 w-4" /> {t("rest.reels")}</TabsTrigger>
+              <TabsTrigger value="earnings" className="gap-1 whitespace-nowrap text-xs"><Wallet className="h-4 w-4" /> {t("rest.income")}</TabsTrigger>
+              <TabsTrigger value="sales" className="gap-1 whitespace-nowrap text-xs"><ShoppingBag className="h-4 w-4" /> {t("rest.salesReport")}</TabsTrigger>
+              <TabsTrigger value="reviews" className="gap-1 whitespace-nowrap text-xs"><Store className="h-4 w-4" /> {t("rest.reviews")}</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="restaurant"><MyRestaurantTab /></TabsContent>
@@ -143,6 +143,7 @@ const RestaurantOwnerDashboard = () => {
 
 const MyRestaurantTab = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -180,12 +181,12 @@ const MyRestaurantTab = () => {
   return (
     <Card>
       <CardHeader className="py-3">
-        <CardTitle className="text-base">میرا ریسٹورنٹ</CardTitle>
-        <p className="text-[11px] text-muted-foreground">نیا ریسٹورنٹ ایڈمن کی منظوری سے شامل ہوتا ہے — پارٹنر فارم بھریں۔</p>
+        <CardTitle className="text-base">{t("rest.myRestaurant")}</CardTitle>
+        <p className="text-[11px] text-muted-foreground">{t("rest.approvalNote")}</p>
       </CardHeader>
       <CardContent>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : restaurants.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">ابھی کوئی ریسٹورنٹ نہیں — ایڈمن سے منظوری کے بعد یہاں نظر آئے گا</p>
+        {loading ? <p className="text-muted-foreground">{t("common.loading")}</p> : restaurants.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">{t("rest.noRestaurant")}</p>
         ) : (
           <div className="grid gap-4">
             {restaurants.map((r) => (
@@ -195,25 +196,25 @@ const MyRestaurantTab = () => {
                     <img src={r.image_url} alt={r.name} className="h-32 w-full rounded-lg object-cover sm:h-28" />
                   ) : (
                     <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed bg-background text-[11px] text-muted-foreground sm:h-28">
-                      تصویر نہیں
+                      {t("rest.noPhoto")}
                     </div>
                   )}
                   <ProductPhotoUploader
                     aspect="wide"
-                    label="اپنی تصویر لگائیں"
+                    label={t("rest.uploadOwnPhoto")}
                     onDone={async (photos) => {
                       const photo = photos[0];
                       if (photo) await uploadBanner(r.id, photo.file);
                     }}
                   />
-                  {uploading && <p className="text-[10px] text-muted-foreground">اپلوڈ ہو رہی ہے…</p>}
+                  {uploading && <p className="text-[10px] text-muted-foreground">{t("rest.uploading")}</p>}
                 </div>
                 <div className="flex-1 min-w-0 w-full">
                   <h3 className="font-bold text-foreground break-words">{r.name}</h3>
                   <p className="text-sm text-muted-foreground">{r.description}</p>
                   <div className="flex gap-2 mt-2 flex-wrap">
                     <Badge className={r.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
-                      {r.is_active ? "ایکٹو" : "غیر ایکٹو"}
+                      {r.is_active ? t("rest.active") : t("rest.inactive")}
                     </Badge>
                     <Badge variant="outline">⭐ {r.rating}</Badge>
                     <Badge variant="outline">{r.delivery_time}</Badge>
@@ -231,7 +232,7 @@ const MyRestaurantTab = () => {
                         toast.success("ٹائمنگ اپڈیٹ"); fetchAll();
                       }}
                     />
-                    <span className="text-xs text-muted-foreground">سے</span>
+                    <span className="text-xs text-muted-foreground">{t("rest.to")}</span>
                     <input
                       type="time"
                       className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
@@ -252,13 +253,13 @@ const MyRestaurantTab = () => {
                           : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                       }`}
                     >
-                      {r.is_active ? "🟢 کھلا / Open" : "🔴 بند / Closed"}
+                      {r.is_active ? t("rest.open") : t("rest.closed")}
                     </button>
                   </div>
 
                   {/* Busy / temporary pause */}
                   <div className="mt-2 flex items-center gap-2 flex-wrap rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2">
-                    <span className="text-xs font-bold text-muted-foreground">⏳ مصروف موڈ:</span>
+                    <span className="text-xs font-bold text-muted-foreground">{t("rest.busyMode")}</span>
                     {[15, 30, 60].map((mins) => (
                       <button
                         key={mins}
@@ -270,13 +271,13 @@ const MyRestaurantTab = () => {
                         }}
                         className="rounded-full border bg-background px-2.5 py-1 text-[11px] font-semibold hover:bg-muted"
                       >
-                        {mins} منٹ
+                        {mins} {t("rest.minutes")}
                       </button>
                     ))}
                     {(r as any).busy_until && new Date((r as any).busy_until) > new Date() ? (
                       <>
                         <Badge className="bg-amber-500 text-white text-[10px]">
-                          {new Date((r as any).busy_until).toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" })} تک مصروف
+                          {new Date((r as any).busy_until).toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" })} {t("rest.busyUntil")}
                         </Badge>
                         <button
                           onClick={async () => {
@@ -285,17 +286,17 @@ const MyRestaurantTab = () => {
                           }}
                           className="text-[11px] font-semibold text-primary underline"
                         >
-                          ختم کریں
+                          {t("rest.endBusy")}
                         </button>
                       </>
                     ) : (
-                      <span className="text-[11px] text-muted-foreground">نئے آرڈرز پر گاہک کو زیادہ وقت دکھایا جائے گا</span>
+                      <span className="text-[11px] text-muted-foreground">{t("rest.busyHint")}</span>
                     )}
                   </div>
 
                   {/* Delivery Mode */}
                   <div className="mt-2 flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
-                    <span className="text-xs font-bold text-muted-foreground">🚚 ڈلیوری:</span>
+                    <span className="text-xs font-bold text-muted-foreground">{t("rest.deliveryLabel")}</span>
                     <select
                       className="h-7 text-xs border rounded-md px-2 bg-background text-foreground w-full min-w-0 max-w-full"
                       value={(r as any).delivery_mode || "platform"}
@@ -304,17 +305,17 @@ const MyRestaurantTab = () => {
                         toast.success("ڈلیوری موڈ اپڈیٹ"); fetchAll();
                       }}
                     >
-                      <option value="platform">EasyLife رائیڈرز (پلیٹ فارم فیس)</option>
-                      <option value="self">میں خود ڈلیوری کروں گا (مفت — بغیر رائیڈر)</option>
-                      <option value="both">دونوں (رائیڈر یا خود)</option>
+                      <option value="platform">{t("rest.modePlatform")}</option>
+                      <option value="self">{t("rest.modeSelf")}</option>
+                      <option value="both">{t("rest.modeBoth")}</option>
                     </select>
                   </div>
 
                   {/* Who pays the delivery fee */}
                   <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-secondary/40 px-3 py-2">
                     <div className="min-w-0">
-                      <p className="text-xs font-bold">🎁 ڈلیوری فیس میں خود دوں گا</p>
-                      <p className="text-[10px] text-muted-foreground">کسٹمر کو "فری ڈیلیوری" ملے گی، فیس آپ کی ادائیگی سے کٹے گی</p>
+                      <p className="text-xs font-bold">{t("rest.paysFeeTitle")}</p>
+                      <p className="text-[10px] text-muted-foreground">{t("rest.paysFeeHint")}</p>
                     </div>
                     <button
                       type="button"
@@ -324,17 +325,17 @@ const MyRestaurantTab = () => {
                         toast.success("اپڈیٹ ہو گیا"); fetchAll();
                       }}
                     >
-                      {(r as any).pays_delivery_fee ? "آن" : "آف"}
+                      {(r as any).pays_delivery_fee ? t("rest.on") : t("rest.off")}
                     </button>
                   </div>
 
 
                   {/* Pickup Address (for riders) */}
                   <div className="mt-2 bg-secondary/40 border border-border/60 rounded-lg px-3 py-2 space-y-2">
-                    <p className="text-xs font-bold text-muted-foreground">📍 پک اپ لوکیشن (رائیڈر یہاں آئے گا)</p>
+                    <p className="text-xs font-bold text-muted-foreground">{t("rest.pickupTitle")}</p>
                     <input
                       type="text"
-                      placeholder="مکمل پتہ — مثلاً شاپ #12، مین بازار، رحیم یار خان"
+                      placeholder={t("rest.pickupPlaceholder")}
                       className="w-full h-8 text-xs border rounded-md px-2 bg-background text-foreground"
                       defaultValue={(r as any).pickup_address || ""}
                       onBlur={async (e) => {
@@ -358,7 +359,7 @@ const MyRestaurantTab = () => {
                           }, () => toast.error("GPS نہیں مل سکا"), { enableHighAccuracy: true, timeout: 10000 });
                         }}
                       >
-                        📍 موجودہ GPS محفوظ کریں
+                        {t("rest.saveGps")}
                       </button>
                       {(r as any).pickup_lat && (r as any).pickup_lng && (
                         <span className="text-[10px] text-primary font-semibold">
@@ -372,7 +373,7 @@ const MyRestaurantTab = () => {
 
 
                   <Button size="sm" variant="destructive" className="mt-2 h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
-                    <Trash2 className="h-3 w-3 mr-1" /> حذف کریں
+                    <Trash2 className="h-3 w-3 mr-1" /> {t("rest.delete")}
                   </Button>
                 </div>
               </div>
@@ -386,6 +387,7 @@ const MyRestaurantTab = () => {
 
 const MenuTab = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [selectedRest, setSelectedRest] = useState("");
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -531,46 +533,46 @@ const MenuTab = () => {
     fetchMenu();
   };
 
-  if (restaurants.length === 0) return <Card><CardContent className="p-8 text-center text-muted-foreground">پہلے ریسٹورنٹ شامل کریں</CardContent></Card>;
+  if (restaurants.length === 0) return <Card><CardContent className="p-8 text-center text-muted-foreground">{t("rest.addRestaurantFirst")}</CardContent></Card>;
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <CardTitle>مینو</CardTitle>
+          <CardTitle>{t("common.menu")}</CardTitle>
           <select className="border rounded-md p-1.5 bg-background text-foreground text-sm" value={selectedRest} onChange={(e) => setSelectedRest(e.target.value)}>
             {restaurants.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </div>
         <Dialog open={showAdd} onOpenChange={setShowAdd}>
           <DialogTrigger asChild>
-            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> نئی آئٹم</Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {t("rest.newItem")}</Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>نئی مینو آئٹم</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("rest.newMenuItem")}</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              <Input placeholder="آئٹم کا نام" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <Input placeholder="تفصیل" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <Input placeholder={t("rest.itemName")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input placeholder={t("rest.description")} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="قیمت (Rs)" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-                <Input placeholder="وزن / مقدار (مثلاً 1 کلو)" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+                <Input placeholder={t("rest.price")} type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+                <Input placeholder={t("rest.unit")} value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
               </div>
-              <p className="text-[11px] text-muted-foreground">یہی بنیادی قیمت و مقدار گاہک کو سب سے پہلے نظر آئے گی۔</p>
-              <Input placeholder="کیٹگری (مثلاً Main, Drinks)" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+              <p className="text-[11px] text-muted-foreground">{t("rest.baseHint")}</p>
+              <Input placeholder={t("rest.categoryPlaceholder")} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
               <div className="space-y-2">
-                <Input placeholder="تصویر URL (اختیاری)" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+                <Input placeholder={t("rest.imageUrl")} value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
                 <ProductPhotoUploader onDone={async (photos) => {
                   const photo = photos[0]; if (!photo) return;
                   const url = await uploadImage(photo.file);
                   if (url) setForm((prev) => ({ ...prev, image_url: url }));
                 }} />
                 <PhotoTips />
-                {uploading && <p className="text-[11px] text-muted-foreground">اپلوڈ ہو رہی ہے...</p>}
+                {uploading && <p className="text-[11px] text-muted-foreground">{t("rest.uploading")}</p>}
                 {form.image_url && <img src={form.image_url} alt="preview" className="w-20 h-20 rounded-lg object-cover" />}
               </div>
               <VariantsEditor value={formVariants} onChange={setFormVariants} />
               <OptionGroupsEditor value={formGroups} onChange={setFormGroups} />
-              <Button className="w-full" onClick={addItem}>شامل کریں</Button>
+              <Button className="w-full" onClick={addItem}>{t("rest.add")}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -578,7 +580,7 @@ const MenuTab = () => {
       <CardContent>
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <Input
-            placeholder="آئٹم تلاش کریں..."
+            placeholder={t("rest.searchItem")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-8 w-full max-w-[220px] text-xs"
@@ -588,31 +590,31 @@ const MenuTab = () => {
             value={catFilter}
             onChange={(e) => setCatFilter(e.target.value)}
           >
-            <option value="all">تمام کیٹگریز</option>
+            <option value="all">{t("rest.allCategories")}</option>
             {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <span className="text-[11px] text-muted-foreground">{visibleItems.length} آئٹمز</span>
+          <span className="text-[11px] text-muted-foreground">{visibleItems.length} {t("rest.items")}</span>
           {selected.length > 0 && (
             <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-2 py-1">
-              <span className="text-[11px]">{selected.length} منتخب</span>
-              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => bulkAvailability(true)}>سب فعال</Button>
-              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => bulkAvailability(false)}>سب بند</Button>
-              <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setSelected([])}>منسوخ</Button>
+              <span className="text-[11px]">{selected.length} {t("rest.selected")}</span>
+              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => bulkAvailability(true)}>{t("rest.enableAll")}</Button>
+              <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => bulkAvailability(false)}>{t("rest.disableAll")}</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setSelected([])}>{t("common.cancel")}</Button>
             </div>
           )}
         </div>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
+        {loading ? <p className="text-muted-foreground">{t("common.loading")}</p> : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-8">
-                  <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAll} aria-label="سب منتخب" />
+                  <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAll} aria-label={t("rest.selectAll")} />
                 </TableHead>
-                <TableHead>نام</TableHead>
-                <TableHead>کیٹگری</TableHead>
-                <TableHead>قیمت</TableHead>
-                <TableHead>دستیاب</TableHead>
-                <TableHead>ایکشنز</TableHead>
+                <TableHead>{t("rest.name")}</TableHead>
+                <TableHead>{t("rest.category")}</TableHead>
+                <TableHead>{t("rest.priceShort")}</TableHead>
+                <TableHead>{t("rest.available")}</TableHead>
+                <TableHead>{t("rest.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -626,7 +628,7 @@ const MenuTab = () => {
                   <TableCell>Rs {m.price}</TableCell>
                   <TableCell>
                     <Badge className={m.is_available ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
-                      {m.is_available ? "ہاں" : "نہیں"}
+                      {m.is_available ? t("rest.yes") : t("rest.no")}
                     </Badge>
                   </TableCell>
                   <TableCell className="flex gap-1">
@@ -634,7 +636,7 @@ const MenuTab = () => {
                       <Pencil className="h-3 w-3" />
                     </Button>
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleAvailability(m.id, m.is_available)}>
-                      {m.is_available ? "بند" : "فعال"}
+                      {m.is_available ? t("rest.disable") : t("rest.enable")}
                     </Button>
                     <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteItem(m.id)}>
                       <Trash2 className="h-3 w-3" />
@@ -642,7 +644,7 @@ const MenuTab = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {visibleItems.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی آئٹم نہیں</TableCell></TableRow>}
+              {visibleItems.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">{t("rest.noItems")}</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
@@ -650,29 +652,29 @@ const MenuTab = () => {
         {/* Edit Dialog */}
         <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
           <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>آئٹم ایڈٹ کریں</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("rest.editItem")}</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              <Input placeholder="آئٹم کا نام" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
-              <Input placeholder="تفصیل" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+              <Input placeholder={t("rest.itemName")} value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+              <Input placeholder={t("rest.description")} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
               <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="قیمت (Rs)" type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
-                <Input placeholder="وزن / مقدار (مثلاً 1 کلو)" value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} />
+                <Input placeholder={t("rest.price")} type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+                <Input placeholder={t("rest.unit")} value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} />
               </div>
-              <Input placeholder="کیٹگری" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
+              <Input placeholder={t("rest.category")} value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
               <div className="space-y-2">
-                <Input placeholder="تصویر URL (اختیاری)" value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} />
+                <Input placeholder={t("rest.imageUrl")} value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} />
                 <ProductPhotoUploader onDone={async (photos) => {
                   const photo = photos[0]; if (!photo) return;
                   const url = await uploadImage(photo.file);
                   if (url) setEditForm((prev) => ({ ...prev, image_url: url }));
                 }} />
                 <PhotoTips />
-                {uploading && <p className="text-[11px] text-muted-foreground">اپلوڈ ہو رہی ہے...</p>}
+                {uploading && <p className="text-[11px] text-muted-foreground">{t("rest.uploading")}</p>}
                 {editForm.image_url && <img src={editForm.image_url} alt="preview" className="w-20 h-20 rounded-lg object-cover" />}
               </div>
               <VariantsEditor value={editVariants} onChange={setEditVariants} />
               <OptionGroupsEditor value={editGroups} onChange={setEditGroups} />
-              <Button className="w-full" onClick={saveEdit}>اپڈیٹ کریں</Button>
+              <Button className="w-full" onClick={saveEdit}>{t("rest.update")}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -683,6 +685,7 @@ const MenuTab = () => {
 
 const OwnerOrdersTab = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -793,14 +796,14 @@ const OwnerOrdersTab = () => {
           </div>
           <div className="flex items-center gap-1">
             <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status}</Badge>
-            {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
-            {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px]"><Bike className="w-3 h-3" /> رائیڈر</Badge>}
+            {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">{t("rest.selfDelivery")}</Badge>}
+            {deliveryMode !== "self" && o.rider_id && <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[10px]"><Bike className="w-3 h-3" /> {t("rest.rider")}</Badge>}
             <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
           </div>
         </div>
 
         <button className="text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
-          {expandedOrder === o.id ? "آئٹمز چھپائیں ▲" : `آئٹمز دیکھیں (${o.order_items?.length || 0}) ▼`}
+          {expandedOrder === o.id ? t("rest.hideItems") : `${t("rest.showItems")} (${o.order_items?.length || 0}) ▼`}
         </button>
         {expandedOrder === o.id && o.order_items?.length > 0 && (
           <div className="space-y-0.5 rounded-md bg-secondary/30 p-2">
@@ -825,7 +828,7 @@ const OwnerOrdersTab = () => {
 
         {!["delivering", "delivered", "completed", "cancelled"].includes(o.status) && (
           <div className="flex flex-wrap items-center gap-1.5 rounded-md bg-secondary/30 px-2 py-1.5">
-            <span className="text-[10px] font-bold text-muted-foreground">⏱ تیاری کا وقت:</span>
+            <span className="text-[10px] font-bold text-muted-foreground">{t("rest.prepTime")}</span>
             {[10, 20, 30].map((mins) => (
               <button
                 key={mins}
@@ -839,7 +842,7 @@ const OwnerOrdersTab = () => {
                   o.prep_minutes === mins ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
                 }`}
               >
-                {mins} منٹ
+                {mins} {t("rest.minutes")}
               </button>
             ))}
           </div>
@@ -848,10 +851,10 @@ const OwnerOrdersTab = () => {
         <div className="pt-1">
           <div className="grid grid-cols-4 gap-1.5">
             {[
-              { key: "confirmed", label: "✅ قبول", active: o.status === "pending", disabledReason: "" },
-              { key: "preparing", label: "👨‍🍳 تیاری", active: o.status === "confirmed", disabledReason: "" },
-              { key: "delivering", label: "🏍️ بھیجا", active: canSend, disabledReason: needsPlatformRider && !o.rider_id ? "پہلے ایڈمن رائیڈر اسائن کرے" : "" },
-              { key: "delivered", label: "📦 پہنچا", active: restaurantCanFinish, disabledReason: o.rider_id ? "یہ کام رائیڈر کرے گا" : "" },
+              { key: "confirmed", label: t("rest.stepAccept"), active: o.status === "pending", disabledReason: "" },
+              { key: "preparing", label: t("rest.stepPrepare"), active: o.status === "confirmed", disabledReason: "" },
+              { key: "delivering", label: t("rest.stepSend"), active: canSend, disabledReason: needsPlatformRider && !o.rider_id ? t("rest.needRiderFirst") : "" },
+              { key: "delivered", label: t("rest.stepDelivered"), active: restaurantCanFinish, disabledReason: o.rider_id ? t("rest.riderWillDo") : "" },
             ].map((step) => {
               const order = ["pending", "confirmed", "preparing", "delivering", "delivered"];
               const currentIdx = order.indexOf(o.status);
@@ -879,14 +882,14 @@ const OwnerOrdersTab = () => {
             })}
           </div>
           {needsPlatformRider && o.status === "preparing" && !o.rider_id && (
-            <p className="text-[11px] text-muted-foreground mt-2">🏍️ رائیڈر اسائن ہوتے ہی "بھیجا" فعال ہو جائے گا۔</p>
+            <p className="text-[11px] text-muted-foreground mt-2">{t("rest.waitingRider")}</p>
           )}
           {o.status === "delivering" && o.rider_id && (
-            <p className="text-[11px] text-primary mt-2">✅ کھانا رائیڈر کے حوالے ہو گیا — اب "Delivered" رائیڈر کرے گا۔</p>
+            <p className="text-[11px] text-primary mt-2">{t("rest.handedToRider")}</p>
           )}
           {o.status !== "delivering" && (
             <Button size="sm" variant="ghost" className="h-6 text-[10px] text-destructive mt-2" onClick={() => updateStatus(o, "cancelled")}>
-              ❌ آرڈر منسوخ کریں
+              {t("rest.cancelOrder")}
             </Button>
           )}
         </div>
@@ -933,10 +936,10 @@ const OwnerOrdersTab = () => {
 
   return (
     <Card>
-      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نیا فوڈ آرڈر! / New food order!" />
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label={t("rest.newFoodOrder")} />
       <CardHeader className="space-y-2 pb-3">
         <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-base">آرڈرز</CardTitle>
+          <CardTitle className="text-base">{t("common.orders")}</CardTitle>
           <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -946,28 +949,28 @@ const OwnerOrdersTab = () => {
               dateFilter ? "bg-primary text-primary-foreground border-primary" : "border-border"
             }`}
           >
-            {dateFilter ? "📅 تاریخ کے مطابق" : "سب آرڈرز"}
+            {dateFilter ? t("rest.byDate") : t("rest.allOrders")}
           </button>
           {dateFilter && <DayNavigator date={day} onChange={setDay} />}
           {dateFilter && (
             <span className="text-xs text-muted-foreground">
-              {activeOrders.length + doneOrders.length} آرڈرز • Rs {dayTotal}
+              {activeOrders.length + doneOrders.length} {t("common.orders")} • Rs {dayTotal}
             </span>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : visible.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>
+        {loading ? <p className="text-muted-foreground">{t("common.loading")}</p> : visible.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">{t("rest.noOrders")}</p>
         ) : (
           <div className="space-y-6">
             <div>
               <h3 className="text-sm font-extrabold mb-2 flex items-center gap-2">
-                🔔 نئے / جاری آرڈرز
+                {t("rest.newActiveOrders")}
                 <Badge className="bg-primary text-primary-foreground">{activeOrders.length}</Badge>
               </h3>
               {activeOrders.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">ابھی کوئی نیا آرڈر نہیں</p>
+                <p className="text-xs text-muted-foreground py-4 text-center">{t("rest.noNewOrder")}</p>
               ) : (
                 <div className="space-y-3">{activeOrders.map(renderActive)}</div>
               )}
@@ -976,7 +979,7 @@ const OwnerOrdersTab = () => {
             {doneOrders.length > 0 && (
               <div>
                 <h3 className="text-sm font-extrabold mb-2 flex items-center gap-2 text-muted-foreground">
-                  ✅ مکمل / منسوخ شدہ
+                  {t("rest.doneCancelled")}
                   <Badge variant="outline">{doneOrders.length}</Badge>
                 </h3>
                 <div className="space-y-1.5">{doneOrders.map(renderDone)}</div>
