@@ -59,22 +59,36 @@ const RiderDashboard = () => {
     }
   }, [user]);
 
+  // Location writes are throttled: only save when the rider actually moved (~60m)
+  // or after 30s, and only while the rider is online. Keeps the database light.
+  const lastSentRef = useRef<{ lat: number; lng: number; at: number } | null>(null);
   const updateLocation = useCallback(async (lat: number, lng: number) => {
     if (!user) return;
     setLocationOk(true);
+    const prev = lastSentRef.current;
+    if (prev) {
+      const dLat = (lat - prev.lat) * 111_320;
+      const dLng = (lng - prev.lng) * 111_320 * Math.cos((lat * Math.PI) / 180);
+      const movedM = Math.sqrt(dLat * dLat + dLng * dLng);
+      const elapsed = Date.now() - prev.at;
+      if (movedM < 60 && elapsed < 30_000) return;
+    }
+    lastSentRef.current = { lat, lng, at: Date.now() };
     await supabase.from("riders").update({ current_lat: lat, current_lng: lng }).eq("id", user.id);
   }, [user]);
 
+  const isOnline = !!riderData?.is_available;
+
   useEffect(() => {
-    if (!hasRole || !user) return;
+    if (!hasRole || !user || !isOnline) return;
     if (!navigator.geolocation) { setLocationStatus("آپ کا براؤزر لوکیشن سپورٹ نہیں کرتا"); return; }
     const watchId = navigator.geolocation.watchPosition(
       (pos) => { setLocationStatus(""); updateLocation(pos.coords.latitude, pos.coords.longitude); },
       () => setLocationStatus("لوکیشن اجازت دیں — GPS آن کریں"),
-      { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 }
+      { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [hasRole, user, updateLocation]);
+  }, [hasRole, user, isOnline, updateLocation]);
 
   const ensureRiderProfile = async () => {
     if (!user) return null;
