@@ -85,6 +85,19 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
     setter((previous) => ({ ...previous, [id]: Math.max(0, (previous[id] || 0) + delta) }));
   };
 
+  // For "pick one" (max=1) groups, tapping + on a new choice switches to it
+  // instead of being dead — like a radio button with a stepper.
+  const bumpChoice = (group: MenuOptionGroup, choiceId: string, delta: number) => {
+    setChoiceQty((previous) => {
+      const next = { ...previous };
+      if (delta > 0 && group.max === 1 && !next[choiceId]) {
+        group.choices.forEach((c) => { next[c.id] = 0; });
+      }
+      next[choiceId] = Math.max(0, (next[choiceId] || 0) + delta);
+      return next;
+    });
+  };
+
   const handleAdd = () => {
     const selectedMainQty = variants.length > 0
       ? Object.values(variantQty).reduce((sum, value) => sum + value, 0)
