@@ -28,6 +28,7 @@ import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigat
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [hasRole, setHasRole] = useState<boolean | null>(null);
 
   useEffect(() => {

@@ -39,6 +39,7 @@ import NewOrderBanner from "@/components/NewOrderBanner";
 const AdminDashboard = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [pendingRemittances, setPendingRemittances] = useState(0);
   const [tab, setTab] = useState("overview");
   const [opsTab, setOpsTab] = useState("orders");

@@ -37,6 +37,7 @@ const STATUS_LABEL: Record<string, string> = {
 const RiderDashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [hasRole, setHasRole] = useState<boolean | null>(null);
   const [riderData, setRiderData] = useState<any>(null);
   const [summary, setSummary] = useState<any>(null);

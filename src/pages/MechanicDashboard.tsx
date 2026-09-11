@@ -24,6 +24,7 @@ const statusMap: Record<string, { label: string; color: string }> = {
 const MechanicDashboard = () => {
   const { user, isMechanic, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [bookings, setBookings] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [providerId, setProviderId] = useState<string | null>(null);
