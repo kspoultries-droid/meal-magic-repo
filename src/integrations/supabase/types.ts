@@ -3572,6 +3572,7 @@ export type Database = {
       }
       rider_cash_due: { Args: { _rider: string }; Returns: number }
       rider_heartbeat: { Args: never; Returns: undefined }
+      sync_shop_open_state: { Args: never; Returns: number }
       validate_voucher: {
         Args: { _code: string; _scope: string; _subtotal: number }
         Returns: Json
