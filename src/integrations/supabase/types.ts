@@ -2475,9 +2475,11 @@ export type Database = {
           current_lng: number | null
           id: string
           is_available: boolean | null
+          is_suspended: boolean
           offers_accepted: number
           offers_received: number
           rating: number
+          suspension_reason: string | null
           total_earnings: number | null
           total_reviews: number
           updated_at: string | null
@@ -2492,9 +2494,11 @@ export type Database = {
           current_lng?: number | null
           id: string
           is_available?: boolean | null
+          is_suspended?: boolean
           offers_accepted?: number
           offers_received?: number
           rating?: number
+          suspension_reason?: string | null
           total_earnings?: number | null
           total_reviews?: number
           updated_at?: string | null
@@ -2509,9 +2513,11 @@ export type Database = {
           current_lng?: number | null
           id?: string
           is_available?: boolean | null
+          is_suspended?: boolean
           offers_accepted?: number
           offers_received?: number
           rating?: number
+          suspension_reason?: string | null
           total_earnings?: number | null
           total_reviews?: number
           updated_at?: string | null
@@ -3244,6 +3250,10 @@ export type Database = {
           _vendor_id: string
         }
         Returns: string
+      }
+      admin_set_rider_state: {
+        Args: { _action: string; _reason?: string; _rider_id: string }
+        Returns: undefined
       }
       apply_voucher_to_order: {
         Args: { _code: string; _kind: string; _order_id: string }
