@@ -140,6 +140,29 @@ const RiderDashboard = () => {
 
   useEffect(() => { if (hasRole) fetchData(!riderData); }, [hasRole, user]);
 
+  // Presence heartbeat: keeps admin command center aware that the rider app is live
+  useEffect(() => {
+    if (!hasRole || !user) return;
+    const beat = () => { void supabase.rpc("rider_heartbeat" as any); };
+    beat();
+    const timer = window.setInterval(beat, 60000);
+    const onVisible = () => { if (document.visibilityState === "visible") beat(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, [hasRole, user]);
+
+  // Realtime online/offline status for this rider (admin can also toggle it)
+  useEffect(() => {
+    if (!hasRole || !user) return;
+    const channel = supabase
+      .channel(`rider-self-${user.id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "riders", filter: `id=eq.${user.id}` }, (p: any) => {
+        setRiderData((prev: any) => ({ ...(prev || {}), ...(p.new || {}) }));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [hasRole, user]);
+
   useEffect(() => {
     if (!hasRole || !user) return;
     const assignedToMe = (nw: any, old: any) => nw.rider_id === user.id && old.rider_id !== user.id;
