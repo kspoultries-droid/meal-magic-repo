@@ -10,26 +10,27 @@ import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 const groceryCategories = [
-  { name: "All", nameUr: "سب", icon: ShoppingBasket, filter: null },
-  { name: "Grocery", nameUr: "گروسری", icon: ShoppingBasket, filter: "General" },
-  { name: "Meat", nameUr: "گوشت", icon: Drumstick, filter: "Eggs & Meat" },
-  { name: "Vegetables", nameUr: "سبزیاں", icon: Carrot, filter: "Vegetables" },
-  { name: "Fruits", nameUr: "پھل", icon: Apple, filter: "Fruits" },
-  { name: "Dairy", nameUr: "دودھ", icon: Milk, filter: "Dairy" },
-  { name: "Atta/Rice", nameUr: "آٹا چاول", icon: Wheat, filter: "Atta & Rice" },
-  { name: "Cake", nameUr: "کیک", icon: Cake, filter: "Cake" },
-  { name: "Flowers", nameUr: "پھول", icon: Flower2, filter: "Flowers" },
-  { name: "Gifts", nameUr: "گفٹ", icon: Gift, filter: "Gift" },
-];
+  { key: "grocery.cat.all", name: "All", icon: ShoppingBasket, filter: null },
+  { key: "grocery.cat.grocery", name: "Grocery", icon: ShoppingBasket, filter: "General" },
+  { key: "grocery.cat.meat", name: "Meat", icon: Drumstick, filter: "Eggs & Meat" },
+  { key: "grocery.cat.vegetables", name: "Vegetables", icon: Carrot, filter: "Vegetables" },
+  { key: "grocery.cat.fruits", name: "Fruits", icon: Apple, filter: "Fruits" },
+  { key: "grocery.cat.dairy", name: "Dairy", icon: Milk, filter: "Dairy" },
+  { key: "grocery.cat.attaRice", name: "Atta/Rice", icon: Wheat, filter: "Atta & Rice" },
+  { key: "grocery.cat.cake", name: "Cake", icon: Cake, filter: "Cake" },
+  { key: "grocery.cat.flowers", name: "Flowers", icon: Flower2, filter: "Flowers" },
+  { key: "grocery.cat.gifts", name: "Gifts", icon: Gift, filter: "Gift" },
+] as const;
 
 const sortOptions = [
-  { label: "ترتیب", labelEn: "Default", value: "default" },
-  { label: "ریٹنگ", labelEn: "Rating", value: "rating" },
-  { label: "نئے", labelEn: "Newest", value: "newest" },
-];
+  { key: "grocery.sortDefault", value: "default" },
+  { key: "grocery.sortRating", value: "rating" },
+  { key: "grocery.sortNewest", value: "newest" },
+] as const;
 
 const Grocery = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,6 +43,7 @@ const Grocery = () => {
   const [sortBy, setSortBy] = useState("default");
   const [loading, setLoading] = useState(true);
   const { groceryLive, city, cities: liveCities, setCityId } = useCityServices();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -107,8 +109,8 @@ const Grocery = () => {
       <Navbar />
 
       <PageHero
-        title="گروسری / Grocery"
-        eyebrow="تازہ سبزی، پھل، گوشت اور روزمرہ سامان"
+        title={t("grocery.title")}
+        eyebrow={t("grocery.eyebrow")}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         placeholders={[
@@ -141,8 +143,8 @@ const Grocery = () => {
       {/* Category rail */}
       <section className="container mx-auto px-4 py-4">
         <div className="flex items-baseline gap-2 mb-3">
-          <h2 className="text-lg font-extrabold text-foreground">کیٹیگری</h2>
-          <span className="text-xs text-muted-foreground">Shop by category</span>
+          <h2 className="text-lg font-extrabold text-foreground">{t("grocery.category")}</h2>
+          <span className="text-xs text-muted-foreground">{t("grocery.shopByCategory")}</span>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {groceryCategories.map((cat) => {
@@ -164,7 +166,7 @@ const Grocery = () => {
                   <Icon className="w-6 h-6" />
                 </span>
                 <span className={`text-[10px] font-bold leading-tight text-center ${isActive ? "text-primary" : "text-foreground"}`}>
-                  {cat.nameUr}
+                  {t(cat.key)}
                 </span>
               </button>
             );
@@ -178,9 +180,9 @@ const Grocery = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-baseline gap-2">
               <h2 className="text-lg font-extrabold text-foreground flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-destructive" /> آج کی ڈیلز
+                <Flame className="w-4 h-4 text-destructive" /> {t("grocery.todayDeals")}
               </h2>
-              <span className="text-xs text-muted-foreground">Top deals</span>
+
             </div>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -228,9 +230,9 @@ const Grocery = () => {
         <section className="container mx-auto px-4 pb-4">
           <div className="flex items-baseline gap-2 mb-3">
             <h2 className="text-lg font-extrabold text-foreground flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4 text-primary" /> زیادہ بکنے والی اشیاء
+              <TrendingUp className="w-4 h-4 text-primary" /> {t("grocery.topSelling")}
             </h2>
-            <span className="text-xs text-muted-foreground">Top selling</span>
+
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {topSelling.map((p, i) => (
@@ -278,7 +280,7 @@ const Grocery = () => {
                 onChange={(e) => setSelectedCity(e.target.value || null)}
                 className="bg-card border rounded-full px-3 py-1.5 text-xs text-foreground outline-none"
               >
-                <option value="">تمام شہر</option>
+                <option value="">{t("grocery.allCities")}</option>
                 {cities.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -299,7 +301,7 @@ const Grocery = () => {
                       : "bg-card border text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {opt.labelEn}
+                  {t(opt.key)}
                 </button>
               ))}
             </div>
@@ -311,17 +313,17 @@ const Grocery = () => {
       <div className="container mx-auto px-4 pb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-extrabold text-foreground">
-            {activeCategory ? `${activeCategory} Stores` : "تمام اسٹورز"}
+            {activeCategory ? `${activeCategory}` : t("grocery.allStores")}
           </h2>
-          <span className="text-xs text-muted-foreground">{storeCount} stores</span>
+          <span className="text-xs text-muted-foreground">{storeCount} {t("grocery.stores")}</span>
         </div>
         {loading ? (
           <StoreGridSkeleton count={6} />
         ) : stores.length === 0 ? (
           <div className="rounded-2xl bg-gradient-primary p-6 text-center shadow-glow">
             <ShoppingBasket className="w-10 h-10 text-primary-foreground mx-auto mb-2" />
-            <h3 className="text-lg font-extrabold text-primary-foreground mb-1">Coming Soon!</h3>
-            <p className="text-primary-foreground/80 text-xs">ابھی کوئی اسٹور نہیں</p>
+            <h3 className="text-lg font-extrabold text-primary-foreground mb-1">{t("grocery.comingSoon")}</h3>
+            <p className="text-primary-foreground/80 text-xs">{t("grocery.noStores")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -340,7 +342,7 @@ const Grocery = () => {
                   )}
                   {!store.is_active && (
                     <div className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] flex items-center justify-center">
-                      <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-md">بند</span>
+                      <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-md">{t("grocery.closed")}</span>
                     </div>
                   )}
                 </div>
@@ -360,7 +362,7 @@ const Grocery = () => {
                     </span>
                     {store.minimum_order > 0 && (
                       <span className="text-[10px] font-semibold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
-                        Min Rs {store.minimum_order}
+                        {t("grocery.min")} Rs {store.minimum_order}
                       </span>
                     )}
                   </div>
