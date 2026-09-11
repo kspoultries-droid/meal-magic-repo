@@ -61,7 +61,8 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
       .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "riders" }, () => load())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const timer = window.setInterval(() => load(), 60000);
+    return () => { supabase.removeChannel(channel); window.clearInterval(timer); };
   }, [load]);
 
   const chart = useMemo(
