@@ -105,6 +105,26 @@ const RiderRemittancesTab = () => {
         <Button size="sm" variant="outline" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
       </CardHeader>
       <CardContent className="space-y-3">
+        <div className="rounded-xl border p-3 space-y-2 bg-muted/30">
+          <p className="text-xs font-bold">رائیڈر کیش حد</p>
+          <div className="flex gap-2">
+            <Input value={cashLimit} onChange={(e) => setCashLimit(e.target.value)} inputMode="numeric" className="h-9 text-xs" placeholder="20000" />
+            <Button size="sm" className="h-9 text-xs font-bold" disabled={savingLimit} onClick={saveLimit}>محفوظ</Button>
+          </div>
+          <p className="text-[10px] text-muted-foreground">حد سے زیادہ نقدی رکھنے والے رائیڈر کو نیا کیش آرڈر آفر نہیں ہوگا۔</p>
+          {outstanding.length > 0 && (
+            <div className="space-y-1 pt-1">
+              <p className="text-[11px] font-bold text-muted-foreground">رائیڈرز کے پاس موجود نقدی</p>
+              {outstanding.slice(0, 8).map((r) => (
+                <div key={r.rider_id} className="flex items-center justify-between text-[11px]">
+                  <span>{names[r.rider_id] || r.rider_id.slice(0, 8)}</span>
+                  <span className={`font-extrabold ${r.amount >= Number(cashLimit || 0) ? "text-destructive" : ""}`}>Rs {Math.round(r.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex gap-2">
           {STATUS_TABS.map((t) => (
             <button
