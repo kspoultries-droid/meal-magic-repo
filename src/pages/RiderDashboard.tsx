@@ -14,6 +14,8 @@ import RiderOfferCard from "@/components/rider/RiderOfferCard";
 import OrderChat from "@/components/orders/OrderChat";
 import RiderInsights from "@/components/rider/RiderInsights";
 import RiderScore from "@/components/rider/RiderScore";
+import RiderOfferHistory from "@/components/rider/RiderOfferHistory";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 
