@@ -57,6 +57,8 @@ export const translations = {
   "dash.admin": { ur: "ایڈمن ڈیش بورڈ", en: "Admin Dashboard", hi: "एडमिन डैशबोर्ड", bn: "অ্যাডমিন ড্যাশবোর্ড", ar: "لوحة تحكم المشرف" },
   "dash.rider": { ur: "رائیڈر ڈیش بورڈ", en: "Rider Dashboard", hi: "राइडर डैशबोर्ड", bn: "রাইডার ড্যাশবোর্ড", ar: "لوحة السائق" },
   "dash.restaurant": { ur: "ریسٹورنٹ ڈیش بورڈ", en: "Restaurant Dashboard", hi: "रेस्तराँ डैशबोर्ड", bn: "রেস্তোরাঁ ড্যাশবোর্ড", ar: "لوحة المطعم" },
+  "dash.support": { ur: "سپورٹ ڈیش بورڈ", en: "Support Dashboard", hi: "सपोर्ट डैशबोर्ड", bn: "সাপোর্ট ড্যাশবোর্ড", ar: "لوحة الدعم" },
+  "dash.mechanic": { ur: "مکینک ڈیش بورڈ", en: "Mechanic Dashboard", hi: "मैकेनिक डैशबोर्ड", bn: "মেকানিক ড্যাশবোর্ড", ar: "لوحة الميكانيكي" },
 
   // ---- Order statuses ----
   "status.pending": { ur: "زیرِ التوا", en: "Pending", hi: "लंबित", bn: "অপেক্ষমাণ", ar: "قيد الانتظار" },
