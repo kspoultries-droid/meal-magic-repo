@@ -421,17 +421,25 @@ const OrdersTab = () => {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const [{ data: ordersData }, { data: ridersData }] = await Promise.all([
+    const [{ data: ordersData }, { data: ridersData }, { data: offersData }] = await Promise.all([
       supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)").order("created_at", { ascending: false }).limit(50),
       supabase.from("riders").select("id, is_available, current_lat, current_lng"),
+      (supabase as any).from("delivery_offers").select("id,order_id,order_kind,rider_id,status,expires_at,created_at").eq("order_kind", "food").order("created_at", { ascending: false }).limit(200),
     ]);
-    setOrders(ordersData || []);
+    const list = ordersData || [];
+    setOrders(list);
+    setOffers(offersData || []);
     const allRiders = ridersData || [];
     setRiders(allRiders);
     // Fetch rider profiles for names
     if (allRiders.length > 0) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name, phone").in("id", allRiders.map(r => r.id));
       setRiderProfiles(profs || []);
+    }
+    const customerIds = Array.from(new Set(list.map((o: any) => o.customer_id).filter(Boolean)));
+    if (customerIds.length > 0) {
+      const { data: custs } = await supabase.from("profiles").select("id, full_name, phone").in("id", customerIds);
+      setCustomerProfiles(custs || []);
     }
     setLoading(false);
   };
