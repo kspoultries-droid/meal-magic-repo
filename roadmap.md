@@ -41,3 +41,6 @@
 - [x] Restaurant permanent and timed closure controls
 - [x] Stop command-center refresh flicker and restore live order totals
 - [x] Preserve offer history and prevent repeat offers to the same rider
+- [x] Restore live admin order status updates without panel flicker
+- [x] Keep checkout confirmation action clear of notifications
+- [x] Compact order confirmation with always-visible Home and Track actions

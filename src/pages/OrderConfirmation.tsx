@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { CheckCircle2, Package, Clock, MapPin, Phone, Home, Receipt, ChevronRight, Copy } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { CheckCircle2, Package, MapPin, Phone, Home, Receipt, ChevronRight, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -40,57 +40,37 @@ const OrderConfirmation = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-10">
-      {/* Hero with confetti */}
-      <div className="bg-gradient-hero text-primary-foreground px-4 pt-10 pb-12 text-center relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top,white,transparent_70%)]" />
-        {/* Confetti dots */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {Array.from({ length: 18 }).map((_, i) => (
-            <span
-              key={i}
-              className="absolute block w-1.5 h-3 rounded-sm animate-slide-up"
-              style={{
-                left: `${(i * 5.5) % 100}%`,
-                top: `${(i * 13) % 90}%`,
-                background: ["#fde68a", "#fca5a5", "#a7f3d0", "#bfdbfe", "#fbcfe8"][i % 5],
-                transform: `rotate(${(i * 37) % 360}deg)`,
-                animationDelay: `${(i % 6) * 100}ms`,
-                opacity: 0.85,
-              }}
-            />
-          ))}
-        </div>
-        <div className="relative animate-scale-in">
-          <div className="w-20 h-20 mx-auto bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-3 shadow-glow">
-            <CheckCircle2 className="w-12 h-12" strokeWidth={2.5} />
+    <div className="min-h-[100dvh] bg-background pb-24">
+      <div className="relative overflow-hidden bg-gradient-hero px-4 py-5 text-primary-foreground">
+        <div className="mx-auto flex max-w-md items-center gap-3 animate-scale-in">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-foreground/20 shadow-glow">
+            <CheckCircle2 className="h-8 w-8" strokeWidth={2.5} />
           </div>
-          <h1 className="text-2xl font-extrabold mb-1">آرڈر کامیابی سے دیا گیا!</h1>
-          <p className="text-sm opacity-90">Order placed successfully 🎉</p>
+          <div>
+            <h1 className="text-lg font-extrabold">آرڈر کامیابی سے دیا گیا!</h1>
+            <p className="text-xs opacity-90">Order placed successfully</p>
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 -mt-6 max-w-md space-y-4">
-        {/* Order ID Card */}
-        <div className="glass rounded-2xl p-4 shadow-card animate-slide-up">
-          <p className="text-[11px] text-muted-foreground mb-1">آرڈر نمبر / Order #</p>
+      <div className="container mx-auto max-w-md space-y-2.5 px-3 py-3">
+        <div className="glass rounded-xl p-3 shadow-card animate-slide-up">
+          <p className="mb-0.5 text-[10px] text-muted-foreground">آرڈر نمبر / Order #</p>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xl font-extrabold font-mono text-primary">#{shortId}</span>
-            <button onClick={copyId} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary">
-              <Copy className="w-3.5 h-3.5" /> Copy
-            </button>
+            <span className="font-mono text-base font-extrabold text-primary">#{shortId}</span>
+            <Button variant="ghost" size="sm" onClick={copyId} className="h-7 gap-1 px-2 text-[10px]"><Copy className="h-3 w-3" /> کاپی</Button>
           </div>
         </div>
 
         {/* Summary */}
         {order && (
-          <div className="bg-card border rounded-2xl p-4 shadow-card animate-slide-up">
-            <h2 className="text-sm font-bold mb-3 flex items-center gap-1.5">
+          <div className="rounded-xl border bg-card p-3 shadow-card animate-slide-up">
+            <h2 className="mb-2 flex items-center gap-1.5 text-xs font-bold">
               <Receipt className="w-4 h-4 text-primary" /> آرڈر کا خلاصہ
             </h2>
 
             {isGrocery && Array.isArray(order.items) && (
-              <div className="space-y-1.5 mb-3 pb-3 border-b">
+              <div className="mb-2 max-h-24 space-y-1 overflow-y-auto border-b pb-2">
                 {order.items.map((it: any, i: number) => (
                   <div key={i} className="flex justify-between text-xs">
                     <span className="text-foreground">{it.name} × {it.quantity}</span>
@@ -100,7 +80,7 @@ const OrderConfirmation = () => {
               </div>
             )}
 
-            <div className="space-y-1.5 text-xs">
+            <div className="space-y-1 text-xs">
               <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-extrabold text-primary text-base">Rs {order.total_amount}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Payment</span><span className="font-semibold uppercase">{order.payment_method || "COD"}</span></div>
               <div className="flex items-start gap-1.5 pt-1">
@@ -108,7 +88,7 @@ const OrderConfirmation = () => {
                 <span className="min-w-0 flex-1 text-muted-foreground">{order.delivery_address || "پتہ درج نہیں"}</span>
                 <button
                   onClick={() => setLocOpen(true)}
-                  className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-[10px] font-bold text-primary active:scale-95 transition-transform"
+                  className="shrink-0 rounded-full bg-secondary px-2 py-1 text-[10px] font-bold text-primary active:scale-95 transition-transform"
                 >
                   تبدیل کریں
                 </button>
@@ -131,35 +111,18 @@ const OrderConfirmation = () => {
           </div>
         )}
 
-        {/* Next Steps */}
-        <div className="bg-card border rounded-2xl p-4 shadow-card animate-slide-up">
-          <h2 className="text-sm font-bold mb-3 flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-primary" /> اگلے اسٹیپس / What's next?
-          </h2>
-          <ol className="space-y-2.5">
-            {[
-              { ur: "دکاندار/ریسٹورنٹ آپ کا آرڈر کنفرم کریں گے", en: "Vendor confirms your order" },
-              { ur: "آرڈر تیار کیا جائے گا", en: "Order is being prepared" },
-              { ur: "رائیڈر پک اپ کر کے روانہ ہو گا", en: "Rider picks up & dispatches" },
-              { ur: "آپ کے دروازے پر ڈلیوری 🚀", en: "Delivered to your door" },
-            ].map((s, i) => (
-              <li key={i} className="flex gap-3 items-start">
-                <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-                <div>
-                  <p className="text-xs font-semibold text-foreground">{s.ur}</p>
-                  <p className="text-[10px] text-muted-foreground">{s.en}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+        <div className="flex items-center gap-2 rounded-xl border bg-card p-3 text-xs shadow-card animate-slide-up">
+          <Package className="h-5 w-5 shrink-0 text-primary" />
+          <p className="font-semibold">اب دکاندار تصدیق کرے گا، پھر رائیڈر آپ کا آرڈر پہنچائے گا۔</p>
         </div>
+      </div>
 
-        {/* CTAs */}
-        <div className="grid grid-cols-2 gap-2 pt-2">
-          <Button variant="outline" onClick={() => navigate("/")} className="rounded-xl">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+8px)] backdrop-blur-xl">
+        <div className="mx-auto grid max-w-md grid-cols-2 gap-2">
+          <Button variant="outline" onClick={() => navigate("/")} className="h-11 rounded-xl">
             <Home className="w-4 h-4 mr-1" /> ہوم
           </Button>
-          <Button onClick={() => navigate(trackingPath)} className="rounded-xl bg-gradient-primary shadow-glow">
+          <Button onClick={() => navigate(trackingPath)} className="h-11 rounded-xl bg-gradient-primary shadow-glow">
             <Package className="w-4 h-4 mr-1" /> {isGrocery ? "میرے آرڈرز" : "ٹریک"} <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
