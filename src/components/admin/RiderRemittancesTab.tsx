@@ -22,9 +22,37 @@ const RiderRemittancesTab = () => {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [accounts, setAccounts] = useState<Record<string, string>>({});
+  const [cashLimit, setCashLimit] = useState("");
+  const [savingLimit, setSavingLimit] = useState(false);
+  const [outstanding, setOutstanding] = useState<{ rider_id: string; amount: number }[]>([]);
+
+  const loadCash = async () => {
+    const [{ data: setting }, { data: journal }] = await Promise.all([
+      supabase.from("app_settings").select("value").eq("key", "rider_cash_limit").maybeSingle(),
+      supabase.from("rider_cash_journal" as any).select("rider_id, amount").limit(5000),
+    ]);
+    setCashLimit(String((setting as any)?.value ?? "20000"));
+    const map = new Map<string, number>();
+    ((journal as any[]) || []).forEach((r) => map.set(r.rider_id, (map.get(r.rider_id) || 0) + Number(r.amount || 0)));
+    setOutstanding(Array.from(map.entries()).map(([rider_id, amount]) => ({ rider_id, amount })).filter((r) => r.amount > 0).sort((a, b) => b.amount - a.amount));
+  };
+
+  const saveLimit = async () => {
+    const val = Number(cashLimit);
+    if (!val || val <= 0) { toast.error("درست حد درج کریں"); return; }
+    setSavingLimit(true);
+    const { error } = await supabase.from("app_settings").upsert(
+      { key: "rider_cash_limit", value: String(Math.round(val)), label: "رائیڈر کیش حد (Rs)" } as any,
+      { onConflict: "key" },
+    );
+    setSavingLimit(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("کیش حد محفوظ ہو گئی");
+  };
 
   const load = async () => {
     setLoading(true);
+    void loadCash();
     const [{ data }, { data: accs }] = await Promise.all([
       supabase.from("rider_remittances").select("*").eq("status", tab).order("created_at", { ascending: false }).limit(100),
       supabase.from("payment_accounts").select("id, label"),
