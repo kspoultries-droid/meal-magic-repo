@@ -503,6 +503,21 @@ const OrdersTab = () => {
     return prof?.phone || "";
   };
 
+  const customerOf = (o: any) => {
+    const prof = customerProfiles.find(p => p.id === o.customer_id);
+    return {
+      name: o.receiver_name || prof?.full_name || "کسٹمر",
+      phone: o.receiver_phone || prof?.phone || "",
+    };
+  };
+
+  // Live offer info for an order (offer attempt count + pending rider)
+  const offerInfo = (orderId: string) => {
+    const list = offers.filter(f => f.order_id === orderId);
+    const active = list.find(f => f.status === "offered" && new Date(f.expires_at).getTime() > Date.now());
+    return { tries: list.length, active };
+  };
+
   // Get nearest riders sorted by distance to order's delivery location
   const getNearestRiders = (order: any) => {
     const availableRiders = riders.filter(r => r.is_available && r.current_lat && r.current_lng);
