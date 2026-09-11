@@ -588,6 +588,10 @@ const OrdersTab = () => {
 
                       <div className="grid gap-0.5 text-[11px] text-muted-foreground">
                         <p>🏪 {o.restaurants?.name || "ریسٹورنٹ"} · {o.payment_method}</p>
+                        <p>
+                          👤 {cust.name}
+                          {cust.phone && <> · <a className="text-primary underline" href={`tel:${cust.phone}`}>📞 {cust.phone}</a></>}
+                        </p>
                         {o.delivery_address && <p>📍 {o.delivery_address}</p>}
                         {o.rider_id && <p>🏍️ {getRiderName(o.rider_id)}{getRiderPhone(o.rider_id) && ` · 📞 ${getRiderPhone(o.rider_id)}`}</p>}
                       </div>
