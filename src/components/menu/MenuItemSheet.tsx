@@ -85,19 +85,6 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
     setter((previous) => ({ ...previous, [id]: Math.max(0, (previous[id] || 0) + delta) }));
   };
 
-  // For "pick one" (max=1) groups, tapping + on a new choice switches to it
-  // instead of being dead — like a radio button with a stepper.
-  const bumpChoice = (group: MenuOptionGroup, choiceId: string, delta: number) => {
-    setChoiceQty((previous) => {
-      const next = { ...previous };
-      if (delta > 0 && group.max === 1 && !next[choiceId]) {
-        group.choices.forEach((c) => { next[c.id] = 0; });
-      }
-      next[choiceId] = Math.max(0, (next[choiceId] || 0) + delta);
-      return next;
-    });
-  };
-
   const handleAdd = () => {
     const selectedMainQty = variants.length > 0
       ? Object.values(variantQty).reduce((sum, value) => sum + value, 0)
@@ -168,23 +155,6 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
             </section>
           )}
 
-          {variants.length === 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-bold">تعداد</h3>
-                <span className="text-xs font-extrabold text-primary">Rs {Number(item.price)} فی پلیٹ</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 p-3 border-2 rounded-xl border-primary bg-primary/5">
-                <div><span className="text-sm font-semibold">{item.name}</span></div>
-                <div className="flex items-center gap-1 rounded-full border bg-background p-1">
-                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setBaseQty((q) => Math.max(0, q - 1))}><Minus className="h-3.5 w-3.5" /></Button>
-                  <span className="w-5 text-center text-sm font-extrabold">{baseQty}</span>
-                  <Button size="icon" className="h-7 w-7 rounded-full" onClick={() => setBaseQty((q) => q + 1)}><Plus className="h-3.5 w-3.5" /></Button>
-                </div>
-              </div>
-            </section>
-          )}
-
           {groups.map((g) => (
             <section key={g.id}>
               <div className="flex items-center justify-between mb-2">
@@ -203,9 +173,9 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
                         <p className="text-xs font-bold text-primary">Rs {c.price_delta}</p>
                       </div>
                       <div className="flex items-center gap-1 rounded-full border bg-background p-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => bumpChoice(g, c.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => changeQty(setChoiceQty, c.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
                         <span className="w-5 text-center text-sm font-extrabold">{quantity}</span>
-                        <Button size="icon" className="h-7 w-7 rounded-full" disabled={g.max > 1 && g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0) >= g.max} onClick={() => bumpChoice(g, c.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" className="h-7 w-7 rounded-full" disabled={g.max > 0 && g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0) >= g.max} onClick={() => changeQty(setChoiceQty, c.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
                       </div>
                     </div>
                   );
