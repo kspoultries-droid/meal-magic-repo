@@ -41,28 +41,27 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [searching, setSearching] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const [{ data: ov }, { data: tr }] = await Promise.all([
+  const load = useCallback(async (showLoader = false) => {
+    if (showLoader) setLoading(true);
+    const [{ data: ov, error: overviewError }, { data: tr, error: trendError }] = await Promise.all([
       supabase.rpc("admin_overview" as any),
       supabase.rpc("admin_daily_trend" as any, { _days: 30 }),
     ]);
-    setData((ov as unknown as Overview) || null);
-    setTrend(((tr as unknown as TrendRow[]) || []));
+    if (!overviewError) setData((ov as unknown as Overview) || null);
+    if (!trendError) setTrend(((tr as unknown as TrendRow[]) || []));
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(true); }, [load]);
 
   useEffect(() => {
     const channel = supabase
       .channel("admin-overview-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "riders" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load(false))
+      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders" }, () => load(false))
+      .on("postgres_changes", { event: "*", schema: "public", table: "riders" }, () => load(false))
       .subscribe();
-    const timer = window.setInterval(() => load(), 60000);
-    return () => { supabase.removeChannel(channel); window.clearInterval(timer); };
+    return () => { supabase.removeChannel(channel); };
   }, [load]);
 
   const chart = useMemo(
@@ -111,7 +110,7 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
         { label: "آج کی سیل", value: `Rs ${Math.round(Number(data.gross_today))}`, sub: `کمیشن Rs ${Math.round(Number(data.commission_today))}`, icon: Wallet, tone: "text-primary", section: "finance", subTab: "revenue" },
         { label: "زیرِ عمل آرڈرز", value: `${data.pending_orders}`, sub: `بغیر رائیڈر ${data.unassigned_orders}`, icon: RefreshCw, tone: "text-foreground", section: "operations", subTab: "orders" },
         { label: "رُکے ہوئے آرڈرز", value: `${data.stuck_orders}`, sub: "45 منٹ سے زیادہ", icon: AlertTriangle, tone: data.stuck_orders ? "text-destructive" : "text-muted-foreground", section: "operations", subTab: "grocery-dispatch" },
-        { label: "رائیڈرز (حاضر/آن لائن)", value: `${data.riders_present ?? 0}/${data.riders_online}`, sub: `کل رجسٹرڈ ${data.riders_total} • حاضری 3 منٹ`, icon: Bike, tone: (data.riders_present ?? 0) ? "text-success" : "text-muted-foreground", section: "partners", subTab: "riders" },
+        { label: "آن لائن رائیڈرز", value: `${data.riders_online}`, sub: `ایپ میں فعال ${data.riders_present ?? 0} • کل رائیڈر ${data.riders_total}`, icon: Bike, tone: data.riders_online ? "text-success" : "text-muted-foreground", section: "partners", subTab: "riders" },
         { label: "بند دکانیں", value: `${data.shops_closed}/${data.shops_total}`, sub: "ریسٹورنٹس", icon: Store, tone: "text-foreground", section: "partners", subTab: "restaurants" },
         { label: "نئی درخواستیں", value: `${data.pending_applications}`, sub: "منظوری کی منتظر", icon: Store, tone: data.pending_applications ? "text-warning" : "text-muted-foreground", section: "partners", subTab: "applications" },
         { label: "زیرِ التوا ادائیگیاں", value: `${Number(data.pending_payouts) + Number(data.pending_remittances)}`, sub: `سلپس ${data.pending_remittances}`, icon: Wallet, tone: "text-foreground", section: "finance", subTab: "payouts" },
@@ -125,7 +124,7 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
           <CardTitle className="text-base">کمانڈ سینٹر</CardTitle>
           <div className="flex gap-1">
             <Button size="sm" variant="outline" onClick={exportTrend} disabled={!trend.length}><Download className="h-3.5 w-3.5" /></Button>
-            <Button size="sm" variant="outline" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
+            <Button size="sm" variant="outline" onClick={() => load(true)}><RefreshCw className="h-3.5 w-3.5" /></Button>
           </div>
         </CardHeader>
         <CardContent className="px-4 pb-4">
