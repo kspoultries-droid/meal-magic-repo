@@ -190,9 +190,17 @@ const RiderDashboard = () => {
     if (!user) return;
     const currentRider = riderData || await ensureRiderProfile();
     if (!currentRider) return;
-    const { error } = await supabase.from("riders").update({ is_available: !currentRider.is_available }).eq("id", user.id);
-    if (error) { toast.error(error.message); return; }
-    toast.success(currentRider.is_available ? "آپ آف لائن ہو گئے" : "آپ آن لائن ہو گئے");
+    const next = !currentRider.is_available;
+    setRiderData((prev: any) => ({ ...(prev || currentRider), is_available: next }));
+    const { error } = await supabase.from("riders")
+      .update({ is_available: next, last_seen_at: new Date().toISOString() } as any)
+      .eq("id", user.id);
+    if (error) {
+      setRiderData((prev: any) => ({ ...(prev || currentRider), is_available: !next }));
+      toast.error(error.message);
+      return;
+    }
+    toast.success(next ? "آپ آن لائن ہو گئے" : "آپ آف لائن ہو گئے");
     fetchData(false);
   };
 
