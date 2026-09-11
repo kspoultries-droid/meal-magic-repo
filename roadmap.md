@@ -35,3 +35,7 @@
 - [x] مرحلہ 1: ایڈمن کمانڈ سینٹر، چارٹس، CSV ایکسپورٹ، گلوبل سرچ
 - [x] مرحلہ 2: بلک ایکشنز، مینو سرچ/بزی موڈ، تیاری کا وقت، رائیڈر پروف فوٹو
 - [x] مرحلہ 3: پرفارمنس سکور، الرٹ سینٹر، موبائل بہتری
+- [x] Rider-role based command-center counts and dispatch eligibility
+- [x] Reliable distinct-rider 20/40/40 offer progression with manual attention fallback
+- [x] Admin rider suspend/restore/offline/role-removal controls
+- [x] Restaurant permanent and timed closure controls

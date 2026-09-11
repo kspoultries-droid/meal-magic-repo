@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket, Clapperboard, BellRing, LayoutDashboard } from "lucide-react";
+import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket, Clapperboard, BellRing, LayoutDashboard, Clock3, Ban, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import GroceryTab from "@/components/admin/GroceryTab";
 import ServicesTab from "@/components/admin/ServicesTab";
@@ -668,8 +668,33 @@ const RestaurantsTab = () => {
   const getOwnerName = (ownerId: string) => allProfiles.find((p) => p.id === ownerId)?.full_name || ownerId.slice(0, 8);
 
   const toggleActive = async (id: string, current: boolean) => {
-    await supabase.from("restaurants").update({ is_active: !current }).eq("id", id);
+    const { error } = await supabase.from("restaurants").update({ is_active: !current, busy_until: null }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
     toast.success("اپڈیٹ ہو گیا");
+    fetchRests();
+  };
+
+  const temporarilyClose = async (id: string, duration: "hour" | "today" | "custom") => {
+    const until = new Date();
+    if (duration === "hour") until.setHours(until.getHours() + 1);
+    else if (duration === "today") until.setHours(23, 59, 59, 999);
+    else {
+      const value = window.prompt("بندش ختم ہونے کا وقت درج کریں (مثال: 2026-09-11T18:30)");
+      if (!value) return;
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime()) || parsed <= new Date()) { toast.error("درست آئندہ وقت درج کریں"); return; }
+      until.setTime(parsed.getTime());
+    }
+    const { error } = await supabase.from("restaurants").update({ busy_until: until.toISOString() }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("ریسٹورنٹ عارضی طور پر بند کر دیا گیا");
+    fetchRests();
+  };
+
+  const restoreRestaurant = async (id: string) => {
+    const { error } = await supabase.from("restaurants").update({ is_active: true, busy_until: null }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("ریسٹورنٹ دوبارہ کھول دیا گیا");
     fetchRests();
   };
 
@@ -742,14 +767,22 @@ const RestaurantsTab = () => {
                   </TableCell>
                   <TableCell>⭐ {r.rating}</TableCell>
                   <TableCell>
-                    <Badge className={r.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
-                      {r.is_active ? "ایکٹو" : "غیر ایکٹو"}
+                    <Badge className={!r.is_active || (r.busy_until && new Date(r.busy_until) > new Date()) ? "bg-destructive text-destructive-foreground" : "bg-success text-success-foreground"}>
+                      {!r.is_active ? "غیر فعال" : r.busy_until && new Date(r.busy_until) > new Date() ? `عارضی بند: ${new Date(r.busy_until).toLocaleTimeString("ur-PK", { hour: "numeric", minute: "2-digit" })}` : "کھلا"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="flex gap-1">
+                  <TableCell className="flex flex-wrap gap-1">
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(r.id, r.is_active)}>
-                      {r.is_active ? "بند" : "فعال"}
+                      {r.is_active ? <><Ban className="me-1 h-3 w-3" />غیر فعال</> : <><RotateCcw className="me-1 h-3 w-3" />فعال</>}
                     </Button>
+                    {r.is_active && !(r.busy_until && new Date(r.busy_until) > new Date()) && (
+                      <>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "hour")}><Clock3 className="me-1 h-3 w-3" />1 گھنٹہ</Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "today")}>آج تک</Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "custom")}>وقت چنیں</Button>
+                      </>
+                    )}
+                    {r.busy_until && new Date(r.busy_until) > new Date() && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => restoreRestaurant(r.id)}>ابھی کھولیں</Button>}
                     <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -769,12 +802,18 @@ const RestaurantsTab = () => {
 const RidersTab = () => {
   const [riders, setRiders] = useState<any[]>([]);
   const [riderProfiles, setRiderProfiles] = useState<any[]>([]);
+  const [riderRoleIds, setRiderRoleIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [workingId, setWorkingId] = useState<string | null>(null);
 
   const fetchRiders = async () => {
     setLoading(true);
-    const { data } = await supabase.from("riders").select("*");
+    const [{ data }, { data: roles }] = await Promise.all([
+      supabase.from("riders").select("*"),
+      supabase.from("user_roles").select("user_id").eq("role", "rider"),
+    ]);
     setRiders(data || []);
+    setRiderRoleIds(new Set((roles || []).map((role) => role.user_id)));
     // Get profiles for rider names
     if (data?.length) {
       const ids = data.map((r) => r.id);
@@ -787,6 +826,21 @@ const RidersTab = () => {
   useEffect(() => { fetchRiders(); }, []);
 
   const getProfile = (id: string) => riderProfiles.find((p) => p.id === id);
+
+  const setRiderState = async (riderId: string, action: "online" | "offline" | "suspend" | "restore" | "remove_role") => {
+    let reason: string | null = null;
+    if (action === "suspend" || action === "remove_role") {
+      reason = window.prompt(action === "suspend" ? "معطلی کی وجہ (اختیاری)" : "رائیڈر رول ہٹانے کی وجہ (اختیاری)");
+      if (reason === null) return;
+    }
+    if (action === "remove_role" && !window.confirm("رائیڈر رول ہٹا دیا جائے؟ سابقہ آرڈرز اور حساب محفوظ رہیں گے۔")) return;
+    setWorkingId(riderId);
+    const { error } = await (supabase.rpc as any)("admin_set_rider_state", { _rider_id: riderId, _action: action, _reason: reason });
+    setWorkingId(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success(action === "remove_role" ? "رائیڈر رول محفوظ طریقے سے ہٹا دیا گیا" : "رائیڈر کی حالت اپڈیٹ ہو گئی");
+    fetchRiders();
+  };
 
   return (
     <Card>
@@ -803,29 +857,42 @@ const RidersTab = () => {
                 <TableHead>نام</TableHead>
                 <TableHead>فون</TableHead>
                 <TableHead>دستیاب</TableHead>
+                <TableHead>تیاری</TableHead>
                 <TableHead>والٹ</TableHead>
                 <TableHead>کل آمدنی</TableHead>
+                <TableHead>ایکشنز</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {riders.map((r) => {
                 const prof = getProfile(r.id);
+                const hasRole = riderRoleIds.has(r.id);
+                const hasGps = r.current_lat != null && r.current_lng != null;
                 return (
                   <TableRow key={r.id}>
                     <TableCell className="font-mono text-xs">{r.id.slice(0, 8)}</TableCell>
                     <TableCell>{prof?.full_name || "—"}</TableCell>
                     <TableCell>{prof?.phone || "—"}</TableCell>
                     <TableCell>
-                      <Badge className={r.is_available ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
-                        {r.is_available ? "ہاں" : "نہیں"}
+                      <Badge className={r.is_suspended ? "bg-destructive text-destructive-foreground" : r.is_available && hasRole ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
+                        {!hasRole ? "رول ہٹا ہوا" : r.is_suspended ? "معطل" : r.is_available ? "آن لائن" : "آف لائن"}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-xs">{hasGps ? "GPS ✓" : "GPS درکار"}{r.city_id ? " • شہر ✓" : " • شہر درکار"}</TableCell>
                     <TableCell>Rs {r.wallet_balance}</TableCell>
                     <TableCell>Rs {r.total_earnings}</TableCell>
+                    <TableCell>
+                      <div className="flex min-w-[210px] flex-wrap gap-1">
+                        {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, r.is_available ? "offline" : "online")}>{r.is_available ? "آف لائن" : "آن لائن"}</Button>}
+                        {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px] text-destructive" onClick={() => setRiderState(r.id, "suspend")}>معطل کریں</Button>}
+                        {hasRole && r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "restore")}>بحال کریں</Button>}
+                        {hasRole && <Button size="sm" variant="destructive" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "remove_role")}>رول ہٹائیں</Button>}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 );
               })}
-              {riders.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">کوئی رائیڈر نہیں</TableCell></TableRow>}
+              {riders.length === 0 && <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">کوئی رائیڈر نہیں</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
