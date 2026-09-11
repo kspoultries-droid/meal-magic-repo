@@ -22,9 +22,37 @@ const RiderRemittancesTab = () => {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [accounts, setAccounts] = useState<Record<string, string>>({});
+  const [cashLimit, setCashLimit] = useState("");
+  const [savingLimit, setSavingLimit] = useState(false);
+  const [outstanding, setOutstanding] = useState<{ rider_id: string; amount: number }[]>([]);
+
+  const loadCash = async () => {
+    const [{ data: setting }, { data: journal }] = await Promise.all([
+      supabase.from("app_settings").select("value").eq("key", "rider_cash_limit").maybeSingle(),
+      supabase.from("rider_cash_journal" as any).select("rider_id, amount").limit(5000),
+    ]);
+    setCashLimit(String((setting as any)?.value ?? "20000"));
+    const map = new Map<string, number>();
+    ((journal as any[]) || []).forEach((r) => map.set(r.rider_id, (map.get(r.rider_id) || 0) + Number(r.amount || 0)));
+    setOutstanding(Array.from(map.entries()).map(([rider_id, amount]) => ({ rider_id, amount })).filter((r) => r.amount > 0).sort((a, b) => b.amount - a.amount));
+  };
+
+  const saveLimit = async () => {
+    const val = Number(cashLimit);
+    if (!val || val <= 0) { toast.error("درست حد درج کریں"); return; }
+    setSavingLimit(true);
+    const { error } = await supabase.from("app_settings").upsert(
+      { key: "rider_cash_limit", value: String(Math.round(val)), label: "رائیڈر کیش حد (Rs)" } as any,
+      { onConflict: "key" },
+    );
+    setSavingLimit(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("کیش حد محفوظ ہو گئی");
+  };
 
   const load = async () => {
     setLoading(true);
+    void loadCash();
     const [{ data }, { data: accs }] = await Promise.all([
       supabase.from("rider_remittances").select("*").eq("status", tab).order("created_at", { ascending: false }).limit(100),
       supabase.from("payment_accounts").select("id, label"),
@@ -77,6 +105,26 @@ const RiderRemittancesTab = () => {
         <Button size="sm" variant="outline" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
       </CardHeader>
       <CardContent className="space-y-3">
+        <div className="rounded-xl border p-3 space-y-2 bg-muted/30">
+          <p className="text-xs font-bold">رائیڈر کیش حد</p>
+          <div className="flex gap-2">
+            <Input value={cashLimit} onChange={(e) => setCashLimit(e.target.value)} inputMode="numeric" className="h-9 text-xs" placeholder="20000" />
+            <Button size="sm" className="h-9 text-xs font-bold" disabled={savingLimit} onClick={saveLimit}>محفوظ</Button>
+          </div>
+          <p className="text-[10px] text-muted-foreground">حد سے زیادہ نقدی رکھنے والے رائیڈر کو نیا کیش آرڈر آفر نہیں ہوگا۔</p>
+          {outstanding.length > 0 && (
+            <div className="space-y-1 pt-1">
+              <p className="text-[11px] font-bold text-muted-foreground">رائیڈرز کے پاس موجود نقدی</p>
+              {outstanding.slice(0, 8).map((r) => (
+                <div key={r.rider_id} className="flex items-center justify-between text-[11px]">
+                  <span>{names[r.rider_id] || r.rider_id.slice(0, 8)}</span>
+                  <span className={`font-extrabold ${r.amount >= Number(cashLimit || 0) ? "text-destructive" : ""}`}>Rs {Math.round(r.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex gap-2">
           {STATUS_TABS.map((t) => (
             <button

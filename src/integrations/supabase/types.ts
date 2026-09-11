@@ -556,14 +556,19 @@ export type Database = {
       }
       grocery_cart_orders: {
         Row: {
+          accepted_at: string | null
           billable_weight_kg: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
           city_id: string | null
           courier_name: string | null
           courier_payment_type: string
           courier_tracking_url: string | null
           courier_updated_at: string | null
           created_at: string
+          currency: string
           customer_id: string
+          delivered_at: string | null
           delivery_address: string | null
           delivery_fee: number
           delivery_fee_payer: string
@@ -575,11 +580,15 @@ export type Database = {
           dispatch_state: string
           distance_km: number
           fee_breakdown: Json
+          final_amount: number | null
           id: string
           is_gift: boolean | null
           items: Json
           notes: string | null
+          packed_at: string | null
           payment_method: string | null
+          picked_up_at: string | null
+          picking_at: string | null
           receiver_name: string | null
           receiver_phone: string | null
           rider_assigned_at: string | null
@@ -593,16 +602,23 @@ export type Database = {
           updated_at: string
           vehicle_type_id: string | null
           voucher_code: string | null
+          weight_adjustment: number
+          weight_confirmed_at: string | null
         }
         Insert: {
+          accepted_at?: string | null
           billable_weight_kg?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           city_id?: string | null
           courier_name?: string | null
           courier_payment_type?: string
           courier_tracking_url?: string | null
           courier_updated_at?: string | null
           created_at?: string
+          currency?: string
           customer_id: string
+          delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number
           delivery_fee_payer?: string
@@ -614,11 +630,15 @@ export type Database = {
           dispatch_state?: string
           distance_km?: number
           fee_breakdown?: Json
+          final_amount?: number | null
           id?: string
           is_gift?: boolean | null
           items?: Json
           notes?: string | null
+          packed_at?: string | null
           payment_method?: string | null
+          picked_up_at?: string | null
+          picking_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
           rider_assigned_at?: string | null
@@ -632,16 +652,23 @@ export type Database = {
           updated_at?: string
           vehicle_type_id?: string | null
           voucher_code?: string | null
+          weight_adjustment?: number
+          weight_confirmed_at?: string | null
         }
         Update: {
+          accepted_at?: string | null
           billable_weight_kg?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           city_id?: string | null
           courier_name?: string | null
           courier_payment_type?: string
           courier_tracking_url?: string | null
           courier_updated_at?: string | null
           created_at?: string
+          currency?: string
           customer_id?: string
+          delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number
           delivery_fee_payer?: string
@@ -653,11 +680,15 @@ export type Database = {
           dispatch_state?: string
           distance_km?: number
           fee_breakdown?: Json
+          final_amount?: number | null
           id?: string
           is_gift?: boolean | null
           items?: Json
           notes?: string | null
+          packed_at?: string | null
           payment_method?: string | null
+          picked_up_at?: string | null
+          picking_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
           rider_assigned_at?: string | null
@@ -671,6 +702,8 @@ export type Database = {
           updated_at?: string
           vehicle_type_id?: string | null
           voucher_code?: string | null
+          weight_adjustment?: number
+          weight_confirmed_at?: string | null
         }
         Relationships: [
           {
@@ -1110,6 +1143,117 @@ export type Database = {
           },
         ]
       }
+      ledger_accounts: {
+        Row: {
+          account_type: string
+          code: string
+          created_at: string
+          is_active: boolean
+          name: string
+          party_type: string | null
+        }
+        Insert: {
+          account_type: string
+          code: string
+          created_at?: string
+          is_active?: boolean
+          name: string
+          party_type?: string | null
+        }
+        Update: {
+          account_type?: string
+          code?: string
+          created_at?: string
+          is_active?: boolean
+          name?: string
+          party_type?: string | null
+        }
+        Relationships: []
+      }
+      ledger_entries: {
+        Row: {
+          account_code: string
+          amount: number
+          created_at: string
+          currency: string
+          direction: string
+          id: string
+          memo: string | null
+          party_id: string | null
+          txn_id: string
+        }
+        Insert: {
+          account_code: string
+          amount: number
+          created_at?: string
+          currency?: string
+          direction: string
+          id?: string
+          memo?: string | null
+          party_id?: string | null
+          txn_id: string
+        }
+        Update: {
+          account_code?: string
+          amount?: number
+          created_at?: string
+          currency?: string
+          direction?: string
+          id?: string
+          memo?: string | null
+          party_id?: string | null
+          txn_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_account_code_fkey"
+            columns: ["account_code"]
+            isOneToOne: false
+            referencedRelation: "ledger_accounts"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "ledger_entries_txn_id_fkey"
+            columns: ["txn_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_transactions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          id: string
+          order_id: string | null
+          order_kind: string | null
+          txn_kind: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          order_kind?: string | null
+          txn_kind: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          order_kind?: string | null
+          txn_kind?: string
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           category: string | null
@@ -1357,10 +1501,16 @@ export type Database = {
       }
       orders: {
         Row: {
+          accepted_at: string | null
+          arrived_customer_at: string | null
           billable_weight_kg: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
           city_id: string
           created_at: string | null
+          currency: string
           customer_id: string
+          delivered_at: string | null
           delivery_address: string | null
           delivery_fee: number | null
           delivery_fee_payer: string
@@ -1377,10 +1527,13 @@ export type Database = {
           notes: string | null
           payment_method: string | null
           payment_status: string | null
+          picked_up_at: string | null
           prep_minutes: number | null
+          ready_at: string | null
           receiver_name: string | null
           receiver_phone: string | null
           restaurant_id: string
+          rider_arrived_at: string | null
           rider_id: string | null
           status: string | null
           total_amount: number
@@ -1389,10 +1542,16 @@ export type Database = {
           voucher_code: string | null
         }
         Insert: {
+          accepted_at?: string | null
+          arrived_customer_at?: string | null
           billable_weight_kg?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           city_id: string
           created_at?: string | null
+          currency?: string
           customer_id: string
+          delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
           delivery_fee_payer?: string
@@ -1409,10 +1568,13 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          picked_up_at?: string | null
           prep_minutes?: number | null
+          ready_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
           restaurant_id: string
+          rider_arrived_at?: string | null
           rider_id?: string | null
           status?: string | null
           total_amount?: number
@@ -1421,10 +1583,16 @@ export type Database = {
           voucher_code?: string | null
         }
         Update: {
+          accepted_at?: string | null
+          arrived_customer_at?: string | null
           billable_weight_kg?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           city_id?: string
           created_at?: string | null
+          currency?: string
           customer_id?: string
+          delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
           delivery_fee_payer?: string
@@ -1441,10 +1609,13 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          picked_up_at?: string | null
           prep_minutes?: number | null
+          ready_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
           restaurant_id?: string
+          rider_arrived_at?: string | null
           rider_id?: string | null
           status?: string | null
           total_amount?: number
@@ -1604,6 +1775,63 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          amount_refunded: number
+          captured_at: string | null
+          created_at: string
+          currency: string
+          customer_id: string | null
+          failed_at: string | null
+          id: string
+          metadata: Json
+          method: string
+          order_id: string
+          order_kind: string
+          provider: string | null
+          provider_reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          amount_refunded?: number
+          captured_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_id?: string | null
+          failed_at?: string | null
+          id?: string
+          metadata?: Json
+          method?: string
+          order_id: string
+          order_kind: string
+          provider?: string | null
+          provider_reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_refunded?: number
+          captured_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_id?: string | null
+          failed_at?: string | null
+          id?: string
+          metadata?: Json
+          method?: string
+          order_id?: string
+          order_kind?: string
+          provider?: string | null
+          provider_reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payout_settings: {
         Row: {
           account_number: string | null
@@ -1645,9 +1873,14 @@ export type Database = {
       }
       payouts: {
         Row: {
+          adjustments_total: number | null
           amount: number
+          commission_total: number | null
           created_at: string
+          currency: string
+          discounts_total: number | null
           from_account_id: string | null
+          gross_sales: number | null
           id: string
           notes: string | null
           payout_method: string
@@ -1657,15 +1890,22 @@ export type Database = {
           processed_by: string | null
           receipt_path: string | null
           reference_no: string | null
+          refunds_total: number | null
           status: string
+          tax_withheld: number | null
           vendor_account_id: string | null
           vendor_confirmed_at: string | null
           vendor_id: string
         }
         Insert: {
+          adjustments_total?: number | null
           amount: number
+          commission_total?: number | null
           created_at?: string
+          currency?: string
+          discounts_total?: number | null
           from_account_id?: string | null
+          gross_sales?: number | null
           id?: string
           notes?: string | null
           payout_method?: string
@@ -1675,15 +1915,22 @@ export type Database = {
           processed_by?: string | null
           receipt_path?: string | null
           reference_no?: string | null
+          refunds_total?: number | null
           status?: string
+          tax_withheld?: number | null
           vendor_account_id?: string | null
           vendor_confirmed_at?: string | null
           vendor_id: string
         }
         Update: {
+          adjustments_total?: number | null
           amount?: number
+          commission_total?: number | null
           created_at?: string
+          currency?: string
+          discounts_total?: number | null
           from_account_id?: string | null
+          gross_sales?: number | null
           id?: string
           notes?: string | null
           payout_method?: string
@@ -1693,7 +1940,9 @@ export type Database = {
           processed_by?: string | null
           receipt_path?: string | null
           reference_no?: string | null
+          refunds_total?: number | null
           status?: string
+          tax_withheld?: number | null
           vendor_account_id?: string | null
           vendor_confirmed_at?: string | null
           vendor_id?: string
@@ -2039,6 +2288,71 @@ export type Database = {
         }
         Relationships: []
       }
+      refunds: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          completed_at: string | null
+          created_at: string
+          currency: string
+          customer_id: string | null
+          id: string
+          initiated_by: string | null
+          order_id: string
+          order_kind: string
+          payment_id: string | null
+          provider_reference: string | null
+          reason: string | null
+          refund_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_id?: string | null
+          id?: string
+          initiated_by?: string | null
+          order_id: string
+          order_kind: string
+          payment_id?: string | null
+          provider_reference?: string | null
+          reason?: string | null
+          refund_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_id?: string | null
+          id?: string
+          initiated_by?: string | null
+          order_id?: string
+          order_kind?: string
+          payment_id?: string | null
+          provider_reference?: string | null
+          reason?: string | null
+          refund_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurants: {
         Row: {
           busy_until: string | null
@@ -2115,6 +2429,56 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_cash_journal: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          entry_type: string
+          id: string
+          note: string | null
+          order_id: string | null
+          order_kind: string | null
+          remittance_id: string | null
+          rider_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entry_type: string
+          id?: string
+          note?: string | null
+          order_id?: string | null
+          order_kind?: string | null
+          remittance_id?: string | null
+          rider_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entry_type?: string
+          id?: string
+          note?: string | null
+          order_id?: string | null
+          order_kind?: string | null
+          remittance_id?: string | null
+          rider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_cash_journal_remittance_id_fkey"
+            columns: ["remittance_id"]
+            isOneToOne: false
+            referencedRelation: "rider_remittances"
             referencedColumns: ["id"]
           },
         ]
@@ -2220,14 +2584,18 @@ export type Database = {
           admin_note: string | null
           amount: number
           created_at: string
+          currency: string
+          expected_amount: number | null
           id: string
           method: string
           note: string | null
+          overage_amount: number | null
           receipt_url: string | null
           reference_no: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           rider_id: string
+          shortage_amount: number | null
           status: string
           updated_at: string
         }
@@ -2236,14 +2604,18 @@ export type Database = {
           admin_note?: string | null
           amount: number
           created_at?: string
+          currency?: string
+          expected_amount?: number | null
           id?: string
           method?: string
           note?: string | null
+          overage_amount?: number | null
           receipt_url?: string | null
           reference_no?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           rider_id: string
+          shortage_amount?: number | null
           status?: string
           updated_at?: string
         }
@@ -2252,14 +2624,18 @@ export type Database = {
           admin_note?: string | null
           amount?: number
           created_at?: string
+          currency?: string
+          expected_amount?: number | null
           id?: string
           method?: string
           note?: string | null
+          overage_amount?: number | null
           receipt_url?: string | null
           reference_no?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           rider_id?: string
+          shortage_amount?: number | null
           status?: string
           updated_at?: string
         }
@@ -2756,6 +3132,74 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_quotations: {
+        Row: {
+          approved_at: string | null
+          booking_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          customer_id: string
+          details: Json
+          id: string
+          labour_amount: number
+          notes: string | null
+          other_amount: number
+          parts_amount: number
+          provider_id: string | null
+          rejected_at: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          booking_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_id: string
+          details?: Json
+          id?: string
+          labour_amount?: number
+          notes?: string | null
+          other_amount?: number
+          parts_amount?: number
+          provider_id?: string | null
+          rejected_at?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          booking_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_id?: string
+          details?: Json
+          id?: string
+          labour_amount?: number
+          notes?: string | null
+          other_amount?: number
+          parts_amount?: number
+          provider_id?: string | null
+          rejected_at?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_quotations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "service_bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -3480,6 +3924,17 @@ export type Database = {
         }
         Returns: string
       }
+      post_ledger_txn: {
+        Args: {
+          _currency?: string
+          _description?: string
+          _lines: Json
+          _order_id: string
+          _order_kind: string
+          _txn_kind: string
+        }
+        Returns: string
+      }
       quote_delivery: {
         Args: {
           _city_id: string
@@ -3571,6 +4026,8 @@ export type Database = {
         Returns: undefined
       }
       rider_cash_due: { Args: { _rider: string }; Returns: number }
+      rider_cash_limit: { Args: never; Returns: number }
+      rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
       rider_heartbeat: { Args: never; Returns: undefined }
       sync_shop_open_state: { Args: never; Returns: number }
       validate_voucher: {
