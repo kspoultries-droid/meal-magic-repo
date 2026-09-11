@@ -140,6 +140,29 @@ const RiderDashboard = () => {
 
   useEffect(() => { if (hasRole) fetchData(!riderData); }, [hasRole, user]);
 
+  // Presence heartbeat: keeps admin command center aware that the rider app is live
+  useEffect(() => {
+    if (!hasRole || !user) return;
+    const beat = () => { void supabase.rpc("rider_heartbeat" as any); };
+    beat();
+    const timer = window.setInterval(beat, 60000);
+    const onVisible = () => { if (document.visibilityState === "visible") beat(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, [hasRole, user]);
+
+  // Realtime online/offline status for this rider (admin can also toggle it)
+  useEffect(() => {
+    if (!hasRole || !user) return;
+    const channel = supabase
+      .channel(`rider-self-${user.id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "riders", filter: `id=eq.${user.id}` }, (p: any) => {
+        setRiderData((prev: any) => ({ ...(prev || {}), ...(p.new || {}) }));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [hasRole, user]);
+
   useEffect(() => {
     if (!hasRole || !user) return;
     const assignedToMe = (nw: any, old: any) => nw.rider_id === user.id && old.rider_id !== user.id;
@@ -167,9 +190,17 @@ const RiderDashboard = () => {
     if (!user) return;
     const currentRider = riderData || await ensureRiderProfile();
     if (!currentRider) return;
-    const { error } = await supabase.from("riders").update({ is_available: !currentRider.is_available }).eq("id", user.id);
-    if (error) { toast.error(error.message); return; }
-    toast.success(currentRider.is_available ? "آپ آف لائن ہو گئے" : "آپ آن لائن ہو گئے");
+    const next = !currentRider.is_available;
+    setRiderData((prev: any) => ({ ...(prev || currentRider), is_available: next }));
+    const { error } = await supabase.from("riders")
+      .update({ is_available: next, last_seen_at: new Date().toISOString() } as any)
+      .eq("id", user.id);
+    if (error) {
+      setRiderData((prev: any) => ({ ...(prev || currentRider), is_available: !next }));
+      toast.error(error.message);
+      return;
+    }
+    toast.success(next ? "آپ آن لائن ہو گئے" : "آپ آف لائن ہو گئے");
     fetchData(false);
   };
 
@@ -286,7 +317,13 @@ const RiderDashboard = () => {
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center gap-1.5">
             <Switch checked={riderData?.is_available || false} onCheckedChange={toggleAvailability} />
-            <span className="text-[11px] font-bold">{riderData?.is_available ? "آن لائن" : "آف لائن"}</span>
+            <span className={`flex items-center gap-1 text-[11px] font-bold ${riderData?.is_available ? "text-success" : "text-muted-foreground"}`}>
+              <span className={`relative flex h-2 w-2 ${riderData?.is_available ? "" : "opacity-60"}`}>
+                {riderData?.is_available && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70" />}
+                <span className={`relative inline-flex h-2 w-2 rounded-full ${riderData?.is_available ? "bg-success" : "bg-muted-foreground"}`} />
+              </span>
+              {riderData?.is_available ? "آن لائن" : "آف لائن"}
+            </span>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { signOut(); navigate("/"); }}>
             <LogOut className="h-4 w-4" />

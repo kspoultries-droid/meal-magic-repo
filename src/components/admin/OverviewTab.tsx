@@ -17,6 +17,7 @@ interface Overview {
   stuck_orders: number;
   unassigned_orders: number;
   riders_online: number;
+  riders_present: number;
   riders_total: number;
   shops_closed: number;
   shops_total: number;
@@ -58,8 +59,10 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
       .channel("admin-overview-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "riders" }, () => load())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const timer = window.setInterval(() => load(), 60000);
+    return () => { supabase.removeChannel(channel); window.clearInterval(timer); };
   }, [load]);
 
   const chart = useMemo(
@@ -108,7 +111,7 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
         { label: "آج کی سیل", value: `Rs ${Math.round(Number(data.gross_today))}`, sub: `کمیشن Rs ${Math.round(Number(data.commission_today))}`, icon: Wallet, tone: "text-primary", section: "finance", subTab: "revenue" },
         { label: "زیرِ عمل آرڈرز", value: `${data.pending_orders}`, sub: `بغیر رائیڈر ${data.unassigned_orders}`, icon: RefreshCw, tone: "text-foreground", section: "operations", subTab: "orders" },
         { label: "رُکے ہوئے آرڈرز", value: `${data.stuck_orders}`, sub: "45 منٹ سے زیادہ", icon: AlertTriangle, tone: data.stuck_orders ? "text-destructive" : "text-muted-foreground", section: "operations", subTab: "grocery-dispatch" },
-        { label: "آن لائن رائیڈرز", value: `${data.riders_online}/${data.riders_total}`, sub: "ابھی دستیاب", icon: Bike, tone: "text-success", section: "partners", subTab: "riders" },
+        { label: "رائیڈرز (حاضر/آن لائن)", value: `${data.riders_present ?? 0}/${data.riders_online}`, sub: `کل رجسٹرڈ ${data.riders_total} • حاضری 3 منٹ`, icon: Bike, tone: (data.riders_present ?? 0) ? "text-success" : "text-muted-foreground", section: "partners", subTab: "riders" },
         { label: "بند دکانیں", value: `${data.shops_closed}/${data.shops_total}`, sub: "ریسٹورنٹس", icon: Store, tone: "text-foreground", section: "partners", subTab: "restaurants" },
         { label: "نئی درخواستیں", value: `${data.pending_applications}`, sub: "منظوری کی منتظر", icon: Store, tone: data.pending_applications ? "text-warning" : "text-muted-foreground", section: "partners", subTab: "applications" },
         { label: "زیرِ التوا ادائیگیاں", value: `${Number(data.pending_payouts) + Number(data.pending_remittances)}`, sub: `سلپس ${data.pending_remittances}`, icon: Wallet, tone: "text-foreground", section: "finance", subTab: "payouts" },

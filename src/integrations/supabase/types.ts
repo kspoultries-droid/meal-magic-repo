@@ -2476,6 +2476,7 @@ export type Database = {
           id: string
           is_available: boolean | null
           is_suspended: boolean
+          last_seen_at: string | null
           offers_accepted: number
           offers_received: number
           rating: number
@@ -2495,6 +2496,7 @@ export type Database = {
           id: string
           is_available?: boolean | null
           is_suspended?: boolean
+          last_seen_at?: string | null
           offers_accepted?: number
           offers_received?: number
           rating?: number
@@ -2514,6 +2516,7 @@ export type Database = {
           id?: string
           is_available?: boolean | null
           is_suspended?: boolean
+          last_seen_at?: string | null
           offers_accepted?: number
           offers_received?: number
           rating?: number
@@ -3564,6 +3567,7 @@ export type Database = {
         Returns: undefined
       }
       rider_cash_due: { Args: { _rider: string }; Returns: number }
+      rider_heartbeat: { Args: never; Returns: undefined }
       validate_voucher: {
         Args: { _code: string; _scope: string; _subtotal: number }
         Returns: Json
