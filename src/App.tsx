@@ -213,6 +213,7 @@ const App = () => (
         </TooltipProvider>
       </CartProvider>
     </AuthProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 
