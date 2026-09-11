@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
@@ -40,6 +41,7 @@ const OIL_COMPANIES = [
 ];
 
 const Services = () => {
+  const { t } = useLanguage();
   const [categories, setCategories] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -213,11 +215,11 @@ const Services = () => {
       (pos) => {
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setLocatingUser(false);
-        toast.success("📍 لوکیشن مل گئی!");
+        toast.success("📍 " + t("services.locationFound"));
       },
       () => {
         setLocatingUser(false);
-        toast.error("لوکیشن نہیں مل سکی");
+        toast.error(t("services.locationFailed"));
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -234,16 +236,16 @@ const Services = () => {
 
   const handleBook = async () => {
     if (!user) {
-      toast.error("Please login first / پہلے لاگ ان کریں");
+      toast.error(t("services.loginFirst"));
       navigate("/auth");
       return;
     }
     if (!bookingDate || !bookingTime || !bookingAddress.trim()) {
-      toast.error("Fill all fields / تمام فیلڈز بھریں");
+      toast.error(t("services.fillFields"));
       return;
     }
     if (isOilChange && (!carModel || !oilCompany)) {
-      toast.error("Car model aur oil company select karein / گاڑی کا ماڈل اور آئل کمپنی منتخب کریں");
+      toast.error(t("services.selectCarOil"));
       return;
     }
     setSubmitting(true);
@@ -258,7 +260,7 @@ const Services = () => {
     });
     setSubmitting(false);
     if (error) {
-      toast.error("Booking failed / بکنگ میں مسئلہ آیا");
+      toast.error(t("services.bookingFailed"));
       console.error(error);
     } else {
       toast.success("Booking successful! Advance fee: Rs " + advanceFee + " / بکنگ کامیاب! ایڈوانس فیس: Rs " + advanceFee + " ✅");
@@ -401,7 +403,7 @@ const Services = () => {
         <h2 ref={servicesRef} className="text-lg font-extrabold text-foreground mb-3 scroll-mt-2">
           {activeCategory
             ? `${categories.find((c) => c.id === activeCategory)?.name || ""} Services / سروسز`
-            : "All Services / تمام سروسز"}
+            : t("services.all")}
         </h2>
         {loading ? (
           <p className="text-center text-muted-foreground py-8">Loading... / لوڈ ہو رہا ہے...</p>
@@ -465,7 +467,7 @@ const Services = () => {
                     )}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-500" /> {service.rating || "New / نیا"}
+                        <Star className="w-3 h-3 text-yellow-500" /> {service.rating || t("services.new")}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" /> {service.duration}
@@ -495,11 +497,11 @@ const Services = () => {
           <div className="space-y-2">
             {allBookings.map((b) => {
               const statusMap: Record<string, { label: string; color: string; emoji: string }> = {
-                pending: { label: "زیر غور / Pending", color: "text-yellow-600 bg-yellow-50", emoji: "⏳" },
-                confirmed: { label: "تصدیق شدہ / Confirmed ✅", color: "text-green-600 bg-green-50", emoji: "✅" },
-                in_progress: { label: "جاری ہے / In Progress", color: "text-blue-600 bg-blue-50", emoji: "🔧" },
-                completed: { label: "مکمل / Completed", color: "text-primary bg-primary/10", emoji: "🎉" },
-                cancelled: { label: "منسوخ / Cancelled", color: "text-destructive bg-destructive/10", emoji: "❌" },
+                pending: { label: t("services.statusPending"), color: "text-yellow-600 bg-yellow-50", emoji: "⏳" },
+                confirmed: { label: t("services.statusConfirmed"), color: "text-green-600 bg-green-50", emoji: "✅" },
+                in_progress: { label: t("services.statusInProgress"), color: "text-blue-600 bg-blue-50", emoji: "🔧" },
+                completed: { label: t("services.statusCompleted"), color: "text-primary bg-primary/10", emoji: "🎉" },
+                cancelled: { label: t("services.statusCancelled"), color: "text-destructive bg-destructive/10", emoji: "❌" },
               };
               const st = statusMap[b.status] || statusMap.pending;
               return (
@@ -544,7 +546,7 @@ const Services = () => {
                 className="w-full flex items-center justify-between bg-card rounded-2xl p-4 border hover:shadow-md transition-shadow text-left"
               >
                 <div>
-                  <p className="font-bold text-foreground text-sm">{b.services?.name || "Service / سروس"}</p>
+                  <p className="font-bold text-foreground text-sm">{b.services?.name || t("services.service")}</p>
                   <p className="text-xs text-muted-foreground">{b.scheduled_date}</p>
                 </div>
                 <span className="text-xs font-bold text-primary">Rate Now / ریٹنگ دیں →</span>
@@ -566,7 +568,7 @@ const Services = () => {
             className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors"
           >
             <LocateFixed className={`w-3.5 h-3.5 ${locatingUser ? "animate-spin" : ""}`} />
-            {userLocation ? "Update / تازہ" : "Locate Me / لوکیشن"}
+            {userLocation ? t("services.updateLocation") : t("services.locate")}
           </button>
         </div>
 
@@ -661,7 +663,7 @@ const Services = () => {
               {isCarService && (
                 <div>
                   <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
-                    <Car className="w-4 h-4" /> Car Model / گاڑی کا ماڈل {isOilChange && <span className="text-destructive">*</span>}
+                    <Car className="w-4 h-4" /> {t("services.carModel")} {isOilChange && <span className="text-destructive">*</span>}
                   </label>
                   <select
                     value={carModel}
@@ -739,7 +741,7 @@ const Services = () => {
                 <textarea
                   value={bookingAddress}
                   onChange={(e) => setBookingAddress(e.target.value)}
-                  placeholder="Enter full address / مکمل پتہ لکھیں..."
+                  placeholder={t("services.addressPlaceholder")}
                   rows={2}
                   className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm resize-none"
                 />
@@ -752,7 +754,7 @@ const Services = () => {
                   type="text"
                   value={bookingNotes}
                   onChange={(e) => setBookingNotes(e.target.value)}
-                  placeholder="Special instructions / کوئی خاص ہدایت..."
+                  placeholder={t("services.notesPlaceholder")}
                   className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm"
                 />
               </div>
@@ -779,7 +781,7 @@ const Services = () => {
                 onClick={handleBook}
                 disabled={submitting}
               >
-                {submitting ? "Booking... / بکنگ ہو رہی ہے..." : `Book Now — Total Rs ${selectedService.price} (Advance Rs ${advanceFee})`}
+                {submitting ? t("services.booking") : `Book Now — Total Rs ${selectedService.price} (Advance Rs ${advanceFee})`}
               </Button>
             </div>
           )}

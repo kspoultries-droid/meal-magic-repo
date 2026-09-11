@@ -5,6 +5,7 @@ import HeroEditor from "@/components/common/HeroEditor";
 import { useHeroSettings } from "@/hooks/useHeroSettings";
 import { bazarHeroDefaults, heroBackgroundStyle } from "@/lib/heroConfig";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   searchQuery: string;
@@ -13,6 +14,7 @@ interface Props {
 
 const BazarHero = ({ searchQuery, onSearchChange }: Props) => {
   const { isAdmin } = useAuth();
+  const { t } = useLanguage();
   const { config, save } = useHeroSettings("hero_bazar", bazarHeroDefaults);
 
   return (
@@ -22,7 +24,7 @@ const BazarHero = ({ searchQuery, onSearchChange }: Props) => {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs font-semibold opacity-75">
               <MapPin className="size-3.5 shrink-0" style={{ color: config.accentColor }} />
-              <span>پاکستان بھر سے ہول سیل خریداری</span>
+              <span>{t("bazar.heroLocation")}</span>
             </div>
             {isAdmin && <HeroEditor config={config} defaults={bazarHeroDefaults} onSave={save} />}
           </div>
@@ -36,7 +38,7 @@ const BazarHero = ({ searchQuery, onSearchChange }: Props) => {
           <label className="mt-4 flex h-11 min-w-0 items-center gap-2 rounded-xl border border-border/80 bg-card px-3 shadow-elegant focus-within:ring-2 focus-within:ring-ring">
             <Search className="size-5 shrink-0 text-muted-foreground" />
             <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={config.searchPlaceholder} className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
-            <Button type="button" size="sm" className="hidden shrink-0 sm:inline-flex">تلاش کریں <ArrowRight className="size-3.5" /></Button>
+            <Button type="button" size="sm" className="hidden shrink-0 sm:inline-flex">{t("bazar.search")} <ArrowRight className="size-3.5" /></Button>
           </label>
         </div>
       </div>
