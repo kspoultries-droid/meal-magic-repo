@@ -25,13 +25,13 @@ const vibrate = (pattern: number[] = [300, 120, 300, 120, 500]) => {
   try { navigator.vibrate?.(pattern); } catch { /* not supported */ }
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  confirmed: "ریسٹورنٹ نے قبول کیا",
-  preparing: "تیار ہو رہا ہے",
-  delivering: "ڈلیوری جاری",
-  delivered: "مکمل",
-  completed: "مکمل",
-  cancelled: "منسوخ",
+const STATUS_KEY: Record<string, string> = {
+  confirmed: "rider.statusConfirmed",
+  preparing: "rider.statusPreparing",
+  delivering: "rider.statusDelivering",
+  delivered: "rider.statusDone",
+  completed: "rider.statusDone",
+  cancelled: "rider.statusCancelled",
 };
 
 const RiderDashboard = () => {
@@ -87,14 +87,14 @@ const RiderDashboard = () => {
 
   useEffect(() => {
     if (!hasRole || !user || !isOnline) return;
-    if (!navigator.geolocation) { setLocationStatus("آپ کا براؤزر لوکیشن سپورٹ نہیں کرتا"); return; }
+    if (!navigator.geolocation) { setLocationStatus(t("rider.noGeo")); return; }
     const watchId = navigator.geolocation.watchPosition(
       (pos) => { setLocationStatus(""); updateLocation(pos.coords.latitude, pos.coords.longitude); },
-      () => setLocationStatus("لوکیشن اجازت دیں — GPS آن کریں"),
+      () => setLocationStatus(t("rider.locationDenied")),
       { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [hasRole, user, isOnline, updateLocation]);
+  }, [hasRole, user, isOnline, updateLocation, t]);
 
   const ensureRiderProfile = async () => {
     if (!user) return null;
@@ -140,8 +140,8 @@ const RiderDashboard = () => {
     });
     setMyOrders(sortedAssigned);
     const grocery = [
-      ...(gCart || []).map((o: any) => ({ ...o, _table: "grocery_cart_orders" as const, _kind: "grocery_cart", _label: "گروسری کارٹ" })),
-      ...(gList || []).map((o: any) => ({ ...o, _table: "grocery_list_orders" as const, _kind: "grocery_list", _label: "لسٹ/فوٹو آرڈر" })),
+      ...(gCart || []).map((o: any) => ({ ...o, _table: "grocery_cart_orders" as const, _kind: "grocery_cart", _label: t("rider.groceryCart") })),
+      ...(gList || []).map((o: any) => ({ ...o, _table: "grocery_list_orders" as const, _kind: "grocery_list", _label: t("rider.listOrder") })),
     ].sort((a, b) => {
       const aClosed = CLOSED.includes(a.status) ? 1 : 0;
       const bClosed = CLOSED.includes(b.status) ? 1 : 0;
@@ -220,7 +220,7 @@ const RiderDashboard = () => {
       toast.error(error.message);
       return;
     }
-    toast.success(next ? "آپ آن لائن ہو گئے" : "آپ آف لائن ہو گئے");
+    toast.success(next ? t("rider.wentOnline") : t("rider.wentOffline"));
     fetchData(false);
   };
 
@@ -229,25 +229,25 @@ const RiderDashboard = () => {
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const path = `${user.id}/${order.id}-${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("delivery-proofs").upload(path, file);
-    if (error) { toast.error("تصویر اپلوڈ ناکام: " + error.message); return; }
+    if (error) { toast.error(t("rider.uploadFailed") + ": " + error.message); return; }
     const { error: updErr } = await supabase.from("orders").update({ delivery_proof_path: path } as any).eq("id", order.id);
     if (updErr) { toast.error(updErr.message); return; }
-    toast.success("ڈلیوری کی تصویر محفوظ ہو گئی 📷");
+    toast.success(t("rider.proofSaved"));
     fetchData(false);
   };
 
   const markDelivered = async (order: any) => {
-    if (order.status !== "delivering") { toast.error("ریسٹورنٹ کے 'بھیجا' کرنے کے بعد ہی Delivered ہو گا"); return; }
+    if (order.status !== "delivering") { toast.error(t("rider.onlyAfterSent")); return; }
     const { error } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id);
     if (error) { toast.error(error.message); return; }
-    toast.success("ڈلیور ہو گیا ✅");
+    toast.success(t("rider.markDelivered"));
     fetchData(false);
   };
 
   const markGroceryDelivered = async (order: any) => {
     const { error } = await supabase.from(order._table).update({ status: "delivered" }).eq("id", order.id);
     if (error) { toast.error(error.message); return; }
-    toast.success("گروسری آرڈر ڈلیور ہو گیا ✅");
+    toast.success(t("rider.groceryDelivered"));
     fetchData(false);
   };
 
@@ -265,17 +265,17 @@ const RiderDashboard = () => {
     return (
       <div className="rounded-lg bg-primary/5 border border-primary/20 p-2.5 flex items-center justify-between gap-2 flex-wrap">
         <div className="text-xs">
-          <p className="font-extrabold text-foreground">{c.name || "کسٹمر"}</p>
+          <p className="font-extrabold text-foreground">{c.name || t("rider.customer")}</p>
           {c.phone && <p className="text-muted-foreground font-mono">{c.phone}</p>}
         </div>
         {c.phone && (
           <div className="flex gap-1.5">
             <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-[11px] font-bold">
-              <Phone className="w-3 h-3" /> کال
+              <Phone className="w-3 h-3" /> {t("rider.call")}
             </a>
             {wa && (
               <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full bg-success text-success-foreground px-3 py-1.5 text-[11px] font-bold">
-                <MessageCircle className="w-3 h-3" /> واٹس ایپ
+                <MessageCircle className="w-3 h-3" /> {t("rider.whatsapp")}
               </a>
             )}
           </div>
@@ -284,16 +284,16 @@ const RiderDashboard = () => {
     );
   };
 
-  if (loading || hasRole === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (loading || hasRole === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
 
   if (!hasRole) return (
     <div className="min-h-screen flex items-center justify-center">
       <Card className="max-w-md">
         <CardContent className="p-8 text-center">
           <Bike className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-xl font-bold mb-2">آپ رائیڈر نہیں ہیں</h2>
-          <p className="text-muted-foreground mb-4">ایڈمن سے رائیڈر کا رول حاصل کریں</p>
-          <Button variant="outline" onClick={() => navigate("/")}>واپس جائیں</Button>
+          <h2 className="text-xl font-bold mb-2">{t("rider.notRider")}</h2>
+          <p className="text-muted-foreground mb-4">{t("rider.askAdminRole")}</p>
+          <Button variant="outline" onClick={() => navigate("/")}>{t("rider.goBack")}</Button>
         </CardContent>
       </Card>
     </div>
@@ -317,13 +317,13 @@ const RiderDashboard = () => {
   const activeFoodOrders = myOrders.filter((order) => !CLOSED.includes(order.status));
   const activeGroceryOrders = groceryOrders.filter((order) => !CLOSED.includes(order.status));
   const completedOrders = [
-    ...myOrders.filter((order) => CLOSED.includes(order.status) && inSelectedRange(order)).map((order) => ({ ...order, _historyLabel: "فوڈ" })),
+    ...myOrders.filter((order) => CLOSED.includes(order.status) && inSelectedRange(order)).map((order) => ({ ...order, _historyLabel: t("rider.food") })),
     ...groceryOrders.filter((order) => CLOSED.includes(order.status) && inSelectedRange(order)).map((order) => ({ ...order, _historyLabel: order._label })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="نیا آرڈر آپ کو اسائن ہوا!" />
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label={t("rider.newOrderAssigned")} />
 
       {/* Compact header */}
       <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur px-3 py-2.5 flex items-center justify-between gap-2">
@@ -343,7 +343,7 @@ const RiderDashboard = () => {
                 {riderData?.is_available && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70" />}
                 <span className={`relative inline-flex h-2 w-2 rounded-full ${riderData?.is_available ? "bg-success" : "bg-muted-foreground"}`} />
               </span>
-              {riderData?.is_available ? "آن لائن" : "آف لائن"}
+              {riderData?.is_available ? t("common.online") : t("common.offline")}
             </span>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { signOut(); navigate("/"); }}>
@@ -359,7 +359,7 @@ const RiderDashboard = () => {
             <span className="text-xs text-warning font-bold">{locationStatus}</span>
           </div>
         ) : locationOk ? (
-          <p className="text-[10px] text-muted-foreground text-center">📍 لوکیشن شیئر ہو رہی ہے</p>
+          <p className="text-[10px] text-muted-foreground text-center">{t("rider.sharingLocation")}</p>
         ) : null}
 
         {user && <RiderOfferCard riderId={user.id} onChanged={() => fetchData(false)} />}
@@ -367,18 +367,18 @@ const RiderDashboard = () => {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="orders" className="text-xs font-extrabold">
-              آرڈرز{activeFoodOrders.length + activeGroceryOrders.length > 0 ? ` (${activeFoodOrders.length + activeGroceryOrders.length})` : ""}
+              {t("common.orders")}{activeFoodOrders.length + activeGroceryOrders.length > 0 ? ` (${activeFoodOrders.length + activeGroceryOrders.length})` : ""}
             </TabsTrigger>
-            <TabsTrigger value="history" className="text-xs font-extrabold">ہسٹری</TabsTrigger>
-            <TabsTrigger value="performance" className="text-xs font-extrabold">کارکردگی</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs font-extrabold">{t("common.history")}</TabsTrigger>
+            <TabsTrigger value="performance" className="text-xs font-extrabold">{t("common.performance")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders" className="mt-3 space-y-3">
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: "چل رہے آرڈر", value: activeFoodOrders.length + activeGroceryOrders.length, cls: "text-primary" },
-                { label: "آج ڈلیوری", value: summary?.today_deliveries ?? 0, cls: "text-foreground" },
-                { label: "آج کی کمائی", value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-success" },
+                { label: t("rider.activeOrders"), value: activeFoodOrders.length + activeGroceryOrders.length, cls: "text-primary" },
+                { label: t("rider.todayDeliveries"), value: summary?.today_deliveries ?? 0, cls: "text-foreground" },
+                { label: t("rider.todayEarnings"), value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-success" },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl border bg-card px-1.5 py-2 text-center">
                   <p className="text-[9px] text-muted-foreground leading-tight">{s.label}</p>
@@ -391,12 +391,12 @@ const RiderDashboard = () => {
         {/* My assigned food orders */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between py-3">
-            <CardTitle className="text-base flex items-center gap-2"><Package className="w-4 h-4" /> میرے آرڈرز</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Package className="w-4 h-4" /> {t("rider.myOrders")}</CardTitle>
             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => fetchData(false)}><RefreshCw className="h-3.5 w-3.5" /></Button>
           </CardHeader>
           <CardContent className="pt-0">
-            {loadingData ? <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے...</p> : activeFoodOrders.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-6">ابھی کوئی آرڈر اسائن نہیں ہوا</p>
+            {loadingData ? <p className="text-sm text-muted-foreground">{t("common.loading")}</p> : activeFoodOrders.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-6">{t("rider.noAssigned")}</p>
             ) : (
               <div className="space-y-2.5">
                 {activeFoodOrders.map((o) => {
@@ -412,14 +412,14 @@ const RiderDashboard = () => {
                           <p className="font-extrabold">Rs {o.total_amount}</p>
                         </div>
                         <Badge className={isClosed && o.status !== "cancelled" ? "bg-success text-success-foreground" : o.status === "cancelled" ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"}>
-                          {STATUS_LABEL[o.status] || o.status}
+                          {STATUS_KEY[o.status] ? t(STATUS_KEY[o.status] as any) : o.status}
                         </Badge>
                       </div>
 
                       {!isClosed && (
                         <div className="flex items-center gap-2 flex-wrap">
                           <ContactStrip id={o.id} />
-                          <OrderChat orderId={o.id} orderKind="food" role="rider" label="کسٹمر سے چیٹ" />
+                          <OrderChat orderId={o.id} orderKind="food" role="rider" label={t("rider.chatCustomer")} />
                         </div>
                       )}
 
@@ -427,13 +427,13 @@ const RiderDashboard = () => {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="rounded-lg bg-background/70 border p-2">
                           <p className="text-[10px] font-bold text-muted-foreground">Pickup</p>
-                          <p className="font-bold truncate">{o.restaurants?.name || "ریسٹورنٹ"}</p>
-                          {pickupMap && <a href={pickupMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary font-bold mt-1"><Navigation className="w-3 h-3" /> نقشہ</a>}
+                          <p className="font-bold truncate">{o.restaurants?.name || t("rider.restaurant")}</p>
+                          {pickupMap && <a href={pickupMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary font-bold mt-1"><Navigation className="w-3 h-3" /> {t("rider.map")}</a>}
                         </div>
                         <div className="rounded-lg bg-background/70 border p-2">
                           <p className="text-[10px] font-bold text-muted-foreground">Dropoff</p>
-                          <p className="truncate">{o.delivery_address || "پتہ نہیں"}</p>
-                          {dropoffMap && <a href={dropoffMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary font-bold mt-1"><Navigation className="w-3 h-3" /> نقشہ</a>}
+                          <p className="truncate">{o.delivery_address || t("rider.noAddress")}</p>
+                          {dropoffMap && <a href={dropoffMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary font-bold mt-1"><Navigation className="w-3 h-3" /> {t("rider.map")}</a>}
                         </div>
                       </div>
 
@@ -448,7 +448,7 @@ const RiderDashboard = () => {
                       {o.status === "delivering" && (
                         <div className="space-y-1.5">
                           <label className="flex h-9 w-full cursor-pointer items-center justify-center rounded-md border border-dashed text-[11px] font-bold text-muted-foreground hover:bg-muted">
-                            {o.delivery_proof_path ? "📷 تصویر لگ چکی — بدلیں" : "📷 ڈلیوری کی تصویر لگائیں"}
+                            {o.delivery_proof_path ? t("rider.proofChange") : t("rider.proofAdd")}
                             <input
                               type="file"
                               accept="image/*"
@@ -462,7 +462,7 @@ const RiderDashboard = () => {
                             />
                           </label>
                           <Button size="sm" className="w-full h-9 text-xs font-extrabold" onClick={() => markDelivered(o)}>
-                            ڈلیور ہو گیا ✅
+                            {t("rider.markDelivered")}
                           </Button>
                         </div>
                       )}
@@ -477,11 +477,11 @@ const RiderDashboard = () => {
         {/* Grocery / Bazar */}
         <Card>
           <CardHeader className="py-3">
-            <CardTitle className="text-base flex items-center gap-2"><Package className="w-4 h-4" /> گروسری / بازار آرڈرز</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Package className="w-4 h-4" /> {t("rider.groceryOrders")}</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             {activeGroceryOrders.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-6">ابھی کوئی گروسری آرڈر اسائن نہیں ہوا</p>
+              <p className="text-center text-sm text-muted-foreground py-6">{t("rider.noGroceryAssigned")}</p>
             ) : (
               <div className="space-y-2.5">
                 {activeGroceryOrders.map((o) => {
@@ -508,16 +508,16 @@ const RiderDashboard = () => {
                             orderId={o.id}
                             orderKind={o._table === "grocery_list_orders" ? "grocery_list" : "grocery"}
                             role="rider"
-                            label="کسٹمر سے چیٹ"
+                            label={t("rider.chatCustomer")}
                           />
                         </div>
                       )}
 
 
                       <div className="text-xs text-muted-foreground space-y-0.5">
-                        <p>🏪 {o.grocery_stores?.name || "اسٹور"}</p>
-                        <p>📍 {o.delivery_address || "پتہ نہیں"}</p>
-                        <p>💰 ڈلیوری فیس (EasyLife کی): Rs {o.delivery_fee || 0}</p>
+                        <p>🏪 {o.grocery_stores?.name || t("rider.store")}</p>
+                        <p>📍 {o.delivery_address || t("rider.noAddress")}</p>
+                        <p>💰 {t("rider.deliveryFeeNote")}: Rs {o.delivery_fee || 0}</p>
                       </div>
 
                       {items.length > 0 && (
@@ -531,11 +531,11 @@ const RiderDashboard = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         {dropoff && (
                           <a href={dropoff} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary font-bold">
-                            <Navigation className="w-3 h-3" /> نقشہ
+                            <Navigation className="w-3 h-3" /> {t("rider.map")}
                           </a>
                         )}
                         {!isClosed && (
-                          <Button size="sm" className="h-8 text-xs ml-auto" onClick={() => markGroceryDelivered(o)}>ڈلیور ہو گیا</Button>
+                          <Button size="sm" className="h-8 text-xs ml-auto" onClick={() => markGroceryDelivered(o)}>{t("rider.markDelivered")}</Button>
                         )}
                       </div>
                     </div>
@@ -549,26 +549,26 @@ const RiderDashboard = () => {
 
           <TabsContent value="history" className="mt-3 space-y-3">
             <div className="rounded-xl border bg-card p-3 space-y-2">
-              <p className="text-xs font-extrabold">آرڈر ہسٹری کا دن</p>
+              <p className="text-xs font-extrabold">{t("rider.historyDay")}</p>
               <div className="grid grid-cols-4 gap-1">
-                {([['today', 'آج'], ['yesterday', 'کل'], ['week', '7 دن'], ['custom', 'تاریخ']] as const).map(([value, label]) => (
+                {([['today', t("rider.today")], ['yesterday', t("rider.yesterday")], ['week', t("rider.sevenDays")], ['custom', t("rider.customDate")]] as const).map(([value, label]) => (
                   <Button key={value} size="sm" variant={dateFilter === value ? "default" : "outline"} className="h-8 px-1 text-[11px]" onClick={() => setDateFilter(value)}>{label}</Button>
                 ))}
               </div>
-              {dateFilter === "custom" && <input aria-label="آرڈر کی تاریخ" type="date" value={customDate} onChange={(event) => setCustomDate(event.target.value)} className="h-9 w-full rounded-md border bg-background px-3 text-xs" />}
+              {dateFilter === "custom" && <input aria-label={t("rider.customDate")} type="date" value={customDate} onChange={(event) => setCustomDate(event.target.value)} className="h-9 w-full rounded-md border bg-background px-3 text-xs" />}
             </div>
 
             <Card>
               <button className="flex w-full items-center justify-between p-4 text-right" onClick={() => setShowCompleted((open) => !open)} aria-expanded={showCompleted}>
-                <span className="text-sm font-extrabold">مکمل آرڈرز — {completedOrders.length}</span>
+                <span className="text-sm font-extrabold">{t("rider.completedOrders")} — {completedOrders.length}</span>
                 {showCompleted ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
               {showCompleted && (
                 <CardContent className="space-y-2 pt-0">
-                  {completedOrders.length === 0 ? <p className="py-4 text-center text-xs text-muted-foreground">منتخب دن میں کوئی مکمل آرڈر نہیں</p> : completedOrders.map((order) => (
+                  {completedOrders.length === 0 ? <p className="py-4 text-center text-xs text-muted-foreground">{t("rider.noCompleted")}</p> : completedOrders.map((order) => (
                     <div key={`${order._table || 'food'}-${order.id}`} className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs">
                       <div><p className="font-bold">#{order.id.slice(0, 8)} · {order._historyLabel}</p><p className="text-[10px] text-muted-foreground">{new Date(order.created_at).toLocaleString("ur-PK")}</p></div>
-                      <div className="text-left"><Badge variant={order.status === "cancelled" ? "destructive" : "secondary"}>{STATUS_LABEL[order.status] || order.status}</Badge><p className="mt-1 font-bold">Rs {order.total_amount ?? "—"}</p></div>
+                      <div className="text-left"><Badge variant={order.status === "cancelled" ? "destructive" : "secondary"}>{STATUS_KEY[order.status] ? t(STATUS_KEY[order.status] as any) : order.status}</Badge><p className="mt-1 font-bold">Rs {order.total_amount ?? "—"}</p></div>
                     </div>
                   ))}
                 </CardContent>
@@ -581,10 +581,10 @@ const RiderDashboard = () => {
           <TabsContent value="performance" className="mt-3 space-y-3">
             <div className="grid grid-cols-4 gap-2">
               {[
-                { label: "آج ڈلیوری", value: summary?.today_deliveries ?? 0, cls: "text-foreground" },
-                { label: "آج کی کمائی", value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-primary" },
-                { label: "کل کمائی", value: `Rs ${Math.round(Number(summary?.total_earnings ?? 0))}`, cls: "text-success" },
-                { label: "جمع کرانی رقم", value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
+                { label: t("rider.todayDeliveries"), value: summary?.today_deliveries ?? 0, cls: "text-foreground" },
+                { label: t("rider.todayEarnings"), value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-primary" },
+                { label: t("rider.totalEarnings"), value: `Rs ${Math.round(Number(summary?.total_earnings ?? 0))}`, cls: "text-success" },
+                { label: t("rider.cashDue"), value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
                   <p className="text-[9px] text-muted-foreground leading-tight">{s.label}</p>
@@ -593,16 +593,16 @@ const RiderDashboard = () => {
               ))}
             </div>
             <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
-              نوٹ: وصول کی گئی پوری رقم (ڈیلیوری فیس سمیت) EasyLife کو جمع کرانی ہے۔ آپ کی کمائی تنخواہ / فی آرڈر پلان کے مطابق الگ سے ادا کی جاتی ہے۔
+              {t("rider.remitNote")}
             </p>
             {Number(summary?.pending_remit ?? 0) > 0 && (
               <p className="text-[11px] text-warning font-bold text-center">
-                Rs {Math.round(Number(summary.pending_remit))} زیرِ تصدیق ہے
+                Rs {Math.round(Number(summary.pending_remit))} {t("rider.pendingRemit")}
               </p>
             )}
 
             <Button variant="outline" className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-payments")}>
-              <Wallet className="w-4 h-4 mr-1.5" /> پیمنٹ اور کمائی — رقم جمع کرائیں
+              <Wallet className="w-4 h-4 mr-1.5" /> {t("rider.paymentsButton")}
             </Button>
 
             {user && <RiderScore riderId={user.id} />}
