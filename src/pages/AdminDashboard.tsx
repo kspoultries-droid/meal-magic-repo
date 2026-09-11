@@ -569,7 +569,7 @@ const OrdersTab = () => {
       <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="آرڈر قبول ہوا — رائیڈر تفویض کریں!" />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>آرڈرز</CardTitle>
-        <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
+        <Button variant="outline" size="sm" onClick={() => fetchOrders()}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent>
 
