@@ -17,6 +17,7 @@ interface Overview {
   stuck_orders: number;
   unassigned_orders: number;
   riders_online: number;
+  riders_present: number;
   riders_total: number;
   shops_closed: number;
   shops_total: number;
