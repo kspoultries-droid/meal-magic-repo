@@ -15,10 +15,13 @@ import BottomTabBar from "@/components/BottomTabBar";
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 import CustomerGroceryHistory from "@/components/grocery/CustomerGroceryHistory";
 import AccountTile from "@/components/profile/AccountTile";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
@@ -185,7 +188,7 @@ const Profile = () => {
     return map[s] || "bg-muted text-muted-foreground";
   };
 
-  const statusLabel: Record<string, string> = { pending: "زیر التواء", confirmed: "تصدیق شدہ", preparing: "تیاری جاری", delivering: "ڈلیوری جاری", delivered: "مکمل ✅", cancelled: "منسوخ ❌" };
+  const statusLabel = (s: string) => t((`status.${s}`) as any, s);
 
   const refreshPartnerAccess = async () => {
     await refreshRoles();
@@ -193,17 +196,20 @@ const Profile = () => {
     toast.success("پارٹنر access تازہ ہو گیا");
   };
 
-  if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading", "…")}</div>;
 
   return (
     <div className="min-h-screen bg-background pb-20">
 
       {/* Header */}
       <div className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b px-4 h-14 flex items-center justify-between">
-        <h1 className="text-lg font-extrabold text-foreground">Account</h1>
-        <button className="p-2 rounded-full hover:bg-secondary">
-          <Settings className="w-5 h-5 text-muted-foreground" />
-        </button>
+        <h1 className="text-lg font-extrabold text-foreground">{t("profile.account")}</h1>
+        <div className="flex items-center gap-1">
+          <LanguageSwitcher />
+          <button className="p-2 rounded-full hover:bg-secondary">
+            <Settings className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
       {/* Profile Hero — Premium gradient card */}
@@ -219,7 +225,7 @@ const Profile = () => {
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-extrabold text-primary-foreground truncate">{profile?.full_name || user?.email?.split("@")[0] || "User"}</h2>
             <button onClick={() => setEditing(!editing)} className="text-xs text-primary-foreground/80 hover:text-primary-foreground underline underline-offset-2">
-              {editing ? "Cancel" : "View / edit profile"}
+              {editing ? t("profile.cancel") : t("profile.viewEdit")}
             </button>
             {user && (
               <div className="mt-1.5 flex items-center gap-2">
@@ -233,7 +239,7 @@ const Profile = () => {
                   }}
                   className="text-[10px] text-primary-foreground/90 hover:text-primary-foreground flex items-center gap-0.5"
                 >
-                  <Copy className="w-3 h-3" /> کاپی
+                  <Copy className="w-3 h-3" /> {t("profile.copy")}
                 </button>
               </div>
             )}
@@ -241,12 +247,12 @@ const Profile = () => {
         </div>
         {editing && (
           <div className="relative mt-4 space-y-3 bg-card/95 backdrop-blur-md rounded-2xl p-4 shadow-xl">
-            <Input placeholder="پورا نام" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-            <Input placeholder="فون نمبر" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            <Input type="email" placeholder="ای میل" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <Input placeholder="پتہ" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            <p className="text-[11px] text-muted-foreground">ای میل تبدیل کرنے پر تصدیقی لنک آپ کے نئے ای میل پر جائے گا</p>
-            <Button onClick={updateProfile} className="w-full">محفوظ کریں</Button>
+            <Input placeholder={t("profile.fullName")} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+            <Input placeholder={t("profile.phone")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <Input type="email" placeholder={t("profile.email")} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input placeholder={t("profile.address")} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <p className="text-[11px] text-muted-foreground">{t("profile.emailNote")}</p>
+            <Button onClick={updateProfile} className="w-full">{t("profile.save")}</Button>
           </div>
         )}
       </div>
@@ -254,27 +260,27 @@ const Profile = () => {
        {/* Quick Actions */}
        <div className="px-4 py-4">
          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-           <AccountTile icon={<ShoppingBag className="w-5 h-5" />} label="میرے آرڈرز" value={`${orders.length} آرڈرز`} active={showOrders} onClick={() => setShowOrders(!showOrders)} />
-           <AccountTile icon={<Heart className="w-5 h-5" />} label="پسندیدہ" value="محفوظ آئٹمز" onClick={() => toast.info("پسندیدہ آئٹمز جلد دستیاب ہوں گے")} />
-           <AccountTile icon={<MapPin className="w-5 h-5" />} label="محفوظ پتے" value={`${addresses.length || ""} پتے`} onClick={openAddresses} />
-           <AccountTile icon={<Wallet className="w-5 h-5" />} label="والیٹ" value="بیلنس دیکھیں" onClick={() => navigate("/wallet")} />
+           <AccountTile icon={<ShoppingBag className="w-5 h-5" />} label={t("profile.myOrders")} value={`${orders.length} ${t("profile.ordersCount")}`} active={showOrders} onClick={() => setShowOrders(!showOrders)} />
+           <AccountTile icon={<Heart className="w-5 h-5" />} label={t("profile.favorites")} value={t("profile.savedItems")} onClick={() => toast.info(t("profile.favSoon"))} />
+           <AccountTile icon={<MapPin className="w-5 h-5" />} label={t("profile.savedAddresses")} value={`${addresses.length || ""} ${t("profile.addressesWord")}`} onClick={openAddresses} />
+           <AccountTile icon={<Wallet className="w-5 h-5" />} label={t("profile.wallet")} value={t("profile.seeBalance")} onClick={() => navigate("/wallet")} />
          </div>
        </div>
 
       {/* Addresses Dialog */}
       <Dialog open={showAddresses} onOpenChange={setShowAddresses}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>محفوظ پتے / Saved Addresses</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("profile.savedAddresses")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             {addresses.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">ابھی کوئی محفوظ پتہ نہیں</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("profile.noSavedAddress")}</p>
             ) : addresses.map((a) => (
               <div key={a.id} className="p-3 rounded-xl border bg-card space-y-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-primary" />
                     <span className="font-semibold text-sm">{a.label}</span>
-                    {a.is_default && <Badge className="text-[10px]">ڈیفالٹ</Badge>}
+                    {a.is_default && <Badge className="text-[10px]">{t("profile.default")}</Badge>}
                   </div>
                   <div className="flex gap-1">
                     {!a.is_default && (
@@ -293,15 +299,15 @@ const Profile = () => {
             ))}
 
             <div className="border-t pt-3 space-y-2">
-              <p className="text-sm font-semibold">نیا پتہ شامل کریں</p>
+              <p className="text-sm font-semibold">{t("profile.addAddress")}</p>
               <Input placeholder="Label (Home / Office / Other)" value={newAddr.label} onChange={(e) => setNewAddr({ ...newAddr, label: e.target.value })} />
-              <Input placeholder="مکمل پتہ" value={newAddr.address} onChange={(e) => setNewAddr({ ...newAddr, address: e.target.value })} />
+              <Input placeholder={t("profile.fullAddress")} value={newAddr.address} onChange={(e) => setNewAddr({ ...newAddr, address: e.target.value })} />
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={useMyLocation} disabled={locBusy} className="flex-1">
-                  <Navigation className="w-4 h-4 mr-1" /> {locBusy ? "..." : "میری لوکیشن استعمال کریں"}
+                  <Navigation className="w-4 h-4 mr-1" /> {locBusy ? "..." : t("profile.useLocation")}
                 </Button>
                 <Button onClick={saveAddress} className="flex-1">
-                  <Plus className="w-4 h-4 mr-1" /> محفوظ کریں
+                  <Plus className="w-4 h-4 mr-1" /> {t("profile.save")}
                 </Button>
               </div>
               {newAddr.lat && <p className="text-[10px] text-primary font-mono">📍 {newAddr.lat.toFixed(4)}, {newAddr.lng.toFixed(4)}</p>}
@@ -314,7 +320,7 @@ const Profile = () => {
       {profile?.referral_code && (
         <div className="px-4 pb-2">
           <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
-            <span className="shrink-0 text-[11px] text-muted-foreground">ریفرل کوڈ</span>
+            <span className="shrink-0 text-[11px] text-muted-foreground">{t("profile.referralCode")}</span>
             <span className="min-w-0 flex-1 truncate font-mono text-sm font-extrabold tracking-widest text-primary">
               {profile.referral_code}
             </span>
@@ -335,7 +341,7 @@ const Profile = () => {
               }}
               className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground active:scale-95 transition-transform"
             >
-              شیئر
+              {t("profile.share")}
             </button>
           </div>
         </div>
@@ -344,10 +350,10 @@ const Profile = () => {
       {/* Orders Section (collapsible) */}
       {showOrders && (
         <div className="px-4 pb-4">
-          <h3 className="text-lg font-extrabold text-foreground mb-3">میرے آرڈرز</h3>
+          <h3 className="text-lg font-extrabold text-foreground mb-3">{t("profile.myOrders")}</h3>
           <div className="mb-4"><CustomerGroceryHistory /></div>
           {orders.length === 0 ? (
-            <p className="text-center text-muted-foreground py-6">کھانے کا کوئی آرڈر نہیں</p>
+            <p className="text-center text-muted-foreground py-6">{t("profile.noFoodOrders")}</p>
           ) : (
             <div className="space-y-3">
               {orders.map((o) => (
@@ -358,23 +364,23 @@ const Profile = () => {
                       <p className="font-bold text-foreground">Rs {o.total_amount}</p>
                       <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</p>
                     </div>
-                    <Badge className={statusColor(o.status)}>{statusLabel[o.status] || o.status}</Badge>
+                    <Badge className={statusColor(o.status)}>{statusLabel(o.status)}</Badge>
                   </div>
                   {o.status !== "delivered" && o.status !== "cancelled" && (
                     <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => navigate(`/order-tracking/${o.id}`)}>
-                      ٹریک کریں 📍
+                      {t("profile.track")} 📍
                     </Button>
                   )}
                   {(o.status === "delivered" || o.status === "completed") && (
                     <Button size="sm" variant="outline" className="w-full mt-2 text-xs font-bold" onClick={() => setReviewOrder(o)}>
-                      رائے دیں ⭐
+                      {t("profile.review")} ⭐
                     </Button>
                   )}
                   {o.order_items?.length > 0 && (
                     <>
                       <button className="flex items-center gap-1 text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
                         {expandedOrder === o.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                        {expandedOrder === o.id ? "چھپائیں" : `آئٹمز (${o.order_items.length})`}
+                        {expandedOrder === o.id ? t("profile.hide") : `${t("profile.items")} (${o.order_items.length})`}
                       </button>
                       {expandedOrder === o.id && (
                         <div className="bg-secondary/30 rounded-xl p-3 space-y-1">
@@ -398,9 +404,9 @@ const Profile = () => {
       {/* Perks Section */}
       <div className="px-4 py-2">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-extrabold text-foreground">کام کا ڈیش بورڈ</h3>
+          <h3 className="text-lg font-extrabold text-foreground">{t("profile.workDashboard")}</h3>
           <Button size="sm" variant="outline" className="h-8 text-xs" onClick={refreshPartnerAccess}>
-            <RefreshCw className="w-3 h-3 mr-1" /> تازہ کریں
+            <RefreshCw className="w-3 h-3 mr-1" /> {t("profile.refresh")}
           </Button>
         </div>
         <div className="bg-card rounded-2xl border divide-y">
@@ -409,8 +415,8 @@ const Profile = () => {
               <div className="flex items-center gap-3 text-left">
                 <Bike className="w-5 h-5 text-primary" />
                 <div>
-                  <span className="text-sm font-bold text-foreground block">رائیڈر کام شروع کریں</span>
-                  <span className="text-[11px] text-muted-foreground">ڈیش بورڈ کھولیں، GPS اجازت دیں، پھر Online کریں</span>
+                  <span className="text-sm font-bold text-foreground block">{t("profile.riderStart")}</span>
+                  <span className="text-[11px] text-muted-foreground">{t("profile.riderStartSub")}</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -422,7 +428,7 @@ const Profile = () => {
                 <Store className="w-5 h-5 text-primary" />
                 <div>
                   <span className="text-sm font-bold text-foreground block">{restaurant.name}</span>
-                  <span className="text-[11px] text-muted-foreground">مینو، قیمتیں، timings اور آرڈرز manage کریں</span>
+                  <span className="text-[11px] text-muted-foreground">{t("profile.restaurantSub")}</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -434,7 +440,7 @@ const Profile = () => {
                 <Package className="w-5 h-5 text-primary" />
                 <div>
                   <span className="text-sm font-bold text-foreground block">{store.name}</span>
-                  <span className="text-[11px] text-muted-foreground">{store.store_type === "wholesale" ? "ہول سیل" : "گروسری"} پروڈکٹس، آفرز اور آرڈرز manage کریں</span>
+                  <span className="text-[11px] text-muted-foreground">{store.store_type === "wholesale" ? t("profile.wholesale") : t("profile.grocery")} — {t("profile.storeSub")}</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -446,7 +452,7 @@ const Profile = () => {
                 <Wrench className="w-5 h-5 text-primary" />
                 <div>
                   <span className="text-sm font-bold text-foreground block">{partnerAssets.serviceProvider.name}</span>
-                  <span className="text-[11px] text-muted-foreground">سروس بکنگز قبول کریں اور status update کریں</span>
+                  <span className="text-[11px] text-muted-foreground">{t("profile.serviceSub")}</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -456,7 +462,7 @@ const Profile = () => {
             <button onClick={() => navigate("/restaurant-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
               <div className="flex items-center gap-3">
                 <Pencil className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Restaurant Dashboard / دکانیں</span>
+                <span className="text-sm font-semibold text-foreground">{t("dash.restaurant", "Restaurant Dashboard")}</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -465,7 +471,7 @@ const Profile = () => {
             <button onClick={() => navigate("/rider-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
               <div className="flex items-center gap-3">
                 <Crown className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Rider Dashboard / Online کریں</span>
+                <span className="text-sm font-semibold text-foreground">{t("dash.rider", "Rider Dashboard")}</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -474,7 +480,7 @@ const Profile = () => {
             <button onClick={() => navigate("/admin")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
               <div className="flex items-center gap-3">
                 <Settings className="w-5 h-5 text-destructive" />
-                <span className="text-sm font-semibold text-foreground">Admin Dashboard</span>
+                <span className="text-sm font-semibold text-foreground">{t("dash.admin", "Admin Dashboard")}</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -483,7 +489,7 @@ const Profile = () => {
             <button onClick={() => navigate("/support-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
               <div className="flex items-center gap-3">
                 <Headphones className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Support Dashboard</span>
+                <span className="text-sm font-semibold text-foreground">{t("dash.support", "Support Dashboard")}</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -492,7 +498,7 @@ const Profile = () => {
             <button onClick={() => navigate("/mechanic-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
               <div className="flex items-center gap-3">
                 <Wrench className="w-5 h-5 text-orange-500" />
-                <span className="text-sm font-semibold text-foreground">Mechanic Dashboard</span>
+                <span className="text-sm font-semibold text-foreground">{t("dash.mechanic", "Mechanic Dashboard")}</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -500,14 +506,14 @@ const Profile = () => {
           <button onClick={() => navigate("/wallet")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
             <div className="flex items-center gap-3">
               <Wallet className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Wallet / والیٹ</span>
+              <span className="text-sm font-semibold text-foreground">{t("profile.wallet")}</span>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
           <button onClick={() => navigate("/partner")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors border-t">
             <div className="flex items-center gap-3">
               <Crown className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-foreground">🤝 پارٹنر بنیں / Become a Partner</span>
+              <span className="text-sm font-semibold text-foreground">🤝 {t("profile.becomePartner")}</span>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -537,7 +543,7 @@ const Profile = () => {
 
       {/* Fingerprint Registration */}
       <div className="px-4 py-2">
-        <h3 className="text-lg font-extrabold text-foreground mb-3">سیکیورٹی / Security</h3>
+        <h3 className="text-lg font-extrabold text-foreground mb-3">{t("profile.security")}</h3>
         <div className="bg-card rounded-2xl border divide-y">
           <button
             onClick={async () => {
@@ -592,8 +598,8 @@ const Profile = () => {
             <div className="flex items-center gap-3">
               <Fingerprint className="w-5 h-5 text-primary" />
               <div className="text-left">
-                <span className="text-sm font-semibold text-foreground block">فنگر پرنٹ رجسٹر کریں</span>
-                <span className="text-xs text-muted-foreground">Register Fingerprint for quick login</span>
+                <span className="text-sm font-semibold text-foreground block">{t("profile.registerFingerprint")}</span>
+                <span className="text-xs text-muted-foreground">{t("profile.fingerprintSub")}</span>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -609,23 +615,23 @@ const Profile = () => {
               variant="outline"
               className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
             >
-              <LogOut className="w-4 h-4 mr-2" /> لاگ آؤٹ
+              <LogOut className="w-4 h-4 mr-2" /> {t("profile.logout")}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>لاگ آؤٹ کریں؟ / Logout?</AlertDialogTitle>
+              <AlertDialogTitle>{t("profile.logoutQ")}</AlertDialogTitle>
               <AlertDialogDescription>
-                کیا آپ واقعی لاگ آؤٹ کرنا چاہتے ہیں؟ / Are you sure you want to logout?
+                {t("profile.logoutConfirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>نہیں / Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("profile.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={async () => { await signOut(); navigate("/"); }}
               >
-                ہاں، لاگ آؤٹ / Yes, Logout
+                {t("profile.yesLogout")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
