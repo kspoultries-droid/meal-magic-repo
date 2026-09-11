@@ -13,6 +13,7 @@ import BazarProductCard, { BazarProduct } from "@/components/wholesale/BazarProd
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import useBazarPrefs from "@/hooks/useBazarPrefs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const PAGE_SIZE = 60;
 const defaultFilters: BazarFilters = { sort: "featured", minPrice: "", maxPrice: "", minRating: "", size: "", color: "", discountOnly: false, nationwide: false, wishlistOnly: false };
@@ -37,6 +38,7 @@ const Wholesale = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const navigate = useNavigate();
   const { wishlist, recent, toggleWishlist, pushRecent } = useBazarPrefs();
+  const { t } = useLanguage();
 
   useEffect(() => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
@@ -77,15 +79,15 @@ const Wholesale = () => {
   const rail = (items: (BazarProduct & { variants?: unknown })[]) => <div dir="ltr" className="no-scrollbar flex w-full gap-2 overflow-x-auto px-3 pb-1 sm:px-6">{items.map((p) => <div dir="rtl" key={p.id}><BazarProductCard product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} /></div>)}</div>;
 
   return <div className="theme-bazar min-h-screen w-full overflow-x-hidden bg-background pb-20"><Navbar /><BazarHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-    {allCats.length > 0 && <section className="w-full px-3 py-2 sm:px-6"><div dir="ltr" className="no-scrollbar flex w-full gap-1.5 overflow-x-auto pb-1"><div dir="rtl"><Button variant={!activeCategory && !activeShopCategory ? "default" : "outline"} onClick={() => { setActiveCategory(null); setActiveShopCategory(null); }} className="h-8 shrink-0 rounded-lg px-2.5 text-[10px] font-bold">تمام</Button></div>{allCats.map((cat: any) => { const Icon = (LucideIcons as any)[cat.icon] || Package; const isShop = cat.kind === "shop"; const isActive = isShop ? activeShopCategory === cat.name : activeCategory === cat.name; return <div dir="rtl" key={cat.id}><Button variant={isActive ? "default" : "outline"} onClick={() => { if (isShop) { setActiveShopCategory(isActive ? null : cat.name); setActiveCategory(null); } else { setActiveCategory(isActive ? null : cat.name); setActiveShopCategory(null); } }} className="h-8 shrink-0 gap-1 rounded-lg px-2 text-[10px] font-semibold"><span className="grid size-5 place-items-center rounded-md bg-accent"><Icon className="size-3" /></span><span>{cat.name_ur || cat.name}</span></Button></div>; })}</div></section>}
+    {allCats.length > 0 && <section className="w-full px-3 py-2 sm:px-6"><div dir="ltr" className="no-scrollbar flex w-full gap-1.5 overflow-x-auto pb-1"><div dir="rtl"><Button variant={!activeCategory && !activeShopCategory ? "default" : "outline"} onClick={() => { setActiveCategory(null); setActiveShopCategory(null); }} className="h-8 shrink-0 rounded-lg px-2.5 text-[10px] font-bold">{t("bazar.all")}</Button></div>{allCats.map((cat: any) => { const Icon = (LucideIcons as any)[cat.icon] || Package; const isShop = cat.kind === "shop"; const isActive = isShop ? activeShopCategory === cat.name : activeCategory === cat.name; return <div dir="rtl" key={cat.id}><Button variant={isActive ? "default" : "outline"} onClick={() => { if (isShop) { setActiveShopCategory(isActive ? null : cat.name); setActiveCategory(null); } else { setActiveCategory(isActive ? null : cat.name); setActiveShopCategory(null); } }} className="h-8 shrink-0 gap-1 rounded-lg px-2 text-[10px] font-semibold"><span className="grid size-5 place-items-center rounded-md bg-accent"><Icon className="size-3" /></span><span>{cat.name_ur || cat.name}</span></Button></div>; })}</div></section>}
     <BazarDeals />
-    {flashDeals.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Zap className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">فلیش سیل</h2><span className="text-xs text-muted-foreground">Flash Sale</span></div>{rail(flashDeals)}</section>}
-    {topRanked.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Star className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">ٹاپ رینکنگ</h2><span className="text-xs text-muted-foreground">Top Rated</span></div>{rail(topRanked)}</section>}
-    {bestSelling.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Flame className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">سب سے زیادہ فروخت</h2><span className="text-xs text-muted-foreground">Best Selling</span></div>{rail(bestSelling)}</section>}
+    {flashDeals.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Zap className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">{t("bazar.flashSale")}</h2></div>{rail(flashDeals)}</section>}
+    {topRanked.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Star className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">{t("bazar.topRated")}</h2></div>{rail(topRanked)}</section>}
+    {bestSelling.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Flame className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">{t("bazar.bestSelling")}</h2></div>{rail(bestSelling)}</section>}
     <section className="w-full py-3">
       <div className="mb-2 flex items-center justify-between gap-2 px-3 sm:px-6">
-        <div className="flex min-w-0 items-center gap-2"><Store className="size-4 shrink-0 text-primary" /><h2 className="truncate font-display text-lg font-bold">تصدیق شدہ ہول سیلرز</h2></div>
-        <label className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground"><MapPin className="size-3" /><select value={selectedCity || ""} onChange={(e) => setSelectedCity(e.target.value || null)} className="max-w-[7rem] rounded-md border bg-card px-2 py-1 text-xs text-foreground outline-none"><option value="">تمام شہر</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+        <div className="flex min-w-0 items-center gap-2"><Store className="size-4 shrink-0 text-primary" /><h2 className="truncate font-display text-lg font-bold">{t("bazar.verifiedWholesalers")}</h2></div>
+        <label className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground"><MapPin className="size-3" /><select value={selectedCity || ""} onChange={(e) => setSelectedCity(e.target.value || null)} className="max-w-[7rem] rounded-md border bg-card px-2 py-1 text-xs text-foreground outline-none"><option value="">{t("bazar.allCities")}</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
       </div>
       {loading ? <div className="px-3 sm:px-6"><StoreGridSkeleton count={4} /></div> : (
         <div className="grid w-full grid-cols-2 gap-2.5 px-3 sm:grid-cols-3 sm:px-6 lg:grid-cols-4">
@@ -98,25 +100,25 @@ const Wholesale = () => {
                   <div className="grid h-full place-items-center"><span className="grid size-12 place-items-center rounded-2xl border border-primary/15 bg-background/80 shadow-sm"><Store className="size-6 text-primary" /></span></div>
                 )}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-foreground/30 to-transparent" />
-                <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold text-primary-foreground shadow-sm"><BadgeCheck className="size-2.5" /> تصدیق شدہ</span>
-                {store.ships_nationwide && <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[9px] font-bold text-primary shadow-sm"><Truck className="size-2.5" /> ملک بھر میں</span>}
+                <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold text-primary-foreground shadow-sm"><BadgeCheck className="size-2.5" /> {t("bazar.verified")}</span>
+                {store.ships_nationwide && <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[9px] font-bold text-primary shadow-sm"><Truck className="size-2.5" /> {t("bazar.nationwide")}</span>}
               </div>
               <div className="space-y-1 p-2.5">
                 <p className="truncate text-xs font-bold text-card-foreground">{store.name}</p>
                 <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground">
-                  <span className="flex items-center gap-0.5 font-semibold text-foreground"><Star className="size-3 fill-primary text-primary" />{store.rating ?? "نیا"}</span>
+                  <span className="flex items-center gap-0.5 font-semibold text-foreground"><Star className="size-3 fill-primary text-primary" />{store.rating ?? t("bazar.new")}</span>
                   <span className="truncate">{store.category}</span>
                 </div>
-                {!!store.minimum_order && store.minimum_order > 0 && <p className="truncate text-[9px] text-muted-foreground">کم از کم آرڈر Rs {store.minimum_order.toLocaleString()}</p>}
+                {!!store.minimum_order && store.minimum_order > 0 && <p className="truncate text-[9px] text-muted-foreground">{t("bazar.minOrder")} Rs {store.minimum_order.toLocaleString()}</p>}
               </div>
             </button>
           ))}
         </div>
       )}
     </section>
-    {recentProducts.length > 0 && <section className="w-full py-3"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Search className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">حال ہی میں دیکھے گئے</h2><span className="text-xs text-muted-foreground">Recently viewed</span></div>{rail(recentProducts)}</section>}
+    {recentProducts.length > 0 && <section className="w-full py-3"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Search className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">{t("bazar.recentlyViewed")}</h2></div>{rail(recentProducts)}</section>}
     <BazarFilterBar filters={filters} onChange={setFilters} resultCount={filteredProducts.length} grid={grid} onGridChange={setGrid} sizes={variantValues.sizes} colors={variantValues.colors} />
-    <section className="w-full px-3 pt-5 sm:px-6"><div className="mb-3 flex items-center gap-2"><Flame className="size-4 text-destructive" /><h2 className="font-display text-xl font-bold">آپ کے لیے منتخب</h2><span className="text-xs text-muted-foreground">Just For You</span></div>{loading ? <StoreGridSkeleton count={6} /> : filteredProducts.length === 0 ? <div className="rounded-xl border bg-card py-12 text-center"><Package className="mx-auto mb-2 size-8 text-muted-foreground" /><p className="text-sm font-semibold">اس فلٹر میں کوئی پروڈکٹ نہیں ملی</p><p className="mt-1 text-xs text-muted-foreground">فلٹرز تبدیل کر کے دوبارہ کوشش کریں</p></div> : <><div className={grid ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" : "space-y-2"}>{filteredProducts.slice(0, visible).map((p) => <BazarProductCard key={p.id} product={p} list={!grid} onClick={() => openProduct(p)} isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div>{(visible < filteredProducts.length || hasMore) && <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="mx-auto mt-5 flex">{loadingMore ? "لوڈ ہو رہا ہے…" : "مزید دیکھیں"}<ChevronRight className="size-4" /></Button>}</>}</section>
+    <section className="w-full px-3 pt-5 sm:px-6"><div className="mb-3 flex items-center gap-2"><Flame className="size-4 text-destructive" /><h2 className="font-display text-xl font-bold">{t("bazar.justForYou")}</h2></div>{loading ? <StoreGridSkeleton count={6} /> : filteredProducts.length === 0 ? <div className="rounded-xl border bg-card py-12 text-center"><Package className="mx-auto mb-2 size-8 text-muted-foreground" /><p className="text-sm font-semibold">{t("bazar.noProducts")}</p><p className="mt-1 text-xs text-muted-foreground">{t("bazar.changeFilters")}</p></div> : <><div className={grid ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" : "space-y-2"}>{filteredProducts.slice(0, visible).map((p) => <BazarProductCard key={p.id} product={p} list={!grid} onClick={() => openProduct(p)} isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div>{(visible < filteredProducts.length || hasMore) && <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="mx-auto mt-5 flex">{loadingMore ? t("bazar.loading") : t("bazar.loadMore")}<ChevronRight className="size-4" /></Button>}</>}</section>
     <AppShareButton section="grocery" /><BottomTabBar />
   </div>;
 };
