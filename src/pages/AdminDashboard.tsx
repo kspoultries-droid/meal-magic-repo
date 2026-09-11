@@ -419,8 +419,8 @@ const OrdersTab = () => {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
-  const fetchOrders = async () => {
-    setLoading(true);
+  const fetchOrders = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     const [{ data: ordersData }, { data: ridersData }, { data: offersData }, { data: roleRows }] = await Promise.all([
       supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)").order("created_at", { ascending: false }).limit(50),
       supabase.from("riders").select("id, is_available, is_suspended, current_lat, current_lng"),
@@ -443,7 +443,7 @@ const OrdersTab = () => {
       const { data: custs } = await supabase.from("profiles").select("id, full_name, phone").in("id", customerIds);
       setCustomerProfiles(custs || []);
     }
-    setLoading(false);
+    if (showLoading) setLoading(false);
   };
 
   useEffect(() => { fetchOrders(); }, []);
@@ -453,9 +453,15 @@ const OrdersTab = () => {
     const channel = supabase
       .channel("admin-orders")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload: any) => {
-        fetchOrders();
         const nw = payload.new || {};
         const old = payload.old || {};
+        if (payload.eventType === "DELETE") {
+          setOrders((current) => current.filter((order) => order.id !== old.id));
+        } else if (payload.eventType === "UPDATE") {
+          setOrders((current) => current.map((order) => order.id === nw.id ? { ...order, ...nw } : order));
+        } else {
+          fetchOrders(false);
+        }
         // Restaurant accepted an order and no rider is assigned yet → alert admin
         if (nw.status === "confirmed" && old.status !== "confirmed" && !nw.rider_id) {
           triggerAlert("ریسٹورنٹ نے آرڈر قبول کر لیا — رائیڈر تفویض کریں!");
@@ -472,7 +478,11 @@ const OrdersTab = () => {
         setOffers(data || []);
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const fallback = window.setInterval(() => fetchOrders(false), 20000);
+    return () => {
+      window.clearInterval(fallback);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const updateStatus = async (order: any, status: string) => {

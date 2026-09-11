@@ -51,6 +51,10 @@ const Checkout = () => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
+  useEffect(() => {
+    toast.dismiss();
+  }, []);
+
   // Auto-fill address and city from profile
   useEffect(() => {
     if (!user) return;
@@ -559,7 +563,7 @@ const Checkout = () => {
       </div>
 
       {/* Sticky Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 glass border-t border-border/50 px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-elegant">
+      <div className="fixed inset-x-0 bottom-0 z-[70] border-t border-border/50 bg-background/95 px-4 py-2.5 pb-[calc(env(safe-area-inset-bottom)+10px)] shadow-elegant backdrop-blur-xl">
         <div className="container mx-auto max-w-2xl flex items-center gap-3">
           <div className="flex-1">
             <p className="text-[10px] text-muted-foreground">کل قابل ادائیگی</p>
