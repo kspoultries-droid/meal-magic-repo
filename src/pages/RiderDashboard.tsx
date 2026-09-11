@@ -309,7 +309,13 @@ const RiderDashboard = () => {
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center gap-1.5">
             <Switch checked={riderData?.is_available || false} onCheckedChange={toggleAvailability} />
-            <span className="text-[11px] font-bold">{riderData?.is_available ? "آن لائن" : "آف لائن"}</span>
+            <span className={`flex items-center gap-1 text-[11px] font-bold ${riderData?.is_available ? "text-success" : "text-muted-foreground"}`}>
+              <span className={`relative flex h-2 w-2 ${riderData?.is_available ? "" : "opacity-60"}`}>
+                {riderData?.is_available && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70" />}
+                <span className={`relative inline-flex h-2 w-2 rounded-full ${riderData?.is_available ? "bg-success" : "bg-muted-foreground"}`} />
+              </span>
+              {riderData?.is_available ? "آن لائن" : "آف لائن"}
+            </span>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { signOut(); navigate("/"); }}>
             <LogOut className="h-4 w-4" />
