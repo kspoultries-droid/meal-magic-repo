@@ -538,23 +538,70 @@ const RiderDashboard = () => {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
 
-        <Card>
-          <button className="flex w-full items-center justify-between p-4 text-right" onClick={() => setShowCompleted((open) => !open)} aria-expanded={showCompleted}>
-            <span className="text-sm font-extrabold">مکمل آرڈرز — {completedOrders.length}</span>
-            {showCompleted ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          {showCompleted && (
-            <CardContent className="space-y-2 pt-0">
-              {completedOrders.length === 0 ? <p className="py-4 text-center text-xs text-muted-foreground">منتخب دن میں کوئی مکمل آرڈر نہیں</p> : completedOrders.map((order) => (
-                <div key={`${order._table || 'food'}-${order.id}`} className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs">
-                  <div><p className="font-bold">#{order.id.slice(0, 8)} · {order._historyLabel}</p><p className="text-[10px] text-muted-foreground">{new Date(order.created_at).toLocaleString("ur-PK")}</p></div>
-                  <div className="text-left"><Badge variant={order.status === "cancelled" ? "destructive" : "secondary"}>{STATUS_LABEL[order.status] || order.status}</Badge><p className="mt-1 font-bold">Rs {order.total_amount ?? "—"}</p></div>
+          <TabsContent value="history" className="mt-3 space-y-3">
+            <div className="rounded-xl border bg-card p-3 space-y-2">
+              <p className="text-xs font-extrabold">آرڈر ہسٹری کا دن</p>
+              <div className="grid grid-cols-4 gap-1">
+                {([['today', 'آج'], ['yesterday', 'کل'], ['week', '7 دن'], ['custom', 'تاریخ']] as const).map(([value, label]) => (
+                  <Button key={value} size="sm" variant={dateFilter === value ? "default" : "outline"} className="h-8 px-1 text-[11px]" onClick={() => setDateFilter(value)}>{label}</Button>
+                ))}
+              </div>
+              {dateFilter === "custom" && <input aria-label="آرڈر کی تاریخ" type="date" value={customDate} onChange={(event) => setCustomDate(event.target.value)} className="h-9 w-full rounded-md border bg-background px-3 text-xs" />}
+            </div>
+
+            <Card>
+              <button className="flex w-full items-center justify-between p-4 text-right" onClick={() => setShowCompleted((open) => !open)} aria-expanded={showCompleted}>
+                <span className="text-sm font-extrabold">مکمل آرڈرز — {completedOrders.length}</span>
+                {showCompleted ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+              {showCompleted && (
+                <CardContent className="space-y-2 pt-0">
+                  {completedOrders.length === 0 ? <p className="py-4 text-center text-xs text-muted-foreground">منتخب دن میں کوئی مکمل آرڈر نہیں</p> : completedOrders.map((order) => (
+                    <div key={`${order._table || 'food'}-${order.id}`} className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs">
+                      <div><p className="font-bold">#{order.id.slice(0, 8)} · {order._historyLabel}</p><p className="text-[10px] text-muted-foreground">{new Date(order.created_at).toLocaleString("ur-PK")}</p></div>
+                      <div className="text-left"><Badge variant={order.status === "cancelled" ? "destructive" : "secondary"}>{STATUS_LABEL[order.status] || order.status}</Badge><p className="mt-1 font-bold">Rs {order.total_amount ?? "—"}</p></div>
+                    </div>
+                  ))}
+                </CardContent>
+              )}
+            </Card>
+
+            {user && <RiderOfferHistory riderId={user.id} />}
+          </TabsContent>
+
+          <TabsContent value="performance" className="mt-3 space-y-3">
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { label: "آج ڈلیوری", value: summary?.today_deliveries ?? 0, cls: "text-foreground" },
+                { label: "آج کی کمائی", value: `Rs ${Math.round(Number(summary?.today_earnings ?? 0))}`, cls: "text-primary" },
+                { label: "کل کمائی", value: `Rs ${Math.round(Number(summary?.total_earnings ?? 0))}`, cls: "text-success" },
+                { label: "جمع کرانی رقم", value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
+              ].map((s) => (
+                <div key={s.label} className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
+                  <p className="text-[9px] text-muted-foreground leading-tight">{s.label}</p>
+                  <p className={`text-sm font-extrabold ${s.cls}`}>{s.value}</p>
                 </div>
               ))}
-            </CardContent>
-          )}
-        </Card>
+            </div>
+            <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
+              نوٹ: وصول کی گئی پوری رقم (ڈیلیوری فیس سمیت) EasyLife کو جمع کرانی ہے۔ آپ کی کمائی تنخواہ / فی آرڈر پلان کے مطابق الگ سے ادا کی جاتی ہے۔
+            </p>
+            {Number(summary?.pending_remit ?? 0) > 0 && (
+              <p className="text-[11px] text-warning font-bold text-center">
+                Rs {Math.round(Number(summary.pending_remit))} زیرِ تصدیق ہے
+              </p>
+            )}
+
+            <Button variant="outline" className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-payments")}>
+              <Wallet className="w-4 h-4 mr-1.5" /> پیمنٹ اور کمائی — رقم جمع کرائیں
+            </Button>
+
+            {user && <RiderScore riderId={user.id} />}
+            {user && <RiderInsights riderId={user.id} />}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
