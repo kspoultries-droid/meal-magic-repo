@@ -47,6 +47,7 @@ const RiderDashboard = () => {
   const [dateFilter, setDateFilter] = useState<"today" | "yesterday" | "week" | "custom">("today");
   const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 10));
   const [showCompleted, setShowCompleted] = useState(false);
+  const [tab, setTab] = useState("orders");
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
   const contactsRef = useRef<Record<string, any>>({});
 
