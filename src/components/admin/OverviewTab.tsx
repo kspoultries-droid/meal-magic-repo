@@ -59,6 +59,7 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
       .channel("admin-overview-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "riders" }, () => load())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [load]);
