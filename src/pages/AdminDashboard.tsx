@@ -584,7 +584,10 @@ const OrdersTab = () => {
                     <span className="text-[10px] font-bold">{cust.name}{cust.phone ? ` · ${cust.phone}` : ""}</span>
                     {o.rider_id && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{getRiderName(o.rider_id)}</Badge>}
                     {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
-                    <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+                     <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+                    {needsRider && (
+                      <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => setExpandedOrder(o.id)}>دستی تفویض</Button>
+                    )}
                     <button className="ms-auto text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
                       {expandedOrder === o.id ? "بند ▲" : `تفصیل (${o.order_items?.length || 0}) ▼`}
                     </button>
