@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +24,7 @@ const statusMap: Record<string, { label: string; color: string }> = {
 const MechanicDashboard = () => {
   const { user, isMechanic, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [bookings, setBookings] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [providerId, setProviderId] = useState<string | null>(null);
@@ -100,9 +103,10 @@ const MechanicDashboard = () => {
       <header className="border-b bg-card px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Wrench className="w-6 h-6 text-primary" />
-          <h1 className="text-lg font-bold text-primary">مکینک ڈیش بورڈ</h1>
+          <h1 className="text-lg font-bold text-primary">{t("role.mechanic")}</h1>
         </div>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠</Button>
           <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
             <LogOut className="h-4 w-4" />
