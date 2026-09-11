@@ -8,20 +8,22 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const STATUS_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  pending: { label: "بھیج دی / Sent", icon: <Clock className="w-3 h-3" />, color: "text-yellow-600" },
-  quoted: { label: "قیمت آئی / Quoted", icon: <Clock className="w-3 h-3" />, color: "text-blue-600" },
-  confirmed: { label: "تصدیق / Confirmed", icon: <CheckCircle2 className="w-3 h-3" />, color: "text-primary" },
-  delivering: { label: "ڈلیوری / Delivering", icon: <Clock className="w-3 h-3" />, color: "text-orange-600" },
-  completed: { label: "مکمل ✅", icon: <CheckCircle2 className="w-3 h-3" />, color: "text-green-600" },
-  cancelled: { label: "منسوخ / Cancelled", icon: <XCircle className="w-3 h-3" />, color: "text-destructive" },
+const STATUS_LABELS: Record<string, { key: string; icon: React.ReactNode; color: string }> = {
+  pending: { key: "status.sent", icon: <Clock className="w-3 h-3" />, color: "text-yellow-600" },
+  quoted: { key: "status.quoted", icon: <Clock className="w-3 h-3" />, color: "text-blue-600" },
+  confirmed: { key: "status.confirmed", icon: <CheckCircle2 className="w-3 h-3" />, color: "text-primary" },
+  delivering: { key: "status.delivering", icon: <Clock className="w-3 h-3" />, color: "text-orange-600" },
+  completed: { key: "status.completed", icon: <CheckCircle2 className="w-3 h-3" />, color: "text-green-600" },
+  cancelled: { key: "status.cancelled", icon: <XCircle className="w-3 h-3" />, color: "text-destructive" },
 };
 
 const CartDrawer = () => {
   const { items, isOpen, setIsOpen, updateQuantity, removeItem, clearCart, totalItems, totalPrice } = useCart();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, lang } = useLanguage();
   const [completedOrders, setCompletedOrders] = useState<any[]>([]);
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -69,17 +71,17 @@ const CartDrawer = () => {
             <div className="w-9 h-9 rounded-full glass flex items-center justify-center">
               <ShoppingBag className="w-4 h-4" />
             </div>
-            <span className="text-lg font-extrabold">آپ کا کارٹ</span>
+            <span className="text-lg font-extrabold">{t("cart.title")}</span>
           </SheetTitle>
         </SheetHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="mx-4 mt-3 grid grid-cols-2 glass border border-border/50 p-1 h-11">
             <TabsTrigger value="cart" className="gap-1.5 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow rounded-md">
-              <ShoppingBag className="w-4 h-4" /> کارٹ ({totalItems})
+              <ShoppingBag className="w-4 h-4" /> {t("tab.cart")} ({totalItems})
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-1.5 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow rounded-md">
-              <History className="w-4 h-4" /> آرڈرز
+              <History className="w-4 h-4" /> {t("common.orders")}
             </TabsTrigger>
           </TabsList>
 
@@ -90,9 +92,9 @@ const CartDrawer = () => {
                  <div className="w-24 h-24 rounded-full glass flex items-center justify-center mb-4 shadow-card">
                    <ShoppingBag className="w-12 h-12 opacity-40" />
                  </div>
-                 <p className="text-lg font-bold text-foreground">کارٹ خالی ہے</p>
-                 <p className="text-sm mt-1">آئٹمز شامل کرنا شروع کریں 🛒</p>
-                 <Button variant="outline" className="mt-4" onClick={() => { setIsOpen(false); navigate("/wholesale"); }}>بازار دیکھیں <ArrowLeft className="ms-2 h-4 w-4" /></Button>
+                 <p className="text-lg font-bold text-foreground">{t("cart.empty")}</p>
+                 <p className="text-sm mt-1">{t("cart.startAdding")} 🛒</p>
+                 <Button variant="outline" className="mt-4" onClick={() => { setIsOpen(false); navigate("/wholesale"); }}>{t("cart.browseBazar")} <ArrowLeft className="ms-2 h-4 w-4" /></Button>
                </div>
              ) : (
                <>
@@ -106,21 +108,21 @@ const CartDrawer = () => {
                          <p className="font-bold text-foreground text-sm truncate">{item.name}</p>
                          <p className="text-[11px] text-muted-foreground truncate">{item.restaurant}</p>
                          {(item.variant_label || (item.options && item.options.length > 0)) && <p className="text-[10px] text-muted-foreground truncate">{item.variant_label || item.options?.map((o) => o.choice).join(" • ")}</p>}
-                         <p className="text-sm font-extrabold text-primary mt-auto">Rs. {item.price.toLocaleString()} فی عدد</p>
+                         <p className="text-sm font-extrabold text-primary mt-auto">Rs. {item.price.toLocaleString()} {t("cart.each")}</p>
                        </div>
                        <div className="flex flex-col items-end justify-between">
-                         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" aria-label="آئٹم حذف کریں" onClick={() => removeItem(item.id)}><Trash2 className="w-4 h-4" /></Button>
+                         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" aria-label={t("cart.remove")} onClick={() => removeItem(item.id)}><Trash2 className="w-4 h-4" /></Button>
                          <div className="flex items-center gap-1 rounded-full border border-border/50 bg-background/80 p-0.5">
-                           <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" aria-label="مقدار کم کریں" onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus className="w-3 h-3" /></Button>
+                           <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" aria-label={t("cart.decrease")} onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus className="w-3 h-3" /></Button>
                            <span className="w-4 text-center text-xs font-extrabold">{item.quantity}</span>
-                           <Button size="icon" className="h-6 w-6 rounded-full" aria-label="مقدار بڑھائیں" onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="w-3 h-3" /></Button>
+                           <Button size="icon" className="h-6 w-6 rounded-full" aria-label={t("cart.increase")} onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="w-3 h-3" /></Button>
                          </div>
                        </div>
                      </div>
                    ))}
                    {recommendedProducts.length > 0 && (
                      <div className="pt-2">
-                       <div className="mb-2 flex items-center justify-between"><p className="text-xs font-extrabold text-foreground">مزید شامل کریں</p><Button variant="link" size="sm" className="h-auto p-0 text-[10px]" onClick={() => { setIsOpen(false); navigate("/wholesale"); }}>سب دیکھیں</Button></div>
+                       <div className="mb-2 flex items-center justify-between"><p className="text-xs font-extrabold text-foreground">{t("cart.addMore")}</p><Button variant="link" size="sm" className="h-auto p-0 text-[10px]" onClick={() => { setIsOpen(false); navigate("/wholesale"); }}>{t("cart.seeAll")}</Button></div>
                        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                          {recommendedProducts.map((product) => { const price = product.discount_price || product.price; return <button key={product.id} type="button" onClick={() => { setIsOpen(false); navigate(`/product/${product.id}`); }} className="w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-card text-left"><div className="h-20 bg-secondary">{product.image_url ? <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" /> : <Package className="m-auto mt-6 h-6 w-6 text-muted-foreground" />}</div><div className="p-1.5"><p className="truncate text-[10px] font-bold text-foreground">{product.name}</p><p className="text-[11px] font-extrabold text-primary">Rs {price}</p></div></button>; })}
                        </div>
@@ -129,12 +131,12 @@ const CartDrawer = () => {
                  </div>
 
                  <div className="glass border-t border-border/50 -mx-4 px-4 pt-4 pb-5 space-y-2.5 shadow-elegant rounded-t-3xl">
-                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">سب ٹوٹل</span><span className="font-bold text-foreground">Rs. {totalPrice.toLocaleString()}</span></div>
-                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">ڈیلیوری</span><span className="font-bold text-success">چیک آؤٹ پر حساب</span></div>
-                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">واؤچر رعایت</span><span className="font-bold text-muted-foreground">چیک آؤٹ پر شامل کریں</span></div>
-                   <div className="flex justify-between items-baseline border-t border-dashed pt-3"><span className="font-bold text-foreground">کل قیمت</span><span className="text-2xl font-extrabold text-primary">Rs. {totalPrice.toLocaleString()}</span></div>
-                   <Button className="w-full h-12 text-base font-bold" onClick={() => { setIsOpen(false); navigate("/checkout"); }}>چیک آؤٹ کریں — Rs. {totalPrice.toLocaleString()}</Button>
-                   <Button variant="ghost" onClick={clearCart} className="w-full text-xs text-muted-foreground hover:text-destructive">کارٹ خالی کریں</Button>
+                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t("cart.subtotal")}</span><span className="font-bold text-foreground">Rs. {totalPrice.toLocaleString()}</span></div>
+                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t("common.delivery")}</span><span className="font-bold text-success">{t("cart.deliveryAtCheckout")}</span></div>
+                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t("cart.voucher")}</span><span className="font-bold text-muted-foreground">{t("cart.voucherAtCheckout")}</span></div>
+                   <div className="flex justify-between items-baseline border-t border-dashed pt-3"><span className="font-bold text-foreground">{t("cart.grandTotal")}</span><span className="text-2xl font-extrabold text-primary">Rs. {totalPrice.toLocaleString()}</span></div>
+                   <Button className="w-full h-12 text-base font-bold" onClick={() => { setIsOpen(false); navigate("/checkout"); }}>{t("cart.checkout")} — Rs. {totalPrice.toLocaleString()}</Button>
+                   <Button variant="ghost" onClick={clearCart} className="w-full text-xs text-muted-foreground hover:text-destructive">{t("cart.clear")}</Button>
                  </div>
                </>
              )}
@@ -144,24 +146,24 @@ const CartDrawer = () => {
           <TabsContent value="orders" className="flex-1 overflow-y-auto px-6 mt-0">
             {!user ? (
               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-16">
-                <p className="text-sm">آرڈرز دیکھنے کے لیے لاگ ان کریں</p>
+                <p className="text-sm">{t("cart.loginForOrders")}</p>
               </div>
             ) : loadingOrders ? (
               <div className="flex items-center justify-center py-16 text-muted-foreground">
-                <p>لوڈ ہو رہا ہے...</p>
+                <p>{t("common.loading")}</p>
               </div>
             ) : completedOrders.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-16">
                 <History className="w-16 h-16 mb-4 opacity-30" />
-                <p className="text-lg font-semibold">کوئی آرڈر نہیں</p>
-                <p className="text-sm">آپ کے آرڈرز یہاں دکھائی دیں گے</p>
+                <p className="text-lg font-semibold">{t("cart.noOrders")}</p>
+                <p className="text-sm">{t("cart.ordersHere")}</p>
               </div>
             ) : (
               <div className="space-y-3 py-4">
                 {completedOrders.map((order) => {
                   const status = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
                   const orderItems = order.order_items || [];
-                  const date = new Date(order.created_at).toLocaleDateString("ur-PK", {
+                  const date = new Date(order.created_at).toLocaleDateString(lang === "ur" ? "ur-PK" : lang, {
                     day: "numeric", month: "short", year: "numeric"
                   });
                   return (
@@ -169,7 +171,7 @@ const CartDrawer = () => {
                       <div className="flex justify-between items-start">
                         <div>
                           <p className={`text-xs font-bold flex items-center gap-1 ${status.color}`}>
-                            {status.icon} {status.label}
+                            {status.icon} {t(status.key as any)}
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-0.5">{date}</p>
                         </div>
