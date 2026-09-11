@@ -7,21 +7,23 @@ import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package,
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 import CourierTimeline from "@/components/orders/CourierTimeline";
 import OrderChat from "@/components/orders/OrderChat";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 
 const orderSteps = [
-  { key: "pending", label: "آرڈر موصول ہوا", icon: Package, urdu: "آپ کا آرڈر موصول ہو گیا" },
-  { key: "confirmed", label: "تصدیق شدہ", icon: CheckCircle2, urdu: "ریسٹورنٹ نے آرڈر قبول کر لیا" },
-  { key: "preparing", label: "تیاری جاری", icon: ChefHat, urdu: "آپ کا کھانا بن رہا ہے" },
-  { key: "delivering", label: "ڈلیوری جاری", icon: Bike, urdu: "رائیڈر آپ کے پاس آ رہا ہے" },
-  { key: "delivered", label: "مکمل ✅", icon: MapPin, urdu: "آرڈر ڈلیور ہو گیا!" },
-];
+  { key: "pending", labelKey: "track.step.received", icon: Package, noteKey: "track.step.receivedNote" },
+  { key: "confirmed", labelKey: "status.confirmed", icon: CheckCircle2, noteKey: "track.step.confirmedNote" },
+  { key: "preparing", labelKey: "track.step.preparing", icon: ChefHat, noteKey: "track.step.preparingNote" },
+  { key: "delivering", labelKey: "track.step.delivering", icon: Bike, noteKey: "track.step.deliveringNote" },
+  { key: "delivered", labelKey: "status.delivered", icon: MapPin, noteKey: "track.step.deliveredNote" },
+] as const;
 
 const OrderTracking = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [order, setOrder] = useState<any>(null);
   const [kind, setKind] = useState<"food" | "grocery_cart">("food");
   const [rider, setRider] = useState<any>(null);
@@ -90,8 +92,8 @@ const OrderTracking = () => {
   }, [id, order?.rider_id, order?.status]);
 
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
-  if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">آرڈر نہیں ملا</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
+  if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("track.notFound")}</div>;
 
   const normalizedStatus = order.status === "completed" ? "delivered" : order.status;
   const currentStepIndex = orderSteps.findIndex((s) => s.key === normalizedStatus);
@@ -104,7 +106,7 @@ const OrderTracking = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-lg font-extrabold text-foreground">آرڈر ٹریکنگ</h1>
+        <h1 className="text-lg font-extrabold text-foreground">{t("track.title")}</h1>
       </div>
 
       {/* Map area */}
@@ -127,14 +129,14 @@ const OrderTracking = () => {
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
               <MapPin className="w-12 h-12 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">لوکیشن دستیاب نہیں</p>
+              <p className="text-sm text-muted-foreground">{t("track.noLocation")}</p>
             </div>
           </div>
         )}
         {rider?.lat && rider?.lng && (
           <div className="absolute top-2 right-2 bg-card/95 backdrop-blur px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5 text-xs font-bold">
             <Bike className="w-3.5 h-3.5 text-primary animate-bounce" />
-            رائیڈر راستے میں
+            {t("track.riderOnWay")}
           </div>
         )}
       </div>
@@ -146,15 +148,15 @@ const OrderTracking = () => {
             <Bike className="w-5 h-5 text-primary" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground">آپ کا رائیڈر</p>
-            <p className="font-extrabold text-foreground truncate">{rider.rider_name || "رائیڈر"}</p>
+            <p className="text-xs text-muted-foreground">{t("track.yourRider")}</p>
+            <p className="font-extrabold text-foreground truncate">{rider.rider_name || t("role.rider")}</p>
           </div>
           {rider.rider_phone && (
             <a href={`tel:${rider.rider_phone}`} className="text-xs font-bold bg-primary text-primary-foreground rounded-full px-3 py-2">
-              کال کریں
+              {t("track.call")}
             </a>
           )}
-          <OrderChat orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} role="customer" label="چیٹ" />
+          <OrderChat orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} role="customer" label={t("track.chat")} />
           {rider.lat && rider.lng && (
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${rider.lat},${rider.lng}`}
@@ -162,7 +164,7 @@ const OrderTracking = () => {
               rel="noopener noreferrer"
               className="text-xs font-bold border rounded-full px-3 py-2"
             >
-              لوکیشن
+              {t("track.location")}
             </a>
           )}
         </div>
@@ -185,7 +187,7 @@ const OrderTracking = () => {
 
       <div className="px-6 py-6">
         <h2 className="text-lg font-extrabold text-foreground mb-6">
-          {isCancelled ? "آرڈر منسوخ ہو گیا ❌" : orderSteps[currentStepIndex]?.urdu || "ٹریکنگ"}
+          {isCancelled ? `${t("track.cancelled")} ❌` : orderSteps[currentStepIndex] ? t(orderSteps[currentStepIndex].noteKey) : t("track.title")}
         </h2>
 
         {!isCancelled && (
@@ -209,8 +211,8 @@ const OrderTracking = () => {
                   </div>
                   {/* Label */}
                   <div className="pt-2">
-                    <p className={`text-sm font-bold ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>{step.label}</p>
-                    {isCurrent && <p className="text-xs text-primary mt-0.5">{step.urdu}</p>}
+                    <p className={`text-sm font-bold ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>{t(step.labelKey)}</p>
+                    {isCurrent && <p className="text-xs text-primary mt-0.5">{t(step.noteKey)}</p>}
                   </div>
                 </div>
               );
@@ -244,7 +246,7 @@ const OrderTracking = () => {
             className="w-full mt-4 h-12 font-extrabold rounded-xl bg-gradient-primary shadow-glow gap-2"
           >
             <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" />
-            {hasReview ? "اپنی رائے اپڈیٹ کریں" : "ریسٹورنٹ کو ریٹنگ دیں"}
+            {hasReview ? t("track.updateReview") : t("track.rateRestaurant")}
           </Button>
         )}
       </div>
