@@ -496,6 +496,13 @@ const OrdersTab = () => {
     fetchOrders();
   };
 
+  const forceAssignRider = async (orderId: string, riderId: string) => {
+    const { error } = await (supabase.rpc as any)("admin_force_assign_rider", { _kind: "food", _order_id: orderId, _rider_id: riderId });
+    if (error) { toast.error(error.message); return; }
+    toast.success("رائیڈر براہِ راست تفویض کر دیا گیا ✅");
+    fetchOrders();
+  };
+
   const retryDispatch = async (orderId: string) => {
     const { error } = await (supabase.rpc as any)("retry_order_dispatch", { _kind: "food", _order_id: orderId });
     if (error) { toast.error(error.message); return; }
