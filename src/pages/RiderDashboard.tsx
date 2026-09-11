@@ -334,6 +334,7 @@ const RiderDashboard = () => {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <LanguageSwitcher />
           <div className="flex items-center gap-1.5">
             <Switch checked={riderData?.is_available || false} onCheckedChange={toggleAvailability} />
             <span className={`flex items-center gap-1 text-[11px] font-bold ${riderData?.is_available ? "text-success" : "text-muted-foreground"}`}>

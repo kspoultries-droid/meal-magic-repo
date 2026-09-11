@@ -105,6 +105,7 @@ const MechanicDashboard = () => {
           <h1 className="text-lg font-bold text-primary">{t("role.mechanic")}</h1>
         </div>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠</Button>
           <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
             <LogOut className="h-4 w-4" />

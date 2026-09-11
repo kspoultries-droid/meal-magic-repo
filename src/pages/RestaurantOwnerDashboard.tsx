@@ -94,9 +94,12 @@ const RestaurantOwnerDashboard = () => {
               <p className="truncate text-[10px] text-muted-foreground sm:text-xs">{user?.email}</p>
             </div>
           </div>
+          <div className="flex shrink-0 items-center gap-2">
+          <LanguageSwitcher />
           <Button variant="outline" size="sm" className="h-8 shrink-0 px-2 text-xs" onClick={() => { signOut(); navigate("/"); }}>
             <LogOut className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">لاگ آؤٹ</span>
           </Button>
+          </div>
         </div>
       </header>
       <div className="p-3 sm:p-6">
