@@ -14,11 +14,13 @@ import PromotionalAds from "@/components/PromotionalAds";
 import LocationSheet from "@/components/location/LocationSheet";
 import BoughtTogether from "@/components/checkout/BoughtTogether";
 import { setStoredLocation } from "@/hooks/useDeliveryLocation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
   const { items, totalPrice, clearCart, updateQuantity } = useCart();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -196,8 +198,8 @@ const Checkout = () => {
         <Navbar />
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <ShoppingBag className="w-16 h-16 mb-4 opacity-30" />
-          <p className="text-lg font-bold">کارٹ خالی ہے</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate("/")}>ریسٹورنٹ دیکھیں</Button>
+          <p className="text-lg font-bold">{t("cart.empty")}</p>
+          <Button variant="outline" className="mt-4" onClick={() => navigate("/")}>{t("cart.viewRestaurants")}</Button>
         </div>
       </div>
     );
@@ -339,14 +341,14 @@ const Checkout = () => {
       <div className="bg-gradient-hero text-primary-foreground px-4 py-3 shadow-glow relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,white,transparent_60%)]" />
         <div className="container mx-auto max-w-2xl relative flex items-center gap-3">
-          <button onClick={() => navigate(-1)} aria-label="واپس" className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+          <button onClick={() => navigate(-1)} aria-label={t("checkout.back")} className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center shrink-0">
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="min-w-0">
             <h1 className="text-base font-extrabold flex items-center gap-1.5">
-              <ShoppingBag className="w-4 h-4" /> چیک آؤٹ
+              <ShoppingBag className="w-4 h-4" /> {t("checkout.title")}
             </h1>
-            <p className="text-[11px] text-primary-foreground/80">{items.length} آئٹمز • Rs {grandTotal}</p>
+            <p className="text-[11px] text-primary-foreground/80">{items.length} {t("checkout.items")} • Rs {grandTotal}</p>
           </div>
         </div>
       </div>
@@ -356,7 +358,7 @@ const Checkout = () => {
         {/* Order Summary - Glass */}
         <div className="glass rounded-2xl p-4 border border-border/50 shadow-elegant animate-fade-in">
           <h2 className="text-sm font-extrabold text-foreground mb-2.5 flex items-center gap-1.5">
-            <span className="w-1 h-4 bg-gradient-primary rounded-full" /> آرڈر کی تفصیل
+            <span className="w-1 h-4 bg-gradient-primary rounded-full" /> {t("checkout.orderDetails")}
           </h2>
           <div className="space-y-2">
             {items.map((item) => (
@@ -381,12 +383,12 @@ const Checkout = () => {
             ))}
             <div className="border-t border-dashed pt-2.5 mt-2.5 space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">سب ٹوٹل</span>
+                <span className="text-muted-foreground">{t("cart.subtotal")}</span>
                 <span className="font-semibold">Rs {totalPrice}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">ڈلیوری فیس</span>
-                <span className="font-semibold">{quoteLoading ? "حساب ہو رہا ہے…" : `Rs ${deliveryFee}`}</span>
+                <span className="text-muted-foreground">{t("checkout.deliveryFee")}</span>
+                <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : `Rs ${deliveryFee}`}</span>
               </div>
               {deliveryQuote && !isRestaurantOrder && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
@@ -401,7 +403,7 @@ const Checkout = () => {
               )}
               {voucher && (
                 <div className="flex justify-between text-xs text-success">
-                  <span className="font-semibold">واؤچر ({voucher.code})</span>
+                  <span className="font-semibold">{t("cart.voucher")} ({voucher.code})</span>
                   <span className="font-bold">− Rs {voucher.discount}</span>
                 </div>
               )}
@@ -413,14 +415,14 @@ const Checkout = () => {
                 <div className="relative flex-1">
                   <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                   <Input
-                    placeholder="واؤچر کوڈ لکھیں (مثلاً BAZAR10)"
+                    placeholder={`${t("checkout.voucherPlaceholder")} (BAZAR10)`}
                     value={voucherCode}
                     onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
                     className="h-10 pl-9 rounded-xl bg-background/80 font-mono text-sm"
                   />
                 </div>
                 <Button variant="outline" onClick={applyVoucher} disabled={applyingVoucher || !voucherCode.trim()} className="h-10 rounded-xl border-primary/40 text-primary font-bold">
-                  {applyingVoucher ? "..." : "لگائیں"}
+                  {applyingVoucher ? "..." : t("checkout.apply")}
                 </Button>
               </div>
             ) : (
@@ -428,12 +430,12 @@ const Checkout = () => {
                 onClick={() => { setVoucher(null); setVoucherCode(""); }}
                 className="mt-2.5 flex items-center gap-1.5 text-[11px] font-bold text-success bg-success/10 border border-success/30 rounded-full px-3 py-1.5"
               >
-                <Ticket className="w-3.5 h-3.5" /> {voucher.code} لاگو ہے
+                <Ticket className="w-3.5 h-3.5" /> {voucher.code} {t("checkout.applied")}
                 <X className="w-3 h-3 text-muted-foreground" />
               </button>
             )}
             <div className="border-t pt-3 flex justify-between items-baseline">
-              <span className="font-extrabold text-foreground">کل قابل ادائیگی</span>
+              <span className="font-extrabold text-foreground">{t("checkout.payable")}</span>
               <span className="text-2xl font-extrabold text-primary">Rs {grandTotal}</span>
             </div>
           </div>
@@ -451,11 +453,11 @@ const Checkout = () => {
             <div className="w-7 h-7 rounded-lg bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
               <MapPin className="w-3.5 h-3.5" />
             </div>
-            ڈلیوری کی معلومات
+            {t("checkout.deliveryInfo")}
           </h2>
           {storeType === "wholesale" && cities.length > 0 && (
             <div className="mb-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
-              <label className="mb-1 block text-xs font-bold text-foreground">مال کہاں پہنچانا ہے؟</label>
+              <label className="mb-1 block text-xs font-bold text-foreground">{t("checkout.whereDeliver")}</label>
               <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
                 {cities.map((city) => <option key={city.id} value={city.id}>{city.name}</option>)}
               </select>
@@ -466,14 +468,14 @@ const Checkout = () => {
             <div className="flex items-start gap-2 rounded-xl border border-primary/25 bg-primary/5 p-3">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold text-muted-foreground">ڈیلیوری کا پتہ</p>
-                <p className="truncate text-xs font-extrabold text-foreground">{address || "ابھی کوئی پتہ منتخب نہیں"}</p>
+                <p className="text-[11px] font-bold text-muted-foreground">{t("checkout.deliveryAddress")}</p>
+                <p className="truncate text-xs font-extrabold text-foreground">{address || t("checkout.noAddress")}</p>
               </div>
               <button
                 onClick={() => setLocSheetOpen(true)}
                 className="shrink-0 rounded-full bg-card px-3 py-1 text-[11px] font-bold text-primary shadow-soft active:scale-95 transition-transform"
               >
-                {address ? "تبدیل کریں" : "شامل کریں"}
+                {address ? t("checkout.change") : t("checkout.add")}
               </button>
             </div>
 
@@ -481,20 +483,20 @@ const Checkout = () => {
               onClick={() => setEditingAddress((v) => !v)}
               className="text-[11px] font-bold text-primary"
             >
-              {editingAddress ? "ترمیم بند کریں" : "پتہ خود لکھیں / درست کریں"}
+              {editingAddress ? t("checkout.closeEdit") : t("checkout.editAddress")}
             </button>
 
             {editingAddress && (
               <>
                 <div className="flex gap-2">
-                  <Input placeholder="مکمل ڈلیوری ایڈریس" value={address} onChange={(e) => { setAddress(e.target.value); }} required className="flex-1 h-11 rounded-xl bg-background/80" />
+                  <Input placeholder={t("checkout.fullAddress")} value={address} onChange={(e) => { setAddress(e.target.value); }} required className="flex-1 h-11 rounded-xl bg-background/80" />
                   <Button variant="outline" onClick={getCurrentLocation} disabled={locating} className="shrink-0 h-11 px-3 rounded-xl glass border-primary/30 hover:bg-primary/10">
                     <LocateFixed className={`h-4 w-4 text-primary ${locating ? "animate-spin" : ""}`} />
                   </Button>
                 </div>
                 <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground cursor-pointer">
                   <input type="checkbox" checked={saveThisAddress} onChange={(e) => setSaveThisAddress(e.target.checked)} className="accent-primary w-4 h-4" />
-                  یہ پتہ محفوظ کریں تاکہ اگلی بار دوبارہ نہ لکھنا پڑے
+                  {t("checkout.saveAddress")}
                 </label>
               </>
             )}
@@ -510,10 +512,10 @@ const Checkout = () => {
                 setSaveThisAddress(false);
               }}
             />
-            <Input placeholder="کوئی خاص ہدایات (اختیاری)" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background/80" />
+            <Input placeholder={t("checkout.notes")} value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background/80" />
             {restaurantDeliveryMode === "self" && (
               <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
-                🚚 مفت ڈلیوری — ریسٹورنٹ خود ڈلیور کرے گا
+                🚚 {t("checkout.freeDelivery")}
               </div>
             )}
           </div>
@@ -523,22 +525,22 @@ const Checkout = () => {
          <details className="glass rounded-2xl border border-border/50 shadow-card animate-fade-in" style={{ animationDelay: "120ms" }}>
            <summary className="flex cursor-pointer list-none items-center gap-2 p-4 text-sm font-extrabold text-foreground">
              <div className="w-7 h-7 rounded-lg bg-secondary text-primary flex items-center justify-center"><Gift className="w-3.5 h-3.5" /></div>
-             گفٹ ڈلیوری <span className="ms-auto text-[11px] font-normal text-muted-foreground">اختیاری</span>
+             {t("checkout.gift")} <span className="ms-auto text-[11px] font-normal text-muted-foreground">{t("checkout.optional")}</span>
            </summary>
            <div className="px-4 pb-4">
           <label className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${isGift ? "border-primary bg-primary/10 shadow-glow" : "border-border hover:border-primary/30"}`}>
             <input type="checkbox" checked={isGift} onChange={(e) => setIsGift(e.target.checked)} className="accent-primary w-4 h-4" />
-            <span className="font-semibold text-sm">کسی اور کو ڈلیور کریں 🎁</span>
+            <span className="font-semibold text-sm">{t("checkout.giftToggle")} 🎁</span>
           </label>
           {isGift && (
             <div className="space-y-3 mt-3 animate-fade-in">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground shrink-0" />
-                <Input placeholder="وصول کنندہ کا نام" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} className="h-11 rounded-xl bg-background/80" />
+                <Input placeholder={t("checkout.receiverName")} value={receiverName} onChange={(e) => setReceiverName(e.target.value)} className="h-11 rounded-xl bg-background/80" />
                </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-                <Input placeholder="وصول کنندہ کا فون نمبر *" value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} required className="h-11 rounded-xl bg-background/80" />
+                <Input placeholder={t("checkout.receiverPhone")} value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} required className="h-11 rounded-xl bg-background/80" />
               </div>
             </div>
           )}
@@ -551,11 +553,11 @@ const Checkout = () => {
             <div className="w-7 h-7 rounded-lg bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow">
               <CreditCard className="w-3.5 h-3.5" />
             </div>
-            ادائیگی کا طریقہ
+            {t("checkout.payment")}
           </h2>
           <div className="flex items-center gap-3 p-3 border-2 border-primary bg-primary/10 rounded-xl shadow-glow">
             <span className="text-lg">💵</span>
-            <span className="font-semibold text-sm">کیش آن ڈلیوری (COD)</span>
+            <span className="font-semibold text-sm">{t("checkout.cod")}</span>
           </div>
         </div>
 
@@ -566,11 +568,11 @@ const Checkout = () => {
       <div className="fixed inset-x-0 bottom-0 z-[70] border-t border-border/50 bg-background/95 px-4 py-2.5 pb-[calc(env(safe-area-inset-bottom)+10px)] shadow-elegant backdrop-blur-xl">
         <div className="container mx-auto max-w-2xl flex items-center gap-3">
           <div className="flex-1">
-            <p className="text-[10px] text-muted-foreground">کل قابل ادائیگی</p>
+            <p className="text-[10px] text-muted-foreground">{t("checkout.payable")}</p>
             <p className="text-lg font-extrabold text-primary leading-tight">Rs {grandTotal}</p>
           </div>
           <Button className="flex-[2] h-12 text-base font-extrabold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" disabled={submitting} onClick={placeOrder}>
-            {submitting ? "بھیجا جا رہا ہے..." : "آرڈر کی تصدیق کریں ✓"}
+            {submitting ? t("checkout.placing") : `${t("checkout.placeOrder")} ✓`}
           </Button>
         </div>
       </div>
