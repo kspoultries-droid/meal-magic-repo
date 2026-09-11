@@ -7,6 +7,7 @@ import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package,
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 import CourierTimeline from "@/components/orders/CourierTimeline";
 import OrderChat from "@/components/orders/OrderChat";
+import GroceryOrderAdjustments from "@/components/grocery/GroceryOrderAdjustments";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 
@@ -238,6 +239,15 @@ const OrderTracking = () => {
             </div>
           ))}
         </div>
+
+        {kind === "grocery_cart" && (
+          <GroceryOrderAdjustments
+            orderId={order.id}
+            originalAmount={order.original_amount ?? order.total_amount}
+            finalAmount={order.final_amount}
+            onChanged={fetchOrder}
+          />
+        )}
 
         {/* Review CTA — only after delivered/completed */}
         {["delivered", "completed"].includes(order.status) && user && order.customer_id === user.id && order.restaurant_id && (
