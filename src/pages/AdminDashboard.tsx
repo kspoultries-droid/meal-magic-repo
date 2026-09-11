@@ -561,7 +561,10 @@ const OrdersTab = () => {
                     <span className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
                     <span className="font-bold text-xs">Rs {o.total_amount}</span>
                     <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status === "confirmed" ? "قبول شدہ" : o.status}</Badge>
-                    {needsRider && <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">رائیڈر درکار</Badge>}
+                    {needsRider && (dispatch.active
+                      ? <Badge className="h-5 bg-warning px-1.5 text-[10px] text-warning-foreground">آفر بھیجی ({dispatch.tries}/3) — {getRiderName(dispatch.active.rider_id)}</Badge>
+                      : <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">{dispatch.tries >= 3 || o.dispatch_state === "stuck" ? "رائیڈر درکار (خود تفویض کریں)" : "رائیڈر تلاش جاری"}</Badge>)}
+                    <span className="text-[10px] font-bold">{cust.name}{cust.phone ? ` · ${cust.phone}` : ""}</span>
                     {o.rider_id && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{getRiderName(o.rider_id)}</Badge>}
                     {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
                     <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
