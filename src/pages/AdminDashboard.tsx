@@ -70,7 +70,7 @@ const AdminDashboard = () => {
     const channel = supabase.channel("admin-remittance-alerts")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "rider_remittances" }, () => {
         setPendingRemittances((count) => count + 1);
-        toast.info("رائیڈر نے نئی ادائیگی سلپ بھیجی ہے", { id: "new-rider-remittance" });
+        toast.info(t("admin.newRemittance"), { id: "new-rider-remittance" });
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "rider_remittances" }, loadPending)
       .subscribe();
@@ -81,7 +81,7 @@ const AdminDashboard = () => {
     if (!loading && (!user || !isAdmin)) navigate("/auth");
   }, [user, isAdmin, loading, navigate]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
   if (!isAdmin) return null;
 
   return (
@@ -91,10 +91,10 @@ const AdminDashboard = () => {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <Button variant="default" size="sm" onClick={() => navigate("/operations")}>🎛️ Operations</Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠 ہوم</Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠 {t("common.home")}</Button>
           <span className="text-sm text-muted-foreground">{user?.email}</span>
           <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
-            <LogOut className="h-4 w-4 mr-1" /> لاگ آؤٹ
+            <LogOut className="h-4 w-4 mr-1" /> {t("common.logout")}
           </Button>
         </div>
       </header>
@@ -102,27 +102,27 @@ const AdminDashboard = () => {
       <div className="p-6">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="mb-6 grid h-auto grid-cols-3 gap-1.5 bg-transparent sm:grid-cols-4 lg:grid-cols-7">
-            <TabsTrigger value="overview" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> کمانڈ سینٹر</TabsTrigger>
-            <TabsTrigger value="operations" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> آپریشنز</TabsTrigger>
-            <TabsTrigger value="partners" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> پارٹنرز</TabsTrigger>
-            <TabsTrigger value="people" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> لوگ اور رولز</TabsTrigger>
-            <TabsTrigger value="finance" className="relative h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> فنانس{pendingRemittances > 0 && <Badge className="absolute end-1 top-1 h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>
-            <TabsTrigger value="content" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> مواد اور آفرز</TabsTrigger>
-            <TabsTrigger value="settings" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> سیٹنگز</TabsTrigger>
+            <TabsTrigger value="overview" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> {t("admin.commandCenter")}</TabsTrigger>
+            <TabsTrigger value="operations" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> {t("admin.operations")}</TabsTrigger>
+            <TabsTrigger value="partners" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> {t("admin.partners")}</TabsTrigger>
+            <TabsTrigger value="people" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> {t("admin.people")}</TabsTrigger>
+            <TabsTrigger value="finance" className="relative h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> {t("admin.finance")}{pendingRemittances > 0 && <Badge className="absolute end-1 top-1 h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>
+            <TabsTrigger value="content" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> {t("admin.content")}</TabsTrigger>
+            <TabsTrigger value="settings" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> {t("common.settings")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>
 
           <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={setOpsTab}>
-              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">آرڈرز</TabsTrigger><TabsTrigger value="grocery-dispatch">ڈسپیچ</TabsTrigger><TabsTrigger value="photo-orders">فوٹو آرڈرز</TabsTrigger><TabsTrigger value="audit">آڈٹ لاگ</TabsTrigger></TabsList>
+              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">{t("common.orders")}</TabsTrigger><TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger><TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger><TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger></TabsList>
               <TabsContent value="orders"><OrdersTab /></TabsContent><TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent><TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent><TabsContent value="audit"><AuditLogTab /></TabsContent>
             </Tabs>
           </TabsContent>
 
           <TabsContent value="partners" className="admin-compact">
             <Tabs value={partnersTab} onValueChange={setPartnersTab}>
-              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="applications">درخواستیں</TabsTrigger><TabsTrigger value="restaurants">ریسٹورنٹس</TabsTrigger><TabsTrigger value="riders">رائیڈرز</TabsTrigger><TabsTrigger value="grocery">گروسری</TabsTrigger><TabsTrigger value="services">سروسز</TabsTrigger><TabsTrigger value="wholesale-cats">بازار کیٹیگریز</TabsTrigger></TabsList>
+              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="applications">{t("admin.applications")}</TabsTrigger><TabsTrigger value="restaurants">{t("admin.restaurants")}</TabsTrigger><TabsTrigger value="riders">{t("admin.riders")}</TabsTrigger><TabsTrigger value="grocery">{t("admin.grocery")}</TabsTrigger><TabsTrigger value="services">{t("admin.services")}</TabsTrigger><TabsTrigger value="wholesale-cats">{t("admin.bazarCats")}</TabsTrigger></TabsList>
               <TabsContent value="applications"><ApplicationsTab /></TabsContent><TabsContent value="restaurants"><RestaurantsTab /></TabsContent><TabsContent value="riders"><RidersTab /></TabsContent><TabsContent value="grocery"><GroceryTab /></TabsContent><TabsContent value="services"><ServicesTab /></TabsContent><TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
             </Tabs>
           </TabsContent>
@@ -130,7 +130,7 @@ const AdminDashboard = () => {
           <TabsContent value="people"><UsersTab /></TabsContent>
 
           <TabsContent value="finance" className="admin-compact">
-            <Tabs value={financeTab} onValueChange={setFinanceTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">پلیٹ فارم آمدنی</TabsTrigger><TabsTrigger value="banks">بینک اور اسٹیٹمنٹ</TabsTrigger><TabsTrigger value="payouts">وینڈر پیمنٹس</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
+            <Tabs value={financeTab} onValueChange={setFinanceTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">{t("admin.revenue")}</TabsTrigger><TabsTrigger value="banks">{t("admin.banks")}</TabsTrigger><TabsTrigger value="payouts">{t("admin.payouts")}</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
           </TabsContent>
 
           <TabsContent value="content">
@@ -138,7 +138,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="admin-compact">
-            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="city-settings">شہر سیٹنگز</TabsTrigger><TabsTrigger value="delivery-rates">ڈلیوری کرایہ</TabsTrigger><TabsTrigger value="cities">شہر</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
+            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
           </TabsContent>
         </Tabs>
       </div>

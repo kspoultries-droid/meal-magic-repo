@@ -11,20 +11,23 @@ import { Input } from "@/components/ui/input";
 import { RefreshCw, Search, User, ShoppingBag, MapPin, Phone, Eye, FileImage, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
-const ORDER_STATUS: Record<string, { label: string; color: string }> = {
-  pending: { label: "زیر التواء", color: "bg-yellow-100 text-yellow-800" },
-  preparing: { label: "تیار ہو رہا", color: "bg-blue-100 text-blue-800" },
-  delivering: { label: "ڈلیوری", color: "bg-orange-100 text-orange-800" },
-  completed: { label: "مکمل", color: "bg-green-100 text-green-800" },
-  cancelled: { label: "منسوخ", color: "bg-destructive/20 text-destructive" },
-  quoted: { label: "قیمت بتائی", color: "bg-blue-100 text-blue-800" },
-  confirmed: { label: "تصدیق", color: "bg-primary/20 text-primary" },
+const ORDER_STATUS: Record<string, { key: string; color: string }> = {
+  pending: { key: "sup.st.pending", color: "bg-yellow-100 text-yellow-800" },
+  preparing: { key: "sup.st.preparing", color: "bg-blue-100 text-blue-800" },
+  delivering: { key: "sup.st.delivering", color: "bg-orange-100 text-orange-800" },
+  completed: { key: "sup.st.completed", color: "bg-green-100 text-green-800" },
+  cancelled: { key: "sup.st.cancelled", color: "bg-destructive/20 text-destructive" },
+  quoted: { key: "sup.st.quoted", color: "bg-blue-100 text-blue-800" },
+  confirmed: { key: "sup.st.confirmed", color: "bg-primary/20 text-primary" },
 };
 
 const SupportDashboard = () => {
   const { user, loading, isSupport, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [orders, setOrders] = useState<any[]>([]);
   const [groceryOrders, setGroceryOrders] = useState<any[]>([]);
   const [serviceBookings, setServiceBookings] = useState<any[]>([]);
@@ -37,7 +40,7 @@ const SupportDashboard = () => {
   useEffect(() => {
     if (!loading && !isSupport && !isAdmin) {
       navigate("/");
-      toast.error("آپ کو اس صفحے تک رسائی نہیں ہے");
+      toast.error(t("sup.noAccess"));
     }
   }, [loading, isSupport, isAdmin]);
 
@@ -67,7 +70,7 @@ const SupportDashboard = () => {
     const table = type === "food" ? "orders" : type === "grocery" ? "grocery_list_orders" : "service_bookings";
     const { error } = await supabase.from(table).update({ status }).eq("id", id);
     if (error) toast.error(error.message);
-    else { toast.success("سٹیٹس اپڈیٹ ہو گیا"); setSelectedOrder(null); fetchAll(); }
+    else { toast.success(t("sup.statusUpdated")); setSelectedOrder(null); fetchAll(); }
   };
 
   const openOrder = (order: any, type: string) => {
@@ -100,22 +103,23 @@ const SupportDashboard = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-3 py-4 max-w-4xl">
-        <h1 className="text-2xl font-extrabold mb-4 flex items-center gap-2">
-          🎧 سپورٹ ڈیش بورڈ
-        </h1>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h1 className="text-2xl font-extrabold">{t("sup.title")}</h1>
+          <LanguageSwitcher />
+        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-4">
           <Card><CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">فوڈ زیر التواء</p>
+            <p className="text-xs text-muted-foreground">{t("sup.foodPending")}</p>
             <p className="text-2xl font-extrabold text-orange-600">{stats.foodPending}</p>
           </CardContent></Card>
           <Card><CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">گروسری زیر التواء</p>
+            <p className="text-xs text-muted-foreground">{t("sup.groceryPending")}</p>
             <p className="text-2xl font-extrabold text-green-600">{stats.groceryPending}</p>
           </CardContent></Card>
           <Card><CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">سروسز زیر التواء</p>
+            <p className="text-xs text-muted-foreground">{t("sup.servicePending")}</p>
             <p className="text-2xl font-extrabold text-blue-600">{stats.servicePending}</p>
           </CardContent></Card>
         </div>
@@ -124,7 +128,7 @@ const SupportDashboard = () => {
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="آرڈر ID یا ایڈریس سرچ کریں..."
+            placeholder={t("sup.searchPlaceholder")}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -133,27 +137,27 @@ const SupportDashboard = () => {
 
         <Tabs defaultValue="food">
           <TabsList className="w-full grid grid-cols-3">
-            <TabsTrigger value="food" className="text-xs">🍔 فوڈ آرڈرز</TabsTrigger>
-            <TabsTrigger value="grocery" className="text-xs">🛒 گروسری</TabsTrigger>
-            <TabsTrigger value="services" className="text-xs">🔧 سروسز</TabsTrigger>
+            <TabsTrigger value="food" className="text-xs">🍔 {t("sup.foodOrders")}</TabsTrigger>
+            <TabsTrigger value="grocery" className="text-xs">🛒 {t("admin.grocery")}</TabsTrigger>
+            <TabsTrigger value="services" className="text-xs">🔧 {t("admin.services")}</TabsTrigger>
           </TabsList>
 
           {/* Food Orders */}
           <TabsContent value="food">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between py-3">
-                <CardTitle className="text-sm flex items-center gap-1"><ShoppingBag className="w-4 h-4" /> فوڈ آرڈرز ({orders.length})</CardTitle>
+                <CardTitle className="text-sm flex items-center gap-1"><ShoppingBag className="w-4 h-4" /> {t("sup.foodOrders")} ({orders.length})</CardTitle>
                 <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="h-3 w-3" /></Button>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
-                {loadingData ? <p className="text-center text-muted-foreground py-4">لوڈ ہو رہا ہے...</p> :
+                {loadingData ? <p className="text-center text-muted-foreground py-4">{t("common.loading")}</p> :
                   filterBySearch(orders, ["delivery_address", "restaurants.name"]).map(order => (
                     <div key={order.id} onClick={() => openOrder(order, "food")}
                       className="flex items-center gap-3 p-3 border rounded-xl hover:bg-accent/50 cursor-pointer transition-colors">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 8)}</span>
-                          <Badge className={ORDER_STATUS[order.status]?.color || ""}>{ORDER_STATUS[order.status]?.label || order.status}</Badge>
+                          <Badge className={ORDER_STATUS[order.status]?.color || ""}>{ORDER_STATUS[order.status] ? t(ORDER_STATUS[order.status].key as any) : order.status}</Badge>
                           <span className="text-sm font-bold text-primary">Rs {order.total_amount}</span>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">🏪 {order.restaurants?.name || "N/A"}</p>
@@ -173,11 +177,11 @@ const SupportDashboard = () => {
           <TabsContent value="grocery">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between py-3">
-                <CardTitle className="text-sm flex items-center gap-1"><FileImage className="w-4 h-4" /> گروسری آرڈرز ({groceryOrders.length})</CardTitle>
+                <CardTitle className="text-sm flex items-center gap-1"><FileImage className="w-4 h-4" /> {t("sup.groceryOrders")} ({groceryOrders.length})</CardTitle>
                 <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="h-3 w-3" /></Button>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
-                {loadingData ? <p className="text-center text-muted-foreground py-4">لوڈ ہو رہا ہے...</p> :
+                {loadingData ? <p className="text-center text-muted-foreground py-4">{t("common.loading")}</p> :
                   filterBySearch(groceryOrders, ["delivery_address", "grocery_stores.name"]).map(order => (
                     <div key={order.id} onClick={() => openOrder(order, "grocery")}
                       className="flex items-center gap-3 p-3 border rounded-xl hover:bg-accent/50 cursor-pointer transition-colors">
@@ -185,7 +189,7 @@ const SupportDashboard = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 8)}</span>
-                          <Badge className={ORDER_STATUS[order.status]?.color || ""}>{ORDER_STATUS[order.status]?.label || order.status}</Badge>
+                          <Badge className={ORDER_STATUS[order.status]?.color || ""}>{ORDER_STATUS[order.status] ? t(ORDER_STATUS[order.status].key as any) : order.status}</Badge>
                           {order.total_amount > 0 && <span className="text-sm font-bold text-primary">Rs {order.total_amount}</span>}
                         </div>
                         <p className="text-xs text-muted-foreground truncate">🏪 {order.grocery_stores?.name || "N/A"}</p>
@@ -201,18 +205,18 @@ const SupportDashboard = () => {
           <TabsContent value="services">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between py-3">
-                <CardTitle className="text-sm flex items-center gap-1"><Wrench className="w-4 h-4" /> سروس بکنگز ({serviceBookings.length})</CardTitle>
+                <CardTitle className="text-sm flex items-center gap-1"><Wrench className="w-4 h-4" /> {t("sup.serviceBookings")} ({serviceBookings.length})</CardTitle>
                 <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="h-3 w-3" /></Button>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
-                {loadingData ? <p className="text-center text-muted-foreground py-4">لوڈ ہو رہا ہے...</p> :
+                {loadingData ? <p className="text-center text-muted-foreground py-4">{t("common.loading")}</p> :
                   filterBySearch(serviceBookings, ["address", "services.name"]).map(booking => (
                     <div key={booking.id} onClick={() => openOrder(booking, "service")}
                       className="flex items-center gap-3 p-3 border rounded-xl hover:bg-accent/50 cursor-pointer transition-colors">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono text-xs text-muted-foreground">#{booking.id.slice(0, 8)}</span>
-                          <Badge className={ORDER_STATUS[booking.status]?.color || ""}>{ORDER_STATUS[booking.status]?.label || booking.status}</Badge>
+                          <Badge className={ORDER_STATUS[booking.status]?.color || ""}>{ORDER_STATUS[booking.status] ? t(ORDER_STATUS[booking.status].key as any) : booking.status}</Badge>
                           <span className="text-sm font-bold text-primary">Rs {booking.total_amount}</span>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">🔧 {booking.services?.name || "N/A"}</p>
@@ -230,15 +234,15 @@ const SupportDashboard = () => {
       {/* Detail Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={v => !v && setSelectedOrder(null)}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>📋 آرڈر تفصیل</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("sup.orderDetail")}</DialogTitle></DialogHeader>
           {selectedOrder && (
             <div className="space-y-3">
               {/* Customer Profile */}
               {customerProfile && (
                 <Card className="bg-accent/30">
                   <CardContent className="p-3">
-                    <p className="text-xs font-bold mb-1 flex items-center gap-1"><User className="w-3 h-3" /> کسٹمر</p>
-                    <p className="text-sm font-semibold">{customerProfile.full_name || "نام نہیں"}</p>
+                    <p className="text-xs font-bold mb-1 flex items-center gap-1"><User className="w-3 h-3" /> {t("sup.customer")}</p>
+                    <p className="text-sm font-semibold">{customerProfile.full_name || t("sup.noName")}</p>
                     {customerProfile.phone && <p className="text-xs text-muted-foreground flex items-center gap-1"><Phone className="w-3 h-3" /> {customerProfile.phone}</p>}
                     {customerProfile.address && <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {customerProfile.address}</p>}
                   </CardContent>
@@ -248,14 +252,14 @@ const SupportDashboard = () => {
               {/* Order Info */}
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div><span className="text-muted-foreground">ID:</span> <span className="font-mono text-xs">#{selectedOrder.id.slice(0, 8)}</span></div>
-                <div><span className="text-muted-foreground">سٹیٹس:</span> <Badge className={ORDER_STATUS[selectedOrder.status]?.color}>{ORDER_STATUS[selectedOrder.status]?.label}</Badge></div>
-                <div><span className="text-muted-foreground">رقم:</span> <strong>Rs {selectedOrder.total_amount || 0}</strong></div>
-                <div><span className="text-muted-foreground">ادائیگی:</span> {selectedOrder.payment_method || "COD"}</div>
+                <div><span className="text-muted-foreground">{t("sup.status")}:</span> <Badge className={ORDER_STATUS[selectedOrder.status]?.color}>{ORDER_STATUS[selectedOrder.status] ? t(ORDER_STATUS[selectedOrder.status].key as any) : selectedOrder.status}</Badge></div>
+                <div><span className="text-muted-foreground">{t("sup.amount")}:</span> <strong>Rs {selectedOrder.total_amount || 0}</strong></div>
+                <div><span className="text-muted-foreground">{t("sup.payment")}:</span> {selectedOrder.payment_method || "COD"}</div>
               </div>
 
               {selectedOrder.delivery_address && <p className="text-sm flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedOrder.delivery_address}</p>}
               {selectedOrder.address && !selectedOrder.delivery_address && <p className="text-sm flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedOrder.address}</p>}
-              {selectedOrder.notes && <p className="text-sm bg-accent/50 p-2 rounded-lg"><strong>نوٹ:</strong> {selectedOrder.notes}</p>}
+              {selectedOrder.notes && <p className="text-sm bg-accent/50 p-2 rounded-lg"><strong>{t("sup.note")}:</strong> {selectedOrder.notes}</p>}
 
               {/* Grocery image */}
               {selectedType === "grocery" && selectedOrder.image_url && (
@@ -264,12 +268,12 @@ const SupportDashboard = () => {
 
               {/* Status update buttons */}
               <div>
-                <p className="text-xs font-bold mb-2">سٹیٹس تبدیل کریں:</p>
+                <p className="text-xs font-bold mb-2">{t("sup.changeStatus")}</p>
                 <div className="flex gap-2 flex-wrap">
                   {Object.entries(ORDER_STATUS).filter(([s]) => s !== selectedOrder.status).map(([s, info]) => (
                     <Button key={s} size="sm" variant="outline" className="text-xs h-7"
                       onClick={() => updateOrderStatus(selectedOrder.id, s, selectedType)}>
-                      {info.label}
+                      {t(info.key as any)}
                     </Button>
                   ))}
                 </div>

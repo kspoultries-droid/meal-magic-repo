@@ -13,12 +13,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 
-const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "نئی بکنگ", color: "bg-warning text-warning-foreground" },
-  confirmed: { label: "تصدیق شدہ", color: "bg-primary text-primary-foreground" },
-  in_progress: { label: "جاری ہے", color: "bg-accent text-accent-foreground" },
-  completed: { label: "مکمل", color: "bg-success text-success-foreground" },
-  cancelled: { label: "منسوخ", color: "bg-destructive text-destructive-foreground" },
+const statusMap: Record<string, { key: string; color: string }> = {
+  pending: { key: "mech.newBooking", color: "bg-warning text-warning-foreground" },
+  confirmed: { key: "mech.confirmed", color: "bg-primary text-primary-foreground" },
+  in_progress: { key: "mech.inProgress", color: "bg-accent text-accent-foreground" },
+  completed: { key: "mech.completed", color: "bg-success text-success-foreground" },
+  cancelled: { key: "mech.cancelled", color: "bg-destructive text-destructive-foreground" },
 };
 
 const MechanicDashboard = () => {
@@ -80,7 +80,7 @@ const MechanicDashboard = () => {
     }
     const { error } = await supabase.from("service_bookings").update(changes).eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("سٹیٹس اپڈیٹ ہو گئی");
+    toast.success(t("mech.statusUpdated"));
     setSelectedBooking(null);
     fetchData();
   };
@@ -91,7 +91,7 @@ const MechanicDashboard = () => {
     setCustomerProfile(data);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
   if (!isMechanic && !isAdmin) return null;
 
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
@@ -120,13 +120,13 @@ const MechanicDashboard = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-warning">{pendingCount}</p>
-              <p className="text-xs text-muted-foreground">نئی بکنگز</p>
+              <p className="text-xs text-muted-foreground">{t("mech.newBookings")}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-primary">{activeCount}</p>
-              <p className="text-xs text-muted-foreground">جاری کام</p>
+              <p className="text-xs text-muted-foreground">{t("mech.activeJobs")}</p>
             </CardContent>
           </Card>
         </div>
@@ -134,16 +134,16 @@ const MechanicDashboard = () => {
         {/* Bookings List */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">سروس بکنگز</CardTitle>
+            <CardTitle className="text-base">{t("mech.bookings")}</CardTitle>
             <Button variant="outline" size="sm" onClick={fetchData}>
               <RefreshCw className="h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {fetching ? (
-              <p className="text-muted-foreground text-center py-4">لوڈ ہو رہا ہے...</p>
+              <p className="text-muted-foreground text-center py-4">{t("common.loading")}</p>
             ) : bookings.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">کوئی بکنگ نہیں</p>
+              <p className="text-muted-foreground text-center py-8">{t("mech.noBookings")}</p>
             ) : (
               bookings.map((b) => {
                 const st = statusMap[b.status] || statusMap.pending;
@@ -155,7 +155,7 @@ const MechanicDashboard = () => {
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-sm">{getServiceName(b.service_id)}</span>
-                      <Badge className={st.color}>{st.label}</Badge>
+                      <Badge className={st.color}>{t(st.key as any)}</Badge>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {b.scheduled_date} • {b.scheduled_time}</span>
@@ -176,14 +176,14 @@ const MechanicDashboard = () => {
       <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>بکنگ تفصیلات</DialogTitle>
+            <DialogTitle>{t("mech.bookingDetails")}</DialogTitle>
           </DialogHeader>
           {selectedBooking && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <p className="font-semibold">{getServiceName(selectedBooking.service_id)}</p>
                 <Badge className={statusMap[selectedBooking.status]?.color}>
-                  {statusMap[selectedBooking.status]?.label}
+                  {statusMap[selectedBooking.status] ? t(statusMap[selectedBooking.status].key as any) : selectedBooking.status}
                 </Badge>
               </div>
 
@@ -191,7 +191,7 @@ const MechanicDashboard = () => {
                 <p><Clock className="w-4 h-4 inline mr-1" /> {selectedBooking.scheduled_date} • {selectedBooking.scheduled_time}</p>
                 <p><MapPin className="w-4 h-4 inline mr-1" /> {selectedBooking.address}</p>
                 <p className="font-bold">Rs {selectedBooking.total_amount}</p>
-                {selectedBooking.notes && <p className="text-muted-foreground">نوٹ: {selectedBooking.notes}</p>}
+                {selectedBooking.notes && <p className="text-muted-foreground">{t("sup.note")}: {selectedBooking.notes}</p>}
               </div>
 
               {/* Customer Info */}
@@ -211,22 +211,22 @@ const MechanicDashboard = () => {
               <div className="flex gap-2 flex-wrap">
                 {selectedBooking.status === "pending" && (
                   <Button className="flex-1" onClick={() => updateStatus(selectedBooking.id, "confirmed")}>
-                    <CheckCircle className="w-4 h-4 mr-1" /> قبول کریں
+                    <CheckCircle className="w-4 h-4 mr-1" /> {t("mech.accept")}
                   </Button>
                 )}
                 {selectedBooking.status === "confirmed" && (
                   <Button className="flex-1" onClick={() => updateStatus(selectedBooking.id, "in_progress")}>
-                    <Wrench className="w-4 h-4 mr-1" /> کام شروع
+                    <Wrench className="w-4 h-4 mr-1" /> {t("mech.startWork")}
                   </Button>
                 )}
                 {selectedBooking.status === "in_progress" && (
                   <Button className="flex-1 bg-success hover:bg-success/90" onClick={() => updateStatus(selectedBooking.id, "completed")}>
-                    <CheckCircle className="w-4 h-4 mr-1" /> مکمل ہو گیا
+                    <CheckCircle className="w-4 h-4 mr-1" /> {t("mech.markDone")}
                   </Button>
                 )}
                 {selectedBooking.status !== "cancelled" && selectedBooking.status !== "completed" && (
                   <Button variant="destructive" onClick={() => updateStatus(selectedBooking.id, "cancelled")}>
-                    منسوخ
+                    {t("mech.cancelled")}
                   </Button>
                 )}
               </div>
@@ -235,7 +235,7 @@ const MechanicDashboard = () => {
               {customerProfile?.phone && (
                 <a href={`tel:${customerProfile.phone}`} className="block">
                   <Button variant="outline" className="w-full">
-                    <Phone className="w-4 h-4 mr-2" /> کسٹمر کو کال کریں
+                    <Phone className="w-4 h-4 mr-2" /> {t("mech.callCustomer")}
                   </Button>
                 </a>
               )}
