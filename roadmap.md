@@ -39,3 +39,5 @@
 - [x] Reliable distinct-rider 20/40/40 offer progression with manual attention fallback
 - [x] Admin rider suspend/restore/offline/role-removal controls
 - [x] Restaurant permanent and timed closure controls
+- [x] Stop command-center refresh flicker and restore live order totals
+- [x] Preserve offer history and prevent repeat offers to the same rider

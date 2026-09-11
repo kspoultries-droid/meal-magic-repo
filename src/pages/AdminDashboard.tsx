@@ -470,8 +470,7 @@ const OrdersTab = () => {
         setOffers(data || []);
       })
       .subscribe();
-    const tick = window.setInterval(() => setOffers((prev) => [...prev]), 5000);
-    return () => { window.clearInterval(tick); supabase.removeChannel(channel); };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const updateStatus = async (order: any, status: string) => {
