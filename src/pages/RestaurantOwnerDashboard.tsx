@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,7 +90,7 @@ const RestaurantOwnerDashboard = () => {
           <div className="flex min-w-0 items-center gap-1.5">
             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
             <div className="min-w-0">
-              <h1 className="truncate text-sm font-extrabold text-primary sm:text-lg">ریسٹورنٹ ڈیش بورڈ</h1>
+              <h1 className="truncate text-sm font-extrabold text-primary sm:text-lg">{t("dash.restaurant")}</h1>
               <p className="truncate text-[10px] text-muted-foreground sm:text-xs">{user?.email}</p>
             </div>
           </div>

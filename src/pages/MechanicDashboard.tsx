@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,7 +102,7 @@ const MechanicDashboard = () => {
       <header className="border-b bg-card px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Wrench className="w-6 h-6 text-primary" />
-          <h1 className="text-lg font-bold text-primary">مکینک ڈیش بورڈ</h1>
+          <h1 className="text-lg font-bold text-primary">{t("role.mechanic")}</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠</Button>

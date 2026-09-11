@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -327,7 +329,7 @@ const RiderDashboard = () => {
         <div className="flex items-center gap-1.5 min-w-0">
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
           <div className="min-w-0">
-            <h1 className="text-sm font-extrabold text-primary leading-tight">رائیڈر ڈیش بورڈ</h1>
+            <h1 className="text-sm font-extrabold text-primary leading-tight">{t("dash.rider")}</h1>
             <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>

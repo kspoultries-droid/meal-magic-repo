@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,8 +86,9 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary">ایڈمن ڈیش بورڈ</h1>
+        <h1 className="text-xl font-bold text-primary">{t("dash.admin")}</h1>
         <div className="flex items-center gap-3">
+          <LanguageSwitcher />
           <Button variant="default" size="sm" onClick={() => navigate("/operations")}>🎛️ Operations</Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠 ہوم</Button>
           <span className="text-sm text-muted-foreground">{user?.email}</span>
