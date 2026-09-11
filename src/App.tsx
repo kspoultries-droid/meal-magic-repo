@@ -159,6 +159,7 @@ const RouteLoading = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <LanguageProvider>
     <AuthProvider>
       <CartProvider>
         <TooltipProvider>
