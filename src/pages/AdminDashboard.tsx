@@ -413,6 +413,8 @@ const OrdersTab = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [riders, setRiders] = useState<any[]>([]);
   const [riderProfiles, setRiderProfiles] = useState<any[]>([]);
+  const [customerProfiles, setCustomerProfiles] = useState<any[]>([]);
+  const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
