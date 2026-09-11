@@ -553,6 +553,8 @@ const OrdersTab = () => {
               const nearestRiders = getNearestRiders(o);
               const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
               const needsRider = deliveryMode !== "self" && ["confirmed", "preparing", "delivering"].includes(o.status) && !o.rider_id;
+              const cust = customerOf(o);
+              const dispatch = offerInfo(o.id);
               return (
                 <div key={o.id} className="rounded-lg border px-2.5 py-2 space-y-1.5">
                   <div className="flex items-center gap-2 flex-wrap">
