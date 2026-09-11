@@ -7,6 +7,7 @@ import { ShoppingBasket, MapPin, Loader2, Bike, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
+import GroceryPicking from "@/components/grocery/GroceryPicking";
 
 interface Props {
   storeId: string;
@@ -15,8 +16,13 @@ interface Props {
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending: { label: "نیا آرڈر / New", color: "bg-yellow-100 text-yellow-800" },
   confirmed: { label: "قبول شدہ / Accepted", color: "bg-primary/20 text-primary" },
-  preparing: { label: "تیاری / Preparing", color: "bg-blue-100 text-blue-800" },
+  preparing: { label: "پکنگ / Picking", color: "bg-blue-100 text-blue-800" },
+  picking: { label: "پکنگ / Picking", color: "bg-blue-100 text-blue-800" },
+  packed: { label: "پیک شدہ / Packed", color: "bg-indigo-100 text-indigo-800" },
+  ready_for_pickup: { label: "پک اپ کے لیے تیار", color: "bg-purple-100 text-purple-800" },
   ready: { label: "تیار ہے / Ready", color: "bg-purple-100 text-purple-800" },
+  failed_delivery: { label: "ڈلیوری ناکام", color: "bg-destructive/20 text-destructive" },
+  returned_to_store: { label: "دکان کو واپس", color: "bg-destructive/20 text-destructive" },
   delivering: { label: "راستے میں / On the way", color: "bg-orange-100 text-orange-800" },
   out_for_delivery: { label: "راستے میں / On the way", color: "bg-orange-100 text-orange-800" },
   delivered: { label: "ڈلیور / Delivered", color: "bg-green-100 text-green-800" },
@@ -31,7 +37,18 @@ const DISPATCH_LABEL: Record<string, string> = {
   stuck: "⚠️ رائیڈر نہیں مل رہا — ایڈمن مدد کرے گا",
 };
 
-const ACTIVE = ["pending", "confirmed", "preparing", "ready", "delivering", "out_for_delivery"];
+const ACTIVE = [
+  "pending",
+  "confirmed",
+  "picking",
+  "preparing",
+  "packed",
+  "ready_for_pickup",
+  "ready",
+  "delivering",
+  "out_for_delivery",
+  "failed_delivery",
+];
 
 const ShopkeeperCartOrders = ({ storeId }: Props) => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -94,8 +111,28 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
     if (error) toast.error(error.message);
     else {
       toast.success("اپڈیٹ ہو گیا / Updated");
-      if (status === "confirmed") toast("🏍️ رائیڈر تلاش شروع — ایپ خود بھیجے گی", { duration: 5000 });
+      if (status === "ready_for_pickup") toast("🏍️ رائیڈر تلاش شروع — ایپ خود بھیجے گی", { duration: 5000 });
       fetchOrders();
+    }
+    setUpdating(false);
+  };
+
+  const rejectOrder = async (orderId: string) => {
+    const reason = window.prompt("مسترد کرنے کی وجہ لکھیں / Reason for rejection");
+    if (!reason || !reason.trim()) {
+      toast.error("وجہ لازمی ہے / Reason is required");
+      return;
+    }
+    setUpdating(true);
+    const { error } = await supabase
+      .from("grocery_cart_orders")
+      .update({ status: "cancelled", cancellation_reason: reason.trim(), reject_reason: reason.trim() } as any)
+      .eq("id", orderId);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("آرڈر مسترد کر دیا گیا");
+      fetchOrders();
+      setSelected(null);
     }
     setUpdating(false);
   };
@@ -212,30 +249,51 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
                 <Bike className="w-3 h-3" /> {DISPATCH_LABEL[selected.dispatch_state] || selected.dispatch_state}
               </p>
 
+              {selected.final_amount != null && Number(selected.final_amount) !== Number(selected.total_amount) && (
+                <p className="text-sm font-extrabold bg-amber-50 text-amber-900 rounded-lg p-2">
+                  آخری رقم: Rs {Number(selected.final_amount)} (اصل Rs {Number(selected.total_amount)})
+                </p>
+              )}
+
+              {["confirmed", "picking", "preparing", "packed"].includes(selected.status) && (
+                <GroceryPicking
+                  orderId={selected.id}
+                  storeId={storeId}
+                  editable={["confirmed", "picking", "preparing"].includes(selected.status)}
+                  onChanged={fetchOrders}
+                />
+              )}
+
               {selected.status === "pending" && (
                 <div className="flex gap-2">
                   <Button className="flex-1" disabled={updating} onClick={() => setStatus(selected.id, "confirmed")}>
                     {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : "قبول کریں / Accept"}
                   </Button>
-                  <Button variant="destructive" disabled={updating} onClick={() => setStatus(selected.id, "cancelled")}>
-                    منسوخ
+                  <Button variant="destructive" disabled={updating} onClick={() => rejectOrder(selected.id)}>
+                    مسترد
                   </Button>
                 </div>
               )}
 
               {selected.status === "confirmed" && (
-                <Button className="w-full" disabled={updating} onClick={() => setStatus(selected.id, "preparing")}>
-                  تیاری شروع / Start Preparing
+                <Button className="w-full" disabled={updating} onClick={() => setStatus(selected.id, "picking")}>
+                  پکنگ شروع / Start Picking
                 </Button>
               )}
 
-              {selected.status === "preparing" && (
-                <Button className="w-full" disabled={updating} onClick={() => setStatus(selected.id, "ready")}>
-                  آرڈر تیار ہے / Mark Ready
+              {["picking", "preparing"].includes(selected.status) && (
+                <Button className="w-full" disabled={updating} onClick={() => setStatus(selected.id, "packed")}>
+                  پیک ہو گیا / Mark Packed
                 </Button>
               )}
 
-              {selected.status === "ready" && (
+              {selected.status === "packed" && (
+                <Button className="w-full" disabled={updating} onClick={() => setStatus(selected.id, "ready_for_pickup")}>
+                  پک اپ کے لیے تیار / Ready for pickup
+                </Button>
+              )}
+
+              {["ready", "ready_for_pickup"].includes(selected.status) && (
                 <p className="text-center text-sm text-muted-foreground bg-secondary p-3 rounded-xl">
                   ⏳ رائیڈر پک اپ کے لیے آ رہا ہے — رقم رائیڈر وصول کرے گا
                 </p>

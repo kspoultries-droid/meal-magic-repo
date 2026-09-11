@@ -18,6 +18,7 @@ const RiderRemittancesTab = () => {
   const [rows, setRows] = useState<any[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [expected, setExpected] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -87,10 +88,12 @@ const RiderRemittancesTab = () => {
 
   const review = async (id: string, approve: boolean) => {
     setBusyId(id);
-    const { error } = await supabase.rpc("review_rider_remittance", {
+    const expectedRaw = expected[id]?.trim();
+    const { error } = await (supabase.rpc as any)("review_rider_remittance", {
       _id: id,
       _approve: approve,
       _note: notes[id]?.trim() || null,
+      _expected: expectedRaw ? Number(expectedRaw) : null,
     });
     setBusyId(null);
     if (error) { toast.error(error.message); return; }
@@ -173,6 +176,13 @@ const RiderRemittancesTab = () => {
                       placeholder="نوٹ (اختیاری)"
                       className="h-9 text-xs"
                     />
+                    <Input
+                      value={expected[r.id] || ""}
+                      onChange={(e) => setExpected((n) => ({ ...n, [r.id]: e.target.value }))}
+                      inputMode="numeric"
+                      placeholder="متوقع نقدی (اختیاری) — کمی/زیادتی خودکار حساب ہوگی"
+                      className="h-9 text-xs"
+                    />
                     <div className="flex gap-2">
                       <Button size="sm" className="flex-1 h-9 text-xs font-bold" disabled={busyId === r.id} onClick={() => review(r.id, true)}>
                         منظور کریں
@@ -182,6 +192,13 @@ const RiderRemittancesTab = () => {
                       </Button>
                     </div>
                   </div>
+                )}
+                {(Number(r.shortage_amount) > 0 || Number(r.overage_amount) > 0) && (
+                  <p className={`text-[11px] font-bold ${Number(r.shortage_amount) > 0 ? "text-destructive" : "text-green-700"}`}>
+                    {Number(r.shortage_amount) > 0
+                      ? `کمی: Rs ${Number(r.shortage_amount)} (متوقع Rs ${Number(r.expected_amount)})`
+                      : `زیادتی: Rs ${Number(r.overage_amount)} (متوقع Rs ${Number(r.expected_amount)})`}
+                  </p>
                 )}
                 {r.admin_note && r.status !== "pending" && (
                   <p className="text-[11px] text-muted-foreground">ایڈمن نوٹ: {r.admin_note}</p>

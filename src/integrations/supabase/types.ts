@@ -579,24 +579,30 @@ export type Database = {
           discount_amount: number
           dispatch_state: string
           distance_km: number
+          failed_at: string | null
           fee_breakdown: Json
           final_amount: number | null
           id: string
           is_gift: boolean | null
           items: Json
+          items_adjustment: number
           notes: string | null
+          original_amount: number | null
           packed_at: string | null
           payment_method: string | null
           picked_up_at: string | null
           picking_at: string | null
+          ready_at: string | null
           receiver_name: string | null
           receiver_phone: string | null
+          reject_reason: string | null
           rider_assigned_at: string | null
           rider_id: string | null
           shipment_status: string | null
           shipped_at: string | null
           status: string
           store_id: string
+          substitution_adjustment: number
           total_amount: number
           tracking_number: string | null
           updated_at: string
@@ -629,24 +635,30 @@ export type Database = {
           discount_amount?: number
           dispatch_state?: string
           distance_km?: number
+          failed_at?: string | null
           fee_breakdown?: Json
           final_amount?: number | null
           id?: string
           is_gift?: boolean | null
           items?: Json
+          items_adjustment?: number
           notes?: string | null
+          original_amount?: number | null
           packed_at?: string | null
           payment_method?: string | null
           picked_up_at?: string | null
           picking_at?: string | null
+          ready_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
+          reject_reason?: string | null
           rider_assigned_at?: string | null
           rider_id?: string | null
           shipment_status?: string | null
           shipped_at?: string | null
           status?: string
           store_id: string
+          substitution_adjustment?: number
           total_amount?: number
           tracking_number?: string | null
           updated_at?: string
@@ -679,24 +691,30 @@ export type Database = {
           discount_amount?: number
           dispatch_state?: string
           distance_km?: number
+          failed_at?: string | null
           fee_breakdown?: Json
           final_amount?: number | null
           id?: string
           is_gift?: boolean | null
           items?: Json
+          items_adjustment?: number
           notes?: string | null
+          original_amount?: number | null
           packed_at?: string | null
           payment_method?: string | null
           picked_up_at?: string | null
           picking_at?: string | null
+          ready_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
+          reject_reason?: string | null
           rider_assigned_at?: string | null
           rider_id?: string | null
           shipment_status?: string | null
           shipped_at?: string | null
           status?: string
           store_id?: string
+          substitution_adjustment?: number
           total_amount?: number
           tracking_number?: string | null
           updated_at?: string
@@ -815,6 +833,104 @@ export type Database = {
           },
         ]
       }
+      grocery_order_items: {
+        Row: {
+          actor_id: string | null
+          adjustment_amount: number
+          approval_status: string
+          created_at: string
+          final_line_total: number
+          id: string
+          is_weight_based: boolean
+          line_index: number
+          name: string
+          order_id: string
+          original_line_total: number
+          picked_at: string | null
+          picked_qty: number | null
+          picked_weight_kg: number | null
+          product_id: string | null
+          reason: string | null
+          requested_qty: number
+          requested_weight_kg: number | null
+          responded_at: string | null
+          status: string
+          substitute_name: string | null
+          substitute_product_id: string | null
+          substitute_qty: number | null
+          substitute_unit_price: number | null
+          unit_price: number
+          updated_at: string
+          variant_label: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          adjustment_amount?: number
+          approval_status?: string
+          created_at?: string
+          final_line_total?: number
+          id?: string
+          is_weight_based?: boolean
+          line_index?: number
+          name: string
+          order_id: string
+          original_line_total?: number
+          picked_at?: string | null
+          picked_qty?: number | null
+          picked_weight_kg?: number | null
+          product_id?: string | null
+          reason?: string | null
+          requested_qty?: number
+          requested_weight_kg?: number | null
+          responded_at?: string | null
+          status?: string
+          substitute_name?: string | null
+          substitute_product_id?: string | null
+          substitute_qty?: number | null
+          substitute_unit_price?: number | null
+          unit_price?: number
+          updated_at?: string
+          variant_label?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          adjustment_amount?: number
+          approval_status?: string
+          created_at?: string
+          final_line_total?: number
+          id?: string
+          is_weight_based?: boolean
+          line_index?: number
+          name?: string
+          order_id?: string
+          original_line_total?: number
+          picked_at?: string | null
+          picked_qty?: number | null
+          picked_weight_kg?: number | null
+          product_id?: string | null
+          reason?: string | null
+          requested_qty?: number
+          requested_weight_kg?: number | null
+          responded_at?: string | null
+          status?: string
+          substitute_name?: string | null
+          substitute_product_id?: string | null
+          substitute_qty?: number | null
+          substitute_unit_price?: number | null
+          unit_price?: number
+          updated_at?: string
+          variant_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_cart_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grocery_products: {
         Row: {
           brand: string | null
@@ -830,6 +946,7 @@ export type Database = {
           images: string[]
           is_available: boolean | null
           is_special_offer: boolean | null
+          is_weight_based: boolean
           min_order_qty: number
           name: string
           price: number
@@ -862,6 +979,7 @@ export type Database = {
           images?: string[]
           is_available?: boolean | null
           is_special_offer?: boolean | null
+          is_weight_based?: boolean
           min_order_qty?: number
           name: string
           price: number
@@ -894,6 +1012,7 @@ export type Database = {
           images?: string[]
           is_available?: boolean | null
           is_special_offer?: boolean | null
+          is_weight_based?: boolean
           min_order_qty?: number
           name?: string
           price?: number
@@ -3852,6 +3971,39 @@ export type Database = {
           unit: string
         }[]
       }
+      grocery_can_manage_order: {
+        Args: { _order_id: string }
+        Returns: boolean
+      }
+      grocery_materialize_items: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
+      grocery_pick_item: {
+        Args: {
+          _action: string
+          _item_id: string
+          _picked_qty?: number
+          _picked_weight?: number
+          _reason?: string
+        }
+        Returns: Json
+      }
+      grocery_recalc_order: { Args: { _order_id: string }; Returns: number }
+      grocery_respond_substitution: {
+        Args: { _approve: boolean; _item_id: string }
+        Returns: number
+      }
+      grocery_substitute_item: {
+        Args: {
+          _item_id: string
+          _reason?: string
+          _substitute_product_id: string
+          _substitute_qty?: number
+        }
+        Returns: Json
+      }
+      grocery_weight_tolerance: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3947,34 +4099,20 @@ export type Database = {
         }
         Returns: Json
       }
-      record_commission:
-        | {
-            Args: {
-              _channel?: string
-              _city_id: string
-              _delivery_fee: number
-              _order_id: string
-              _order_kind: string
-              _sector: string
-              _total: number
-              _vendor_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              _channel?: string
-              _city_id: string
-              _delivery_fee: number
-              _order_id: string
-              _order_kind: string
-              _sector: string
-              _total: number
-              _vendor_id: string
-              _vendor_pays_delivery?: boolean
-            }
-            Returns: undefined
-          }
+      record_commission: {
+        Args: {
+          _channel?: string
+          _city_id: string
+          _delivery_fee: number
+          _order_id: string
+          _order_kind: string
+          _sector: string
+          _total: number
+          _vendor_id: string
+          _vendor_pays_delivery?: boolean
+        }
+        Returns: undefined
+      }
       record_rider_earning: {
         Args: { _kind: string; _order_id: string; _rider: string }
         Returns: undefined
@@ -4021,10 +4159,20 @@ export type Database = {
         Args: { _kind: string; _order_id: string }
         Returns: string
       }
-      review_rider_remittance: {
-        Args: { _approve: boolean; _id: string; _note?: string }
-        Returns: undefined
-      }
+      review_rider_remittance:
+        | {
+            Args: { _approve: boolean; _id: string; _note?: string }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _approve: boolean
+              _expected?: number
+              _id: string
+              _note?: string
+            }
+            Returns: undefined
+          }
       rider_cash_due: { Args: { _rider: string }; Returns: number }
       rider_cash_limit: { Args: never; Returns: number }
       rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
