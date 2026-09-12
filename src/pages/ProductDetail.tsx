@@ -39,7 +39,7 @@ const ProductDetail = () => {
        const [{ data: storeData }, { data: relatedData }, { data: reviewData }] = await Promise.all([
          supabase.from("grocery_stores").select("*").eq("id", productData.store_id).maybeSingle(),
          supabase.from("grocery_products").select("id,name,price,discount_price,wholesale_price,image_url").eq("store_id", productData.store_id).neq("id", id).eq("is_available", true).limit(6),
-         (supabase.from("grocery_reviews" as any).select("id,rating,comment,photo_urls,video_url,created_at").eq("store_id", productData.store_id).order("created_at", { ascending: false }).limit(20) as any),
+         (supabase.from("grocery_reviews_public" as any).select("id,rating,comment,photo_urls,video_url,created_at").eq("store_id", productData.store_id).order("created_at", { ascending: false }).limit(20) as any),
        ]);
        setProduct(productData);
        setStore(storeData);

@@ -168,15 +168,14 @@ const Services = () => {
       });
       rows = (data as any[]) || [];
     } else {
-      // Signed-out visitors read the public, non-identifying provider columns only
+      // Signed-out visitors read the curated public view (no phone / exact location)
       let q = supabase
-        .from("service_providers")
-        .select("id,name,category_id,city_id,latitude,longitude,address,rating,total_reviews,is_available,is_active,bio,image_url, service_categories(name)")
-        .eq("is_active", true)
+        .from("service_providers_public" as any)
+        .select("id,name,category_id,category_name,city_id,latitude,longitude,address,rating,total_reviews,is_available,is_active,bio,image_url")
         .order("rating", { ascending: false, nullsFirst: false });
       if (catId) q = q.eq("category_id", catId);
       const { data } = await q;
-      rows = ((data as any[]) || []).map((p) => ({ ...p, category_name: p.service_categories?.name }));
+      rows = (data as any[]) || [];
     }
 
     let providers: any[] = rows

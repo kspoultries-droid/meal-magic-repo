@@ -3110,6 +3110,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "service_bookings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "service_bookings_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -3373,6 +3380,13 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers_public"
             referencedColumns: ["id"]
           },
           {
@@ -3781,7 +3795,84 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      grocery_reviews_public: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          photo_urls: string[] | null
+          rating: number | null
+          replied_at: string | null
+          reply: string | null
+          store_id: string | null
+          video_url: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          photo_urls?: string[] | null
+          rating?: number | null
+          replied_at?: string | null
+          reply?: string | null
+          store_id?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          photo_urls?: string[] | null
+          rating?: number | null
+          replied_at?: string | null
+          reply?: string | null
+          store_id?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_reviews_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_providers_public: {
+        Row: {
+          address: string | null
+          bio: string | null
+          category_id: string | null
+          category_name: string | null
+          city_id: string | null
+          id: string | null
+          image_url: string | null
+          is_active: boolean | null
+          is_available: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string | null
+          rating: number | null
+          total_reviews: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_providers_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_providers_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
