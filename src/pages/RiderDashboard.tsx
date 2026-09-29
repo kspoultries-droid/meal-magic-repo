@@ -245,6 +245,11 @@ const RiderDashboard = () => {
   };
 
   const markGroceryDelivered = async (order: any) => {
+    // Grocery cart orders must pass through "delivering" (picked up) before "delivered".
+    if (order._table === "grocery_cart_orders" && !["delivering", "out_for_delivery"].includes(order.status)) {
+      const { error: pickErr } = await supabase.from(order._table).update({ status: "delivering" }).eq("id", order.id);
+      if (pickErr) { toast.error(pickErr.message); return; }
+    }
     const { error } = await supabase.from(order._table).update({ status: "delivered" }).eq("id", order.id);
     if (error) { toast.error(error.message); return; }
     toast.success(t("rider.groceryDelivered"));
