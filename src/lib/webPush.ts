@@ -13,6 +13,17 @@ const config = {
 
 export type WebPushResult = "registered" | "not-configured" | "unsupported" | "open-in-new-tab" | "denied";
 
+function waitForActive(reg: ServiceWorkerRegistration, timeoutMs = 15000): Promise<void> {
+  if (reg.active) return Promise.resolve();
+  const sw = reg.installing || reg.waiting;
+  if (!sw) return navigator.serviceWorker.ready.then(() => undefined);
+  return new Promise((resolve) => {
+    const done = () => { clearTimeout(t); resolve(); };
+    const t = setTimeout(done, timeoutMs);
+    sw.addEventListener("statechange", () => { if (sw.state === "activated" || reg.active) done(); });
+  });
+}
+
 /** Registers this browser for background push and saves the token. Call from a click. */
 export async function enableWebPush(userId: string): Promise<WebPushResult> {
   if (!config.apiKey || !config.projectId || !appId || !vapidKey || !config.messagingSenderId) return "not-configured";
@@ -24,8 +35,18 @@ export async function enableWebPush(userId: string): Promise<WebPushResult> {
   if (perm !== "granted") return "denied";
   const qs = new URLSearchParams(config as Record<string, string>).toString();
   const reg = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${qs}`, { scope: "/firebase-cloud-messaging-push-scope" });
+  // Pehli baar worker abhi install ho raha hota hai — active hone se pehle subscribe fail hota hai
+  await waitForActive(reg);
   const app = getApps()[0] || initializeApp(config as any);
-  const token = await getToken(getMessaging(app), { vapidKey, serviceWorkerRegistration: reg });
+  const messaging = getMessaging(app);
+  let token: string;
+  try {
+    token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: reg });
+  } catch (e) {
+    console.warn("getToken retry", e);
+    await new Promise((r) => setTimeout(r, 1500));
+    token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: reg });
+  }
   if (!token) return "denied";
   void userId;
   // Server-side RPC: same phone par account badalne par token naye user ko mil jata hai
