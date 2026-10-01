@@ -4400,6 +4400,10 @@ export type Database = {
         Args: { _kind: string; _order_id: string; _rider: string }
         Returns: undefined
       }
+      register_device_token: {
+        Args: { _platform?: string; _token: string }
+        Returns: undefined
+      }
       reject_partner_application: {
         Args: { _application_id: string; _reason: string }
         Returns: undefined
