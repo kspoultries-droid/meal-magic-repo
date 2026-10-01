@@ -85,13 +85,15 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
 
   const askPermission = async () => {
     if (window.top !== window.self) return toast.info("اطلاعات چالو کرنے کے لیے ایپ الگ ٹیب میں کھولیں");
-    let r: string = "not-configured";
-    try { r = await enableWebPush(user.id); } catch (e) { console.error(e); }
-    if (r === "not-configured" || r === "unsupported") {
-      if (!("Notification" in window)) return toast.error("یہ براؤزر اطلاعات سپورٹ نہیں کرتا");
-      r = (await Notification.requestPermission()) === "granted" ? "registered" : "denied";
+    let r: string;
+    try { r = await enableWebPush(user.id); } catch (e) {
+      console.error(e);
+      return toast.error("فون رجسٹر نہیں ہو سکا — انٹرنیٹ چیک کر کے دوبارہ کوشش کریں");
     }
-    if (r === "registered") toast.success("اطلاعات چالو ہو گئیں");
+    setPushOk(r === "registered");
+    if (r === "registered") toast.success("اطلاعات چالو ہو گئیں — ایپ بند ہونے پر بھی آئیں گی");
+    else if (r === "not-configured") toast.error("سرور پر اطلاعات کی ترتیب ابھی مکمل نہیں — ایڈمن سے رابطہ کریں");
+    else if (r === "unsupported") toast.error("یہ براؤزر پس منظر کی اطلاعات سپورٹ نہیں کرتا — Chrome استعمال کریں");
     else if (r === "open-in-new-tab") toast.info("ایپ الگ ٹیب میں کھولیں");
     else toast.error("اجازت نہیں ملی — براؤزر سیٹنگ سے چالو کریں");
   };
