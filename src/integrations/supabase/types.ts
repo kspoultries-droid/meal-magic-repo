@@ -103,6 +103,7 @@ export type Database = {
           reference_id: string | null
           requested_by: string
           status: string
+          used_at: string | null
         }
         Insert: {
           amount?: number
@@ -117,6 +118,7 @@ export type Database = {
           reference_id?: string | null
           requested_by: string
           status?: string
+          used_at?: string | null
         }
         Update: {
           amount?: number
@@ -131,6 +133,7 @@ export type Database = {
           reference_id?: string | null
           requested_by?: string
           status?: string
+          used_at?: string | null
         }
         Relationships: []
       }
@@ -1478,6 +1481,7 @@ export type Database = {
           id: string
           kind: string
           path: string | null
+          pushed_at: string | null
           read_at: string | null
           title: string
           user_id: string
@@ -1488,6 +1492,7 @@ export type Database = {
           id?: string
           kind?: string
           path?: string | null
+          pushed_at?: string | null
           read_at?: string | null
           title: string
           user_id: string
@@ -1498,6 +1503,7 @@ export type Database = {
           id?: string
           kind?: string
           path?: string | null
+          pushed_at?: string | null
           read_at?: string | null
           title?: string
           user_id?: string

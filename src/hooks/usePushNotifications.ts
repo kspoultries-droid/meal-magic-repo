@@ -73,6 +73,10 @@ export const usePushNotifications = () => {
         }),
       ]);
 
+      try {
+        await PushNotifications.createChannel({ id: "orders", name: "Orders", importance: 5, sound: "default", vibration: true });
+        await PushNotifications.createChannel({ id: "default", name: "General", importance: 3 });
+      } catch { /* iOS */ }
       const perm = await PushNotifications.checkPermissions();
       if (perm.receive === "granted") {
         await PushNotifications.register();
