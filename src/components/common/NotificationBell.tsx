@@ -133,9 +133,11 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
             </button>
           ))}
         </div>
-        {"Notification" in window && Notification.permission !== "granted" && (
-          <button onClick={askPermission} className="w-full border-t py-2 text-xs font-semibold text-primary">🔔 فون/براؤزر پر اطلاعات چالو کریں</button>
-        )}
+        {"Notification" in window && (pushOk ? (
+          <p className="w-full border-t py-2 text-center text-[11px] text-muted-foreground">✅ یہ فون اطلاعات کے لیے رجسٹر ہے</p>
+        ) : (
+          <button onClick={askPermission} className="w-full border-t py-2 text-xs font-semibold text-primary">🔔 فون پر اطلاعات چالو کریں (ایپ بند ہونے پر بھی)</button>
+        ))}
       </PopoverContent>
     </Popover>
   );
