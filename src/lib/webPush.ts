@@ -26,9 +26,12 @@ export async function enableWebPush(userId: string): Promise<WebPushResult> {
   const app = getApps()[0] || initializeApp(config as any);
   const token = await getToken(getMessaging(app), { vapidKey, serviceWorkerRegistration: reg });
   if (!token) return "denied";
-  await (supabase as any).from("device_tokens").upsert(
-    { user_id: userId, token, platform: "web", updated_at: new Date().toISOString() },
-    { onConflict: "token" },
-  );
+  void userId;
+  // Server-side RPC: same phone par account badalne par token naye user ko mil jata hai
+  const { error } = await (supabase as any).rpc("register_device_token", { _token: token, _platform: "web" });
+  if (error) throw new Error(`device token save failed: ${error.message}`);
   return "registered";
 }
+
+export const isWebPushConfigured = () =>
+  Boolean(config.apiKey && config.projectId && appId && vapidKey && config.messagingSenderId);
