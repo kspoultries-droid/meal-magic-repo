@@ -103,6 +103,7 @@ export type Database = {
           reference_id: string | null
           requested_by: string
           status: string
+          used_at: string | null
         }
         Insert: {
           amount?: number
@@ -117,6 +118,7 @@ export type Database = {
           reference_id?: string | null
           requested_by: string
           status?: string
+          used_at?: string | null
         }
         Update: {
           amount?: number
@@ -131,6 +133,7 @@ export type Database = {
           reference_id?: string | null
           requested_by?: string
           status?: string
+          used_at?: string | null
         }
         Relationships: []
       }
