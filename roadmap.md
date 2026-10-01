@@ -51,4 +51,5 @@
 - [x] In-app realtime notifications + browser alerts
 - [x] Team performance page
 - [x] Dispatcher/rider-supervisor/finance can use their actions; enforced two-person approval
-- [ ] Android/background push: code ready, waiting on Firebase connection
+- [x] Firebase connected (gateway-backed, send-push deployed, FCM auth verified)
+- [ ] Enable web push from published app (own tab) to register first device token, then end-to-end background push test — preview iframe blocks notification permission and lacks VITE_ connector vars
