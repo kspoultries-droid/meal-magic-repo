@@ -25,31 +25,44 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
   const [items, setItems] = useState<Notif[]>([]);
   const [open, setOpen] = useState(false);
 
+  const [pushOk, setPushOk] = useState(false);
+
   useEffect(() => {
     if (!user) { setItems([]); return; }
     const db = supabase as any;
-    db.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(30)
-      .then(({ data }: any) => setItems(data || []));
+    const load = () =>
+      db.from("notifications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(30)
+        .then(({ data }: any) => { if (data) setItems(data); });
+    load();
     const ch = supabase.channel(`notif-${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, (p) => {
         const n = p.new as Notif;
-        setItems((prev) => [n, ...prev].slice(0, 30));
+        setItems((prev) => (prev.some((x) => x.id === n.id) ? prev : [n, ...prev].slice(0, 30)));
         toast(n.title, { description: n.body || undefined, id: `n-${n.id}` });
         try {
-          if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
-            new Notification(n.title, { body: n.body || undefined, icon: "/pwa-192x192.png" });
-          }
           if (n.kind === "offer" || n.kind === "new_order") navigator.vibrate?.([300, 100, 300]);
         } catch { /* ignore */ }
       })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
+      // Har (dobara) connect par list taaza karo — background mein chhoote hue notifications bhi aa jayen
+      .subscribe((status) => { if (status === "SUBSCRIBED") load(); });
+    // App wapas samne aaye to bhi taaza karo (phone par app suspend hone se realtime chhoot jata hai)
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    window.addEventListener("online", onVisible);
+    return () => {
+      supabase.removeChannel(ch);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      window.removeEventListener("online", onVisible);
+    };
   }, [user?.id]);
 
-  // Permission pehle se mili ho to device khud register karo (warna button chhupa rehta hai aur token kabhi save nahi hota)
+  // Permission pehle se mili ho to device khud register karo
   useEffect(() => {
+    setPushOk(false);
     if (!user || !("Notification" in window) || Notification.permission !== "granted" || window.top !== window.self) return;
-    enableWebPush(user.id).catch((e) => console.error("auto push register", e));
+    enableWebPush(user.id).then((r) => setPushOk(r === "registered")).catch((e) => console.error("auto push register", e));
   }, [user?.id]);
 
   if (!user) return null;
