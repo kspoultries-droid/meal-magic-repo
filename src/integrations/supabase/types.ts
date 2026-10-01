@@ -4284,6 +4284,11 @@ export type Database = {
         | "support"
         | "mechanic"
         | "service_manager"
+        | "ops_manager"
+        | "dispatcher"
+        | "finance"
+        | "partner_manager"
+        | "rider_supervisor"
       application_status: "pending" | "approved" | "rejected"
       partner_type:
         | "restaurant"
@@ -4426,6 +4431,11 @@ export const Constants = {
         "support",
         "mechanic",
         "service_manager",
+        "ops_manager",
+        "dispatcher",
+        "finance",
+        "partner_manager",
+        "rider_supervisor",
       ],
       application_status: ["pending", "approved", "rejected"],
       partner_type: [
