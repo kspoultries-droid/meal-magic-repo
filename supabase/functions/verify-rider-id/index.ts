@@ -81,7 +81,8 @@ Return STRICT JSON only, no markdown:
  "father_name": "",
  "date_of_birth": "YYYY-MM-DD or empty",
  "expiry_date": "YYYY-MM-DD or empty",
- "address_on_card": "full address text from back of card",
+ "address_on_card": "both present (موجودہ پتہ) and permanent (مستقل پتہ) addresses from back of card, transliterated to English letters",
+ "declared_address_matches_card": boolean,
  "face_match_confidence": 0-100,
  "selfie_is_live_person": boolean,
  "selfie_is_photo_of_screen_or_printout": boolean,
@@ -91,7 +92,9 @@ Return STRICT JSON only, no markdown:
  "notes": "short reason in Urdu"
 }
 Compare the photo printed on the CNIC front with the selfie for face_match_confidence.
-Be conservative: if the selfie appears to be a photo taken of another photo/screen, set selfie_is_photo_of_screen_or_printout true.`;
+Be conservative: if the selfie appears to be a photo taken of another photo/screen, set selfie_is_photo_of_screen_or_printout true.
+The applicant typed this address (may be English/Roman Urdu while the card is in Urdu script): "${String(address).slice(0, 300).replace(/"/g, "'")}".
+Set declared_address_matches_card true if it refers to the same place as EITHER the present OR the permanent address on the card (same mohallah/area/town/landmark), ignoring language, spelling and word order.`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -142,7 +145,7 @@ Be conservative: if the selfie appears to be a photo taken of another photo/scre
       checks.selfie_is_photo_of_screen_or_printout !== true &&
       checks.selfie_looks_like_stock_or_celebrity !== true;
     const addrScore = addressScore(String(checks.address_on_card ?? ""), address);
-    const address_match = addrScore >= 0.4;
+    const address_match = addrScore >= 0.4 || checks.declared_address_matches_card === true;
     const docsOk =
       checks.front_is_cnic_front === true &&
       checks.back_is_cnic_back === true &&
