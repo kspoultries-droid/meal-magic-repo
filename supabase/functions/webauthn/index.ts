@@ -18,21 +18,23 @@ const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-// In-memory challenge store (short-lived)
-const challengeStore = new Map<string, { challenge: string; expires: number }>();
-
-function storeChallenge(key: string, challenge: string) {
-  challengeStore.set(key, { challenge, expires: Date.now() + 5 * 60 * 1000 });
+// Challenges DB me rakhe jate hain (function ki har request alag server par chal sakti hai)
+async function storeChallenge(kind: string, challenge: string, userId?: string) {
+  await supabaseAdmin.from("webauthn_challenges").delete().lt("expires_at", new Date().toISOString());
+  await supabaseAdmin.from("webauthn_challenges").insert({ challenge, kind, user_id: userId ?? null });
 }
 
-function getChallenge(key: string): string | null {
-  const entry = challengeStore.get(key);
-  if (!entry || entry.expires < Date.now()) {
-    challengeStore.delete(key);
-    return null;
-  }
-  challengeStore.delete(key);
-  return entry.challenge;
+// Browser ke jawab (clientDataJSON) se challenge nikal kar DB me check + ek dafa istemal
+async function getChallenge(kind: string, credential: any, userId?: string): Promise<string | null> {
+  try {
+    const raw = credential?.response?.clientDataJSON;
+    const c = JSON.parse(new TextDecoder().decode(isoBase64URL.toBuffer(raw))).challenge as string;
+    let q = supabaseAdmin.from("webauthn_challenges").delete().eq("challenge", c).eq("kind", kind)
+      .gt("expires_at", new Date().toISOString());
+    if (userId) q = q.eq("user_id", userId);
+    const { data } = await q.select("challenge");
+    return data?.[0]?.challenge ?? null;
+  } catch { return null; }
 }
 
 serve(async (req) => {
