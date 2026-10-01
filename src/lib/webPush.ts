@@ -1,13 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Firebase web config is public by design (shipped in every web bundle).
 const env = import.meta.env;
-const appId = env.VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_APP_ID as string | undefined;
-const vapidKey = env.VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_VAPID_KEY as string | undefined;
+const appId = (env.VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_APP_ID as string | undefined) || "1:450491297061:web:3b71c00c16c1dedcf9becc";
+const vapidKey = (env.VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_VAPID_KEY as string | undefined) || "BKbeDgQNv9hBk6KqlEph1E2Hj84NhYnoaXpobrgjEmHyfgkpE1OWzkq580lk_O9IW3agjQbEa8wLYZvw4oIqqYw";
 const config = {
-  apiKey: env.VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_WEB_API_KEY as string | undefined,
-  projectId: env.VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_PROJECT_ID as string | undefined,
+  apiKey: (env.VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_WEB_API_KEY as string | undefined) || "AIzaSyCzyXXgpxDIGUBrkHQZpCfcmFAJXAXutd4",
+  projectId: (env.VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_PROJECT_ID as string | undefined) || "easy-life-a0ce1",
   appId,
-  messagingSenderId: appId?.split(":")[1] ?? "",
+  messagingSenderId: appId.split(":")[1] ?? "",
 };
 
 export type WebPushResult = "registered" | "not-configured" | "unsupported" | "open-in-new-tab" | "denied";
