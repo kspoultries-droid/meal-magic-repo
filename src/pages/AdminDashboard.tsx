@@ -33,15 +33,21 @@ import BankAccountsTab from "@/components/admin/BankAccountsTab";
 import RiderPayTab from "@/components/admin/RiderPayTab";
 import OverviewTab from "@/components/admin/OverviewTab";
 import AlertCenter from "@/components/admin/AlertCenter";
+import TeamTab from "@/components/admin/TeamTab";
+import ApprovalsTab from "@/components/admin/ApprovalsTab";
+import TeamActivityTab from "@/components/admin/TeamActivityTab";
+import NotificationBell from "@/components/common/NotificationBell";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 
 const AdminDashboard = () => {
-  const { user, isAdmin, loading, signOut } = useAuth();
+  const { user, isAdmin, isStaff, permissions, loading, signOut } = useAuth();
+  const can = (p: string) => isAdmin || permissions.includes(p);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [pendingRemittances, setPendingRemittances] = useState(0);
   const [tab, setTab] = useState("overview");
+  const [teamTab, setTeamTab] = useState("team");
   const [opsTab, setOpsTab] = useState("orders");
   const [partnersTab, setPartnersTab] = useState("applications");
   const [financeTab, setFinanceTab] = useState("revenue");
@@ -56,12 +62,13 @@ const AdminDashboard = () => {
       else if (section === "finance") setFinanceTab(sub);
       else if (section === "content") setContentTab(sub);
       else if (section === "settings") setSettingsTab(sub);
+      else if (section === "team") setTeamTab(sub);
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!can("finance")) return;
     const loadPending = async () => {
       const { count } = await supabase.from("rider_remittances").select("id", { count: "exact", head: true }).eq("status", "pending");
       setPendingRemittances(count || 0);
@@ -75,20 +82,29 @@ const AdminDashboard = () => {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "rider_remittances" }, loadPending)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [isAdmin]);
+  }, [isAdmin, permissions.join()]);
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) navigate("/auth");
-  }, [user, isAdmin, loading, navigate]);
+    if (loading || isAdmin || !isStaff) return;
+    const first = can("orders") ? "operations" : (can("partners") || can("riders")) ? "partners" : can("finance") ? "finance" : "team";
+    setTab(first);
+    if (!can("partners") && can("riders")) setPartnersTab("riders");
+    if (!can("team")) setTeamTab("approvals");
+  }, [loading, isAdmin, isStaff, permissions.join()]);
+
+  useEffect(() => {
+    if (!loading && (!user || (!isAdmin && !isStaff))) navigate("/auth");
+  }, [user, isAdmin, isStaff, loading, navigate]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
-  if (!isAdmin) return null;
+  if (!isAdmin && !isStaff) return null;
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-primary">{t("dash.admin")}</h1>
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <LanguageSwitcher />
           <Button variant="default" size="sm" onClick={() => navigate("/operations")}>🎛️ Operations</Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠 {t("common.home")}</Button>
@@ -102,13 +118,14 @@ const AdminDashboard = () => {
       <div className="p-6">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="mb-6 grid h-auto grid-cols-3 gap-1.5 bg-transparent sm:grid-cols-4 lg:grid-cols-7">
-            <TabsTrigger value="overview" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> {t("admin.commandCenter")}</TabsTrigger>
-            <TabsTrigger value="operations" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> {t("admin.operations")}</TabsTrigger>
-            <TabsTrigger value="partners" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> {t("admin.partners")}</TabsTrigger>
-            <TabsTrigger value="people" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> {t("admin.people")}</TabsTrigger>
-            <TabsTrigger value="finance" className="relative h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> {t("admin.finance")}{pendingRemittances > 0 && <Badge className="absolute end-1 top-1 h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>
-            <TabsTrigger value="content" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> {t("admin.content")}</TabsTrigger>
-            <TabsTrigger value="settings" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> {t("common.settings")}</TabsTrigger>
+            {isAdmin && <TabsTrigger value="overview" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> {t("admin.commandCenter")}</TabsTrigger>}
+            {can("orders") && <TabsTrigger value="operations" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> {t("admin.operations")}</TabsTrigger>}
+            {(can("partners") || can("riders")) && <TabsTrigger value="partners" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> {t("admin.partners")}</TabsTrigger>}
+            {isAdmin && <TabsTrigger value="people" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> {t("admin.people")}</TabsTrigger>}
+            {can("finance") && <TabsTrigger value="finance" className="relative h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> {t("admin.finance")}{pendingRemittances > 0 && <Badge className="absolute end-1 top-1 h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>}
+            {can("content") && <TabsTrigger value="content" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> {t("admin.content")}</TabsTrigger>}
+            {can("settings") && <TabsTrigger value="settings" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> {t("common.settings")}</TabsTrigger>}
+            {(can("team") || can("approve") || can("audit") || isStaff) && <TabsTrigger value="team" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Shield className="h-5 w-5" /> ٹیم</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>
@@ -135,6 +152,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="content">
             <Tabs value={contentTab} onValueChange={setContentTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="ads">ایڈز</TabsTrigger><TabsTrigger value="vouchers">واؤچرز</TabsTrigger><TabsTrigger value="reels">ریلز</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
+          </TabsContent>
+
+          <TabsContent value="team" className="admin-compact">
+            <Tabs value={teamTab} onValueChange={setTeamTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1">{can("team") && <TabsTrigger value="team">عملہ</TabsTrigger>}<TabsTrigger value="approvals">منظوریاں</TabsTrigger>{(can("audit") || can("team")) && <TabsTrigger value="activity">کارکردگی و ریکارڈ</TabsTrigger>}</TabsList>{can("team") && <TabsContent value="team"><TeamTab /></TabsContent>}<TabsContent value="approvals"><ApprovalsTab /></TabsContent>{(can("audit") || can("team")) && <TabsContent value="activity"><TeamActivityTab /></TabsContent>}</Tabs>
           </TabsContent>
 
           <TabsContent value="settings" className="admin-compact">

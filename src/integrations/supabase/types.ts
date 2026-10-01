@@ -89,6 +89,51 @@ export type Database = {
         }
         Relationships: []
       }
+      approval_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          kind: string
+          note: string | null
+          payload: Json
+          reference_id: string | null
+          requested_by: string
+          status: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          kind: string
+          note?: string | null
+          payload?: Json
+          reference_id?: string | null
+          requested_by: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          payload?: Json
+          reference_id?: string | null
+          requested_by?: string
+          status?: string
+        }
+        Relationships: []
+      }
       bank_ledger: {
         Row: {
           account_id: string
@@ -1425,6 +1470,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          path: string | null
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          path?: string | null
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          path?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       order_events: {
         Row: {
@@ -3458,6 +3536,62 @@ export type Database = {
           },
         ]
       }
+      staff_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          details: Json
+          entity_id: string | null
+          entity_type: string
+          id: number
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          entity_id?: string | null
+          entity_type: string
+          id?: number
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          entity_id?: string | null
+          entity_type?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      staff_scopes: {
+        Row: {
+          city_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          city_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          city_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_scopes_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_addresses: {
         Row: {
           address: string
@@ -3986,6 +4120,10 @@ export type Database = {
         }
         Returns: string
       }
+      decide_approval: {
+        Args: { _approve: boolean; _id: string; _note: string }
+        Returns: undefined
+      }
       decline_delivery_offer: {
         Args: { _offer_id: string }
         Returns: undefined
@@ -4095,6 +4233,10 @@ export type Database = {
         Returns: Json
       }
       grocery_weight_tolerance: { Args: never; Returns: number }
+      has_permission: {
+        Args: { _perm: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4107,6 +4249,7 @@ export type Database = {
         Returns: number
       }
       increment_reel_views: { Args: { _reel_id: string }; Returns: undefined }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       like_reel: { Args: { _reel_id: string }; Returns: undefined }
       list_deposit_accounts: {
         Args: never
@@ -4137,6 +4280,17 @@ export type Database = {
           total_reviews: number
         }[]
       }
+      list_staff: {
+        Args: never
+        Returns: {
+          city_ids: string[]
+          email: string
+          full_name: string
+          last_action_at: string
+          roles: string[]
+          user_id: string
+        }[]
+      }
       manages_category: {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
@@ -4144,6 +4298,17 @@ export type Database = {
       mechanic_can_access_booking: {
         Args: { _booking_id: string; _user_id: string }
         Returns: boolean
+      }
+      my_permissions: { Args: never; Returns: string[] }
+      notify_user: {
+        Args: {
+          _body: string
+          _kind: string
+          _path: string
+          _title: string
+          _user: string
+        }
+        Returns: undefined
       }
       owns_reel_source: {
         Args: { _source_id: string; _source_type: string; _user_id: string }
@@ -4216,6 +4381,15 @@ export type Database = {
         Args: { _kind: string; _reply: string; _review_id: string }
         Returns: undefined
       }
+      request_approval: {
+        Args: {
+          _amount: number
+          _kind: string
+          _note: string
+          _reference_id: string
+        }
+        Returns: string
+      }
       request_wallet_topup: {
         Args: { _amount: number; _payment_method: string }
         Returns: string
@@ -4268,7 +4442,40 @@ export type Database = {
       rider_cash_limit: { Args: never; Returns: number }
       rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
       rider_heartbeat: { Args: never; Returns: undefined }
+      role_permissions: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: string[]
+      }
+      staff_add: {
+        Args: {
+          _city_ids?: string[]
+          _email: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: string
+      }
+      staff_remove: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       sync_shop_open_state: { Args: never; Returns: number }
+      team_performance: {
+        Args: { _days?: number }
+        Returns: {
+          actor_id: string
+          approvals: number
+          email: string
+          finance_actions: number
+          full_name: string
+          last_action_at: string
+          order_actions: number
+          rider_actions: number
+          total_actions: number
+        }[]
+      }
       validate_voucher: {
         Args: { _code: string; _scope: string; _subtotal: number }
         Returns: Json
@@ -4284,6 +4491,11 @@ export type Database = {
         | "support"
         | "mechanic"
         | "service_manager"
+        | "ops_manager"
+        | "dispatcher"
+        | "finance"
+        | "partner_manager"
+        | "rider_supervisor"
       application_status: "pending" | "approved" | "rejected"
       partner_type:
         | "restaurant"
@@ -4426,6 +4638,11 @@ export const Constants = {
         "support",
         "mechanic",
         "service_manager",
+        "ops_manager",
+        "dispatcher",
+        "finance",
+        "partner_manager",
+        "rider_supervisor",
       ],
       application_status: ["pending", "approved", "rejected"],
       partner_type: [

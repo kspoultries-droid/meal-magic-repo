@@ -4,15 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import LocationPill from "@/components/location/LocationPill";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import NotificationBell from "@/components/common/NotificationBell";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
-  const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, signOut } = useAuth();
+  const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, isStaff, signOut } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const hasRoles = isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic || isServiceManager;
+  const hasRoles = isStaff || isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic || isServiceManager;
 
   return (
     <nav className="sticky top-0 z-50 isolate bg-gradient-hero pt-[env(safe-area-inset-top)] shadow-elegant">
@@ -31,7 +32,7 @@ const Navbar = () => {
 
         {/* Desktop role links */}
         <div className="hidden md:flex items-center gap-2">
-          {isAdmin && (
+          {(isAdmin || isStaff) && (
             <button
               onClick={() => navigate("/admin")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
@@ -84,6 +85,7 @@ const Navbar = () => {
         {/* Right side actions */}
         <div className="flex items-center gap-1 sm:gap-2">
           <LanguageSwitcher tone="light" />
+          {user && <NotificationBell />}
           {user ? (
             <>
 
@@ -100,7 +102,7 @@ const Navbar = () => {
                     </button>
                     {menuOpen && (
                       <div className="absolute right-0 top-full mt-1 w-44 bg-card border rounded-xl shadow-lg py-2 z-50">
-                        {isAdmin && (
+                        {(isAdmin || isStaff) && (
                           <button
                             onClick={() => { navigate("/admin"); setMenuOpen(false); }}
                             className="flex items-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-destructive hover:bg-secondary transition-colors"

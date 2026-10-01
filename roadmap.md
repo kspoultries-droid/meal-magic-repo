@@ -44,3 +44,10 @@
 - [x] Restore live admin order status updates without panel flicker
 - [x] Keep checkout confirmation action clear of notifications
 - [x] Compact order confirmation with always-visible Home and Track actions
+
+## ٹیم اور نوٹیفکیشن
+- [x] Staff roles, permissions, city scopes, team page
+- [x] Append-only staff audit log + two-person approvals
+- [x] In-app realtime notifications + browser alerts
+- [x] Team performance page
+- [ ] Android/background push (waiting on Firebase connection)
