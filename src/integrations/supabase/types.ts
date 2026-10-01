@@ -1481,6 +1481,7 @@ export type Database = {
           id: string
           kind: string
           path: string | null
+          pushed_at: string | null
           read_at: string | null
           title: string
           user_id: string
@@ -1491,6 +1492,7 @@ export type Database = {
           id?: string
           kind?: string
           path?: string | null
+          pushed_at?: string | null
           read_at?: string | null
           title: string
           user_id: string
@@ -1501,6 +1503,7 @@ export type Database = {
           id?: string
           kind?: string
           path?: string | null
+          pushed_at?: string | null
           read_at?: string | null
           title?: string
           user_id?: string
