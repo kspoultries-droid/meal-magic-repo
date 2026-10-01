@@ -28,7 +28,12 @@ Deno.serve(async (req) => {
   if (!n) return json({ skipped: "already sent or missing" });
 
   const { data: tokens } = await admin.from("device_tokens").select("token").eq("user_id", n.user_id);
+  const SITE = (Deno.env.get("PUBLIC_SITE_URL") || "https://easylife.apnahub.online").replace(/\/$/, "");
+  const path = n.path?.startsWith("/") ? n.path : n.kind === "new_order" ? "/restaurant-dashboard" : "/";
+  const link = `${SITE}${path}`; // webpush link must be an absolute HTTPS URL
+  const urgent = n.kind === "offer" || n.kind === "new_order";
   let sent = 0;
+  const failures: Array<{ status: number; body: string }> = [];
   for (const { token } of tokens || []) {
     const res = await fetch(`${GATEWAY_URL}/v1/projects/_/messages:send`, {
       method: "POST",
@@ -41,19 +46,30 @@ Deno.serve(async (req) => {
         message: {
           token,
           notification: { title: n.title, body: n.body || "" },
-          data: { path: n.path || "/", kind: n.kind },
-          android: { priority: "high", notification: { sound: "default", channel_id: n.kind === "offer" || n.kind === "new_order" ? "orders" : "default" } },
-          webpush: { fcm_options: { link: n.path || "/" } },
+          data: { path, kind: n.kind, link },
+          android: { priority: "high", notification: { sound: "default", channel_id: urgent ? "orders" : "default" } },
+          webpush: {
+            headers: { Urgency: "high", TTL: "3600" },
+            notification: {
+              icon: `${SITE}/pwa-192x192.png`,
+              badge: `${SITE}/pwa-192x192.png`,
+              tag: n.id,
+              requireInteraction: urgent,
+              vibrate: [300, 100, 300],
+            },
+            fcm_options: { link },
+          },
         },
       }),
     });
-    if (res.ok) sent++;
-    else {
-      const txt = await res.text();
-      if (res.status === 404 || txt.includes("UNREGISTERED") || txt.includes("INVALID_ARGUMENT")) {
-        await admin.from("device_tokens").delete().eq("token", token);
-      } else console.error("FCM send failed", res.status, txt);
+    if (res.ok) { sent++; continue; }
+    const txt = await res.text();
+    console.error("FCM send failed", res.status, txt);
+    failures.push({ status: res.status, body: txt.slice(0, 500) });
+    // Sirf waqai purane/ghalat tokens hatao — request ki ghalti par token delete na ho
+    if (res.status === 404 || txt.includes("UNREGISTERED") || /registration token is not a valid/i.test(txt)) {
+      await admin.from("device_tokens").delete().eq("token", token);
     }
   }
-  return json({ sent });
+  return json({ sent, tokens: tokens?.length || 0, failures });
 });
