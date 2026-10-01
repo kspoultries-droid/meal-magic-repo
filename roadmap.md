@@ -50,4 +50,5 @@
 - [x] Append-only staff audit log + two-person approvals
 - [x] In-app realtime notifications + browser alerts
 - [x] Team performance page
-- [ ] Android/background push (waiting on Firebase connection)
+- [x] Dispatcher/rider-supervisor/finance can use their actions; enforced two-person approval
+- [ ] Android/background push: code ready, waiting on Firebase connection
