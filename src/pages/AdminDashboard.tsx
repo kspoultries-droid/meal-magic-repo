@@ -47,7 +47,6 @@ const AdminDashboard = () => {
   const { t } = useLanguage();
   const [pendingRemittances, setPendingRemittances] = useState(0);
   const [tab, setTab] = useState("overview");
-  const firstTabSet = { done: false };
   const [teamTab, setTeamTab] = useState("team");
   const [opsTab, setOpsTab] = useState("orders");
   const [partnersTab, setPartnersTab] = useState("applications");
@@ -84,6 +83,14 @@ const AdminDashboard = () => {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [isAdmin, permissions.join()]);
+
+  useEffect(() => {
+    if (loading || isAdmin || !isStaff) return;
+    const first = can("orders") ? "operations" : (can("partners") || can("riders")) ? "partners" : can("finance") ? "finance" : "team";
+    setTab(first);
+    if (!can("partners") && can("riders")) setPartnersTab("riders");
+    if (!can("team")) setTeamTab("approvals");
+  }, [loading, isAdmin, isStaff, permissions.join()]);
 
   useEffect(() => {
     if (!loading && (!user || (!isAdmin && !isStaff))) navigate("/auth");
