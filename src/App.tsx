@@ -42,8 +42,13 @@ const lazyWithRetry = <T extends { default: React.ComponentType<any> }>(
             await Promise.allSettled(names.map((n) => caches.delete(n)));
           }
           if ("serviceWorker" in navigator) {
+            // Keep the push-notification worker: unregistering it kills the phone's push token.
             const regs = await navigator.serviceWorker.getRegistrations();
-            await Promise.allSettled(regs.map((r) => r.unregister()));
+            await Promise.allSettled(
+              regs
+                .filter((r) => !(r.active || r.waiting || r.installing)?.scriptURL.includes("firebase-messaging-sw"))
+                .map((r) => r.unregister()),
+            );
           }
         } catch {
           /* ignore */
