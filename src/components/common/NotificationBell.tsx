@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { enableWebPush } from "@/lib/webPush";
 
 type Notif = { id: string; title: string; body: string | null; path: string | null; kind: string; read_at: string | null; created_at: string };
 
@@ -64,10 +65,16 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
   };
 
   const askPermission = async () => {
-    if (!("Notification" in window)) return toast.error("یہ براؤزر اطلاعات سپورٹ نہیں کرتا");
     if (window.top !== window.self) return toast.info("اطلاعات چالو کرنے کے لیے ایپ الگ ٹیب میں کھولیں");
-    const r = await Notification.requestPermission();
-    toast[r === "granted" ? "success" : "error"](r === "granted" ? "اطلاعات چالو ہو گئیں" : "اجازت نہیں ملی — براؤزر سیٹنگ سے چالو کریں");
+    let r: string = "not-configured";
+    try { r = await enableWebPush(user.id); } catch (e) { console.error(e); }
+    if (r === "not-configured" || r === "unsupported") {
+      if (!("Notification" in window)) return toast.error("یہ براؤزر اطلاعات سپورٹ نہیں کرتا");
+      r = (await Notification.requestPermission()) === "granted" ? "registered" : "denied";
+    }
+    if (r === "registered") toast.success("اطلاعات چالو ہو گئیں");
+    else if (r === "open-in-new-tab") toast.info("ایپ الگ ٹیب میں کھولیں");
+    else toast.error("اجازت نہیں ملی — براؤزر سیٹنگ سے چالو کریں");
   };
 
   return (
