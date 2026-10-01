@@ -83,7 +83,7 @@ serve(async (req) => {
         },
       });
 
-      storeChallenge(`reg_${user.id}`, options.challenge);
+      await storeChallenge(`reg_${user.id}`, options.challenge);
 
       return new Response(JSON.stringify(options), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -97,7 +97,7 @@ serve(async (req) => {
       const { data: { user }, error } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
       if (error || !user) throw new Error("Invalid token");
 
-      const expectedChallenge = getChallenge(`reg_${user.id}`);
+      const expectedChallenge = await getChallenge(`reg_${user.id}`, body.credential);
       if (!expectedChallenge) throw new Error("Challenge expired");
 
       const verification = await verifyRegistrationResponse({
@@ -135,7 +135,7 @@ serve(async (req) => {
       });
 
       // Store challenge with a generic key (we'll match by credential ID later)
-      storeChallenge(`auth_discoverable`, options.challenge);
+      await storeChallenge(`auth_discoverable`, options.challenge);
 
       return new Response(JSON.stringify(options), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -145,7 +145,7 @@ serve(async (req) => {
     if (action === "auth-verify") {
       const { credential } = body;
 
-      const expectedChallenge = getChallenge(`auth_discoverable`);
+      const expectedChallenge = await getChallenge(`auth_discoverable`, credential);
       if (!expectedChallenge) throw new Error("Challenge expired");
 
       // Find stored credential by credential_id (no userId needed)
