@@ -46,6 +46,12 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
     return () => { supabase.removeChannel(ch); };
   }, [user?.id]);
 
+  // Permission pehle se mili ho to device khud register karo (warna button chhupa rehta hai aur token kabhi save nahi hota)
+  useEffect(() => {
+    if (!user || !("Notification" in window) || Notification.permission !== "granted" || window.top !== window.self) return;
+    enableWebPush(user.id).catch((e) => console.error("auto push register", e));
+  }, [user?.id]);
+
   if (!user) return null;
   const unread = items.filter((i) => !i.read_at).length;
 
