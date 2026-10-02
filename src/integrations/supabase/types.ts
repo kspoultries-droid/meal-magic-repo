@@ -361,6 +361,7 @@ export type Database = {
           dropoff_address: string | null
           expires_at: string
           id: string
+          is_batch: boolean
           order_id: string
           order_kind: string
           pickup_name: string | null
@@ -378,6 +379,7 @@ export type Database = {
           dropoff_address?: string | null
           expires_at: string
           id?: string
+          is_batch?: boolean
           order_id: string
           order_kind: string
           pickup_name?: string | null
@@ -395,6 +397,7 @@ export type Database = {
           dropoff_address?: string | null
           expires_at?: string
           id?: string
+          is_batch?: boolean
           order_id?: string
           order_kind?: string
           pickup_name?: string | null

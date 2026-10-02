@@ -15,6 +15,7 @@ interface DeliveryOffer {
   distance_km: number | null;
   expires_at: string;
   created_at: string;
+  is_batch?: boolean;
 }
 
 interface Props {
@@ -59,7 +60,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
   const fetchOffer = async () => {
     const { data, error } = await (supabase as any)
       .from("delivery_offers")
-      .select("id,order_id,order_kind,pickup_name,dropoff_address,total_amount,delivery_fee,distance_km,expires_at,created_at")
+      .select("id,order_id,order_kind,pickup_name,dropoff_address,total_amount,delivery_fee,distance_km,expires_at,created_at,is_batch")
       .eq("rider_id", riderId)
       .eq("status", "offered")
       .gt("expires_at", new Date().toISOString())
@@ -145,6 +146,11 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
         <PackageCheck className="h-5 w-5" />
         <p className="font-extrabold">نیا آرڈر — {kindLabel[offer.order_kind] || "ڈیلیوری"}</p>
       </div>
+      {offer.is_batch && (
+        <div className="bg-accent px-4 py-2 text-center text-xs font-extrabold text-accent-foreground">
+          📦📦 ایک ساتھ پک اَپ — اسی ریسٹورنٹ سے آپ کا دوسرا آرڈر، قریبی پتہ۔ کوئی اضافی چکر نہیں
+        </div>
+      )}
 
       <div className="flex flex-1 flex-col items-center gap-4 overflow-y-auto p-5">
         <div className="relative h-28 w-28">
