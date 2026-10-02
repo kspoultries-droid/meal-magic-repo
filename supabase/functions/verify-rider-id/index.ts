@@ -44,6 +44,10 @@ Deno.serve(async (req) => {
 
     const { front_path, back_path, selfie_path, cnic, full_name, address, application_id } = body as Record<string, string>;
     if (!front_path || !back_path || !selfie_path) return json({ error: "تینوں تصاویر لازمی ہیں" }, 400);
+    const ownPrefix = `${user.id}/`;
+    if ([front_path, back_path, selfie_path].some((p) => typeof p !== "string" || !p.startsWith(ownPrefix) || p.includes(".."))) {
+      return json({ error: "Forbidden" }, 403);
+    }
     const cnicDigits = digits(cnic);
     if (cnicDigits.length !== 13) return json({ error: "شناختی کارڈ نمبر 13 ہندسوں کا ہونا چاہیے" }, 400);
     if (!full_name || !address) return json({ error: "نام اور پتہ لازمی ہے" }, 400);

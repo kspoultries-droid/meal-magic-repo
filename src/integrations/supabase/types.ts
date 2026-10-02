@@ -1310,6 +1310,21 @@ export type Database = {
           },
         ]
       }
+      internal_secrets: {
+        Row: {
+          name: string
+          value: string
+        }
+        Insert: {
+          name: string
+          value: string
+        }
+        Update: {
+          name?: string
+          value?: string
+        }
+        Relationships: []
+      }
       ledger_accounts: {
         Row: {
           account_type: string

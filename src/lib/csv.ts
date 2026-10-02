@@ -4,7 +4,8 @@ export const downloadCsv = (
   rows: (string | number | null | undefined)[][]
 ) => {
   const esc = (v: string | number | null | undefined) => {
-    const s = v === null || v === undefined ? "" : String(v);
+    const raw = v === null || v === undefined ? "" : String(v);
+    const s = typeof v === "string" && /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const csv = [header.join(","), ...rows.map((r) => r.map(esc).join(","))].join("\n");

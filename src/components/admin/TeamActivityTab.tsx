@@ -13,10 +13,14 @@ const ENTITY: Record<string, string> = {
 };
 const ACTION: Record<string, string> = { insert: "بنایا", update: "بدلا", delete: "ہٹایا", approve: "منظور کیا", reject: "مسترد کیا", request: "درخواست دی" };
 
+const safeCell = (v: unknown) => {
+  const s = String(v ?? "");
+  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+};
 const toCsv = (rows: any[]) => {
   if (!rows.length) return "";
   const keys = Object.keys(rows[0]);
-  return [keys.join(","), ...rows.map((r) => keys.map((k) => `"${String(r[k] ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
+  return [keys.join(","), ...rows.map((r) => keys.map((k) => `"${safeCell(r[k]).replace(/"/g, '""')}"`).join(","))].join("\n");
 };
 
 const TeamActivityTab = () => {

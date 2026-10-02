@@ -9,6 +9,13 @@ const json = (b: unknown, status = 200) =>
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  // Only the database trigger (which holds the internal shared secret) may call this.
+  const provided = req.headers.get("x-push-secret") ?? "";
+  const { data: sec } = await admin.from("internal_secrets").select("value").eq("name", "push_dispatch").maybeSingle();
+  if (!sec?.value || provided !== sec.value) return json({ error: "Unauthorized" }, 401);
+
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return json({ error: "invalid body" }, 400);
 
@@ -16,7 +23,6 @@ Deno.serve(async (req) => {
   const FCM_KEY = Deno.env.get("FIREBASE_MESSAGING_API_KEY");
   if (!LOVABLE_API_KEY || !FCM_KEY) return json({ skipped: "push not configured" });
 
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   // Claim the notification once (prevents replays/duplicate sends).
   const { data: n } = await admin
     .from("notifications")
