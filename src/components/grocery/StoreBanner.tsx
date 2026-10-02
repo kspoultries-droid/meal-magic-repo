@@ -112,7 +112,7 @@ const StoreBanner = ({
             {collageImages.slice(0, 8).map((img, i) => <img key={i} src={img} alt="" className="h-full w-full object-cover" />)}
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-foreground/10 via-transparent to-foreground/70" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-foreground/80 via-foreground/35 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
           <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className="truncate text-xl font-extrabold sm:text-3xl">{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p></div>
           {isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label="بینر تبدیل" onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${storeId}-${Date.now()}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: true, contentType: photo.file.type }); if (upErr) { toast.error(upErr.message); return; } const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); await updateStore({ image_url: urlData.publicUrl }); }} /></div>}

@@ -63,7 +63,7 @@ const RestaurantDetail = () => {
           alt={restaurant.name}
           className="w-full h-full object-cover animate-scale-in"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-transparent" />
         <button
           onClick={() => navigate(-1)}
           className="absolute top-4 left-4 w-10 h-10 rounded-full glass shadow-card flex items-center justify-center hover:scale-105 transition-transform"
