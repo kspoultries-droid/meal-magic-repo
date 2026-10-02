@@ -29,6 +29,13 @@
       "when": 1790970724220,
       "tag": "0003_smart_batching_and_prep_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790971527046,
+      "tag": "0004_rider_pay_batch_discount",
+      "breakpoints": true
     }
   ]
 }
