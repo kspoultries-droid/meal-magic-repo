@@ -236,6 +236,13 @@ const RiderDashboard = () => {
     fetchData(false);
   };
 
+  const markStep = async (order: any, step: "arrived_pickup" | "arrived_customer") => {
+    const { error } = await (supabase.rpc as any)("rider_mark_step", { _order_id: order.id, _step: step });
+    if (error) { toast.error(error.message); return; }
+    toast.success(step === "arrived_pickup" ? "ہوٹل پر پہنچنا درج ہو گیا" : "کسٹمر کو بتا دیا گیا");
+    fetchData(false);
+  };
+
   const markDelivered = async (order: any) => {
     if (order.status !== "delivering") { toast.error(t("rider.onlyAfterSent")); return; }
     const { error } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id);
@@ -367,6 +374,18 @@ const RiderDashboard = () => {
           <p className="text-[10px] text-muted-foreground text-center">{t("rider.sharingLocation")}</p>
         ) : null}
 
+        {riderData?.break_until && new Date(riderData.break_until).getTime() > Date.now() && (
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2">
+            <span className="text-xs font-bold text-warning">
+              ⏸ مسلسل 3 آفر چھوٹنے پر وقفہ — {new Date(riderData.break_until).toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" })} تک نئے آرڈر نہیں آئیں گے
+            </span>
+            <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={async () => {
+              const { error } = await (supabase.rpc as any)("rider_end_break");
+              if (error) toast.error(error.message); else { toast.success("وقفہ ختم — آرڈر دوبارہ آئیں گے"); fetchData(false); }
+            }}>ابھی شروع کریں</Button>
+          </div>
+        )}
+
         {user && <RiderOfferCard riderId={user.id} onChanged={() => fetchData(false)} />}
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
@@ -450,6 +469,26 @@ const RiderDashboard = () => {
                         </div>
                       )}
 
+                      {!isClosed && (
+                        <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-bold">
+                          {[
+                            { k: "arrived_pickup", label: "ہوٹل پہنچا", done: !!o.rider_arrived_at },
+                            { k: "picked", label: "اٹھا لیا", done: o.status === "delivering" || !!o.picked_up_at },
+                            { k: "arrived_customer", label: "کسٹمر پاس", done: !!o.arrived_customer_at },
+                            { k: "delivered", label: "مکمل", done: false },
+                          ].map((s, i) => (
+                            <div key={s.k} className={`rounded-md border px-1 py-1.5 ${s.done ? "bg-primary text-primary-foreground border-primary" : "bg-background/70 text-muted-foreground"}`}>
+                              {i + 1}. {s.label}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {!isClosed && !o.rider_arrived_at && o.status !== "delivering" && (
+                        <Button size="sm" variant="outline" className="w-full h-9 text-xs font-extrabold" onClick={() => markStep(o, "arrived_pickup")}>📍 میں ہوٹل پہنچ گیا</Button>
+                      )}
+                      {o.status === "delivering" && !o.arrived_customer_at && (
+                        <Button size="sm" variant="outline" className="w-full h-9 text-xs font-extrabold" onClick={() => markStep(o, "arrived_customer")}>🏠 کسٹمر کے دروازے پر پہنچ گیا</Button>
+                      )}
                       {o.status === "delivering" && (
                         <div className="space-y-1.5">
                           <label className="flex h-9 w-full cursor-pointer items-center justify-center rounded-md border border-dashed text-[11px] font-bold text-muted-foreground hover:bg-muted">
