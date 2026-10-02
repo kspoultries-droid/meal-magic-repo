@@ -15,6 +15,13 @@
       "when": 1790965459286,
       "tag": "0001_push_dispatch_shared_secret",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790970182752,
+      "tag": "0002_foodpanda_rider_system",
+      "breakpoints": true
     }
   ]
 }

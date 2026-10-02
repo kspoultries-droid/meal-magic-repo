@@ -355,6 +355,7 @@ export type Database = {
       delivery_offers: {
         Row: {
           created_at: string
+          decline_reason: string | null
           delivery_fee: number
           distance_km: number | null
           dropoff_address: string | null
@@ -371,6 +372,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          decline_reason?: string | null
           delivery_fee?: number
           distance_km?: number | null
           dropoff_address?: string | null
@@ -387,6 +389,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          decline_reason?: string | null
           delivery_fee?: number
           distance_km?: number | null
           dropoff_address?: string | null
@@ -3063,8 +3066,10 @@ export type Database = {
       riders: {
         Row: {
           acceptance_rate: number
+          break_until: string | null
           capacity_kg: number
           city_id: string | null
+          consecutive_misses: number
           current_lat: number | null
           current_lng: number | null
           id: string
@@ -3083,8 +3088,10 @@ export type Database = {
         }
         Insert: {
           acceptance_rate?: number
+          break_until?: string | null
           capacity_kg?: number
           city_id?: string | null
+          consecutive_misses?: number
           current_lat?: number | null
           current_lng?: number | null
           id: string
@@ -3103,8 +3110,10 @@ export type Database = {
         }
         Update: {
           acceptance_rate?: number
+          break_until?: string | null
           capacity_kg?: number
           city_id?: string | null
+          consecutive_misses?: number
           current_lat?: number | null
           current_lng?: number | null
           id?: string
@@ -4167,7 +4176,7 @@ export type Database = {
         Returns: undefined
       }
       decline_delivery_offer: {
-        Args: { _offer_id: string }
+        Args: { _offer_id: string; _reason?: string }
         Returns: undefined
       }
       dispatch_next_rider: {
@@ -4487,7 +4496,12 @@ export type Database = {
       rider_cash_due: { Args: { _rider: string }; Returns: number }
       rider_cash_limit: { Args: never; Returns: number }
       rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
+      rider_end_break: { Args: never; Returns: undefined }
       rider_heartbeat: { Args: never; Returns: undefined }
+      rider_mark_step: {
+        Args: { _order_id: string; _step: string }
+        Returns: undefined
+      }
       role_permissions: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: string[]
