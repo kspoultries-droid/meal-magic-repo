@@ -237,7 +237,14 @@ const RiderDashboard = () => {
   };
 
   const markStep = async (order: any, step: "arrived_pickup" | "arrived_customer") => {
-    const { error } = await (supabase.rpc as any)("rider_mark_step", { _order_id: order.id, _step: step });
+    const pos = await new Promise<GeolocationPosition | null>((res) => {
+      if (!navigator.geolocation) return res(null);
+      navigator.geolocation.getCurrentPosition(res, () => res(null), { enableHighAccuracy: true, timeout: 10000 });
+    });
+    const { error } = await (supabase.rpc as any)("rider_mark_step", {
+      _order_id: order.id, _step: step,
+      _lat: pos?.coords.latitude ?? null, _lng: pos?.coords.longitude ?? null,
+    });
     if (error) { toast.error(error.message); return; }
     toast.success(step === "arrived_pickup" ? "ہوٹل پر پہنچنا درج ہو گیا" : "کسٹمر کو بتا دیا گیا");
     fetchData(false);

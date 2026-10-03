@@ -36,6 +36,34 @@
       "when": 1790971527046,
       "tag": "0004_rider_pay_batch_discount",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790988922228,
+      "tag": "0005_standard_class_phase_foundations",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790988948377,
+      "tag": "0006_fix_delay_notify_args",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790989033073,
+      "tag": "0007_fix_delay_notify_path",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790989078782,
+      "tag": "0008_support_ticket_reply_notify",
+      "breakpoints": true
     }
   ]
 }

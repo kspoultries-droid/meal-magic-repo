@@ -12,6 +12,7 @@ import { RefreshCw, Search, User, ShoppingBag, MapPin, Phone, Eye, FileImage, Wr
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/contexts/LanguageContext";
+import TicketsQueue from "@/components/support/TicketsQueue";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 const ORDER_STATUS: Record<string, { key: string; color: string }> = {
@@ -136,11 +137,14 @@ const SupportDashboard = () => {
         </div>
 
         <Tabs defaultValue="food">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full grid grid-cols-4">
+            <TabsTrigger value="tickets" className="text-xs">🆘 شکایات</TabsTrigger>
             <TabsTrigger value="food" className="text-xs">🍔 {t("sup.foodOrders")}</TabsTrigger>
             <TabsTrigger value="grocery" className="text-xs">🛒 {t("admin.grocery")}</TabsTrigger>
             <TabsTrigger value="services" className="text-xs">🔧 {t("admin.services")}</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="tickets"><TicketsQueue /></TabsContent>
 
           {/* Food Orders */}
           <TabsContent value="food">
