@@ -9,6 +9,8 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+const APK_URL = "https://github.com/kspoultries-droid/meal-magic-repo/releases/latest/download/EasyLife.apk";
+
 const Install = () => {
   const navigate = useNavigate();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -79,15 +81,25 @@ const Install = () => {
                 </div>
                 <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 space-y-2">
                   <p className="font-semibold">📦 اینڈرائیڈ ایپ (APK):</p>
-                  <p className="text-muted-foreground text-xs">ٹیم ممبرز اور رائیڈرز کے لیے اصلی اینڈرائیڈ ایپ — بند ایپ پر بھی نوٹیفکیشن آتے ہیں۔</p>
+                  <p className="text-muted-foreground text-xs">اصلی اینڈرائیڈ ایپ — بند ایپ پر بھی نوٹیفکیشن آتے ہیں۔</p>
+                  <Button asChild className="w-full" size="lg">
+                    <a href={APK_URL}>
+                      <Download className="w-5 h-5 mr-2" /> 📲 ایپ ڈاؤن لوڈ کریں (ایک کلک)
+                    </a>
+                  </Button>
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => window.open("https://github.com/kspoultries-droid/meal-magic-repo/actions", "_blank")}
+                    onClick={() =>
+                      window.open(
+                        `https://wa.me/?text=${encodeURIComponent("Easy Life ایپ ڈاؤن لوڈ کریں: " + APK_URL)}`,
+                        "_blank",
+                      )
+                    }
                   >
-                    <Download className="w-4 h-4 mr-2" /> APK ڈاؤن لوڈ کریں (GitHub)
+                    واٹس ایپ پر بھیجیں
                   </Button>
-                  <p className="text-muted-foreground text-xs">لنک کھولیں → سب سے اوپر والے سبز ٹک والے بلڈ پر کلک کریں → نیچے Artifacts میں <b>easy-life-apk</b> ڈاؤن لوڈ کریں۔</p>
+                  <p className="text-muted-foreground text-xs">ڈاؤن لوڈ مکمل ہو تو فائل پر ٹیپ کریں اور <b>Install</b> دبائیں۔ اگر فون اجازت مانگے تو "Allow" کر دیں۔</p>
                 </div>
               </div>
             </div>
