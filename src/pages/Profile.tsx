@@ -17,11 +17,13 @@ import CustomerGroceryHistory from "@/components/grocery/CustomerGroceryHistory"
 import AccountTile from "@/components/profile/AccountTile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useCart } from "@/contexts/CartContext";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { addItems, setIsOpen: setCartOpen } = useCart();
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
