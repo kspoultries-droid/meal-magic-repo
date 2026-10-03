@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package, Star } from "lucide-react";
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 import CourierTimeline from "@/components/orders/CourierTimeline";
+import ReportProblemDialog from "@/components/support/ReportProblemDialog";
 import OrderChat from "@/components/orders/OrderChat";
 import GroceryOrderAdjustments from "@/components/grocery/GroceryOrderAdjustments";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -158,6 +159,7 @@ const OrderTracking = () => {
             </a>
           )}
           <OrderChat orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} role="customer" label={t("track.chat")} />
+          <div className="mt-2"><ReportProblemDialog orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} /></div>
           {rider.lat && rider.lng && (
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${rider.lat},${rider.lng}`}

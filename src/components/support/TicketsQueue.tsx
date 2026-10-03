@@ -31,7 +31,6 @@ export default function TicketsQueue() {
     const { error } = await (supabase as any).from("support_tickets")
       .update({ status: "resolved", staff_reply: reply, resolved_by: user?.id, resolved_at: new Date().toISOString() }).eq("id", t.id);
     if (error) { toast.error(error.message); return; }
-    await (supabase.rpc as any)("notify_user", { _user: t.user_id, _kind: "support", _title: "شکایت کا جواب", _body: reply.slice(0, 200), _path: t.order_id ? `/order-tracking/${t.order_id}` : "/profile" }).then(() => {}, () => {});
     toast.success("حل شدہ"); load();
   };
 
