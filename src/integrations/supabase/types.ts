@@ -2986,6 +2986,30 @@ export type Database = {
           },
         ]
       }
+      rider_shifts: {
+        Row: {
+          created_at: string
+          id: string
+          rider_id: string
+          shift_date: string
+          slot: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rider_id: string
+          shift_date: string
+          slot: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rider_id?: string
+          shift_date?: string
+          slot?: string
+        }
+        Relationships: []
+      }
       rider_verifications: {
         Row: {
           address_match: boolean
@@ -4569,6 +4593,7 @@ export type Database = {
       rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
       rider_end_break: { Args: never; Returns: undefined }
       rider_heartbeat: { Args: never; Returns: undefined }
+      rider_level_info: { Args: { _rider?: string }; Returns: Json }
       rider_mark_step: {
         Args: { _lat?: number; _lng?: number; _order_id: string; _step: string }
         Returns: undefined
