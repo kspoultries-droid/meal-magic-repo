@@ -92,6 +92,13 @@
       "when": 1790992691519,
       "tag": "0012_rider_hotspots",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790992786747,
+      "tag": "0013_service_booking_notifications",
+      "breakpoints": true
     }
   ]
 }
