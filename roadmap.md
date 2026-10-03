@@ -53,3 +53,15 @@
 - [x] Dispatcher/rider-supervisor/finance can use their actions; enforced two-person approval
 - [x] Firebase connected (gateway-backed, send-push deployed, FCM auth verified)
 - [ ] Enable web push from published app (own tab) to register first device token, then end-to-end background push test — preview iframe blocks notification permission and lacks VITE_ connector vars
+
+## معیاری ایپ منصوبہ (2026-10-03)
+- [x] Android app config (Easy Life name, live site, permissions) + GitHub APK build workflow
+- [ ] Native push in APK — blocked: user must add google-services.json (Firebase Android app) as GitHub secret
+- [ ] Background rider GPS plugin — after first APK installs successfully
+- [x] Rider geofence 150m on arrived steps
+- [x] Kitchen slip / bill printing (58/80mm), auto-print, NTN/tax on bill
+- [x] Restaurant delay announcement → customer notification
+- [x] Help center: report problem + support queue with SLA + reply notification
+- [ ] SMS OTP + COD gating — blocked: SMS provider account (Twilio) needed
+- [ ] JazzCash/Easypaisa — blocked: merchant account
+- [ ] Referrals, re-order, rider shifts/levels/bonus, heatmap, services/wholesale completion, home old-order bug
