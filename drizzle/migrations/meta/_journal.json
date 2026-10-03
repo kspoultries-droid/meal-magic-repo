@@ -36,6 +36,13 @@
       "when": 1790971527046,
       "tag": "0004_rider_pay_batch_discount",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790988922228,
+      "tag": "0005_standard_class_phase_foundations",
+      "breakpoints": true
     }
   ]
 }

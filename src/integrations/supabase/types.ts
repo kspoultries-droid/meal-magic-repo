@@ -1734,6 +1734,7 @@ export type Database = {
           created_at: string | null
           currency: string
           customer_id: string
+          delay_minutes: number | null
           delivered_at: string | null
           delivery_address: string | null
           delivery_fee: number | null
@@ -1775,6 +1776,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           customer_id: string
+          delay_minutes?: number | null
           delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
@@ -1816,6 +1818,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           customer_id?: string
+          delay_minutes?: number | null
           delivered_at?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
@@ -2305,6 +2308,7 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          phone_verified: boolean
           referral_code: string | null
           referred_by: string | null
           updated_at: string | null
@@ -2317,6 +2321,7 @@ export type Database = {
           full_name?: string | null
           id: string
           phone?: string | null
+          phone_verified?: boolean
           referral_code?: string | null
           referred_by?: string | null
           updated_at?: string | null
@@ -2329,6 +2334,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          phone_verified?: boolean
           referral_code?: string | null
           referred_by?: string | null
           updated_at?: string | null
@@ -2579,6 +2585,7 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          auto_print: boolean
           busy_until: string | null
           city_id: string
           closing_time: string | null
@@ -2592,6 +2599,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           name: string
+          ntn: string | null
           opening_time: string | null
           owner_id: string
           pays_delivery_fee: boolean
@@ -2599,9 +2607,11 @@ export type Database = {
           pickup_lat: number | null
           pickup_lng: number | null
           rating: number | null
+          tax_percent: number
           updated_at: string | null
         }
         Insert: {
+          auto_print?: boolean
           busy_until?: string | null
           city_id: string
           closing_time?: string | null
@@ -2615,6 +2625,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name: string
+          ntn?: string | null
           opening_time?: string | null
           owner_id: string
           pays_delivery_fee?: boolean
@@ -2622,9 +2633,11 @@ export type Database = {
           pickup_lat?: number | null
           pickup_lng?: number | null
           rating?: number | null
+          tax_percent?: number
           updated_at?: string | null
         }
         Update: {
+          auto_print?: boolean
           busy_until?: string | null
           city_id?: string
           closing_time?: string | null
@@ -2638,6 +2651,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name?: string
+          ntn?: string | null
           opening_time?: string | null
           owner_id?: string
           pays_delivery_fee?: boolean
@@ -2645,6 +2659,7 @@ export type Database = {
           pickup_lat?: number | null
           pickup_lng?: number | null
           rating?: number | null
+          tax_percent?: number
           updated_at?: string | null
         }
         Relationships: [
@@ -3625,6 +3640,51 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          order_id: string | null
+          order_kind: string
+          photo_url: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          staff_reply: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string
+          id?: string
+          order_id?: string | null
+          order_kind?: string
+          photo_url?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          staff_reply?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          order_id?: string | null
+          order_kind?: string
+          photo_url?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          staff_reply?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_addresses: {
         Row: {
           address: string
@@ -4478,6 +4538,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      restaurant_announce_delay: {
+        Args: { _minutes: number; _order_id: string }
+        Returns: undefined
+      }
       retry_order_dispatch: {
         Args: { _kind: string; _order_id: string }
         Returns: string
@@ -4502,7 +4566,7 @@ export type Database = {
       rider_end_break: { Args: never; Returns: undefined }
       rider_heartbeat: { Args: never; Returns: undefined }
       rider_mark_step: {
-        Args: { _order_id: string; _step: string }
+        Args: { _lat?: number; _lng?: number; _order_id: string; _step: string }
         Returns: undefined
       }
       role_permissions: {
