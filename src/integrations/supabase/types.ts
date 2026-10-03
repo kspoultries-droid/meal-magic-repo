@@ -4593,6 +4593,17 @@ export type Database = {
       rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
       rider_end_break: { Args: never; Returns: undefined }
       rider_heartbeat: { Args: never; Returns: undefined }
+      rider_hotspots: {
+        Args: never
+        Returns: {
+          address: string
+          lat: number
+          lng: number
+          orders_2h: number
+          orders_today: number
+          restaurant_name: string
+        }[]
+      }
       rider_level_info: { Args: { _rider?: string }; Returns: Json }
       rider_mark_step: {
         Args: { _lat?: number; _lng?: number; _order_id: string; _step: string }
