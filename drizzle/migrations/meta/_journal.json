@@ -64,6 +64,20 @@
       "when": 1790989078782,
       "tag": "0008_support_ticket_reply_notify",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790992380048,
+      "tag": "0009_referral_rewards",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790992411100,
+      "tag": "0010_signup_referral_code",
+      "breakpoints": true
     }
   ]
 }

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Mail, Lock, User, ArrowLeft, Phone, Fingerprint } from "lucide-react";
+import { Mail, Lock, User, ArrowLeft, Phone, Fingerprint, Gift } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { lovable } from "@/integrations/lovable/index";
 
@@ -15,6 +15,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -32,7 +33,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: { full_name: fullName, referral_code: referralCode.trim() || undefined },
             emailRedirectTo: window.location.origin,
           },
         });
@@ -184,6 +185,10 @@ const Auth = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input type="password" placeholder="پاسورڈ" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" required minLength={6} />
+              </div>
+              <div className="relative">
+                <Gift className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="ریفرل کوڈ (اختیاری) / Referral code" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} className="pl-10" />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "لوڈ ہو رہا ہے..." : "سائن اپ"}

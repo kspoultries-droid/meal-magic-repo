@@ -17,11 +17,13 @@ import CustomerGroceryHistory from "@/components/grocery/CustomerGroceryHistory"
 import AccountTile from "@/components/profile/AccountTile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useCart } from "@/contexts/CartContext";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { addItems, setIsOpen: setCartOpen } = useCart();
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
@@ -374,6 +376,29 @@ const Profile = () => {
                   {(o.status === "delivered" || o.status === "completed") && (
                     <Button size="sm" variant="outline" className="w-full mt-2 text-xs font-bold" onClick={() => setReviewOrder(o)}>
                       {t("profile.review")} ⭐
+                    </Button>
+                  )}
+                  {o.order_items?.length > 0 && (
+                    <Button
+                      size="sm"
+                      className="w-full mt-2 text-xs font-bold"
+                      onClick={() => {
+                        addItems(
+                          o.order_items.map((i: any) => ({
+                            menu_item_id: i.menu_item_id,
+                            name: i.name,
+                            restaurant: o.restaurant_id,
+                            price: Number(i.price),
+                            quantity: i.quantity,
+                            image: i.image || "",
+                            source: "restaurant" as const,
+                            sourceId: o.restaurant_id,
+                          }))
+                        );
+                        setCartOpen(true);
+                      }}
+                    >
+                      🔁 دوبارہ آرڈر کریں / Re-order
                     </Button>
                   )}
                   {o.order_items?.length > 0 && (
