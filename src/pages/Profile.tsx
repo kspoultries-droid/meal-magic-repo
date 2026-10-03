@@ -379,6 +379,29 @@ const Profile = () => {
                     </Button>
                   )}
                   {o.order_items?.length > 0 && (
+                    <Button
+                      size="sm"
+                      className="w-full mt-2 text-xs font-bold"
+                      onClick={() => {
+                        addItems(
+                          o.order_items.map((i: any) => ({
+                            menu_item_id: i.menu_item_id,
+                            name: i.name,
+                            restaurant: o.restaurant_id,
+                            price: Number(i.price),
+                            quantity: i.quantity,
+                            image: i.image || "",
+                            source: "restaurant" as const,
+                            sourceId: o.restaurant_id,
+                          }))
+                        );
+                        setCartOpen(true);
+                      }}
+                    >
+                      🔁 دوبارہ آرڈر کریں / Re-order
+                    </Button>
+                  )}
+                  {o.order_items?.length > 0 && (
                     <>
                       <button className="flex items-center gap-1 text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
                         {expandedOrder === o.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
