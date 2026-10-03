@@ -18,6 +18,7 @@ import RiderInsights from "@/components/rider/RiderInsights";
 import RiderScore from "@/components/rider/RiderScore";
 import RiderOfferHistory from "@/components/rider/RiderOfferHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import RiderLevelShifts from "@/components/rider/RiderLevelShifts";
 
 
 
@@ -630,6 +631,7 @@ const RiderDashboard = () => {
           </TabsContent>
 
           <TabsContent value="performance" className="mt-3 space-y-3">
+            {user && <RiderLevelShifts riderId={user.id} />}
             <div className="grid grid-cols-4 gap-2">
               {[
                 { label: t("rider.todayDeliveries"), value: summary?.today_deliveries ?? 0, cls: "text-foreground" },
