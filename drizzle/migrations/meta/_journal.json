@@ -85,6 +85,13 @@
       "when": 1790992548444,
       "tag": "0011_rider_shifts_levels_bonus",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790992691519,
+      "tag": "0012_rider_hotspots",
+      "breakpoints": true
     }
   ]
 }
