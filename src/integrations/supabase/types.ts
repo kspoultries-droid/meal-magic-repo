@@ -4234,6 +4234,10 @@ export type Database = {
         }
         Returns: string
       }
+      credit_wallet: {
+        Args: { _amount: number; _note: string; _ref?: string; _user: string }
+        Returns: undefined
+      }
       decide_approval: {
         Args: { _approve: boolean; _id: string; _note: string }
         Returns: undefined
