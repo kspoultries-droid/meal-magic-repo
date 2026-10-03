@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, type VariantRow, type OptionGroupRow } from "@/components/menu/MenuOptionsEditor";
+import { printOrderReceipt } from "@/lib/receiptPrint";
 import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
 
 const RestaurantOwnerDashboard = () => {
@@ -700,7 +701,7 @@ const OwnerOrdersTab = () => {
       const ids = rests.map((r) => r.id);
       const { data } = await supabase
         .from("orders")
-        .select("*, order_items(*), restaurants(name, delivery_mode)")
+        .select("*, order_items(*), restaurants(name, delivery_mode, ntn, tax_percent, auto_print)")
         .in("restaurant_id", ids)
         .order("created_at", { ascending: false })
         .limit(300);
@@ -766,6 +767,7 @@ const OwnerOrdersTab = () => {
 
     const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
     if (error) { toast.error(error.message); return; }
+    if (status === "confirmed" && order.restaurants?.auto_print) printOrderReceipt(order, "kitchen");
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
     fetchOrders();
   };
@@ -889,7 +891,7 @@ const OwnerOrdersTab = () => {
           )}
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "kitchen")}>🖨️ کچن سلپ</Button>
-            <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "bill", { restaurantName: o.restaurants?.name, ntn: restaurant?.ntn, taxPercent: Number(restaurant?.tax_percent || 0) })}>🧾 بل</Button>
+            <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "bill", { restaurantName: o.restaurants?.name, ntn: o.restaurants?.ntn, taxPercent: Number(o.restaurants?.tax_percent || 0) })}>🧾 بل</Button>
             {["confirmed", "preparing"].includes(o.status) && (
               <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={async () => {
                 const { error } = await (supabase.rpc as any)("restaurant_announce_delay", { _order_id: o.id, _minutes: 10 });
