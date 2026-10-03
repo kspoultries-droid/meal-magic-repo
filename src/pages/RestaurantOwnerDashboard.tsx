@@ -887,11 +887,21 @@ const OwnerOrdersTab = () => {
           {o.status === "delivering" && o.rider_id && (
             <p className="text-[11px] text-primary mt-2">{t("rest.handedToRider")}</p>
           )}
-          {o.status !== "delivering" && (
-            <Button size="sm" variant="ghost" className="h-6 text-[10px] text-destructive mt-2" onClick={() => updateStatus(o, "cancelled")}>
-              {t("rest.cancelOrder")}
-            </Button>
-          )}
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "kitchen")}>🖨️ کچن سلپ</Button>
+            <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "bill", { restaurantName: o.restaurants?.name, ntn: restaurant?.ntn, taxPercent: Number(restaurant?.tax_percent || 0) })}>🧾 بل</Button>
+            {["confirmed", "preparing"].includes(o.status) && (
+              <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={async () => {
+                const { error } = await (supabase.rpc as any)("restaurant_announce_delay", { _order_id: o.id, _minutes: 10 });
+                if (error) toast.error(error.message); else { toast.success("گاہک کو 10 منٹ تاخیر کی اطلاع دے دی گئی"); fetchOrders(); }
+              }}>⏱️ +10 منٹ تاخیر{o.delay_minutes ? ` (${o.delay_minutes})` : ""}</Button>
+            )}
+            {o.status !== "delivering" && (
+              <Button size="sm" variant="ghost" className="h-7 text-[10px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>
+                {t("rest.cancelOrder")}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );
