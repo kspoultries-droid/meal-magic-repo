@@ -4196,6 +4196,7 @@ export type Database = {
         Args: { _application_id: string }
         Returns: undefined
       }
+      award_weekly_rider_bonus: { Args: never; Returns: number }
       can_access_order_chat: {
         Args: { _kind: string; _order_id: string; _user_id: string }
         Returns: boolean

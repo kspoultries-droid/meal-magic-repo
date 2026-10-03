@@ -1,0 +1,1 @@
+SELECT cron.schedule('weekly-rider-bonus', '30 0 * * 1', $$SELECT public.award_weekly_rider_bonus()$$);
