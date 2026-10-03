@@ -258,6 +258,22 @@ const MyRestaurantTab = () => {
                     </button>
                   </div>
 
+                  {/* Printing & tax */}
+                  <div className="mt-2 flex items-center gap-2 flex-wrap bg-secondary/50 rounded-lg px-3 py-2 text-xs">
+                    <label className="flex items-center gap-1.5 font-bold">
+                      <input type="checkbox" defaultChecked={!!r.auto_print} onChange={async (e) => {
+                        await supabase.from("restaurants").update({ auto_print: e.target.checked } as any).eq("id", r.id);
+                        toast.success(e.target.checked ? "آرڈر قبول کرتے ہی کچن سلپ پرنٹ ہوگی" : "خودکار پرنٹ بند");
+                      }} />
+                      🖨️ خودکار پرنٹ
+                    </label>
+                    <input placeholder="NTN" defaultValue={r.ntn || ""} className="h-7 w-28 border rounded-md px-2 bg-background"
+                      onBlur={async (e) => { await supabase.from("restaurants").update({ ntn: e.target.value.trim() || null } as any).eq("id", r.id); }} />
+                    <input type="number" min={0} max={30} placeholder="ٹیکس %" defaultValue={r.tax_percent || ""} className="h-7 w-20 border rounded-md px-2 bg-background"
+                      onBlur={async (e) => { await supabase.from("restaurants").update({ tax_percent: Math.min(30, Math.max(0, Number(e.target.value) || 0)) } as any).eq("id", r.id); }} />
+                  </div>
+
+
                   {/* Busy / temporary pause */}
                   <div className="mt-2 flex items-center gap-2 flex-wrap rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2">
                     <span className="text-xs font-bold text-muted-foreground">{t("rest.busyMode")}</span>
