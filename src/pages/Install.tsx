@@ -77,6 +77,18 @@ const Install = () => {
                   <p className="font-semibold">🤖 اینڈرائیڈ (Chrome):</p>
                   <p className="text-muted-foreground">⋮ مینو دبائیں → "Add to Home Screen" یا "Install App" منتخب کریں</p>
                 </div>
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 space-y-2">
+                  <p className="font-semibold">📦 اینڈرائیڈ ایپ (APK):</p>
+                  <p className="text-muted-foreground text-xs">ٹیم ممبرز اور رائیڈرز کے لیے اصلی اینڈرائیڈ ایپ — بند ایپ پر بھی نوٹیفکیشن آتے ہیں۔</p>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => window.open("https://github.com/kspoultries-droid/meal-magic-repo/actions", "_blank")}
+                  >
+                    <Download className="w-4 h-4 mr-2" /> APK ڈاؤن لوڈ کریں (GitHub)
+                  </Button>
+                  <p className="text-muted-foreground text-xs">لنک کھولیں → سب سے اوپر والے سبز ٹک والے بلڈ پر کلک کریں → نیچے Artifacts میں <b>easy-life-apk</b> ڈاؤن لوڈ کریں۔</p>
+                </div>
               </div>
             </div>
           )}
