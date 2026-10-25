@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import heroFood from "@/assets/hero-food.jpg";
+import { Button } from "@/components/ui/button";
 
 interface Slide {
   title: string;
@@ -29,11 +30,11 @@ const HeroPromo = () => {
 
   return (
     <section className="container mx-auto max-w-3xl px-4 pt-3">
-      <button
+      <Button variant="ghost"
         onClick={() => navigate(s.to)}
-        className="relative flex h-32 w-full overflow-hidden rounded-3xl bg-gradient-hero text-right shadow-elegant active:scale-[0.99] transition-transform"
+        className="relative flex h-36 w-full justify-between gap-0 overflow-hidden whitespace-normal rounded-lg bg-gradient-hero p-0 text-start shadow-card active:scale-[0.99] transition-transform hover:text-primary-foreground"
       >
-        <div className="relative z-10 flex flex-1 flex-col justify-center gap-1 p-4">
+        <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-center gap-1 px-4 pb-7 pt-4">
           <p className="text-[11px] font-bold text-primary-foreground/80">{s.sub}</p>
           <h2 className="text-lg font-extrabold leading-snug text-primary-foreground">{s.title}</h2>
           <span className="mt-1 flex items-center gap-1 text-[12px] font-bold text-primary-foreground">
@@ -41,9 +42,8 @@ const HeroPromo = () => {
           </span>
         </div>
 
-        <div className="relative w-32 shrink-0 sm:w-44">
+        <div className="relative h-full w-[36%] shrink-0 sm:w-44">
           <img src={heroFood} alt="EasyLife offer" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-primary/70" />
         </div>
 
         <div className="absolute bottom-2 right-4 z-10 flex gap-1">
@@ -54,7 +54,7 @@ const HeroPromo = () => {
             />
           ))}
         </div>
-      </button>
+      </Button>
     </section>
   );
 };

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, Clock, Plus, Minus, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MenuItemSheet from "@/components/menu/MenuItemSheet";
+import restaurantFallback from "@/assets/hero-food.jpg";
 
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -59,25 +60,26 @@ const RestaurantDetail = () => {
       {/* Hero */}
       <div className="relative h-56 md:h-72 overflow-hidden">
         <img
-          src={restaurant.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=400&fit=crop"}
+          src={restaurant.image_url || restaurantFallback}
           alt={restaurant.name}
-          className="w-full h-full object-cover animate-scale-in"
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-transparent" />
-        <button
+        <Button variant="secondary" size="icon"
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full glass shadow-card flex items-center justify-center hover:scale-105 transition-transform"
+          className="absolute top-4 start-4 rounded-full bg-card text-card-foreground shadow-card hover:bg-secondary"
           aria-label="Back"
         >
           <ArrowLeft className="h-5 w-5 text-foreground" />
-        </button>
-        <div className="absolute bottom-0 left-0 right-0 p-6 animate-slide-up">
-          <h1 className="text-3xl font-extrabold text-foreground drop-shadow">{restaurant.name}</h1>
-          <div className="flex items-center gap-3 mt-2">
-            <Badge className="bg-success text-success-foreground gap-1 shadow-glow">
+        </Button>
+      </div>
+      <section className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-5">
+          <h1 className="break-words text-2xl md:text-3xl font-extrabold text-card-foreground">{restaurant.name}</h1>
+          <div className="flex flex-wrap items-center gap-3 mt-2">
+            <Badge className="bg-accent text-accent-foreground gap-1">
               <Star className="w-3 h-3 fill-current" /> {restaurant.rating || "New"}
             </Badge>
-            <span className="flex items-center gap-1 text-sm text-muted-foreground bg-card/70 backdrop-blur px-2 py-0.5 rounded-full">
+            <span className="flex items-center gap-1 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" /> {restaurant.delivery_time || "30-45 min"}
             </span>
           </div>
@@ -86,11 +88,11 @@ const RestaurantDetail = () => {
           )}
           {restaurant.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{restaurant.description}</p>}
         </div>
-      </div>
+      </section>
 
       {/* Sticky category tabs */}
       {categories.length > 1 && (
-        <div className="sticky top-14 z-30 bg-background/95 backdrop-blur border-b border-border/60">
+        <div className="customer-category-tabs sticky z-30 bg-card border-b border-border">
           <div className="container mx-auto px-4">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide py-2">
               {categories.map((cat) => (
@@ -108,11 +110,11 @@ const RestaurantDetail = () => {
       )}
 
       {/* Menu */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto max-w-5xl px-4 py-6 pb-28">
         {categories.map((cat) => (
           <div key={cat} id={`cat-${cat}`} className="mb-8 scroll-mt-32">
-            <h2 className="text-xl font-bold text-foreground mb-4 border-b pb-2">{cat}</h2>
-            <div className="grid gap-3">
+            <h2 className="text-lg font-bold text-foreground mb-3 border-b pb-2">{cat}</h2>
+            <div className="grid gap-3 md:grid-cols-2">
               {menuItems
                 .filter((m) => (m.category || "Main") === cat)
                 .map((item) => {
@@ -120,7 +122,7 @@ const RestaurantDetail = () => {
                   const selectedQty = cartLines.reduce((sum, line) => sum + line.quantity, 0);
                   const simpleLine = cartLines.find((line) => !line.variant_id && line.line_type !== "addon");
                   return (
-                  <div key={item.id} className={`flex items-center gap-3 rounded-xl p-3 border transition-all ${selectedQty > 0 ? "bg-primary/5 border-primary/40 shadow-card" : "bg-card border-border hover:shadow-md"}`}>
+                  <div key={item.id} className={`flex items-center gap-3 rounded-lg p-3 border transition-all ${selectedQty > 0 ? "bg-accent border-primary/40 shadow-card" : "bg-card border-border hover:shadow-card"}`}>
                     {item.image_url && (
                       <img src={item.image_url} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
                     )}
