@@ -68,7 +68,7 @@ const Profile = () => {
         { data: walletData },
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-        supabase.from("orders").select("*, order_items(*)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("orders").select("*, order_items(*), restaurants(name)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
         supabase.from("user_roles").select("role").eq("user_id", user.id),
         supabase.from("restaurants").select("id,name,is_active").eq("owner_id", user.id).order("created_at", { ascending: false }),
         supabase.from("grocery_stores").select("id,name,store_type,is_active").eq("owner_id", user.id).order("created_at", { ascending: false }),
@@ -384,16 +384,25 @@ const Profile = () => {
                       className="w-full mt-2 text-xs font-bold"
                       onClick={() => {
                         addItems(
-                          o.order_items.map((i: any) => ({
-                            menu_item_id: i.menu_item_id,
-                            name: i.name,
-                            restaurant: o.restaurant_id,
-                            price: Number(i.price),
-                            quantity: i.quantity,
-                            image: i.image || "",
-                            source: "restaurant" as const,
-                            sourceId: o.restaurant_id,
-                          }))
+                          o.order_items.map((i: any) => {
+                            const options = Array.isArray(i.options)
+                              ? (i.options as { group_id?: string; group?: string; choice_id?: string; choice?: string; price_delta?: number }[])
+                              : [];
+                            return {
+                              menu_item_id: i.menu_item_id,
+                              name: i.name,
+                              restaurant: o.restaurants?.name || "",
+                              price: Number(i.unit_price ?? i.price),
+                              quantity: i.quantity,
+                              image: i.image || "",
+                              source: "restaurant" as const,
+                              sourceId: o.restaurant_id,
+                              variant_id: i.variant_id || null,
+                              variant_label: i.variant_label || null,
+                              options,
+                              option_ids: options.map((opt) => opt.choice_id).filter(Boolean),
+                            };
+                          })
                         );
                         setCartOpen(true);
                       }}
