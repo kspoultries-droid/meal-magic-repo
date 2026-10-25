@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import Index from "./pages/Index";
 import CartDrawer from "@/components/CartDrawer";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
+import { PullToRefresh } from "@/components/common/PullToRefresh";
 
 
 // Auto-reload once when a lazy chunk fails to load (typically after a redeploy
@@ -175,6 +176,7 @@ const App = () => (
             <CourierNotifications />
             <BrowserRouter>
               <RoutePrefetcher />
+              <PullToRefresh />
               <CartDrawer />
               <FloatingCartBar />
               <Suspense fallback={<RouteLoading />}>
