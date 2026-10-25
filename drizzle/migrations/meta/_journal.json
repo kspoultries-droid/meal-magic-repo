@@ -120,6 +120,13 @@
       "when": 1790993132636,
       "tag": "0016_weekly_bonus_schedule_fix",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792972743915,
+      "tag": "0017_bind_reels_storage_read_access",
+      "breakpoints": true
     }
   ]
 }
