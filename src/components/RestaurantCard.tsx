@@ -37,7 +37,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
 
   return (
     <div
-      className={`group relative bg-gradient-card rounded-3xl overflow-hidden border border-border/60 shadow-card hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 ${
+      className={`group relative bg-card rounded-lg overflow-hidden border border-border shadow-soft hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 ${
         !isActive ? "opacity-60 grayscale" : ""
       }`}
     >
@@ -55,7 +55,6 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           {...(isAboveFold ? { fetchpriority: "high" } : {})}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
 
         {!isActive && (
           <div className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] flex items-center justify-center">
@@ -98,7 +97,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           {name}
         </h3>
         <p className="text-muted-foreground text-xs truncate mb-3">{cuisines.join(" · ")}</p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1 text-[10px] font-bold text-accent-foreground bg-accent rounded-full px-2.5 py-1">
             <Bike className="w-3 h-3" /> {paysDeliveryFee ? "فری ڈیلیوری" : "فوری ڈیلیوری"}
           </span>

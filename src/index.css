@@ -22,7 +22,7 @@
     --secondary-foreground: 160 10% 10%;
 
     --muted: 120 10% 92%;
-    --muted-foreground: 160 5% 46%;
+    --muted-foreground: 160 5% 39%;
 
     --accent: 152 60% 94%;
     --accent-foreground: 152 69% 30%;
@@ -46,6 +46,10 @@
     --sidebar-ring: 152 69% 40%;
 
     /* Custom tokens */
+    --navigation-background: 152 72% 32%;
+    --navigation-foreground: 0 0% 100%;
+    --navigation-gradient: linear-gradient(110deg, hsl(152 72% 30%), hsl(165 72% 34%));
+    --navbar-height: calc(3.5rem + env(safe-area-inset-top, 0px));
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     --success: 152 69% 40%;
@@ -60,9 +64,9 @@
 
     /* Shadows */
     --shadow-elegant: 0 10px 30px -10px hsl(152 69% 40% / 0.25);
-    --shadow-glow: 0 0 40px hsl(152 80% 55% / 0.35);
-    --shadow-soft: 0 2px 12px -2px hsl(160 20% 20% / 0.08);
-    --shadow-card: 0 4px 20px -8px hsl(160 20% 20% / 0.12);
+    --shadow-glow: 0 2px 8px hsl(152 69% 30% / 0.12);
+    --shadow-soft: 0 2px 8px -2px hsl(160 20% 20% / 0.06);
+    --shadow-card: 0 4px 16px -8px hsl(160 20% 20% / 0.1);
 
     /* Motion */
     --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -119,6 +123,29 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Nunito Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
+  }
+
+  @media (min-width: 640px) {
+    :root { --navbar-height: calc(4rem + env(safe-area-inset-top, 0px)); }
+  }
+}
+
+/* Navigation keeps the Easy Life brand in every marketplace theme. */
+.app-navbar {
+  --primary: var(--navigation-background);
+  --primary-foreground: var(--navigation-foreground);
+  --gradient-hero: var(--navigation-gradient);
+  background: var(--navigation-gradient);
+}
+
+.customer-category-tabs { top: var(--navbar-height); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

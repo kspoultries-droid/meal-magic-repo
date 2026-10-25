@@ -1,6 +1,7 @@
 import { Globe, Check } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LANGUAGES } from "@/lib/i18n/translations";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,14 +30,14 @@ const LanguageSwitcher = ({ tone = "default", className = "", showLabel = false 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
+        <Button variant="ghost"
           type="button"
           aria-label={t("common.language")}
-          className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold transition-colors ${toneClass} ${className}`}
+          className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold transition-colors ${toneClass} ${tone === "light" ? "hover:text-primary-foreground" : ""} ${className}`}
         >
           <Globe className="h-3.5 w-3.5" />
           <span>{showLabel ? current.native : current.code.toUpperCase()}</span>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="z-[100] min-w-44 bg-popover">
         <DropdownMenuLabel className="text-xs">{t("common.language")}</DropdownMenuLabel>

@@ -1,5 +1,11 @@
 # Roadmap
 
+## موجودہ ظاہری صفائی
+- [x] فوڈ تصویر کا سبز سایہ ختم کرنا
+- [x] بازار کی اوپری لوکیشن اور بٹن واضح کرنا
+- [x] ریسٹورنٹ کی تصویر سے سفید دھند ختم کرنا
+- [x] مشترکہ صفحات، کارڈز اور نیوی گیشن کی صفائی اور فون/کمپیوٹر پر جانچ
+
 - [x] Auto-dispatch expired-offer worker and safe rider acceptance
 - [x] Manual assignment converted to rider offer/acceptance
 - [x] Dispatch status labels and retry control

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, Clock, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 interface Pick {
   id: string;
@@ -57,20 +58,20 @@ const TopPicksRail = () => {
   return (
     <section className="py-3">
       <div className="container mx-auto px-4 flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-          <Crown className="w-4 h-4 text-primary-foreground" />
+        <div className="w-7 h-7 shrink-0 rounded-lg bg-accent flex items-center justify-center">
+          <Crown className="w-4 h-4 text-primary" />
         </div>
         <h2 className="text-lg font-extrabold text-foreground">بہترین انتخاب</h2>
-        <span className="text-xs text-muted-foreground">Top picks for you</span>
+        <span className="min-w-0 text-[11px] text-muted-foreground">Top picks for you</span>
       </div>
 
       <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
         {picks.map((p, i) => (
-          <button
+          <Button variant="ghost"
             key={p.id}
             onClick={() => navigate(`/restaurant/${p.id}`)}
             style={{ animationDelay: `${i * 60}ms` }}
-            className="animate-fade-in group relative w-44 shrink-0 rounded-2xl overflow-hidden border border-border/60 shadow-card bg-card text-left active:scale-95 transition-transform"
+            className="animate-fade-in group relative block h-auto w-44 shrink-0 overflow-hidden whitespace-normal rounded-lg border border-border shadow-soft bg-card p-0 text-start active:scale-95 transition-transform hover:bg-card"
           >
             <div className="relative h-24 overflow-hidden">
               <img
@@ -79,7 +80,6 @@ const TopPicksRail = () => {
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
               <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 text-[10px] font-bold text-primary-foreground bg-foreground/50 backdrop-blur-sm rounded-full px-2 py-0.5">
                 <Star className="w-3 h-3 fill-current text-warning" />
                 {p.rating || "New"}
@@ -92,7 +92,7 @@ const TopPicksRail = () => {
                 {p.deliveryTime}
               </p>
             </div>
-          </button>
+          </Button>
         ))}
       </div>
     </section>
