@@ -276,13 +276,11 @@ const Services = () => {
   const timeSlots = ["09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-[calc(6rem+env(safe-area-inset-bottom))]">
       <Navbar />
 
       {/* Header - editable premium hero */}
       <div className="relative overflow-hidden px-4" style={heroBackgroundStyle(heroConfig)}>
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-foreground/5 blur-2xl" />
-        <div className="absolute -bottom-16 -left-10 w-52 h-52 rounded-full bg-foreground/5 blur-3xl" />
         <div className="relative">
           {isAdmin && (
             <div className="mb-2 flex justify-end">
@@ -291,10 +289,10 @@ const Services = () => {
           )}
           <div style={{ textAlign: heroConfig.align }}>
             <p className="text-[11px] font-bold mb-0.5" style={{ color: heroConfig.accentColor }}>{heroConfig.eyebrow}</p>
-            <h1 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: heroConfig.titleSize }}>{heroConfig.title}</h1>
+            <h1 className="break-words font-extrabold leading-snug" style={{ fontSize: heroConfig.titleSize }}>{heroConfig.title}</h1>
             <p className="text-xs opacity-80 mb-3">{heroConfig.subtitle}</p>
           </div>
-          <div className="flex items-center gap-3 bg-card/95 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl ring-1 ring-foreground/10">
+          <div className="flex h-12 min-w-0 items-center gap-3 rounded-lg border border-border bg-card px-4 shadow-soft focus-within:ring-2 focus-within:ring-ring">
             <Search className="w-5 h-5 text-primary shrink-0" />
             <input
               type="text"
@@ -320,7 +318,7 @@ const Services = () => {
       {/* Categories Grid */}
       <div className="container mx-auto px-4 py-3">
         {!activeCategory && <h2 className="text-lg font-extrabold text-foreground mb-3">Categories / کیٹیگریز</h2>}
-        <div className={`grid gap-2 ${activeCategory ? "grid-cols-6" : "grid-cols-4"}`}>
+        <div className={`grid gap-2 ${activeCategory ? "grid-cols-4 sm:grid-cols-6" : "grid-cols-4 sm:grid-cols-6 lg:grid-cols-8"}`}>
           {/* All button */}
           {activeCategory ? (
             <button
@@ -333,8 +331,8 @@ const Services = () => {
           ) : (
             <button
               onClick={() => setActiveCategory(null)}
-              className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${
-                !activeCategory ? "bg-primary/10 border-primary shadow-md" : "bg-card hover:shadow-md"
+              className={`flex min-h-24 flex-col items-center justify-start gap-2 p-2.5 rounded-lg border transition-all ${
+                !activeCategory ? "bg-accent border-primary shadow-soft" : "bg-card hover:shadow-card"
               }`}
             >
               <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center">
@@ -358,7 +356,7 @@ const Services = () => {
                   ) : (
                     <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                   )}
-                  <span className="text-[8px] font-semibold text-muted-foreground text-center leading-tight truncate w-full">{cat.name}</span>
+                  <span className="w-full line-clamp-2 text-[10px] font-semibold text-muted-foreground text-center leading-5">{cat.name}</span>
                 </button>
               );
             }
@@ -372,12 +370,12 @@ const Services = () => {
                     setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
                   }
                 }}
-                className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${
+                className={`flex min-h-24 min-w-0 flex-col items-center gap-2 p-2.5 rounded-lg border transition-all ${
                   !cat.is_active
                     ? "bg-muted/50 opacity-60 grayscale cursor-default"
                     : isActive 
-                      ? "bg-primary/10 border-primary shadow-md col-span-2" 
-                      : "bg-card hover:shadow-md"
+                      ? "bg-accent border-primary shadow-soft col-span-2" 
+                      : "bg-card hover:shadow-card"
                 }`}
               >
               <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center overflow-hidden`}>
@@ -387,7 +385,7 @@ const Services = () => {
                     <Icon className="w-4 h-4" />
                   )}
                 </div>
-                <span className="text-[10px] font-bold text-foreground text-center leading-tight">{cat.name}</span>
+                <span className="w-full break-words text-[10px] font-bold text-foreground text-center leading-5">{cat.name}</span>
                 {!cat.is_active && (
                   <span className="text-[7px] font-bold text-muted-foreground">جلد آ رہا ہے</span>
                 )}
@@ -399,7 +397,7 @@ const Services = () => {
 
       {/* Services List */}
       <div className="container mx-auto px-4 pb-4">
-        <h2 ref={servicesRef} className="text-lg font-extrabold text-foreground mb-3 scroll-mt-2">
+        <h2 ref={servicesRef} className="text-lg font-extrabold text-foreground mb-3 scroll-mt-24">
           {activeCategory
             ? `${categories.find((c) => c.id === activeCategory)?.name || ""} Services / سروسز`
             : t("services.all")}
@@ -433,7 +431,7 @@ const Services = () => {
                   <button
                   key={service.id}
                   onClick={() => effectivelyActive && setSelectedService(service)}
-                  className={`w-full flex items-center gap-4 rounded-2xl p-4 border transition-shadow text-left animate-fade-in ${
+                  className={`w-full flex items-center gap-3 rounded-lg p-3 border transition-shadow text-start animate-fade-in ${
                     effectivelyActive 
                       ? "bg-card hover:shadow-md" 
                       : "bg-muted/50 opacity-75 cursor-default"
@@ -449,8 +447,8 @@ const Services = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-foreground truncate">{service.name}</h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="break-words font-bold text-foreground">{service.name}</h3>
                       {!effectivelyActive && (
                         <span className="shrink-0 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
                           🔄 جلد آ رہا ہے
@@ -466,16 +464,16 @@ const Services = () => {
                     )}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-500" /> {service.rating || t("services.new")}
+                        <Star className="w-3 h-3 text-warning" /> {service.rating || t("services.new")}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" /> {service.duration}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between mt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                       <span className={`text-sm font-extrabold ${effectivelyActive ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
                       {effectivelyActive && (
-                        <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-bold animate-pulse">
+                        <span className="px-3 py-1 rounded-md bg-primary text-primary-foreground text-[11px] font-bold">
                           Book Now / بکنگ کریں →
                         </span>
                       )}
@@ -637,7 +635,7 @@ const Services = () => {
             <DrawerTitle className="text-lg font-extrabold">Book Now / بکنگ کریں</DrawerTitle>
             <DrawerDescription>{selectedService?.name}</DrawerDescription>
           </DrawerHeader>
-          <div className="overflow-y-auto px-4 pb-6">
+          <div className="overflow-y-auto px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
 
           {selectedService && (
             <div className="space-y-4">
@@ -776,7 +774,7 @@ const Services = () => {
 
               {/* Book Button */}
               <Button
-                className="w-full h-12 text-base font-extrabold rounded-xl"
+                className="w-full min-h-12 h-auto whitespace-normal py-3 text-sm font-extrabold rounded-lg"
                 onClick={handleBook}
                 disabled={submitting}
               >

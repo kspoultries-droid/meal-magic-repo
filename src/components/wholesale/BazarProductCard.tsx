@@ -38,7 +38,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
 
   return (
     <article className={`group relative overflow-hidden rounded-lg border border-border/80 bg-card shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elegant ${compact ? "w-[7.5rem] shrink-0" : ""}`}>
-      <button onClick={onClick} className={list ? "flex w-full items-center gap-3 p-2 text-left" : "block w-full text-left"} aria-label={`${product.name} دیکھیں`}>
+      <Button variant="ghost" onClick={onClick} className={list ? "flex h-auto w-full items-center justify-start gap-3 whitespace-normal p-2 text-start hover:bg-card" : "block h-auto w-full whitespace-normal p-0 text-start hover:bg-card"} aria-label={`${product.name} دیکھیں`}>
         <div className={`relative shrink-0 overflow-hidden bg-accent ${list ? "size-24 rounded-md" : compact ? "h-28 w-full" : "aspect-square w-full"}`}>
           {showImage ? (
             <img src={imageUrl as string} alt={product.name} loading="lazy" onError={() => setImageFailed(true)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -50,23 +50,23 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
             </div>
           )}
           {off > 0 && <span className="absolute left-1.5 top-1.5 rounded-md bg-destructive px-1.5 py-1 text-[10px] font-bold text-destructive-foreground">-{off}%</span>}
-          {onToggleWishlist && <Button type="button" variant="secondary" size="icon" aria-label={isWishlisted ? "محفوظ فہرست سے ہٹائیں" : "محفوظ کریں"} onClick={(event) => { event.stopPropagation(); onToggleWishlist(); }} className="absolute right-1.5 top-1.5 size-7 rounded-full bg-background/90 shadow-sm hover:bg-background">
-            <Heart className={`size-3.5 ${isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}`} />
-          </Button>}
         </div>
         <div className={`min-w-0 space-y-1 ${list ? "flex-1 py-1" : "p-2"}`}>
           <p className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{product.name}</p>
-          <div className="flex items-end justify-between gap-1">
+          <div className="flex flex-wrap items-end justify-between gap-1">
             <div><p className="font-display text-sm font-bold text-primary">Rs {effective.toLocaleString()}</p>{hasDiscount && <p className="text-[9px] text-muted-foreground line-through">Rs {product.price.toLocaleString()}</p>}</div>
             {product.rating && <span className="flex items-center gap-0.5 text-[9px] font-semibold text-muted-foreground"><Star className="size-2.5 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
           </div>
-          <div className="flex items-center justify-between gap-1 text-[9px] text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-1 text-[9px] text-muted-foreground">
             <span className="truncate">{product.storeName || product.unit || "خریداری کریں"}</span>
             {!!product.min_order_qty && product.min_order_qty > 1 && <span className="shrink-0 font-semibold text-destructive">MOQ {product.min_order_qty}</span>}
           </div>
           {!!product.sold_count && product.sold_count > 0 && <p className="text-[9px] font-semibold text-muted-foreground">{product.sold_count.toLocaleString()} فروخت</p>}
         </div>
-      </button>
+      </Button>
+      {onToggleWishlist && <Button type="button" variant="secondary" size="icon" aria-label={isWishlisted ? "محفوظ فہرست سے ہٹائیں" : "محفوظ کریں"} onClick={onToggleWishlist} className="absolute right-1.5 top-1.5 size-7 rounded-full bg-card shadow-sm hover:bg-secondary">
+        <Heart className={`size-3.5 ${isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}`} />
+      </Button>}
     </article>
   );
 };

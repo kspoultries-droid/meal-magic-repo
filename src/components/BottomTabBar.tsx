@@ -4,6 +4,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useCityServices } from "@/hooks/useCityServices";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TranslationKey } from "@/lib/i18n/translations";
+import { Button } from "@/components/ui/button";
 
 const tabs: { name: string; key: TranslationKey; icon: any; path: string }[] = [
   { name: "Food", key: "tab.food", icon: UtensilsCrossed, path: "/" },
@@ -40,8 +41,8 @@ const BottomTabBar = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 pb-[env(safe-area-inset-bottom)] shadow-card">
-      <div className="flex items-center justify-around h-16 max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border pb-[env(safe-area-inset-bottom)] shadow-soft">
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-1">
         {tabs
           .filter((tab) =>
             tab.path === "/" ? foodLive :
@@ -52,15 +53,16 @@ const BottomTabBar = () => {
           const Icon = tab.icon;
           const active = isActive(tab.path);
           return (
-            <button
+            <Button variant="ghost"
               key={tab.name}
               onClick={() => handleTab(tab)}
-              className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full relative transition-all active:scale-95"
+              aria-current={active ? "page" : undefined}
+              className="relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-none px-0 pb-1 pt-3 hover:bg-accent/50 active:scale-95"
             >
               {active && (
-                <span className="absolute top-1 w-10 h-1 rounded-full bg-gradient-primary shadow-glow" />
+                <span className="absolute top-1 w-7 h-0.5 rounded-full bg-primary" />
               )}
-              <div className={`relative transition-all duration-300 ${active ? "scale-110 -translate-y-0.5" : ""}`}>
+              <div className="relative h-5 w-5">
                 <Icon className={`w-5 h-5 transition-colors ${active ? "text-primary" : "text-muted-foreground"}`} strokeWidth={active ? 2.5 : 2} />
                 {tab.path === "cart" && totalItems > 0 && (
                   <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-gradient-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-glow animate-scale-in">
@@ -68,10 +70,10 @@ const BottomTabBar = () => {
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] font-semibold transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
+              <span className={`w-full truncate text-center text-[10px] font-semibold leading-4 transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
                 {t(tab.key, tab.name)}
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>

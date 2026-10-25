@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { foodCategories } from "@/lib/foodCategories";
+import { Button } from "@/components/ui/button";
 
 const CategoryRail = () => {
   const navigate = useNavigate();
@@ -13,13 +14,13 @@ const CategoryRail = () => {
 
       <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
         {foodCategories.map((cat, i) => (
-          <button
+          <Button variant="ghost"
             key={cat.slug}
             onClick={() => navigate(`/category/${cat.slug}`)}
             style={{ animationDelay: `${i * 40}ms` }}
-            className="animate-fade-in group flex w-[78px] shrink-0 flex-col items-center gap-1.5 active:scale-95 transition-transform"
+            className="animate-fade-in group flex h-auto w-[78px] shrink-0 flex-col items-center gap-1.5 whitespace-normal p-0 hover:bg-transparent active:scale-95 transition-transform"
           >
-            <span className="relative h-[78px] w-[78px] overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-soft">
+            <span className="relative h-[78px] w-[78px] overflow-hidden rounded-lg border border-border bg-muted">
               <img
                 src={cat.image}
                 alt={cat.name}
@@ -28,7 +29,7 @@ const CategoryRail = () => {
               />
             </span>
             <span className="w-full truncate text-center text-[11px] font-bold text-foreground">{cat.ur}</span>
-          </button>
+          </Button>
         ))}
       </div>
     </section>
