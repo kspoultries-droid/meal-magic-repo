@@ -1,4 +1,4 @@
-import { cleanup, render } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PullToRefresh } from "./PullToRefresh";
@@ -6,7 +6,7 @@ import { PullToRefresh } from "./PullToRefresh";
 function touch(type: string, y: number, target: EventTarget = document.body) {
   const event = new Event(type, { bubbles: true, cancelable: true });
   Object.defineProperty(event, "touches", { value: type === "touchend" || type === "touchcancel" ? [] : [{ clientX: 100, clientY: y }] });
-  target.dispatchEvent(event);
+  act(() => { target.dispatchEvent(event); });
 }
 
 describe("mobile pull to refresh", () => {
