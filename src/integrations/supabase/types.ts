@@ -365,6 +365,7 @@ export type Database = {
           expires_at: string
           id: string
           is_batch: boolean
+          manual: boolean
           order_id: string
           order_kind: string
           pickup_name: string | null
@@ -386,6 +387,7 @@ export type Database = {
           expires_at: string
           id?: string
           is_batch?: boolean
+          manual?: boolean
           order_id: string
           order_kind: string
           pickup_name?: string | null
@@ -407,6 +409,7 @@ export type Database = {
           expires_at?: string
           id?: string
           is_batch?: boolean
+          manual?: boolean
           order_id?: string
           order_kind?: string
           pickup_name?: string | null
