@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { RefreshCw, Truck } from "lucide-react";
 import CourierShipmentDialog from "@/components/orders/CourierShipmentDialog";
+import { groceryReady, riderPresenceFresh } from "@/lib/riderOperations";
 
 const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
   const toRad = (v: number) => (v * Math.PI) / 180;
@@ -17,7 +18,7 @@ const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-const OPEN_STATUSES = ["pending", "quoted", "confirmed", "preparing", "ready", "delivering", "out_for_delivery"];
+const OPEN_STATUSES = ["pending", "quoted", "confirmed", "preparing", "picking", "packed", "ready_for_pickup", "ready", "delivering", "out_for_delivery"];
 
 const GroceryDispatchTab = () => {
   const [cartOrders, setCartOrders] = useState<any[]>([]);
@@ -44,7 +45,7 @@ const GroceryDispatchTab = () => {
         .in("status", OPEN_STATUSES)
         .order("created_at", { ascending: false })
         .limit(40),
-      supabase.from("riders").select("id, is_available, current_lat, current_lng"),
+      supabase.from("riders").select("id, is_available, is_suspended, current_lat, current_lng, last_seen_at, location_updated_at"),
     ]);
     const { data: cityRows } = await (supabase.rpc as any)("get_city_services");
     const map: Record<string, any> = {};
@@ -79,7 +80,7 @@ const GroceryDispatchTab = () => {
   const riderPhone = (id: string) => riderProfiles.find((p) => p.id === id)?.phone || "";
 
   const nearest = (o: any) => {
-    const avail = riders.filter((r) => r.is_available && r.current_lat != null && r.current_lng != null);
+    const avail = riders.filter((r) => riderPresenceFresh(r) && r.current_lat != null && r.current_lng != null);
     if (o.delivery_lat == null || o.delivery_lng == null) return avail.slice(0, 5);
     return avail
       .map((r) => ({ ...r, distance: haversineKm(r.current_lat, r.current_lng, o.delivery_lat, o.delivery_lng) }))
@@ -101,7 +102,7 @@ const GroceryDispatchTab = () => {
   const confirmForShop = async (table: "grocery_cart_orders" | "grocery_list_orders", orderId: string) => {
     const { error } = await supabase.from(table).update({ status: "confirmed" }).eq("id", orderId);
     if (error) { toast.error(error.message); return; }
-    toast.success("آرڈر قبول کر لیا گیا — رائیڈر تلاش شروع 🏍️");
+    toast.success("آرڈر قبول کر لیا گیا — پہلے دکان سامان تیار کرے گی");
     fetchAll();
   };
 
@@ -170,7 +171,7 @@ const GroceryDispatchTab = () => {
               onChange={(e) => setFees((f) => ({ ...f, [o.id]: e.target.value }))}
             />
           </div>
-          <p className="text-xs font-bold text-foreground">🏍️ قریب ترین رائیڈرز — تفویض کریں:</p>
+          <p className="text-xs font-bold text-foreground">{groceryReady(o.status) ? "🏍️ تازہ دستیاب رائیڈرز" : "سامان تیار ہونے تک آفر بند"}</p>
           {nearest(o).length === 0 ? (
             <p className="text-xs text-muted-foreground">کوئی آن لائن رائیڈر نہیں</p>
           ) : (
@@ -183,7 +184,7 @@ const GroceryDispatchTab = () => {
                     {r.distance != null ? `📍 ${r.distance.toFixed(1)} km دور` : "📍 فاصلہ نامعلوم"}
                   </p>
                 </div>
-                <Button size="sm" className="h-7 text-xs ml-2" onClick={() => assign(table, o, r.id)}>آفر بھیجیں</Button>
+                <Button size="sm" className="h-7 text-xs ml-2" disabled={!groceryReady(o.status)} onClick={() => assign(table, o, r.id)}>آفر بھیجیں</Button>
               </div>
             ))
           )}

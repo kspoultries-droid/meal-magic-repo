@@ -56,13 +56,13 @@ export default function RiderLevelShifts({ riderId }: { riderId: string }) {
           <span className="text-primary text-lg">{"★".repeat(info.level)}</span>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          اسکور {info.score} — ریٹنگ، آرڈر قبول کرنے کی شرح اور کل ڈلیوریز سے بنتا ہے۔ زیادہ لیول = آرڈرز میں ترجیح اور {info.book_days_ahead} دن آگے تک شفٹ بکنگ۔
+          اسکور {info.score} — ریٹنگ، آرڈر قبول کرنے کی شرح اور کل ڈلیوریز سے بنتا ہے۔ شفٹ بکنگ {info.book_days_ahead} دن آگے تک۔
         </p>
       </div>
 
       <div className="rounded-xl border bg-card p-3 space-y-2">
         <div className="font-extrabold">ہفتہ وار بونس</div>
-        <p className="text-sm">اس ہفتے: {info.week_deliveries} ڈلیوریز{earned ? ` — Rs ${earned.amount} بونس پکا ✔` : ""}</p>
+        <p className="text-sm">اس ہفتے: {info.week_deliveries} ڈلیوریز{earned ? ` — Rs ${earned.amount} بونس کا موجودہ ہدف مکمل` : ""}</p>
         {next && (<>
           <Progress value={(info.week_deliveries / next.target) * 100} />
           <p className="text-xs text-muted-foreground">مزید {next.target - info.week_deliveries} ڈلیوریز پر Rs {next.amount}</p>

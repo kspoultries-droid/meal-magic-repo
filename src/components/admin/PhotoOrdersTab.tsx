@@ -11,6 +11,9 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending: { label: "نئی / Pending", color: "bg-yellow-100 text-yellow-800" },
   quoted: { label: "قیمت بتائی / Quoted", color: "bg-blue-100 text-blue-800" },
   confirmed: { label: "تصدیق / Confirmed", color: "bg-primary/20 text-primary" },
+  ready_for_pickup: { label: "پک اَپ کے لیے تیار", color: "bg-primary/10 text-primary" },
+  delivered: { label: "پہنچا دیا", color: "bg-success/10 text-success" },
+  returned_to_store: { label: "واپس", color: "bg-warning/10 text-warning" },
   delivering: { label: "ڈلیوری / Delivering", color: "bg-orange-100 text-orange-800" },
   completed: { label: "مکمل / Done", color: "bg-green-100 text-green-800" },
   cancelled: { label: "منسوخ / Cancelled", color: "bg-destructive/20 text-destructive" },
@@ -159,7 +162,7 @@ const PhotoOrdersTab = () => {
               {selectedOrder.shopkeeper_notes && <p className="text-sm bg-primary/10 p-2 rounded-lg"><strong>دکاندار نوٹ:</strong> {selectedOrder.shopkeeper_notes}</p>}
 
               <div className="flex gap-2 flex-wrap">
-                {["pending", "quoted", "confirmed", "delivering", "completed", "cancelled"].filter(s => s !== selectedOrder.status).map(s => (
+                {["ready_for_pickup", "cancelled"].filter(s => s !== selectedOrder.status && !["delivered", "completed", "cancelled", "returned_to_store"].includes(selectedOrder.status) && (s !== "ready_for_pickup" || selectedOrder.status === "confirmed")).map(s => (
                   <Button key={s} size="sm" variant="outline" className="text-xs h-7" onClick={() => updateStatus(selectedOrder.id, s)}>
                     {STATUS_MAP[s]?.label || s}
                   </Button>

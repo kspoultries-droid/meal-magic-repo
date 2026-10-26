@@ -20,6 +20,8 @@ import PhotoOrdersTab from "@/components/admin/PhotoOrdersTab";
 import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
 import ApplicationsTab from "@/components/admin/ApplicationsTab";
 import GroceryDispatchTab from "@/components/admin/GroceryDispatchTab";
+import RiderOperationsPanel from "@/components/admin/RiderOperationsPanel";
+import { riderPresenceFresh } from "@/lib/riderOperations";
 import CitySettingsTab from "@/components/admin/CitySettingsTab";
 import DeliveryRatesTab from "@/components/admin/DeliveryRatesTab";
 import AuditLogTab from "@/components/admin/AuditLogTab";
@@ -132,8 +134,8 @@ const AdminDashboard = () => {
 
           <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={setOpsTab}>
-              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">{t("common.orders")}</TabsTrigger><TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger><TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger><TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger></TabsList>
-              <TabsContent value="orders"><OrdersTab /></TabsContent><TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent><TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent><TabsContent value="audit"><AuditLogTab /></TabsContent>
+              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">{t("common.orders")}</TabsTrigger><TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger><TabsTrigger value="rider-supervision">رائیڈر نگرانی</TabsTrigger><TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger><TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger></TabsList>
+              <TabsContent value="orders"><OrdersTab /></TabsContent><TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent><TabsContent value="rider-supervision"><RiderOperationsPanel /></TabsContent><TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent><TabsContent value="audit"><AuditLogTab /></TabsContent>
             </Tabs>
           </TabsContent>
 
@@ -448,7 +450,7 @@ const OrdersTab = () => {
     if (showLoading) setLoading(true);
     const [{ data: ordersData }, { data: ridersData }, { data: offersData }, { data: roleRows }] = await Promise.all([
       supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)").order("created_at", { ascending: false }).limit(50),
-      supabase.from("riders").select("id, is_available, is_suspended, current_lat, current_lng"),
+      supabase.from("riders").select("id, is_available, is_suspended, current_lat, current_lng, last_seen_at, location_updated_at"),
       (supabase as any).from("delivery_offers").select("id,order_id,order_kind,rider_id,status,expires_at,created_at").eq("order_kind", "food").order("created_at", { ascending: false }).limit(200),
       supabase.from("user_roles").select("user_id").eq("role", "rider"),
     ]);
@@ -576,7 +578,7 @@ const OrdersTab = () => {
 
   // Get nearest riders sorted by distance to order's delivery location
   const getNearestRiders = (order: any) => {
-    const availableRiders = riders.filter(r => r.is_available && r.current_lat && r.current_lng);
+    const availableRiders = riders.filter(r => riderPresenceFresh(r) && r.current_lat != null && r.current_lng != null);
     if (!order.delivery_lat || !order.delivery_lng) return availableRiders.slice(0, 5);
     return availableRiders
       .map(r => ({
