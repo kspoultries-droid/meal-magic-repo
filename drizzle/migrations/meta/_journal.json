@@ -155,6 +155,13 @@
       "when": 1792974903863,
       "tag": "0021_rider_supervision_metrics_and_review",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792975017494,
+      "tag": "0022_rider_assignment_guard_record_safety",
+      "breakpoints": true
     }
   ]
 }
