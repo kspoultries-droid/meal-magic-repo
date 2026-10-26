@@ -502,6 +502,9 @@ const OrdersTab = () => {
           .limit(200);
         setOffers(data || []);
       })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "riders" }, ({ new: rider }) => {
+        setRiders(current => current.map(row => row.id === rider.id ? { ...row, ...rider } : row));
+      })
       .subscribe();
     const fallback = window.setInterval(() => fetchOrders(false), 20000);
     return () => {
@@ -875,6 +878,14 @@ const RidersTab = () => {
   };
 
   useEffect(() => { fetchRiders(); }, []);
+
+  useEffect(() => {
+    const channel = supabase.channel(`admin-rider-locations-${crypto.randomUUID()}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "riders" }, ({ new: rider }) => {
+        setRiders(current => current.map(row => row.id === rider.id ? { ...row, ...rider } : row));
+      }).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
 
   const getProfile = (id: string) => riderProfiles.find((p) => p.id === id);
 

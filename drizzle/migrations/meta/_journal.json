@@ -127,6 +127,13 @@
       "when": 1792972743915,
       "tag": "0017_bind_reels_storage_read_access",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792973573722,
+      "tag": "0018_unified_rider_location_tracking",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,5 @@
 # Project rules
+- Rider GPS has one app-level publisher writing only riders coordinates and GPS timestamps; customer tracking uses an active-order-authorized RPC, never broad rider-table reads or saved delivery addresses.
 
 - Shared typography, control surfaces, radii and elevation live in global tokens and UI primitives; keep navigation brand-isolated so page themes cannot weaken its contrast.
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,6 +10,8 @@ import ReportProblemDialog from "@/components/support/ReportProblemDialog";
 import OrderChat from "@/components/orders/OrderChat";
 import GroceryOrderAdjustments from "@/components/grocery/GroceryOrderAdjustments";
 import { useLanguage } from "@/contexts/LanguageContext";
+import DeliveryMap from "@/components/orders/DeliveryMap";
+import { freshRiderLocation } from "@/lib/riderLocation";
 
 
 
@@ -27,19 +29,20 @@ const OrderTracking = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [order, setOrder] = useState<any>(null);
-  const [kind, setKind] = useState<"food" | "grocery_cart">("food");
+  const [kind, setKind] = useState<"food" | "grocery_cart" | "grocery_list">("food");
   const [rider, setRider] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [hasReview, setHasReview] = useState(false);
+  const [locationError, setLocationError] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
-  const fetchRider = async (orderId: string) => {
-    const { data } = await supabase.rpc("get_order_rider_info", { _order_id: orderId });
-    setRider(Array.isArray(data) ? data[0] || null : data);
-  };
+  const fetchRider = useCallback(async (orderId: string, orderKind: "food" | "grocery_cart" | "grocery_list") => {
+    return supabase.rpc("get_delivery_rider_location", { _order_id: orderId, _kind: orderKind });
+  }, []);
 
-  const fetchOrder = async () => {
-    if (!id) return;
+  const fetchOrder = useCallback(async () => {
+    if (!id || !user) return;
     const { data } = await supabase
       .from("orders")
       .select("*, order_items(*)")
@@ -48,7 +51,7 @@ const OrderTracking = () => {
     if (data) {
       setKind("food");
       setOrder(data);
-      if (data?.rider_id) await fetchRider(data.id);
+      if (!data.rider_id) setRider(null);
     } else {
       const { data: g } = await (supabase as any)
         .from("grocery_cart_orders")
@@ -56,15 +59,24 @@ const OrderTracking = () => {
         .eq("id", id)
         .maybeSingle();
       setKind("grocery_cart");
-      setOrder(g || null);
+      if (g) {
+        setOrder(g);
+        if (!g.rider_id) setRider(null);
+      } else {
+        const { data: list } = await supabase.from("grocery_list_orders").select("*, grocery_stores(name)").eq("id", id).maybeSingle();
+        setKind("grocery_list");
+        setOrder(list || null);
+        if (!list?.rider_id) setRider(null);
+      }
     }
     setLoading(false);
-  };
+  }, [id, user?.id]);
 
 
   useEffect(() => {
-    fetchOrder();
-  }, [id]);
+    setOrder(null); setRider(null); setLoading(true); setLocationError(false);
+    void fetchOrder();
+  }, [fetchOrder]);
 
   // Check existing review
   useEffect(() => {
@@ -75,31 +87,51 @@ const OrderTracking = () => {
 
   // Realtime updates
   useEffect(() => {
-    if (!id) return;
+    if (!id || !user) return;
     const channel = supabase
-      .channel(`order-track-${id}`)
+      .channel(`order-track-${id}-${crypto.randomUUID()}`)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` }, () => fetchOrder())
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_cart_orders", filter: `id=eq.${id}` }, () => fetchOrder())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_list_orders", filter: `id=eq.${id}` }, () => fetchOrder())
       .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [id]);
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") void fetchOrder(); }, 20000);
+    return () => { clearInterval(timer); supabase.removeChannel(channel); };
+  }, [id, user?.id, fetchOrder]);
 
   // Live rider location while delivery is in progress
   useEffect(() => {
-    if (!id || !order?.rider_id) return;
-    if (["delivered", "completed", "cancelled"].includes(order.status)) return;
-    const t = setInterval(() => fetchRider(id), 15000);
-    return () => clearInterval(t);
-  }, [id, order?.rider_id, order?.status]);
+    setRider(null);
+    if (!id || !order?.rider_id || !user) return;
+    if (["delivered", "completed", "cancelled", "returned_to_store"].includes(order.status)) return;
+    let disposed = false;
+    let busy = false;
+    const refresh = async () => {
+      if (document.visibilityState !== "visible" || busy) return;
+      setNow(Date.now()); busy = true;
+      try {
+        const { data, error } = await fetchRider(id, kind);
+        if (disposed) return;
+        setLocationError(!!error);
+        if (!error) setRider(Array.isArray(data) ? data[0] || null : data);
+      } catch { if (!disposed) setLocationError(true); }
+      finally { busy = false; }
+    };
+    refresh();
+    const timer = setInterval(refresh, 10000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { disposed = true; clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+  }, [id, kind, user?.id, order?.rider_id, order?.status, fetchRider]);
 
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
   if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("track.notFound")}</div>;
 
-  const normalizedStatus = order.status === "completed" ? "delivered" : order.status;
+  const normalizedStatus = order.status === "completed" ? "delivered" : order.status === "out_for_delivery" ? "delivering" : order.status === "ready" ? "preparing" : order.status;
   const currentStepIndex = orderSteps.findIndex((s) => s.key === normalizedStatus);
   const isCancelled = order.status === "cancelled";
+  const locationFresh = !locationError && freshRiderLocation(rider?.location_updated_at, now);
+  const riderPoint = locationFresh && Number.isFinite(rider?.lat) && Number.isFinite(rider?.lng) ? { lat: rider.lat, lng: rider.lng } : null;
+  const destination = Number.isFinite(order.delivery_lat) && Number.isFinite(order.delivery_lng) ? { lat: order.delivery_lat, lng: order.delivery_lng } : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -113,13 +145,8 @@ const OrderTracking = () => {
 
       {/* Map area */}
       <div className="h-64 bg-secondary relative">
-        {(order.delivery_lat && order.delivery_lng) ? (
-          <iframe
-            title="delivery-map"
-            className="w-full h-full border-0"
-            src={`https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}&hl=ur&z=16&output=embed`}
-            loading="lazy"
-          />
+        {(destination || riderPoint) ? (
+          <DeliveryMap key={id} destination={destination} rider={riderPoint} />
         ) : order.delivery_address ? (
           <iframe
             title="delivery-map-addr"
@@ -135,7 +162,7 @@ const OrderTracking = () => {
             </div>
           </div>
         )}
-        {rider?.lat && rider?.lng && (
+        {riderPoint && (
           <div className="absolute top-2 right-2 bg-card/95 backdrop-blur px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5 text-xs font-bold">
             <Bike className="w-3.5 h-3.5 text-primary animate-bounce" />
             {t("track.riderOnWay")}
@@ -145,7 +172,7 @@ const OrderTracking = () => {
 
       {/* Rider card */}
       {rider && !["delivered", "completed", "cancelled"].includes(order.status) && (
-        <div className="mx-4 mt-4 rounded-2xl border bg-card p-4 flex items-center gap-3 shadow-soft">
+        <div className="mx-4 mt-4 rounded-lg border bg-card p-4 flex flex-wrap items-center gap-3 shadow-soft">
           <span className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <Bike className="w-5 h-5 text-primary" />
           </span>
@@ -160,7 +187,11 @@ const OrderTracking = () => {
           )}
           <OrderChat orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} role="customer" label={t("track.chat")} />
           <div className="mt-2"><ReportProblemDialog orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} /></div>
-          {rider.lat && rider.lng && (
+          <p className={`w-full text-xs ${locationFresh ? "text-success" : "text-warning"}`} aria-live="polite">
+            {locationError ? "لوکیشن سے رابطہ نہیں ہو رہا / Connection interrupted" : locationFresh ? "رائیڈر کا تازہ GPS / Live rider GPS" : "تازہ لوکیشن کا انتظار / Waiting for fresh GPS"}
+            {rider.location_updated_at && <span className="block text-muted-foreground">آخری اپ ڈیٹ / Updated: {new Date(rider.location_updated_at).toLocaleTimeString("en-GB")}</span>}
+          </p>
+          {riderPoint && (
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${rider.lat},${rider.lng}`}
               target="_blank"

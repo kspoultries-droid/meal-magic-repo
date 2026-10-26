@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +20,7 @@ import RiderOfferHistory from "@/components/rider/RiderOfferHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RiderLevelShifts from "@/components/rider/RiderLevelShifts";
 import RiderHotspots from "@/components/rider/RiderHotspots";
+import { useRiderLocation } from "@/contexts/RiderLocationContext";
 
 
 
@@ -47,8 +48,7 @@ const RiderDashboard = () => {
   const [groceryOrders, setGroceryOrders] = useState<any[]>([]);
   const [contacts, setContacts] = useState<Record<string, { name: string | null; phone: string | null }>>({});
   const [loadingData, setLoadingData] = useState(true);
-  const [locationOk, setLocationOk] = useState(false);
-  const [locationStatus, setLocationStatus] = useState<string>("");
+  const { sharing: locationOk, error: locationStatus, retry: retryLocation } = useRiderLocation();
   const [dateFilter, setDateFilter] = useState<"today" | "yesterday" | "week" | "custom">("today");
   const [customDate, setCustomDate] = useState(new Date().toISOString().slice(0, 10));
   const [showCompleted, setShowCompleted] = useState(false);
@@ -66,37 +66,6 @@ const RiderDashboard = () => {
         .then(({ data }) => setHasRole(!!data));
     }
   }, [user]);
-
-  // Location writes are throttled: only save when the rider actually moved (~60m)
-  // or after 30s, and only while the rider is online. Keeps the database light.
-  const lastSentRef = useRef<{ lat: number; lng: number; at: number } | null>(null);
-  const updateLocation = useCallback(async (lat: number, lng: number) => {
-    if (!user) return;
-    setLocationOk(true);
-    const prev = lastSentRef.current;
-    if (prev) {
-      const dLat = (lat - prev.lat) * 111_320;
-      const dLng = (lng - prev.lng) * 111_320 * Math.cos((lat * Math.PI) / 180);
-      const movedM = Math.sqrt(dLat * dLat + dLng * dLng);
-      const elapsed = Date.now() - prev.at;
-      if (movedM < 60 && elapsed < 30_000) return;
-    }
-    lastSentRef.current = { lat, lng, at: Date.now() };
-    await supabase.from("riders").update({ current_lat: lat, current_lng: lng }).eq("id", user.id);
-  }, [user]);
-
-  const isOnline = !!riderData?.is_available;
-
-  useEffect(() => {
-    if (!hasRole || !user || !isOnline) return;
-    if (!navigator.geolocation) { setLocationStatus(t("rider.noGeo")); return; }
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => { setLocationStatus(""); updateLocation(pos.coords.latitude, pos.coords.longitude); },
-      () => setLocationStatus(t("rider.locationDenied")),
-      { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
-    );
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [hasRole, user, isOnline, updateLocation, t]);
 
   const ensureRiderProfile = async () => {
     if (!user) return null;
@@ -378,6 +347,7 @@ const RiderDashboard = () => {
           <div className="bg-warning/10 border border-warning/30 rounded-lg px-3 py-2 flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5 text-warning" />
             <span className="text-xs text-warning font-bold">{locationStatus}</span>
+            <Button variant="ghost" size="icon" aria-label="GPS دوبارہ تلاش کریں" onClick={retryLocation}><RefreshCw className="h-4 w-4" /></Button>
           </div>
         ) : locationOk ? (
           <p className="text-[10px] text-muted-foreground text-center">{t("rider.sharingLocation")}</p>
