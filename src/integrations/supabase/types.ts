@@ -3118,6 +3118,8 @@ export type Database = {
           is_available: boolean | null
           is_suspended: boolean
           last_seen_at: string | null
+          location_accuracy_m: number | null
+          location_updated_at: string | null
           offers_accepted: number
           offers_received: number
           rating: number
@@ -3140,6 +3142,8 @@ export type Database = {
           is_available?: boolean | null
           is_suspended?: boolean
           last_seen_at?: string | null
+          location_accuracy_m?: number | null
+          location_updated_at?: string | null
           offers_accepted?: number
           offers_received?: number
           rating?: number
@@ -3162,6 +3166,8 @@ export type Database = {
           is_available?: boolean | null
           is_suspended?: boolean
           last_seen_at?: string | null
+          location_accuracy_m?: number | null
+          location_updated_at?: string | null
           offers_accepted?: number
           offers_received?: number
           rating?: number
@@ -4294,6 +4300,17 @@ export type Database = {
           wholesale_live: boolean
         }[]
       }
+      get_delivery_rider_location: {
+        Args: { _kind: string; _order_id: string }
+        Returns: {
+          accuracy_m: number
+          lat: number
+          lng: number
+          location_updated_at: string
+          rider_name: string
+          rider_phone: string
+        }[]
+      }
       get_order_customer_contact: {
         Args: { _kind: string; _order_id: string }
         Returns: {
@@ -4484,6 +4501,10 @@ export type Database = {
           _order_kind: string
           _txn_kind: string
         }
+        Returns: string
+      }
+      publish_rider_location: {
+        Args: { _accuracy: number; _lat: number; _lng: number }
         Returns: string
       }
       quote_delivery: {
