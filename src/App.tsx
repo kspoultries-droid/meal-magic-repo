@@ -15,6 +15,7 @@ import Index from "./pages/Index";
 import CartDrawer from "@/components/CartDrawer";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
+import { RiderLocationProvider } from "@/contexts/RiderLocationContext";
 
 
 // Auto-reload once when a lazy chunk fails to load (typically after a redeploy
@@ -168,6 +169,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
     <AuthProvider>
+      <RiderLocationProvider>
       <CartProvider>
         <TooltipProvider>
           <GlobalErrorHandler>
@@ -220,6 +222,7 @@ const App = () => (
           </GlobalErrorHandler>
         </TooltipProvider>
       </CartProvider>
+      </RiderLocationProvider>
     </AuthProvider>
     </LanguageProvider>
   </QueryClientProvider>
