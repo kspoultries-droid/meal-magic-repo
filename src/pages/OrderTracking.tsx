@@ -126,9 +126,9 @@ const OrderTracking = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
   if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("track.notFound")}</div>;
 
-  const normalizedStatus = order.status === "completed" ? "delivered" : order.status === "out_for_delivery" ? "delivering" : order.status === "ready" ? "preparing" : order.status;
+  const normalizedStatus = ["completed", "delivered"].includes(order.status) ? "delivered" : order.delivery_stage === "assigned" || order.delivery_stage === "arrived_pickup" ? (["delivering", "ready_for_pickup", "ready", "packed", "picking"].includes(order.status) ? "preparing" : order.status) : ["out_for_delivery", "delivering"].includes(order.status) ? "delivering" : ["ready", "ready_for_pickup", "packed", "picking"].includes(order.status) ? "preparing" : order.status;
   const currentStepIndex = orderSteps.findIndex((s) => s.key === normalizedStatus);
-  const isCancelled = order.status === "cancelled";
+  const isCancelled = ["cancelled", "returned_to_store"].includes(order.status);
   const locationFresh = !locationError && freshRiderLocation(rider?.location_updated_at, now);
   const riderPoint = locationFresh && Number.isFinite(rider?.lat) && Number.isFinite(rider?.lng) ? { lat: rider.lat, lng: rider.lng } : null;
   const destination = Number.isFinite(order.delivery_lat) && Number.isFinite(order.delivery_lng) ? { lat: order.delivery_lat, lng: order.delivery_lng } : null;
@@ -216,6 +216,8 @@ const OrderTracking = () => {
           paymentType={order.courier_payment_type}
         />
       )}
+
+      {order.delivery_stage === "return_pending" && <p className="mx-4 mt-4 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning">ڈیلیوری میں مسئلہ؛ سپورٹ نگرانی کر رہی ہے / Delivery under review</p>}
 
       {/* Order Status Steps */}
 

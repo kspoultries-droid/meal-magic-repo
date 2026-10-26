@@ -134,6 +134,55 @@
       "when": 1792973573722,
       "tag": "0018_unified_rider_location_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792974658485,
+      "tag": "0019_supervised_rider_dispatch_safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792974744039,
+      "tag": "0020_rider_delivery_steps_and_cash_accounting",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792974903863,
+      "tag": "0021_rider_supervision_metrics_and_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792975017494,
+      "tag": "0022_rider_assignment_guard_record_safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792975250236,
+      "tag": "0023_rider_missing_distance_review_safe",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792975330853,
+      "tag": "0024_rider_supervised_audit_event_compatibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792975443747,
+      "tag": "0025_rider_timing_and_pay_ledger_consistency",
+      "breakpoints": true
     }
   ]
 }

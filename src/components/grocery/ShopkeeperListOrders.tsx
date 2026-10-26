@@ -17,6 +17,9 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending: { label: "نئی / New", color: "bg-yellow-100 text-yellow-800" },
   quoted: { label: "قیمت بتائی / Quoted", color: "bg-blue-100 text-blue-800" },
   confirmed: { label: "تصدیق شدہ / Confirmed", color: "bg-primary/20 text-primary" },
+  ready_for_pickup: { label: "پک اَپ کے لیے تیار / Ready", color: "bg-primary/10 text-primary" },
+  delivered: { label: "پہنچا دیا / Delivered", color: "bg-success/10 text-success" },
+  returned_to_store: { label: "واپس / Returned", color: "bg-warning/10 text-warning" },
   delivering: { label: "ڈلیوری / Delivering", color: "bg-orange-100 text-orange-800" },
   completed: { label: "مکمل / Done", color: "bg-green-100 text-green-800" },
   cancelled: { label: "منسوخ / Cancelled", color: "bg-destructive/20 text-destructive" },
@@ -292,11 +295,13 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
                       <img src={selectedOrder.bill_image_url} alt="Bill" className="w-full rounded-xl border max-h-32 object-contain bg-secondary" />
                     </div>
                   )}
-                  <Button className="w-full" disabled={updating} onClick={() => updateOrder(selectedOrder.id, { status: "delivering" })}>
-                    ڈلیوری شروع / Start Delivery
+                  <Button className="w-full" disabled={updating} onClick={() => updateOrder(selectedOrder.id, { status: "ready_for_pickup" })}>
+                    سامان تیار / Ready for pickup
                   </Button>
                 </div>
               )}
+
+              {selectedOrder.status === "ready_for_pickup" && <p className="text-xs text-muted-foreground">پک اَپ کے لیے رائیڈر کا انتظار / Waiting for rider pickup</p>}
 
               {/* Delivering: Upload bill (if not done) + Complete */}
               {selectedOrder.status === "delivering" && (
