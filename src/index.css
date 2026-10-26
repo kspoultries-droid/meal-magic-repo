@@ -242,6 +242,12 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
   }
 }
 
+.admin-subtabs > button { height: 1.75rem; flex-shrink: 0; padding: 0 0.625rem; font-size: 0.75rem; }
+.admin-compact [class*="rounded-xl border"] { border-radius: 0.6rem; }
+.admin-compact .gap-4 { gap: 0.625rem; }
+.admin-compact .h-10, .admin-compact .h-11 { height: 2rem; }
+.admin-compact .text-xl { font-size: 1.05rem; }
+.admin-compact .text-3xl { font-size: 1.4rem; }
 /* Compact density for admin sub-pages (orders, finance, settings, bookings) */
 .admin-compact { font-size: 0.8125rem; }
 .admin-compact [class*="rounded-lg border bg-card"] { border-radius: 0.65rem; }

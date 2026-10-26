@@ -103,45 +103,45 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary">{t("dash.admin")}</h1>
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur px-3 py-2 sm:px-5 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-base font-bold text-primary">{t("dash.admin")}</h1>
+        <div className="flex flex-wrap items-center gap-1.5">
           <NotificationBell />
           <LanguageSwitcher />
           <Button variant="default" size="sm" onClick={() => navigate("/operations")}>🎛️ Operations</Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠 {t("common.home")}</Button>
-          <span className="text-sm text-muted-foreground">{user?.email}</span>
+          <span className="hidden text-xs text-muted-foreground lg:inline">{user?.email}</span>
           <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
             <LogOut className="h-4 w-4 mr-1" /> {t("common.logout")}
           </Button>
         </div>
       </header>
 
-      <div className="p-6">
+      <div className="mx-auto max-w-7xl p-3 sm:p-4">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="mb-6 grid h-auto grid-cols-3 gap-1.5 bg-transparent sm:grid-cols-4 lg:grid-cols-7">
-            {isAdmin && <TabsTrigger value="overview" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><LayoutDashboard className="h-5 w-5" /> {t("admin.commandCenter")}</TabsTrigger>}
-            {can("orders") && <TabsTrigger value="operations" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><ShoppingBag className="h-5 w-5" /> {t("admin.operations")}</TabsTrigger>}
-            {(can("partners") || can("riders")) && <TabsTrigger value="partners" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Store className="h-5 w-5" /> {t("admin.partners")}</TabsTrigger>}
-            {isAdmin && <TabsTrigger value="people" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Users className="h-5 w-5" /> {t("admin.people")}</TabsTrigger>}
-            {can("finance") && <TabsTrigger value="finance" className="relative h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Ticket className="h-5 w-5" /> {t("admin.finance")}{pendingRemittances > 0 && <Badge className="absolute end-1 top-1 h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>}
-            {can("content") && <TabsTrigger value="content" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Megaphone className="h-5 w-5" /> {t("admin.content")}</TabsTrigger>}
-            {can("settings") && <TabsTrigger value="settings" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><MapPin className="h-5 w-5" /> {t("common.settings")}</TabsTrigger>}
-            {(can("team") || can("approve") || can("audit") || isStaff) && <TabsTrigger value="team" className="h-14 flex-col gap-1 rounded-xl sm:h-16 border bg-card text-xs data-[state=active]:border-primary data-[state=active]:bg-primary/10"><Shield className="h-5 w-5" /> ٹیم</TabsTrigger>}
+          <TabsList className="mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar rounded-lg border bg-card p-1">
+            {isAdmin && <TabsTrigger value="overview" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutDashboard className="h-3.5 w-3.5" /> {t("admin.commandCenter")}</TabsTrigger>}
+            {can("orders") && <TabsTrigger value="operations" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShoppingBag className="h-3.5 w-3.5" /> {t("admin.operations")}</TabsTrigger>}
+            {(can("partners") || can("riders")) && <TabsTrigger value="partners" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Store className="h-3.5 w-3.5" /> {t("admin.partners")}</TabsTrigger>}
+            {isAdmin && <TabsTrigger value="people" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users className="h-3.5 w-3.5" /> {t("admin.people")}</TabsTrigger>}
+            {can("finance") && <TabsTrigger value="finance" className="relative h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Ticket className="h-3.5 w-3.5" /> {t("admin.finance")}{pendingRemittances > 0 && <Badge className="h-4 min-w-4 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>}
+            {can("content") && <TabsTrigger value="content" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Megaphone className="h-3.5 w-3.5" /> {t("admin.content")}</TabsTrigger>}
+            {can("settings") && <TabsTrigger value="settings" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><MapPin className="h-3.5 w-3.5" /> {t("common.settings")}</TabsTrigger>}
+            {(can("team") || can("approve") || can("audit") || isStaff) && <TabsTrigger value="team" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Shield className="h-3.5 w-3.5" /> ٹیم</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>
 
           <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={setOpsTab}>
-              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="orders">{t("common.orders")}</TabsTrigger><TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger><TabsTrigger value="rider-supervision">رائیڈر نگرانی</TabsTrigger><TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger><TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger></TabsList>
+              <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="orders">{t("common.orders")}</TabsTrigger><TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger><TabsTrigger value="rider-supervision">رائیڈر نگرانی</TabsTrigger><TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger><TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger></TabsList>
               <TabsContent value="orders"><OrdersTab /></TabsContent><TabsContent value="grocery-dispatch"><GroceryDispatchTab /></TabsContent><TabsContent value="rider-supervision"><RiderOperationsPanel /></TabsContent><TabsContent value="photo-orders"><PhotoOrdersTab /></TabsContent><TabsContent value="audit"><AuditLogTab /></TabsContent>
             </Tabs>
           </TabsContent>
 
           <TabsContent value="partners" className="admin-compact">
             <Tabs value={partnersTab} onValueChange={setPartnersTab}>
-              <TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="applications">{t("admin.applications")}</TabsTrigger><TabsTrigger value="restaurants">{t("admin.restaurants")}</TabsTrigger><TabsTrigger value="riders">{t("admin.riders")}</TabsTrigger><TabsTrigger value="grocery">{t("admin.grocery")}</TabsTrigger><TabsTrigger value="services">{t("admin.services")}</TabsTrigger><TabsTrigger value="wholesale-cats">{t("admin.bazarCats")}</TabsTrigger></TabsList>
+              <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="applications">{t("admin.applications")}</TabsTrigger><TabsTrigger value="restaurants">{t("admin.restaurants")}</TabsTrigger><TabsTrigger value="riders">{t("admin.riders")}</TabsTrigger><TabsTrigger value="grocery">{t("admin.grocery")}</TabsTrigger><TabsTrigger value="services">{t("admin.services")}</TabsTrigger><TabsTrigger value="wholesale-cats">{t("admin.bazarCats")}</TabsTrigger></TabsList>
               <TabsContent value="applications"><ApplicationsTab /></TabsContent><TabsContent value="restaurants"><RestaurantsTab /></TabsContent><TabsContent value="riders"><RidersTab /></TabsContent><TabsContent value="grocery"><GroceryTab /></TabsContent><TabsContent value="services"><ServicesTab /></TabsContent><TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
             </Tabs>
           </TabsContent>
@@ -149,19 +149,19 @@ const AdminDashboard = () => {
           <TabsContent value="people"><UsersTab /></TabsContent>
 
           <TabsContent value="finance" className="admin-compact">
-            <Tabs value={financeTab} onValueChange={setFinanceTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="revenue">{t("admin.revenue")}</TabsTrigger><TabsTrigger value="banks">{t("admin.banks")}</TabsTrigger><TabsTrigger value="payouts">{t("admin.payouts")}</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
+            <Tabs value={financeTab} onValueChange={setFinanceTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="revenue">{t("admin.revenue")}</TabsTrigger><TabsTrigger value="banks">{t("admin.banks")}</TabsTrigger><TabsTrigger value="payouts">{t("admin.payouts")}</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
           </TabsContent>
 
           <TabsContent value="content">
-            <Tabs value={contentTab} onValueChange={setContentTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="ads">ایڈز</TabsTrigger><TabsTrigger value="vouchers">واؤچرز</TabsTrigger><TabsTrigger value="reels">ریلز</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
+            <Tabs value={contentTab} onValueChange={setContentTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="ads">ایڈز</TabsTrigger><TabsTrigger value="vouchers">واؤچرز</TabsTrigger><TabsTrigger value="reels">ریلز</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
           </TabsContent>
 
           <TabsContent value="team" className="admin-compact">
-            <Tabs value={teamTab} onValueChange={setTeamTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1">{can("team") && <TabsTrigger value="team">عملہ</TabsTrigger>}<TabsTrigger value="approvals">منظوریاں</TabsTrigger>{(can("audit") || can("team")) && <TabsTrigger value="activity">کارکردگی و ریکارڈ</TabsTrigger>}</TabsList>{can("team") && <TabsContent value="team"><TeamTab /></TabsContent>}<TabsContent value="approvals"><ApprovalsTab /></TabsContent>{(can("audit") || can("team")) && <TabsContent value="activity"><TeamActivityTab /></TabsContent>}</Tabs>
+            <Tabs value={teamTab} onValueChange={setTeamTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{can("team") && <TabsTrigger value="team">عملہ</TabsTrigger>}<TabsTrigger value="approvals">منظوریاں</TabsTrigger>{(can("audit") || can("team")) && <TabsTrigger value="activity">کارکردگی و ریکارڈ</TabsTrigger>}</TabsList>{can("team") && <TabsContent value="team"><TeamTab /></TabsContent>}<TabsContent value="approvals"><ApprovalsTab /></TabsContent>{(can("audit") || can("team")) && <TabsContent value="activity"><TeamActivityTab /></TabsContent>}</Tabs>
           </TabsContent>
 
           <TabsContent value="settings" className="admin-compact">
-            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="mb-4 flex h-auto flex-wrap gap-1"><TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
+            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
           </TabsContent>
         </Tabs>
       </div>
