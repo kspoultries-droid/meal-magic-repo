@@ -130,7 +130,7 @@ const AdminDashboard = () => {
             {(can("team") || can("approve") || can("audit") || isStaff) && <TabsTrigger value="team" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Shield className="h-3.5 w-3.5" /> ٹیم</TabsTrigger>}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>
+          <TabsContent value="overview" className="admin-compact space-y-3"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>
 
           <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={setOpsTab}>
@@ -146,7 +146,7 @@ const AdminDashboard = () => {
             </Tabs>
           </TabsContent>
 
-          <TabsContent value="people"><UsersTab /></TabsContent>
+          <TabsContent value="people" className="admin-compact"><UsersTab /></TabsContent>
 
           <TabsContent value="finance" className="admin-compact">
             <Tabs value={financeTab} onValueChange={setFinanceTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="revenue">{t("admin.revenue")}</TabsTrigger><TabsTrigger value="banks">{t("admin.banks")}</TabsTrigger><TabsTrigger value="payouts">{t("admin.payouts")}</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent><TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
