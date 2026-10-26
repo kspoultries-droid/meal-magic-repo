@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { RefreshCw, Truck } from "lucide-react";
 import CourierShipmentDialog from "@/components/orders/CourierShipmentDialog";
+import { AdminListTools } from "./AdminListTools";
 import { groceryReady, riderPresenceFresh } from "@/lib/riderOperations";
 
 const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
@@ -20,7 +21,10 @@ const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => 
 
 const OPEN_STATUSES = ["pending", "quoted", "confirmed", "preparing", "picking", "packed", "ready_for_pickup", "ready", "delivering", "out_for_delivery"];
 
-const GroceryDispatchTab = () => {
+const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
+  const [query, setQuery] = useState(initialQuery);
+  const [expanded, setExpanded] = useState<string | null>(initialQuery || null);
+  useEffect(() => { setQuery(initialQuery); setExpanded(initialQuery || null); }, [initialQuery]);
   const [cartOrders, setCartOrders] = useState<any[]>([]);
   const [listOrders, setListOrders] = useState<any[]>([]);
   const [riders, setRiders] = useState<any[]>([]);
@@ -109,9 +113,10 @@ const GroceryDispatchTab = () => {
 
 
   const renderOrder = (o: any, table: "grocery_cart_orders" | "grocery_list_orders", label: string) => (
-    <div key={o.id} className="border rounded-xl p-4 space-y-2">
+    <div key={o.id} className="border rounded-lg px-3 py-2 space-y-2">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div>
+        <div className="flex min-w-0 items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>{expanded === o.id ? "بند" : "تفصیل"}</Button>
           <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
           <span className="ml-3 font-bold">Rs {o.total_amount ?? "—"}</span>
         </div>
@@ -127,9 +132,10 @@ const GroceryDispatchTab = () => {
         <p>📍 Dropoff: {o.delivery_address || "پتہ نہیں"}</p>
       </div>
 
+      {expanded === o.id && <>
       {o.status === "pending" && (
-        <div className="flex items-center justify-between gap-2 rounded-lg border bg-yellow-50 px-3 py-2">
-          <p className="text-xs text-yellow-800 font-bold">⏳ دکاندار نے ابھی قبول نہیں کیا</p>
+        <div className="flex items-center justify-between gap-2 rounded-lg border bg-warning/10 px-3 py-2">
+          <p className="text-xs text-warning font-bold">⏳ دکاندار نے ابھی قبول نہیں کیا</p>
           <Button size="sm" className="h-7 text-xs" onClick={() => confirmForShop(table, o.id)}>
             ایڈمن قبول کرے
           </Button>
@@ -190,9 +196,13 @@ const GroceryDispatchTab = () => {
           )}
         </div>
       )}
+      </>}
     </div>
   );
 
+  const matches = (o: any) => `${o.id} ${o.grocery_stores?.name || ""} ${o.delivery_address || ""}`.toLowerCase().includes(query.trim().toLowerCase());
+  const filteredCart = cartOrders.filter(matches);
+  const filteredList = listOrders.filter(matches);
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -200,14 +210,15 @@ const GroceryDispatchTab = () => {
         <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent className="space-y-3">
+        <AdminListTools query={query} onQuery={setQuery} count={filteredCart.length + filteredList.length} />
         {loading ? (
           <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p>
         ) : cartOrders.length === 0 && listOrders.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">کوئی کھلا گروسری آرڈر نہیں</p>
         ) : (
           <>
-            {cartOrders.map((o) => renderOrder(o, "grocery_cart_orders", "گروسری کارٹ"))}
-            {listOrders.map((o) => renderOrder(o, "grocery_list_orders", "لسٹ/فوٹو آرڈر"))}
+            {filteredCart.map((o) => renderOrder(o, "grocery_cart_orders", "گروسری کارٹ"))}
+            {filteredList.map((o) => renderOrder(o, "grocery_list_orders", "لسٹ/فوٹو آرڈر"))}
           </>
         )}
       </CardContent>
