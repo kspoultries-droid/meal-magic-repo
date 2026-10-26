@@ -489,7 +489,7 @@ const Checkout = () => {
             {editingAddress && (
               <>
                 <div className="flex gap-2">
-                  <Input placeholder={t("checkout.fullAddress")} value={address} onChange={(e) => { setAddress(e.target.value); }} required className="flex-1 h-11 rounded-xl bg-background/80" />
+                  <Input placeholder={t("checkout.fullAddress")} value={address} onChange={(e) => { setAddress(e.target.value); setCoords(null); }} required className="flex-1 h-11 rounded-xl bg-background/80" />
                   <Button variant="outline" onClick={getCurrentLocation} disabled={locating} className="shrink-0 h-11 px-3 rounded-xl glass border-primary/30 hover:bg-primary/10">
                     <LocateFixed className={`h-4 w-4 text-primary ${locating ? "animate-spin" : ""}`} />
                   </Button>
