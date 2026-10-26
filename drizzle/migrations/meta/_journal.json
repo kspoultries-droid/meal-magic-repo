@@ -211,6 +211,13 @@
       "when": 1793052196681,
       "tag": "0029_vendor_paid_delivery_on_update",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793052227884,
+      "tag": "0030_vendor_paid_delivery_once",
+      "breakpoints": true
     }
   ]
 }
