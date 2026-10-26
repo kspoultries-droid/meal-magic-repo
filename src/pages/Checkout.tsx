@@ -388,7 +388,7 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">{t("checkout.deliveryFee")}</span>
-                <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : `Rs ${deliveryFee}`}</span>
+                <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : deliveryFee === 0 && (vendorPaysDelivery || restaurantDeliveryMode === "self") ? "مفت ڈیلیوری / Free" : `Rs ${deliveryFee}`}</span>
               </div>
               {deliveryQuote && !isRestaurantOrder && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
