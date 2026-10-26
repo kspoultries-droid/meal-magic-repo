@@ -169,6 +169,13 @@
       "when": 1792975250236,
       "tag": "0023_rider_missing_distance_review_safe",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792975330853,
+      "tag": "0024_rider_supervised_audit_event_compatibility",
+      "breakpoints": true
     }
   ]
 }
