@@ -92,3 +92,10 @@
 - [ ] SMS OTP + COD gating — blocked: SMS provider account (Twilio) needed
 - [ ] JazzCash/Easypaisa — blocked: merchant account
 - [ ] Referrals, re-order, rider shifts/levels/bonus, heatmap, services/wholesale completion, home old-order bug
+
+## ایڈمن پینل کی باقی بہتری
+- [ ] ہر سیکشن سے مشترکہ تلاش اور متعلقہ ریکارڈ تک رسائی
+- [ ] رائیڈر کی یکجا تفصیل اور مختصر فہرست
+- [ ] تنخواہ/پلان کے الگ فارم اور ادائیگی تصدیق
+- [ ] موجودہ بلک منظوری، فہرست فلٹر اور موبائل لے آؤٹ کی تکمیل
+- [ ] اصل اکاؤنٹ میں کمپیوٹر/فون اور متعلقہ ٹیسٹ کی جانچ
