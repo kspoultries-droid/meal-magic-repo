@@ -37,7 +37,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
   const showImage = Boolean(imageUrl) && !imageFailed;
 
   return (
-    <article className={`group relative overflow-hidden rounded-lg border border-border/80 bg-card shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elegant ${compact ? "w-[7.5rem] shrink-0" : ""}`}>
+    <article className={`group relative overflow-hidden rounded-lg border border-border bg-card shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card ${compact ? "w-[7.5rem] shrink-0" : ""}`}>
       <Button variant="ghost" onClick={onClick} className={list ? "flex h-auto w-full items-center justify-start gap-3 whitespace-normal p-2 text-start hover:bg-card" : "block h-auto w-full whitespace-normal p-0 text-start hover:bg-card"} aria-label={`${product.name} دیکھیں`}>
         <div className={`relative shrink-0 overflow-hidden bg-accent ${list ? "size-24 rounded-md" : compact ? "h-28 w-full" : "aspect-square w-full"}`}>
           {showImage ? (
