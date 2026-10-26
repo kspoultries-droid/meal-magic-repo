@@ -114,11 +114,11 @@ const RiderPayTab = () => {
     const v = (k: keyof Plan) => (f[k] ?? existing?.[k] ?? (k === "pay_type" ? "per_order" : 0)) as any;
     return (
       <div className="space-y-2">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
           <div>
             <label className="text-[10px] text-muted-foreground">ادائیگی کی قسم</label>
             <select
-              className="h-9 w-full rounded-md border bg-background px-2 text-xs"
+              className="h-8 w-full rounded-md border bg-background px-2 text-xs"
               value={v("pay_type")}
               onChange={(e) => set(key, "pay_type", e.target.value)}
             >
@@ -129,22 +129,22 @@ const RiderPayTab = () => {
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground">ماہانہ تنخواہ Rs</label>
-            <Input type="number" className="h-9" value={v("monthly_salary")} onChange={(e) => set(key, "monthly_salary", e.target.value)} />
+            <Input type="number" className="h-8" value={v("monthly_salary")} onChange={(e) => set(key, "monthly_salary", e.target.value)} />
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground">فی آرڈر Rs</label>
-            <Input type="number" className="h-9" value={v("per_order_fee")} onChange={(e) => set(key, "per_order_fee", e.target.value)} />
+            <Input type="number" className="h-8" value={v("per_order_fee")} onChange={(e) => set(key, "per_order_fee", e.target.value)} />
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground">فی کلومیٹر Rs</label>
-            <Input type="number" className="h-9" value={v("per_km_fee")} onChange={(e) => set(key, "per_km_fee", e.target.value)} />
+            <Input type="number" className="h-8" value={v("per_km_fee")} onChange={(e) => set(key, "per_km_fee", e.target.value)} />
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground">کم از کم فی آرڈر Rs</label>
-            <Input type="number" className="h-9" value={v("min_order_pay")} onChange={(e) => set(key, "min_order_pay", e.target.value)} />
+            <Input type="number" className="h-8" value={v("min_order_pay")} onChange={(e) => set(key, "min_order_pay", e.target.value)} />
           </div>
         </div>
-        <Button size="sm" className="h-9 w-full font-bold" disabled={busy === key} onClick={() => savePlan(key === "global" ? null : key)}>
+        <Button size="sm" className="h-8 w-full font-bold md:w-auto md:px-6" disabled={busy === key} onClick={() => savePlan(key === "global" ? null : key)}>
           {busy === key ? "محفوظ ہو رہا ہے…" : "پے پلان محفوظ کریں"}
         </Button>
       </div>
@@ -171,7 +171,7 @@ const RiderPayTab = () => {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base"><Wallet className="h-4 w-4" /> رائیڈرز — پلان اور ادائیگی</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="grid gap-3 xl:grid-cols-2">
           {loading && <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>}
           {!loading && riders.length === 0 && <p className="text-sm text-muted-foreground">کوئی رائیڈر نہیں</p>}
           {riders.map((r) => {
@@ -194,36 +194,36 @@ const RiderPayTab = () => {
 
                 <div className="space-y-2 rounded-lg bg-secondary/40 p-2">
                   <p className="text-[11px] font-bold">تنخواہ / کمائی ادا کریں</p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                     <div>
                       <label className="text-[10px] text-muted-foreground">مدت — سے</label>
-                      <Input type="date" className="h-9" value={f.from || monthStart()} onChange={(e) => set(`pay_${r.id}`, "from", e.target.value)} />
+                      <Input type="date" className="h-8" value={f.from || monthStart()} onChange={(e) => set(`pay_${r.id}`, "from", e.target.value)} />
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">تک</label>
-                      <Input type="date" className="h-9" value={f.to || today()} onChange={(e) => set(`pay_${r.id}`, "to", e.target.value)} />
+                      <Input type="date" className="h-8" value={f.to || today()} onChange={(e) => set(`pay_${r.id}`, "to", e.target.value)} />
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">تنخواہ Rs</label>
-                      <Input type="number" className="h-9" value={f.salary ?? (p?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)} onChange={(e) => set(`pay_${r.id}`, "salary", e.target.value)} />
+                      <Input type="number" className="h-8" value={f.salary ?? (p?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)} onChange={(e) => set(`pay_${r.id}`, "salary", e.target.value)} />
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">بونس Rs</label>
-                      <Input type="number" className="h-9" value={f.bonus || ""} onChange={(e) => set(`pay_${r.id}`, "bonus", e.target.value)} />
+                      <Input type="number" className="h-8" value={f.bonus || ""} onChange={(e) => set(`pay_${r.id}`, "bonus", e.target.value)} />
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">کٹوتی Rs</label>
-                      <Input type="number" className="h-9" value={f.deduction || ""} onChange={(e) => set(`pay_${r.id}`, "deduction", e.target.value)} />
+                      <Input type="number" className="h-8" value={f.deduction || ""} onChange={(e) => set(`pay_${r.id}`, "deduction", e.target.value)} />
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">ریفرنس نمبر</label>
-                      <Input className="h-9" value={f.ref || ""} onChange={(e) => set(`pay_${r.id}`, "ref", e.target.value)} />
+                      <Input className="h-8" value={f.ref || ""} onChange={(e) => set(`pay_${r.id}`, "ref", e.target.value)} />
                     </div>
                   </div>
                   <div>
                     <label className="text-[10px] text-muted-foreground">کس اکاؤنٹ سے</label>
                     <select
-                      className="h-9 w-full rounded-md border bg-background px-2 text-xs"
+                      className="h-8 w-full rounded-md border bg-background px-2 text-xs"
                       value={f.account || ""}
                       onChange={(e) => set(`pay_${r.id}`, "account", e.target.value || null)}
                     >
@@ -233,7 +233,7 @@ const RiderPayTab = () => {
                       ))}
                     </select>
                   </div>
-                  <Button size="sm" className="h-9 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={() => payRider(r.id)}>
+                  <Button size="sm" className="h-8 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={() => payRider(r.id)}>
                     {busy === `pay_${r.id}` ? "ادائیگی ہو رہی ہے…" : `ادائیگی کریں (کمائی Rs ${Math.round(pending[r.id] || 0)} + تنخواہ)`}
                   </Button>
                 </div>
