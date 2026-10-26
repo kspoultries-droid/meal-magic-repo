@@ -620,9 +620,12 @@ export type Database = {
       grocery_cart_orders: {
         Row: {
           accepted_at: string | null
+          arrived_customer_at: string | null
           billable_weight_kg: number
           cancellation_reason: string | null
           cancelled_at: string | null
+          cash_received: number | null
+          cash_received_at: string | null
           city_id: string | null
           courier_name: string | null
           courier_payment_type: string
@@ -633,12 +636,14 @@ export type Database = {
           customer_id: string
           delivered_at: string | null
           delivery_address: string | null
+          delivery_failure_reason: string | null
           delivery_fee: number
           delivery_fee_payer: string
           delivery_lat: number | null
           delivery_lng: number | null
           delivery_method: string
           delivery_mode_calc: string | null
+          delivery_stage: string
           discount_amount: number
           dispatch_state: string
           distance_km: number
@@ -659,6 +664,9 @@ export type Database = {
           receiver_name: string | null
           receiver_phone: string | null
           reject_reason: string | null
+          return_requested_at: string | null
+          returned_at: string | null
+          rider_arrived_at: string | null
           rider_assigned_at: string | null
           rider_id: string | null
           shipment_status: string | null
@@ -676,9 +684,12 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          arrived_customer_at?: string | null
           billable_weight_kg?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          cash_received?: number | null
+          cash_received_at?: string | null
           city_id?: string | null
           courier_name?: string | null
           courier_payment_type?: string
@@ -689,12 +700,14 @@ export type Database = {
           customer_id: string
           delivered_at?: string | null
           delivery_address?: string | null
+          delivery_failure_reason?: string | null
           delivery_fee?: number
           delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
           delivery_mode_calc?: string | null
+          delivery_stage?: string
           discount_amount?: number
           dispatch_state?: string
           distance_km?: number
@@ -715,6 +728,9 @@ export type Database = {
           receiver_name?: string | null
           receiver_phone?: string | null
           reject_reason?: string | null
+          return_requested_at?: string | null
+          returned_at?: string | null
+          rider_arrived_at?: string | null
           rider_assigned_at?: string | null
           rider_id?: string | null
           shipment_status?: string | null
@@ -732,9 +748,12 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          arrived_customer_at?: string | null
           billable_weight_kg?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          cash_received?: number | null
+          cash_received_at?: string | null
           city_id?: string | null
           courier_name?: string | null
           courier_payment_type?: string
@@ -745,12 +764,14 @@ export type Database = {
           customer_id?: string
           delivered_at?: string | null
           delivery_address?: string | null
+          delivery_failure_reason?: string | null
           delivery_fee?: number
           delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_method?: string
           delivery_mode_calc?: string | null
+          delivery_stage?: string
           discount_amount?: number
           dispatch_state?: string
           distance_km?: number
@@ -771,6 +792,9 @@ export type Database = {
           receiver_name?: string | null
           receiver_phone?: string | null
           reject_reason?: string | null
+          return_requested_at?: string | null
+          returned_at?: string | null
+          rider_arrived_at?: string | null
           rider_assigned_at?: string | null
           rider_id?: string | null
           shipment_status?: string | null
@@ -812,22 +836,35 @@ export type Database = {
       }
       grocery_list_orders: {
         Row: {
+          accepted_at: string | null
           alternatives_note: string | null
+          arrived_customer_at: string | null
           bill_image_url: string | null
+          cancelled_at: string | null
+          cash_received: number | null
+          cash_received_at: string | null
           created_at: string
           customer_id: string
+          delivered_at: string | null
           delivery_address: string | null
+          delivery_failure_reason: string | null
           delivery_fee: number
           delivery_lat: number | null
           delivery_lng: number | null
+          delivery_stage: string
           dispatch_state: string
           id: string
           image_url: string
           is_gift: boolean | null
           notes: string | null
           payment_method: string | null
+          picked_up_at: string | null
+          ready_at: string | null
           receiver_name: string | null
           receiver_phone: string | null
+          return_requested_at: string | null
+          returned_at: string | null
+          rider_arrived_at: string | null
           rider_assigned_at: string | null
           rider_id: string | null
           shopkeeper_notes: string | null
@@ -837,22 +874,35 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepted_at?: string | null
           alternatives_note?: string | null
+          arrived_customer_at?: string | null
           bill_image_url?: string | null
+          cancelled_at?: string | null
+          cash_received?: number | null
+          cash_received_at?: string | null
           created_at?: string
           customer_id: string
+          delivered_at?: string | null
           delivery_address?: string | null
+          delivery_failure_reason?: string | null
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_stage?: string
           dispatch_state?: string
           id?: string
           image_url: string
           is_gift?: boolean | null
           notes?: string | null
           payment_method?: string | null
+          picked_up_at?: string | null
+          ready_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
+          return_requested_at?: string | null
+          returned_at?: string | null
+          rider_arrived_at?: string | null
           rider_assigned_at?: string | null
           rider_id?: string | null
           shopkeeper_notes?: string | null
@@ -862,22 +912,35 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepted_at?: string | null
           alternatives_note?: string | null
+          arrived_customer_at?: string | null
           bill_image_url?: string | null
+          cancelled_at?: string | null
+          cash_received?: number | null
+          cash_received_at?: string | null
           created_at?: string
           customer_id?: string
+          delivered_at?: string | null
           delivery_address?: string | null
+          delivery_failure_reason?: string | null
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_stage?: string
           dispatch_state?: string
           id?: string
           image_url?: string
           is_gift?: boolean | null
           notes?: string | null
           payment_method?: string | null
+          picked_up_at?: string | null
+          ready_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
+          return_requested_at?: string | null
+          returned_at?: string | null
+          rider_arrived_at?: string | null
           rider_assigned_at?: string | null
           rider_id?: string | null
           shopkeeper_notes?: string | null
@@ -1739,6 +1802,8 @@ export type Database = {
           billable_weight_kg: number
           cancellation_reason: string | null
           cancelled_at: string | null
+          cash_received: number | null
+          cash_received_at: string | null
           city_id: string
           created_at: string | null
           currency: string
@@ -1746,12 +1811,14 @@ export type Database = {
           delay_minutes: number | null
           delivered_at: string | null
           delivery_address: string | null
+          delivery_failure_reason: string | null
           delivery_fee: number | null
           delivery_fee_payer: string
           delivery_lat: number | null
           delivery_lng: number | null
           delivery_mode_calc: string | null
           delivery_proof_path: string | null
+          delivery_stage: string
           discount_amount: number
           dispatch_state: string
           distance_km: number
@@ -1767,6 +1834,8 @@ export type Database = {
           receiver_name: string | null
           receiver_phone: string | null
           restaurant_id: string
+          return_requested_at: string | null
+          returned_at: string | null
           rider_arrived_at: string | null
           rider_id: string | null
           status: string | null
@@ -1781,6 +1850,8 @@ export type Database = {
           billable_weight_kg?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          cash_received?: number | null
+          cash_received_at?: string | null
           city_id: string
           created_at?: string | null
           currency?: string
@@ -1788,12 +1859,14 @@ export type Database = {
           delay_minutes?: number | null
           delivered_at?: string | null
           delivery_address?: string | null
+          delivery_failure_reason?: string | null
           delivery_fee?: number | null
           delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_mode_calc?: string | null
           delivery_proof_path?: string | null
+          delivery_stage?: string
           discount_amount?: number
           dispatch_state?: string
           distance_km?: number
@@ -1809,6 +1882,8 @@ export type Database = {
           receiver_name?: string | null
           receiver_phone?: string | null
           restaurant_id: string
+          return_requested_at?: string | null
+          returned_at?: string | null
           rider_arrived_at?: string | null
           rider_id?: string | null
           status?: string | null
@@ -1823,6 +1898,8 @@ export type Database = {
           billable_weight_kg?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          cash_received?: number | null
+          cash_received_at?: string | null
           city_id?: string
           created_at?: string | null
           currency?: string
@@ -1830,12 +1907,14 @@ export type Database = {
           delay_minutes?: number | null
           delivered_at?: string | null
           delivery_address?: string | null
+          delivery_failure_reason?: string | null
           delivery_fee?: number | null
           delivery_fee_payer?: string
           delivery_lat?: number | null
           delivery_lng?: number | null
           delivery_mode_calc?: string | null
           delivery_proof_path?: string | null
+          delivery_stage?: string
           discount_amount?: number
           dispatch_state?: string
           distance_km?: number
@@ -1851,6 +1930,8 @@ export type Database = {
           receiver_name?: string | null
           receiver_phone?: string | null
           restaurant_id?: string
+          return_requested_at?: string | null
+          returned_at?: string | null
           rider_arrived_at?: string | null
           rider_id?: string | null
           status?: string | null
@@ -4601,6 +4682,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      resolve_rider_return: {
+        Args: { _kind: string; _note: string; _order_id: string }
+        Returns: undefined
+      }
       restaurant_announce_delay: {
         Args: { _minutes: number; _order_id: string }
         Returns: undefined
@@ -4626,6 +4711,18 @@ export type Database = {
       rider_cash_due: { Args: { _rider: string }; Returns: number }
       rider_cash_limit: { Args: never; Returns: number }
       rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
+      rider_delivery_action: {
+        Args: {
+          _action: string
+          _cash?: number
+          _kind: string
+          _lat?: number
+          _lng?: number
+          _order_id: string
+          _reason?: string
+        }
+        Returns: undefined
+      }
       rider_dispatch_idle: {
         Args: { _kind?: string; _order?: string; _rider: string }
         Returns: boolean
