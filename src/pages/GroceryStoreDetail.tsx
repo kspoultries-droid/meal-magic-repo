@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MyReelsManager from "@/components/reels/MyReelsManager";
 import ProductPhotoUploader, { PreparedPhoto } from "@/components/media/ProductPhotoUploader";
+import { uploadGroceryProductPhoto } from "@/lib/groceryProductImages";
 
 import BottomTabBar from "@/components/BottomTabBar";
 import { toast } from "sonner";
@@ -155,13 +156,9 @@ const GroceryStoreDetail = () => {
   };
 
   const uploadProductImage = async (productId: string, photo: PreparedPhoto) => {
-    const path = `products/${productId}-${Date.now()}.webp`;
-    const { error: uploadError } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: true, contentType: photo.file.type });
-    if (uploadError) { toast.error(uploadError.message); return; }
-    const originalExt = photo.original.name.split(".").pop()?.toLowerCase() || "jpg";
-    await supabase.storage.from("product-images").upload(`originals/${productId}-${Date.now()}.${originalExt}`, photo.original, { upsert: true });
-    const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-    await supabase.from("grocery_products").update({ image_url: urlData.publicUrl }).eq("id", productId);
+    const imageUrl = await uploadGroceryProductPhoto(productId, photo.file);
+    const { error } = await supabase.from("grocery_products").update({ image_url: imageUrl }).eq("id", productId).select("id").single();
+    if (error) throw new Error(error.message);
     toast.success("تصویر اپڈیٹ / Image updated");
     fetchData();
   };
@@ -182,10 +179,9 @@ const GroceryStoreDetail = () => {
         tags: newProduct.tags.split(",").map((value) => value.trim()).filter(Boolean), variants, specs,
       }).select("id").single();
      if (error || !createdProduct) { toast.error(error?.message || "پروڈکٹ شامل نہیں ہو سکی"); return; }
-     const imageUrls = await Promise.all((newProduct.imageFiles || []).map(async (file, index) => {
-       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"; const path = `products/${createdProduct.id}-${index}-${Date.now()}.${ext}`;
-       const { error: uploadError } = await supabase.storage.from("product-images").upload(path, file); if (uploadError) return null;
-       return supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+     const imageUrls = await Promise.all((newProduct.imageFiles || []).map(async (file) => {
+       try { return await uploadGroceryProductPhoto(createdProduct.id, file); }
+       catch (error) { toast.error("پروڈکٹ شامل ہو گئی، مگر تصویر محفوظ نہیں ہوئی: " + (error instanceof Error ? error.message : "دوبارہ کوشش کریں")); return null; }
      }));
      const validImages = imageUrls.filter((url): url is string => Boolean(url));
      if (validImages.length > 0) { const { error: imageError } = await supabase.from("grocery_products").update({ image_url: newProduct.image_url || validImages[0], images: validImages }).eq("id", createdProduct.id); if (imageError) toast.error(imageError.message); }

@@ -14,3 +14,4 @@
 - Mobile pull-to-refresh is provided at the router level, only at the document top and outside dialogs, nested scrollers, and reels, so WebView users can refresh without disrupting scrolling.
 - Reels storage reads separate uploader ownership, admin moderation, and exact-path active approved publication; never use URL LIKE matching because object names can contain wildcard characters.
 - Shared grocery and Bazar banners insert into a unique version folder with the store-ID filename; this preserves owner-scoped policies and avoids overwrite SELECT requirements and stale image caching.
+- Grocery and Bazar product uploads share a unique-folder product-ID filename helper, including new-product galleries; existing owner-scoped storage policies remain authoritative.

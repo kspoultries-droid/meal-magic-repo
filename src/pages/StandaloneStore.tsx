@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera, Share2, AlertTriangle, PauseCircle } from "lucide-react";
 import StoreBanner from "@/components/grocery/StoreBanner";
 import ProductPhotoUploader, { PreparedPhoto } from "@/components/media/ProductPhotoUploader";
+import { uploadGroceryProductPhoto } from "@/lib/groceryProductImages";
 
 import PhotoListOrder from "@/components/grocery/PhotoListOrder";
 import CustomerListOrders from "@/components/grocery/CustomerListOrders";
@@ -135,13 +136,9 @@ const StandaloneStore = () => {
   };
 
   const uploadProductImage = async (productId: string, photo: PreparedPhoto) => {
-    const path = `products/${productId}-${Date.now()}.webp`;
-    const { error: uploadError } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: true, contentType: photo.file.type });
-    if (uploadError) { toast.error(uploadError.message); return; }
-    const originalExt = photo.original.name.split(".").pop()?.toLowerCase() || "jpg";
-    await supabase.storage.from("product-images").upload(`originals/${productId}-${Date.now()}.${originalExt}`, photo.original, { upsert: true });
-    const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-    await supabase.from("grocery_products").update({ image_url: urlData.publicUrl }).eq("id", productId);
+    const imageUrl = await uploadGroceryProductPhoto(productId, photo.file);
+    const { error } = await supabase.from("grocery_products").update({ image_url: imageUrl }).eq("id", productId).select("id").single();
+    if (error) throw new Error(error.message);
     toast.success("تصویر اپڈیٹ ہو گئی");
     fetchData();
   };
