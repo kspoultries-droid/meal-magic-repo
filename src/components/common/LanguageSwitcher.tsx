@@ -33,7 +33,7 @@ const LanguageSwitcher = ({ tone = "default", className = "", showLabel = false 
         <Button variant="ghost"
           type="button"
           aria-label={t("common.language")}
-          className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold transition-colors ${toneClass} ${tone === "light" ? "hover:text-primary-foreground" : ""} ${className}`}
+          className={`flex h-10 shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${toneClass} ${tone === "light" ? "hover:text-primary-foreground" : ""} ${className}`}
         >
           <Globe className="h-3.5 w-3.5" />
           <span>{showLabel ? current.native : current.code.toUpperCase()}</span>

@@ -97,20 +97,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Decorative blobs */}
-      <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-primary-foreground/10 blur-3xl" />
-      <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-primary-foreground/10 blur-3xl" />
-
-      <Card className="w-full max-w-md glass border-white/20 shadow-elegant animate-scale-in relative z-10">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 relative">
+      <Card className="w-full max-w-md bg-card border-border shadow-elegant animate-scale-in relative">
         <CardHeader className="text-center relative">
           <Button variant="ghost" size="sm" className="absolute left-4 top-4" onClick={() => navigate("/")}>
             <ArrowLeft className="h-4 w-4 mr-1" /> واپس
           </Button>
-          <div className="w-16 h-16 mx-auto mb-2 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow">
+          <div className="w-16 h-16 mx-auto mb-2 rounded-lg bg-primary flex items-center justify-center shadow-soft">
             <span className="text-primary-foreground font-extrabold text-2xl">EL</span>
           </div>
-          <CardTitle className="text-2xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold text-foreground">
             {isLogin ? "خوش آمدید / Welcome" : "نیا اکاؤنٹ / Sign Up"}
           </CardTitle>
           <CardDescription>
@@ -237,13 +233,13 @@ const Auth = () => {
           </div>
 
           <div className="mt-3 text-center">
-            <button
+            <Button variant="link"
               type="button"
-              className="text-sm text-primary hover:underline"
+              className="h-auto whitespace-normal text-sm text-primary"
               onClick={() => setIsLogin(!isLogin)}
             >
               {isLogin ? "اکاؤنٹ نہیں ہے؟ سائن اپ کریں" : "پہلے سے اکاؤنٹ ہے؟ لاگ ان کریں"}
-            </button>
+            </Button>
           </div>
         </CardContent>
       </Card>
