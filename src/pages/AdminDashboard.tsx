@@ -340,15 +340,15 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                 const isOwner = p.id === APP_OWNER_ID;
                 return (
                   <TableRow key={p.id} className={isOwner ? "bg-primary/5" : ""}>
-                    <TableCell className="font-mono text-xs cursor-pointer hover:text-primary" onClick={() => copyId(p.id)} title="کاپی کرنے کے لیے کلک کریں">{p.id.slice(0, 8)}…</TableCell>
-                    <TableCell>
+                    <TableCell data-label="ID" className="font-mono text-xs cursor-pointer hover:text-primary" onClick={() => copyId(p.id)} title="کاپی کرنے کے لیے کلک کریں">{p.id.slice(0, 8)}…</TableCell>
+                    <TableCell data-label="نام">
                       <div className="flex items-center gap-1">
                         {p.full_name || "—"}
                         {isOwner && <span title="App Owner">👑</span>}
                       </div>
                     </TableCell>
-                    <TableCell>{p.phone || "—"}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="فون">{p.phone || "—"}</TableCell>
+                    <TableCell data-label="رولز">
                       <div className="flex gap-1 flex-wrap">
                         {userRoles.map((r) => (
                           <Badge key={r} variant="outline" className={`text-xs ${isOwner && r === "admin" ? "border-primary bg-primary/10 font-bold" : ""}`}>
@@ -357,7 +357,7 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="ایکشنز">
                       <div className="flex gap-1 flex-wrap">
                         {userRoles.filter((r) => r !== "customer").map((r) => {
                           // Don't show delete button for app owner's admin role
@@ -828,8 +828,8 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
             <TableBody>
               {filteredRestaurants.slice((page - 1) * 20, page * 20).map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.name}</TableCell>
-                  <TableCell>
+                  <TableCell data-label="نام" className="font-medium">{r.name}</TableCell>
+                  <TableCell data-label="اونر">
                     {editingOwner === r.id ? (
                       <div className="flex items-center gap-1">
                         <select className="border rounded p-1 bg-background text-foreground text-xs max-w-[140px]" value={ownerInput} onChange={(e) => setOwnerInput(e.target.value)}>
@@ -845,13 +845,13 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       </span>
                     )}
                   </TableCell>
-                  <TableCell>⭐ {r.rating}</TableCell>
-                  <TableCell>
+                  <TableCell data-label="ریٹنگ">⭐ {r.rating}</TableCell>
+                  <TableCell data-label="ایکٹو">
                     <Badge className={!r.is_active || (r.busy_until && new Date(r.busy_until) > new Date()) ? "bg-destructive text-destructive-foreground" : "bg-success text-success-foreground"}>
                       {!r.is_active ? "غیر فعال" : r.busy_until && new Date(r.busy_until) > new Date() ? `عارضی بند: ${new Date(r.busy_until).toLocaleTimeString("ur-PK", { hour: "numeric", minute: "2-digit" })}` : "کھلا"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="flex flex-wrap gap-1">
+                  <TableCell data-label="ایکشنز" className="flex flex-wrap gap-1">
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(r.id, r.is_active)}>
                       {r.is_active ? <><Ban className="me-1 h-3 w-3" />غیر فعال</> : <><RotateCcw className="me-1 h-3 w-3" />فعال</>}
                     </Button>
@@ -869,7 +869,7 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                   </TableCell>
                 </TableRow>
               ))}
-              {restaurants.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">کوئی ریسٹورنٹ نہیں</TableCell></TableRow>}
+              {restaurants.length === 0 && <TableRow><TableCell data-label="نام" colSpan={5} className="text-center text-muted-foreground">کوئی ریسٹورنٹ نہیں</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
@@ -975,18 +975,18 @@ const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
                 const hasGps = r.current_lat != null && r.current_lng != null;
                 return (
                   <TableRow key={r.id}>
-                    <TableCell className="font-mono text-xs">{r.id.slice(0, 8)}</TableCell>
-                    <TableCell><Button variant="link" size="sm" className="h-auto p-0" onClick={() => setDetailId(r.id)}>{prof?.full_name || "—"}</Button></TableCell>
-                    <TableCell>{prof?.phone || "—"}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="ID" className="font-mono text-xs">{r.id.slice(0, 8)}</TableCell>
+                    <TableCell data-label="نام"><Button variant="link" size="sm" className="h-auto p-0" onClick={() => setDetailId(r.id)}>{prof?.full_name || "—"}</Button></TableCell>
+                    <TableCell data-label="فون">{prof?.phone || "—"}</TableCell>
+                    <TableCell data-label="دستیاب">
                       <Badge className={r.is_suspended ? "bg-destructive text-destructive-foreground" : r.is_available && hasRole ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
                         {!hasRole ? "رول ہٹا ہوا" : r.is_suspended ? "معطل" : r.is_available ? "آن لائن" : "آف لائن"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs"><div className="flex min-w-[140px] flex-col gap-1"><span>{hasGps ? "GPS ✓" : "GPS درکار"}</span><select aria-label="رائیڈر کا شہر" disabled={workingId === r.id} value={r.city_id || ""} onChange={e => e.target.value && void setRiderCity(r.id, e.target.value)} className={`h-7 rounded-md border bg-background px-1 text-[11px] ${r.city_id ? "" : "border-destructive text-destructive"}`}><option value="">شہر منتخب کریں</option>{riderCities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div></TableCell>
-                    <TableCell>Rs {r.wallet_balance}</TableCell>
-                    <TableCell>Rs {r.total_earnings}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="تیاری" className="text-xs"><div className="flex min-w-[140px] flex-col gap-1"><span>{hasGps ? "GPS ✓" : "GPS درکار"}</span><select aria-label="رائیڈر کا شہر" disabled={workingId === r.id} value={r.city_id || ""} onChange={e => e.target.value && void setRiderCity(r.id, e.target.value)} className={`h-7 rounded-md border bg-background px-1 text-[11px] ${r.city_id ? "" : "border-destructive text-destructive"}`}><option value="">شہر منتخب کریں</option>{riderCities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div></TableCell>
+                    <TableCell data-label="والٹ">Rs {r.wallet_balance}</TableCell>
+                    <TableCell data-label="کل آمدنی">Rs {r.total_earnings}</TableCell>
+                    <TableCell data-label="ایکشنز">
                       <div className="flex min-w-[210px] flex-wrap gap-1">
                         <Button size="sm" variant="outline" onClick={() => setDetailId(r.id)}>تفصیل</Button>
                         {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, r.is_available ? "offline" : "online")}>{r.is_available ? "آف لائن" : "آن لائن"}</Button>}
@@ -998,7 +998,7 @@ const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
                   </TableRow>
                 );
               })}
-              {riders.length === 0 && <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">کوئی رائیڈر نہیں</TableCell></TableRow>}
+              {riders.length === 0 && <TableRow><TableCell data-label="ID" colSpan={8} className="text-center text-muted-foreground">کوئی رائیڈر نہیں</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}

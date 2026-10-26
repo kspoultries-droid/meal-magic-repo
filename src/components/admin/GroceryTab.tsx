@@ -249,12 +249,12 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
               <TableBody>
                 {filteredStores.slice((page - 1) * 20, page * 20).map((s) => (
                   <TableRow key={s.id} className={selectedStore === s.id ? "bg-accent/30" : ""}>
-                    <TableCell>
+                    <TableCell data-label="تصویر">
                       <div className="w-14 h-10 rounded overflow-hidden bg-secondary flex items-center justify-center">
                         {s.image_url ? <img src={s.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell data-label="نام" className="font-medium">
                       <div className="flex items-center gap-1">
                         <span>{s.name}</span>
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
@@ -299,7 +299,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         </button>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="کیٹیگری">
                       {s.category}
                       {s.store_type === "wholesale" && (
                         <select
@@ -318,7 +318,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       )}
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell data-label="فیس">
                       <div className="flex items-center gap-1">
                         <span className="font-semibold text-sm">Rs {s.monthly_fee || 0}</span>
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
@@ -355,7 +355,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       </div>
                       {s.fee_paid_until && <p className="text-[10px] text-muted-foreground">تک: {s.fee_paid_until}</p>}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="حالت">
                       <Badge className={
                         s.subscription_status === 'active' ? "bg-success text-success-foreground" :
                         s.subscription_status === 'warned' ? "bg-yellow-500 text-white" :
@@ -364,12 +364,12 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         {s.subscription_status === 'active' ? '✅ فعال' : s.subscription_status === 'warned' ? '⚠️ وارننگ' : '⏸️ معطل'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="ایکٹو">
                       <Badge className={s.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
                         {s.is_active ? "ایکٹو" : "بند"}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="ایکشنز">
                       <div className="flex gap-1 flex-wrap">
                         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setSelectedStore(selectedStore === s.id ? null : s.id)}>
                           <Eye className="h-3 w-3 mr-1" /> پروڈکٹس
@@ -419,7 +419,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {stores.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">کوئی اسٹور نہیں</TableCell></TableRow>}
+                {stores.length === 0 && <TableRow><TableCell data-label="تصویر" colSpan={7} className="text-center text-muted-foreground">کوئی اسٹور نہیں</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}
@@ -470,29 +470,29 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                   const isEditing = editingProductId === p.id;
                   return (
                   <TableRow key={p.id}>
-                    <TableCell>{p.name}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="نام / Name">{p.name}</TableCell>
+                    <TableCell data-label="قیمت / Price">
                       {isEditing ? (
                         <Input type="number" value={editProductPrice} onChange={(e) => setEditProductPrice(e.target.value)} className="h-7 w-20 text-xs" />
                       ) : (
                         <span className="font-semibold">Rs {p.price}</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="ڈسکاؤنٹ / Discount">
                       {isEditing ? (
                         <Input type="number" value={editProductDiscount} onChange={(e) => setEditProductDiscount(e.target.value)} placeholder="خالی" className="h-7 w-20 text-xs" />
                       ) : (
                         p.discount_price ? <span className="text-destructive font-semibold">Rs {p.discount_price}</span> : <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell>{p.category}</TableCell>
-                    <TableCell>{p.unit}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="کیٹیگری / Category">{p.category}</TableCell>
+                    <TableCell data-label="یونٹ / Unit">{p.unit}</TableCell>
+                    <TableCell data-label="دستیاب / Available">
                       <Badge className={p.is_available ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
                         {p.is_available ? "ہاں" : "نہیں"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="flex gap-1">
+                    <TableCell data-label="ایکشنز / Actions" className="flex gap-1">
                       {isEditing ? (
                         <>
                           <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => saveProductPrice(p.id)}>
@@ -523,7 +523,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                   </TableRow>
                   );
                 })}
-                {products.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">کوئی پروڈکٹ نہیں / No products</TableCell></TableRow>}
+                {products.length === 0 && <TableRow><TableCell data-label="نام / Name" colSpan={7} className="text-center text-muted-foreground">کوئی پروڈکٹ نہیں / No products</TableCell></TableRow>}
               </TableBody>
             </Table>
             <AdminPagination page={productPage} count={filteredProducts.length} onPage={setProductPage} />
