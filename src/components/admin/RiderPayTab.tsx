@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Bike, RefreshCw, Wallet } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AdminListTools, AdminPagination } from "./AdminListTools";
+import { Bike, RefreshCw, Wallet, Pencil } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -25,7 +27,12 @@ const monthStart = () => {
 };
 const today = () => new Date().toISOString().slice(0, 10);
 
-const RiderPayTab = () => {
+const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
+  const [query, setQuery] = useState(initialQuery);
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<{ id: string; mode: "plan" | "pay" } | null>(null);
+  const [confirmPay, setConfirmPay] = useState(false);
+  useEffect(() => { setQuery(initialQuery); setPage(1); }, [initialQuery]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [riders, setRiders] = useState<any[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
@@ -96,7 +103,7 @@ const RiderPayTab = () => {
       _rider: rid,
       _period_start: f.from || monthStart(),
       _period_end: f.to || today(),
-      _salary: Number(f.salary || 0) || 0,
+      _salary: Number(f.salary ?? planFor(rid)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0) || 0,
       _bonus: Number(f.bonus || 0) || 0,
       _deduction: Number(f.deduction || 0) || 0,
       _from_account_id: f.account || null,
@@ -105,6 +112,7 @@ const RiderPayTab = () => {
     });
     setBusy(null);
     if (error) { toast.error(error.message); return; }
+    setSelected(null); setConfirmPay(false);
     toast.success("رائیڈر کو ادائیگی ہو گئی ✅");
     load();
   };
@@ -151,48 +159,12 @@ const RiderPayTab = () => {
     );
   };
 
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
-          <CardTitle className="flex items-center gap-2 text-base"><Bike className="h-4 w-4" /> رائیڈر پے پلان (ڈیفالٹ)</CardTitle>
-          <Button size="sm" variant="outline" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-[11px] text-muted-foreground">
-            ڈیلیوری فیس کسٹمر سے EasyLife وصول کرتی ہے — رائیڈر کی کمائی نہیں۔ رائیڈر کو یہاں طے شدہ تنخواہ / فی آرڈر / فی کلومیٹر کے حساب سے ادائیگی ہوگی۔
-            یہ ڈیفالٹ اُن رائیڈرز پر لاگو ہوگا جن کا اپنا الگ پلان نہ ہو۔
-          </p>
-          {planFields("global", globalPlan)}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base"><Wallet className="h-4 w-4" /> رائیڈرز — پلان اور ادائیگی</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 xl:grid-cols-2">
-          {loading && <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>}
-          {!loading && riders.length === 0 && <p className="text-sm text-muted-foreground">کوئی رائیڈر نہیں</p>}
-          {riders.map((r) => {
-            const p = planFor(r.id);
-            const f = form[`pay_${r.id}`] || {};
-            return (
-              <div key={r.id} className="space-y-3 rounded-xl border p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-bold">{names[r.id] || r.id.slice(0, 8)}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      واجب الادا کمائی: <span className="font-bold text-success">Rs {Math.round(pending[r.id] || 0)}</span>
-                      {" • "}اُس کے پاس نقدی: Rs {Math.round(Number(r.wallet_balance || 0))}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-[10px]">{p ? "الگ پلان" : "ڈیفالٹ"}</Badge>
-                </div>
-
-                {planFields(r.id, p)}
-
-                <div className="space-y-2 rounded-lg bg-secondary/40 p-2">
+  const filtered = riders.filter(r => `${r.id} ${names[r.id] || ""}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const selectedRider = riders.find(r => r.id === selected?.id);
+  const paymentFields = (r: any) => {
+    const p = planFor(r.id);
+    const f = form[`pay_${r.id}`] || {};
+    return (                <div className="space-y-2 rounded-lg bg-secondary/40 p-2">
                   <p className="text-[11px] font-bold">تنخواہ / کمائی ادا کریں</p>
                   <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                     <div>
@@ -233,17 +205,22 @@ const RiderPayTab = () => {
                       ))}
                     </select>
                   </div>
-                  <Button size="sm" className="h-8 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={() => payRider(r.id)}>
+                  <Button size="sm" className="h-8 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={() => setConfirmPay(true)}>
                     {busy === `pay_${r.id}` ? "ادائیگی ہو رہی ہے…" : `ادائیگی کریں (کمائی Rs ${Math.round(pending[r.id] || 0)} + تنخواہ)`}
                   </Button>
                 </div>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
-    </div>
-  );
+);
+  };
+  return <section className="space-y-3" dir="rtl">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2"><h2 className="flex items-center gap-2 font-bold"><Bike className="size-4" /> رائیڈر پلان اور ادائیگی</h2><div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => setSelected({ id: "global", mode: "plan" })}><Pencil className="size-3.5" /> ڈیفالٹ پلان</Button><Button size="icon" variant="outline" aria-label="ادائیگی فہرست تازہ کریں" onClick={() => void load()}><RefreshCw className="size-4" /></Button></div></div>
+    <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filtered.length} />
+    {loading ? <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p> : filtered.length === 0 ? <p className="text-xs text-muted-foreground">کوئی رائیڈر نہیں ملا</p> : <div className="divide-y border-y">{filtered.slice((page - 1) * 20, page * 20).map(r => <div key={r.id} className="grid items-center gap-2 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]"><div className="min-w-0"><p className="truncate text-sm font-semibold">{names[r.id] || r.id.slice(0, 8)}</p><Badge variant="outline" className="text-[10px]">{planFor(r.id) ? "الگ پلان" : "ڈیفالٹ"}</Badge></div><div className="flex gap-4 text-xs"><span>واجب الادا <strong className="text-success">Rs {Math.round(pending[r.id] || 0)}</strong></span><span>نقد Rs {Math.round(Number(r.wallet_balance || 0))}</span></div><div className="flex gap-1"><Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, mode: "plan" })}><Pencil className="size-3" /> پلان</Button><Button size="sm" onClick={() => { setConfirmPay(false); setSelected({ id: r.id, mode: "pay" }); }}><Wallet className="size-3" /> ادائیگی</Button></div></div>)}</div>}
+    <AdminPagination page={page} count={filtered.length} onPage={setPage} />
+    <Dialog open={selected !== null} onOpenChange={open => { if (!open && !busy) { setSelected(null); setConfirmPay(false); } }}><DialogContent className="max-h-[85dvh] max-w-xl overflow-y-auto" dir="rtl"><DialogHeader><DialogTitle>{selected?.mode === "plan" ? "پے پلان" : "رائیڈر کی ادائیگی"} — {selected?.id === "global" ? "ڈیفالٹ" : names[selected?.id || ""]}</DialogTitle></DialogHeader>
+      {selected?.mode === "plan" && planFields(selected.id, selected.id === "global" ? globalPlan : planFor(selected.id))}
+      {selected?.mode === "pay" && selectedRider && (!confirmPay ? paymentFields(selectedRider) : <div className="space-y-3"><p className="text-sm font-bold">ادائیگی کی حتمی تصدیق</p><p className="text-xs">واجب الادا کمائی: Rs {Math.round(pending[selectedRider.id] || 0)} · تنخواہ: Rs {Number(form[`pay_${selectedRider.id}`]?.salary ?? planFor(selectedRider.id)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)}</p><p className="text-xs text-muted-foreground">بونس: Rs {Number(form[`pay_${selectedRider.id}`]?.bonus || 0)} · کٹوتی: Rs {Number(form[`pay_${selectedRider.id}`]?.deduction || 0)}</p><div className="flex gap-2"><Button disabled={busy !== null} onClick={() => void payRider(selectedRider.id)}>{busy ? "ادائیگی ہو رہی ہے…" : "تصدیق اور ادائیگی"}</Button><Button variant="outline" disabled={busy !== null} onClick={() => setConfirmPay(false)}>واپس</Button></div></div>)}
+    </DialogContent></Dialog>
+  </section>;
 };
 
 export default RiderPayTab;
