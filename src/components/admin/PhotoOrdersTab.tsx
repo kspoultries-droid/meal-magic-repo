@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RefreshCw, FileImage, MapPin, Eye } from "lucide-react";
+import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { toast } from "sonner";
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
@@ -19,7 +20,10 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   cancelled: { label: "منسوخ / Cancelled", color: "bg-destructive/20 text-destructive" },
 };
 
-const PhotoOrdersTab = () => {
+const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
+  const [query, setQuery] = useState(initialQuery);
+  const [page, setPage] = useState(1);
+  useEffect(() => { setQuery(initialQuery); setPage(1); }, [initialQuery]);
   const [orders, setOrders] = useState<any[]>([]);
   const [stores, setStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +52,7 @@ const PhotoOrdersTab = () => {
 
   const getStoreName = (storeId: string) => stores.find(s => s.id === storeId)?.name || storeId.slice(0, 8);
 
-  const filtered = filter === "all" ? orders : orders.filter(o => o.status === filter);
+  const filtered = orders.filter(o => (filter === "all" || o.status === filter) && `${o.id} ${getStoreName(o.store_id)} ${o.delivery_address || ""}`.toLowerCase().includes(query.trim().toLowerCase()));
 
   // Stats
   const stats = {
@@ -93,6 +97,7 @@ const PhotoOrdersTab = () => {
           <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className="h-4 w-4" /></Button>
         </CardHeader>
         <CardContent>
+          <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filtered.length} />
           {/* Filter Chips */}
           <div className="flex gap-2 mb-4 flex-wrap">
             {[
@@ -106,7 +111,7 @@ const PhotoOrdersTab = () => {
             ].map(f => (
               <button
                 key={f.key}
-                onClick={() => setFilter(f.key)}
+                onClick={() => { setFilter(f.key); setPage(1); }}
                 className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
               >
                 {f.label}
@@ -118,7 +123,7 @@ const PhotoOrdersTab = () => {
             <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>
           ) : (
             <div className="space-y-2">
-              {filtered.map(order => {
+              {filtered.slice((page - 1) * 20, page * 20).map(order => {
                 const status = STATUS_MAP[order.status] || STATUS_MAP.pending;
                 return (
                   <div key={order.id} className="flex items-center gap-3 p-3 border rounded-xl hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setSelectedOrder(order)}>
@@ -141,6 +146,7 @@ const PhotoOrdersTab = () => {
               })}
             </div>
           )}
+          <AdminPagination page={page} count={filtered.length} onPage={setPage} />
         </CardContent>
       </Card>
 

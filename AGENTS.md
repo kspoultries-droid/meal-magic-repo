@@ -1,4 +1,5 @@
 # Project rules
+- Admin search and record dialogs reuse authorized table reads and existing action RPCs; list filtering/pagination and mobile presentation must not alter dispatch or approval rules.
 - Rider allocation is serialized per rider across offers, acceptance and manual assignment; a single readiness predicate gates grocery dispatch and acceptance, and physical delivery steps use authorized RPCs independent of kitchen status.
 - Rider offer pay is snapshotted separately from customer delivery fees; missing verified distances enter finance review, and returns retain rider capacity until dispatcher confirmation.
 - Pilot timings and offer outcomes are reported by service; batching and incentive expansion require real supervised pilot evidence, not simulated results.

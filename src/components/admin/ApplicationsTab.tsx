@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AdminPagination } from "./AdminListTools";
 import { toast } from "sonner";
 import { Check, X, Phone, MapPin, RefreshCw, FileImage, MessageCircle } from "lucide-react";
 
@@ -29,6 +30,8 @@ const ApplicationsTab = () => {
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [kycMap, setKycMap] = useState<Record<string, any>>({});
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [sel, setSel] = useState<string[]>([]);
 
   const fetchApps = async () => {
@@ -99,8 +102,12 @@ const ApplicationsTab = () => {
 
   const bulkApprove = async () => {
     const targets = apps.filter(a => sel.includes(a.id) && a.status === "pending");
+    if (bulkBusy) return;
     if (targets.length === 0) return toast.error("کوئی زیر جائزہ درخواست منتخب نہیں");
     if (!window.confirm(`${targets.length} درخواستیں منظور کی جائیں؟`)) return;
+    const needsReview = targets.filter(app => app.applicant_type === "rider" && kycMap[app.user_id]?.status === "manual_review");
+    if (needsReview.length > 0 && !window.confirm(`${needsReview.length} رائیڈرز کا دستی شناختی جائزہ درکار ہے۔ کیا جائزہ لے کر ذمہ داری سے منظور کرتے ہیں؟`)) return;
+    setBulkBusy(true);
     let ok = 0; let skipped = 0;
     for (const app of targets) {
       if (app.applicant_type === "rider") {
@@ -110,6 +117,7 @@ const ApplicationsTab = () => {
       const { error } = await supabase.rpc("approve_partner_application", { _application_id: app.id });
       if (error) skipped++; else ok++;
     }
+    setBulkBusy(false);
     toast.success(`${ok} منظور${skipped ? ` — ${skipped} چھوڑ دی گئیں (تصدیق درکار)` : ""}`);
     setSel([]);
     fetchApps();
@@ -122,7 +130,7 @@ const ApplicationsTab = () => {
         <Button size="sm" variant="outline" onClick={fetchApps}><RefreshCw className="w-4 h-4" /></Button>
       </div>
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+      <Tabs value={filter} onValueChange={(v) => { setFilter(v as any); setSel([]); setPage(1); }}>
         <TabsList>
           <TabsTrigger value="pending">زیر جائزہ {pendingCount > 0 && <Badge className="ml-2">{pendingCount}</Badge>}</TabsTrigger>
           <TabsTrigger value="approved">منظور شدہ</TabsTrigger>
@@ -133,7 +141,7 @@ const ApplicationsTab = () => {
           <div className="flex flex-wrap items-center gap-2">
             <input
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => { setQ(e.target.value); setSel([]); setPage(1); }}
               placeholder="نام، مالک یا فون سے تلاش کریں..."
               className="h-8 w-full max-w-[240px] rounded-md border bg-background px-2 text-xs text-foreground"
             />
@@ -144,7 +152,7 @@ const ApplicationsTab = () => {
                   {allSelected ? "سب غیر منتخب" : "سب منتخب"}
                 </Button>
                 {sel.length > 0 && (
-                  <Button size="sm" className="h-8 text-[11px]" onClick={bulkApprove}>
+                  <Button size="sm" className="h-8 text-[11px]" disabled={bulkBusy} onClick={bulkApprove}>
                     {sel.length} منظور کریں
                   </Button>
                 )}
@@ -153,7 +161,7 @@ const ApplicationsTab = () => {
           </div>
           {loading ? <p>لوڈ ہو رہا ہے...</p> :
            filtered.length === 0 ? <p className="text-muted-foreground text-center py-8">کوئی درخواست نہیں</p> :
-           filtered.map(app => (
+           filtered.slice((page - 1) * 20, page * 20).map(app => (
             <Card key={app.id}>
               <CardContent className="pt-4">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -171,7 +179,7 @@ const ApplicationsTab = () => {
                         <Phone className="w-3 h-3" /> {app.phone}
                       </a>
                       {app.whatsapp && (
-                        <a href={`https://wa.me/${app.whatsapp.replace(/\D/g, "")}`} target="_blank" className="text-green-600">
+                        <a href={`https://wa.me/${app.whatsapp.replace(/\D/g, "")}`} target="_blank" className="text-success">
                           WhatsApp
                         </a>
                       )}
@@ -234,7 +242,7 @@ const ApplicationsTab = () => {
 
                   {app.status === "pending" && (
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => approve(app)} className="bg-green-600 hover:bg-green-700">
+                      <Button size="sm" onClick={() => approve(app)} >
                         <Check className="w-4 h-4 mr-1" /> منظور
                       </Button>
                       <Dialog open={rejectId === app.id} onOpenChange={(o) => !o && setRejectId(null)}>
@@ -252,7 +260,7 @@ const ApplicationsTab = () => {
                     </div>
                   )}
                   {app.status !== "pending" && (app.whatsapp || app.phone) && (
-                    <Button size="sm" variant="outline" className="h-8 text-xs text-green-700 border-green-600"
+                    <Button size="sm" variant="outline" className="h-8 text-xs text-success border-success"
                       onClick={() => openWA(app.whatsapp || app.phone, `السلام علیکم ${app.owner_name}،\n\nEasyLife ٹیم کی طرف سے رابطہ۔`)}>
                       <MessageCircle className="w-3 h-3 mr-1" /> WhatsApp
                     </Button>
@@ -261,6 +269,7 @@ const ApplicationsTab = () => {
               </CardContent>
             </Card>
           ))}
+          <AdminPagination page={page} count={filtered.length} onPage={setPage} />
         </TabsContent>
       </Tabs>
     </div>

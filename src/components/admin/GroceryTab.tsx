@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown, AlertTriangle, PauseCircle, PlayCircle, Copy, MessageCircle, Link } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { useAuth } from "@/hooks/useAuth";
 
 const GROCERY_CATEGORIES = [
@@ -15,7 +16,12 @@ const GROCERY_CATEGORIES = [
   "Beverages", "Snacks", "Bakery", "Frozen", "Cleaning", "Personal Care",
 ];
 
-const GroceryTab = () => {
+const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
+  const [query, setQuery] = useState(initialQuery);
+  const [page, setPage] = useState(1);
+  const [productQuery, setProductQuery] = useState("");
+  const [productPage, setProductPage] = useState(1);
+  useEffect(() => { setQuery(initialQuery); setPage(1); setActiveCategory(null); }, [initialQuery]);
   const { user } = useAuth();
   const [stores, setStores] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -151,6 +157,9 @@ const GroceryTab = () => {
     fetchData();
   };
 
+  const filteredStores = stores.filter(s => `${s.id} ${s.name} ${s.category}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const filteredProducts = products.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(productQuery.trim().toLowerCase()));
+  useEffect(() => { setProductPage(1); setProductQuery(""); }, [selectedStore]);
   return (
     <div className="space-y-4">
       <Card>
@@ -204,6 +213,7 @@ const GroceryTab = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filteredStores.length} />
           {/* Category Filter Chips */}
           <div className="flex flex-wrap gap-2">
             <button
@@ -215,7 +225,7 @@ const GroceryTab = () => {
             {GROCERY_CATEGORIES.map(cat => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+                onClick={() => { setActiveCategory(activeCategory === cat ? null : cat); setPage(1); }}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${activeCategory === cat ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-accent border-border"}`}
               >
                 {cat}
@@ -224,7 +234,7 @@ const GroceryTab = () => {
           </div>
 
           {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
-            <Table>
+            <Table className="admin-mobile-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>تصویر</TableHead>
@@ -237,14 +247,14 @@ const GroceryTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stores.map((s) => (
+                {filteredStores.slice((page - 1) * 20, page * 20).map((s) => (
                   <TableRow key={s.id} className={selectedStore === s.id ? "bg-accent/30" : ""}>
-                    <TableCell>
+                    <TableCell data-label="تصویر">
                       <div className="w-14 h-10 rounded overflow-hidden bg-secondary flex items-center justify-center">
                         {s.image_url ? <img src={s.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell data-label="نام" className="font-medium">
                       <div className="flex items-center gap-1">
                         <span>{s.name}</span>
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
@@ -289,7 +299,7 @@ const GroceryTab = () => {
                         </button>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="کیٹیگری">
                       {s.category}
                       {s.store_type === "wholesale" && (
                         <select
@@ -308,7 +318,7 @@ const GroceryTab = () => {
                       )}
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell data-label="فیس">
                       <div className="flex items-center gap-1">
                         <span className="font-semibold text-sm">Rs {s.monthly_fee || 0}</span>
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
@@ -345,7 +355,7 @@ const GroceryTab = () => {
                       </div>
                       {s.fee_paid_until && <p className="text-[10px] text-muted-foreground">تک: {s.fee_paid_until}</p>}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="حالت">
                       <Badge className={
                         s.subscription_status === 'active' ? "bg-success text-success-foreground" :
                         s.subscription_status === 'warned' ? "bg-yellow-500 text-white" :
@@ -354,12 +364,12 @@ const GroceryTab = () => {
                         {s.subscription_status === 'active' ? '✅ فعال' : s.subscription_status === 'warned' ? '⚠️ وارننگ' : '⏸️ معطل'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="ایکٹو">
                       <Badge className={s.is_active ? "bg-success text-success-foreground" : "bg-destructive text-destructive-foreground"}>
                         {s.is_active ? "ایکٹو" : "بند"}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="ایکشنز">
                       <div className="flex gap-1 flex-wrap">
                         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setSelectedStore(selectedStore === s.id ? null : s.id)}>
                           <Eye className="h-3 w-3 mr-1" /> پروڈکٹس
@@ -409,10 +419,11 @@ const GroceryTab = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {stores.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">کوئی اسٹور نہیں</TableCell></TableRow>}
+                {stores.length === 0 && <TableRow><TableCell data-label="تصویر" colSpan={7} className="text-center text-muted-foreground">کوئی اسٹور نہیں</TableCell></TableRow>}
               </TableBody>
             </Table>
           )}
+          <AdminPagination page={page} count={filteredStores.length} onPage={setPage} />
         </CardContent>
       </Card>
 
@@ -441,7 +452,8 @@ const GroceryTab = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
+            <AdminListTools query={productQuery} onQuery={v => { setProductQuery(v); setProductPage(1); }} count={filteredProducts.length} />
+            <Table className="admin-mobile-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>نام / Name</TableHead>
@@ -454,33 +466,33 @@ const GroceryTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((p) => {
+                {filteredProducts.slice((productPage - 1) * 20, productPage * 20).map((p) => {
                   const isEditing = editingProductId === p.id;
                   return (
                   <TableRow key={p.id}>
-                    <TableCell>{p.name}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="نام / Name">{p.name}</TableCell>
+                    <TableCell data-label="قیمت / Price">
                       {isEditing ? (
                         <Input type="number" value={editProductPrice} onChange={(e) => setEditProductPrice(e.target.value)} className="h-7 w-20 text-xs" />
                       ) : (
                         <span className="font-semibold">Rs {p.price}</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="ڈسکاؤنٹ / Discount">
                       {isEditing ? (
                         <Input type="number" value={editProductDiscount} onChange={(e) => setEditProductDiscount(e.target.value)} placeholder="خالی" className="h-7 w-20 text-xs" />
                       ) : (
                         p.discount_price ? <span className="text-destructive font-semibold">Rs {p.discount_price}</span> : <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell>{p.category}</TableCell>
-                    <TableCell>{p.unit}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="کیٹیگری / Category">{p.category}</TableCell>
+                    <TableCell data-label="یونٹ / Unit">{p.unit}</TableCell>
+                    <TableCell data-label="دستیاب / Available">
                       <Badge className={p.is_available ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
                         {p.is_available ? "ہاں" : "نہیں"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="flex gap-1">
+                    <TableCell data-label="ایکشنز / Actions" className="flex gap-1">
                       {isEditing ? (
                         <>
                           <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => saveProductPrice(p.id)}>
@@ -511,9 +523,10 @@ const GroceryTab = () => {
                   </TableRow>
                   );
                 })}
-                {products.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">کوئی پروڈکٹ نہیں / No products</TableCell></TableRow>}
+                {products.length === 0 && <TableRow><TableCell data-label="نام / Name" colSpan={7} className="text-center text-muted-foreground">کوئی پروڈکٹ نہیں / No products</TableCell></TableRow>}
               </TableBody>
             </Table>
+            <AdminPagination page={productPage} count={filteredProducts.length} onPage={setProductPage} />
           </CardContent>
         </Card>
       )}

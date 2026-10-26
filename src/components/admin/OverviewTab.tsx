@@ -2,9 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Download, RefreshCw, Search, AlertTriangle, Bike, Store, ShoppingBag, Wallet } from "lucide-react";
+import { Download, RefreshCw, AlertTriangle, Bike, Store, ShoppingBag, Wallet } from "lucide-react";
 import TrendChart from "@/components/common/TrendChart";
 import { downloadCsv } from "@/lib/csv";
 
@@ -29,18 +27,12 @@ interface Overview {
 
 interface TrendRow { day: string; orders_count: number; gross: number; commission: number }
 
-interface SearchHit { kind: string; label: string; sub: string; section: string; subTab?: string }
-
 type NavFn = (section: string, sub?: string) => void;
 
 const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
   const [data, setData] = useState<Overview | null>(null);
   const [trend, setTrend] = useState<TrendRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
-  const [hits, setHits] = useState<SearchHit[]>([]);
-  const [searching, setSearching] = useState(false);
-
   const load = useCallback(async (showLoader = false) => {
     if (showLoader) setLoading(true);
     const [{ data: ov, error: overviewError }, { data: tr, error: trendError }] = await Promise.all([
@@ -72,29 +64,6 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
     })),
     [trend]
   );
-
-  const runSearch = async () => {
-    const q = query.trim();
-    if (q.length < 2) { setHits([]); return; }
-    setSearching(true);
-    const like = `%${q}%`;
-    const [rests, stores, people, order] = await Promise.all([
-      supabase.from("restaurants").select("id, name, is_active").ilike("name", like).limit(6),
-      supabase.from("grocery_stores").select("id, name, is_active").ilike("name", like).limit(6),
-      supabase.from("profiles").select("id, full_name, phone").or(`full_name.ilike.${like},phone.ilike.${like}`).limit(6),
-      /^[0-9a-f-]{6,}$/i.test(q)
-        ? supabase.from("orders").select("id, status, total_amount").ilike("id", `${q}%`).limit(5)
-        : Promise.resolve({ data: [] as any[] }),
-    ]);
-    const out: SearchHit[] = [
-      ...((rests.data || []) as any[]).map((r) => ({ kind: "ریسٹورنٹ", label: r.name, sub: r.is_active ? "کھلا" : "بند", section: "partners", subTab: "restaurants" })),
-      ...((stores.data || []) as any[]).map((s) => ({ kind: "گروسری", label: s.name, sub: s.is_active ? "کھلا" : "بند", section: "partners", subTab: "grocery" })),
-      ...((people.data || []) as any[]).map((p) => ({ kind: "صارف", label: p.full_name || p.id.slice(0, 8), sub: p.phone || "—", section: "people" })),
-      ...((order.data || []) as any[]).map((o) => ({ kind: "آرڈر", label: o.id.slice(0, 8), sub: `${o.status} • Rs ${Math.round(Number(o.total_amount || 0))}`, section: "operations", subTab: "orders" })),
-    ];
-    setHits(out);
-    setSearching(false);
-  };
 
   const exportTrend = () => {
     downloadCsv(
@@ -160,40 +129,6 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
         </CardContent>
       </Card>
 
-      <Card className="border-border/60">
-        <CardHeader className="px-4 py-3"><CardTitle className="text-sm">گلوبل سرچ</CardTitle></CardHeader>
-        <CardContent className="space-y-2 px-4 pb-4">
-          <div className="flex gap-2">
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") runSearch(); }}
-              placeholder="دکان، صارف، فون یا آرڈر آئی ڈی تلاش کریں"
-              className="h-9 text-sm"
-            />
-            <Button size="sm" className="h-9" onClick={runSearch} disabled={searching}><Search className="h-4 w-4" /></Button>
-          </div>
-          {hits.length > 0 && (
-            <div className="space-y-1">
-              {hits.map((h, i) => (
-                <button
-                  type="button"
-                  onClick={() => onNavigate?.(h.section, h.subTab)}
-                  key={`${h.kind}-${h.label}-${i}`}
-                  className="flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-xs transition hover:border-primary hover:bg-primary/5"
-                >
-                  <Badge variant="secondary" className="shrink-0 text-[10px]">{h.kind}</Badge>
-                  <span className="flex-1 truncate font-bold">{h.label}</span>
-                  <span className="shrink-0 text-muted-foreground">{h.sub}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          {!searching && query.trim().length >= 2 && hits.length === 0 && (
-            <p className="text-xs text-muted-foreground">کوئی نتیجہ نہیں ملا</p>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 };
