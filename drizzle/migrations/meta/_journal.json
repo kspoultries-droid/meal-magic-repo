@@ -204,6 +204,13 @@
       "when": 1793051159390,
       "tag": "0028_rider_manual_offer_and_gps_override",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793052196681,
+      "tag": "0029_vendor_paid_delivery_on_update",
+      "breakpoints": true
     }
   ]
 }
