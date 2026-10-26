@@ -4694,6 +4694,10 @@ export type Database = {
         Args: { _kind: string; _order_id: string }
         Returns: string
       }
+      review_rider_earning: {
+        Args: { _distance_km: number; _earning_id: string; _note: string }
+        Returns: undefined
+      }
       review_rider_remittance:
         | {
             Args: { _approve: boolean; _id: string; _note?: string }
@@ -4745,6 +4749,7 @@ export type Database = {
         Args: { _lat?: number; _lng?: number; _order_id: string; _step: string }
         Returns: undefined
       }
+      rider_operations_report: { Args: { _days?: number }; Returns: Json }
       role_permissions: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: string[]
