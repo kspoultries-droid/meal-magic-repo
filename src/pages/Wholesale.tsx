@@ -79,7 +79,7 @@ const Wholesale = () => {
   const rail = (items: (BazarProduct & { variants?: unknown })[]) => <div dir="ltr" className="no-scrollbar flex w-full gap-2 overflow-x-auto px-3 pb-1 sm:px-6">{items.map((p) => <div dir="rtl" key={p.id}><BazarProductCard product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} /></div>)}</div>;
 
   return <div className="theme-bazar min-h-screen w-full overflow-x-clip bg-background pb-24"><Navbar /><BazarHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-    {allCats.length > 0 && <section className="w-full px-3 py-2 sm:px-6"><div dir="ltr" className="no-scrollbar flex w-full gap-1.5 overflow-x-auto pb-1"><div dir="rtl"><Button variant={!activeCategory && !activeShopCategory ? "default" : "outline"} onClick={() => { setActiveCategory(null); setActiveShopCategory(null); }} className="h-8 shrink-0 rounded-lg px-2.5 text-[10px] font-bold">{t("bazar.all")}</Button></div>{allCats.map((cat: any) => { const Icon = (LucideIcons as any)[cat.icon] || Package; const isShop = cat.kind === "shop"; const isActive = isShop ? activeShopCategory === cat.name : activeCategory === cat.name; return <div dir="rtl" key={cat.id}><Button variant={isActive ? "default" : "outline"} onClick={() => { if (isShop) { setActiveShopCategory(isActive ? null : cat.name); setActiveCategory(null); } else { setActiveCategory(isActive ? null : cat.name); setActiveShopCategory(null); } }} className="h-8 shrink-0 gap-1 rounded-lg px-2 text-[10px] font-semibold"><span className="grid size-5 place-items-center rounded-md bg-accent"><Icon className="size-3" /></span><span>{cat.name_ur || cat.name}</span></Button></div>; })}</div></section>}
+    {allCats.length > 0 && <section className="w-full px-3 py-2 sm:px-6"><div dir="ltr" className="no-scrollbar flex w-full gap-1.5 overflow-x-auto pb-1"><div dir="rtl"><Button variant={!activeCategory && !activeShopCategory ? "default" : "outline"} onClick={() => { setActiveCategory(null); setActiveShopCategory(null); }} className="h-10 shrink-0 rounded-lg px-2.5 text-[10px] font-bold">{t("bazar.all")}</Button></div>{allCats.map((cat: any) => { const Icon = (LucideIcons as any)[cat.icon] || Package; const isShop = cat.kind === "shop"; const isActive = isShop ? activeShopCategory === cat.name : activeCategory === cat.name; return <div dir="rtl" key={cat.id}><Button variant={isActive ? "default" : "outline"} onClick={() => { if (isShop) { setActiveShopCategory(isActive ? null : cat.name); setActiveCategory(null); } else { setActiveCategory(isActive ? null : cat.name); setActiveShopCategory(null); } }} className="h-10 shrink-0 gap-1 rounded-lg px-2 text-[10px] font-semibold"><span className="grid size-5 place-items-center rounded-md bg-accent"><Icon className="size-3" /></span><span>{cat.name_ur || cat.name}</span></Button></div>; })}</div></section>}
     <BazarDeals />
     {flashDeals.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Zap className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">{t("bazar.flashSale")}</h2></div>{rail(flashDeals)}</section>}
     {topRanked.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Star className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">{t("bazar.topRated")}</h2></div>{rail(topRanked)}</section>}
@@ -92,14 +92,14 @@ const Wholesale = () => {
       {loading ? <div className="px-3 sm:px-6"><StoreGridSkeleton count={4} /></div> : (
         <div className="grid w-full grid-cols-2 gap-2.5 px-3 sm:grid-cols-3 sm:px-6 lg:grid-cols-4">
           {filteredStores.slice(0, 8).map((store) => (
-            <button key={store.id} onClick={() => navigate(`/bazar/${store.id}`)} className={`group relative min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-card text-right shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elegant ${!store.is_active ? "opacity-60 grayscale" : ""}`}>
+            <Button variant="ghost" key={store.id} onClick={() => navigate(`/bazar/${store.id}`)} className={`group relative block h-auto whitespace-normal p-0 hover:bg-card min-w-0 overflow-hidden rounded-lg border border-border bg-card text-right shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card ${!store.is_active ? "opacity-60 grayscale" : ""}`}>
               <div className="relative h-24 w-full overflow-hidden bg-gradient-to-br from-primary/15 via-accent to-secondary sm:h-28">
                 {store.image_url ? (
                   <img src={store.image_url} alt={store.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
-                  <div className="grid h-full place-items-center"><span className="grid size-12 place-items-center rounded-2xl border border-primary/15 bg-background/80 shadow-sm"><Store className="size-6 text-primary" /></span></div>
+                  <div className="grid h-full place-items-center"><span className="grid size-12 place-items-center rounded-lg border border-primary/15 bg-background/80 shadow-sm"><Store className="size-6 text-primary" /></span></div>
                 )}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-foreground/30 to-transparent" />
+                <div className="hidden" />
                 <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold text-primary-foreground shadow-sm"><BadgeCheck className="size-2.5" /> {t("bazar.verified")}</span>
                 {store.ships_nationwide && <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[9px] font-bold text-primary shadow-sm"><Truck className="size-2.5" /> {t("bazar.nationwide")}</span>}
               </div>
@@ -111,7 +111,7 @@ const Wholesale = () => {
                 </div>
                 {!!store.minimum_order && store.minimum_order > 0 && <p className="truncate text-[9px] text-muted-foreground">{t("bazar.minOrder")} Rs {store.minimum_order.toLocaleString()}</p>}
               </div>
-            </button>
+            </Button>
           ))}
         </div>
       )}

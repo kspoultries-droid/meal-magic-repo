@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import MenuItemSheet, { type MenuItemLike } from "@/components/menu/MenuItemSheet";
+import { Button } from "@/components/ui/button";
 import type { Restaurant } from "./RestaurantGrid";
 
 interface RestaurantCardProps {
@@ -72,13 +73,13 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
         )}
 
         {/* Favourite */}
-        <button
+        <Button variant="ghost"
           onClick={(e) => { e.stopPropagation(); setFav((v) => !v); }}
           aria-label="پسندیدہ"
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-card/85 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-90 transition-transform"
+          className="absolute top-3 right-3 p-0 w-9 h-9 rounded-full bg-card/85 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-90 transition-transform"
         >
           <Heart className={`w-4 h-4 ${fav ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
-        </button>
+        </Button>
 
         {/* Rating pill on image */}
         <span className="absolute bottom-2.5 left-3 flex items-center gap-1 text-[11px] font-bold text-primary-foreground bg-foreground/50 backdrop-blur-md rounded-full px-2.5 py-1">
@@ -107,13 +108,13 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
             </span>
           )}
           {menuItems.length > 0 && isActive && (
-            <button
+            <Button variant="ghost"
               type="button"
               onClick={(e) => { e.stopPropagation(); setShowMenu((v) => !v); }}
-              className="text-[10px] font-bold text-primary ml-auto rounded-full border border-primary/30 px-2.5 py-1 active:scale-95 transition-transform"
+              className="h-8 text-[11px] font-semibold text-primary ml-auto rounded-lg border border-primary/30 px-2.5 py-1"
             >
               {showMenu ? "بند کریں" : "فوری آرڈر"}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -121,7 +122,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
       {/* Quick Menu */}
       {showMenu && menuItems.length > 0 && (
         <div className="border-t border-border/60 px-4 py-3 space-y-2 animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">فوری شامل کریں</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">فوری شامل کریں</p>
           {menuItems.map((item) => {
             const hasChoices = (item.variants?.length || 0) > 0 || (item.option_groups?.length || 0) > 0;
             const variantPrices = (item.variants || []).map((v: any) => Number(v.price) || 0).filter((n: number) => n > 0);
@@ -136,7 +137,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
                     {item.variants?.length ? `Rs. ${minPrice} سے` : `Rs. ${item.price}`}
                   </p>
                 </div>
-                <button
+                <Button variant="ghost"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (hasChoices) {
@@ -153,20 +154,20 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
                       source: "restaurant", sourceId: restaurantId,
                     });
                   }}
-                  className="w-8 h-8 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow active:scale-90 transition-transform shrink-0"
+                  className="p-0 w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-glow active:scale-90 transition-transform shrink-0"
                 >
                   <Plus className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             );
           })}
-          <button
+          <Button variant="ghost"
             type="button"
             onClick={(e) => { e.stopPropagation(); navigate(`/restaurant/${restaurantId}`); }}
-            className="w-full mt-1 rounded-xl bg-secondary py-2 text-xs font-bold text-primary active:scale-95 transition-transform"
+            className="h-10 w-full mt-1 rounded-lg bg-secondary py-2 text-xs font-bold text-primary active:scale-95 transition-transform"
           >
             پورا مینو دیکھیں →
-          </button>
+          </Button>
         </div>
       )}
 
