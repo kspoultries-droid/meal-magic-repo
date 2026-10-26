@@ -18,7 +18,7 @@ afterEach(() => { cleanup(); rpc.mockClear(); });
 it("submits the displayed default salary only after final confirmation", async () => {
   render(<RiderPayTab />);
   await screen.findByText("Test rider");
-  fireEvent.click(screen.getByRole("button", { name: "ادائیگی", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: /^ادائیگی$/ }));
   fireEvent.click(screen.getByRole("button", { name: /ادائیگی کریں/ }));
   expect(rpc).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "تصدیق اور ادائیگی" }));

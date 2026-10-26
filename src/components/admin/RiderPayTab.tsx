@@ -46,12 +46,21 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: pl }, { data: rd }, { data: acc }, { data: earn }] = await Promise.all([
+    const [planResult, riderResult, accountResult, earningResult] = await Promise.all([
       supabase.from("rider_pay_plans").select("*"),
       supabase.from("riders").select("id, city_id, wallet_balance, total_earnings").limit(200),
       supabase.from("payment_accounts").select("id, label, balance, is_active").eq("is_active", true),
       supabase.from("rider_earnings").select("rider_id, amount").eq("status", "pending").limit(5000),
     ]);
+    if ([planResult, riderResult, accountResult, earningResult].some(result => result.error)) {
+      toast.error("ادائیگی کی تفصیل مکمل نہیں آئی؛ دوبارہ تازہ کریں۔");
+      setLoading(false);
+      return;
+    }
+    const { data: pl } = planResult;
+    const { data: rd } = riderResult;
+    const { data: acc } = accountResult;
+    const { data: earn } = earningResult;
     setPlans((pl || []) as unknown as Plan[]);
     setRiders(rd || []);
     setAccounts(acc || []);
@@ -216,7 +225,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filtered.length} />
     {loading ? <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p> : filtered.length === 0 ? <p className="text-xs text-muted-foreground">کوئی رائیڈر نہیں ملا</p> : <div className="divide-y border-y">{filtered.slice((page - 1) * 20, page * 20).map(r => <div key={r.id} className="grid items-center gap-2 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"><div className="min-w-0"><p className="truncate text-sm font-semibold">{names[r.id] || r.id.slice(0, 8)}</p><Badge variant="outline" className="text-[10px]">{planFor(r.id) ? "الگ پلان" : "ڈیفالٹ"}</Badge></div><div className="flex gap-4 text-xs"><span>واجب الادا <strong className="text-success">Rs {Math.round(pending[r.id] || 0)}</strong></span><span>نقد Rs {Math.round(Number(r.wallet_balance || 0))}</span></div><div className="flex gap-1"><Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, mode: "plan" })}><Pencil className="size-3" /> پلان</Button><Button size="sm" onClick={() => { setConfirmPay(false); setSelected({ id: r.id, mode: "pay" }); }}><Wallet className="size-3" /> ادائیگی</Button></div></div>)}</div>}
     <AdminPagination page={page} count={filtered.length} onPage={setPage} />
-    <Dialog open={selected !== null} onOpenChange={open => { if (!open && !busy) { setSelected(null); setConfirmPay(false); } }}><DialogContent className="max-h-[85dvh] max-w-xl overflow-y-auto" dir="rtl"><DialogHeader><DialogTitle>{selected?.mode === "plan" ? "پے پلان" : "رائیڈر کی ادائیگی"} — {selected?.id === "global" ? "ڈیفالٹ" : names[selected?.id || ""]}</DialogTitle></DialogHeader>
+    <Dialog open={selected !== null} onOpenChange={open => { if (!open && !busy) { setSelected(null); setConfirmPay(false); } }}><DialogContent aria-describedby={undefined} className="max-h-[85dvh] max-w-xl overflow-y-auto" dir="rtl"><DialogHeader><DialogTitle>{selected?.mode === "plan" ? "پے پلان" : "رائیڈر کی ادائیگی"} — {selected?.id === "global" ? "ڈیفالٹ" : names[selected?.id || ""]}</DialogTitle></DialogHeader>
       {selected?.mode === "plan" && planFields(selected.id, selected.id === "global" ? globalPlan : planFor(selected.id))}
       {selected?.mode === "pay" && selectedRider && (!confirmPay ? paymentFields(selectedRider) : <div className="space-y-3"><p className="text-sm font-bold">ادائیگی کی حتمی تصدیق</p><p className="text-xs">واجب الادا کمائی: Rs {Math.round(pending[selectedRider.id] || 0)} · تنخواہ: Rs {Number(form[`pay_${selectedRider.id}`]?.salary ?? planFor(selectedRider.id)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)}</p><p className="text-xs text-muted-foreground">بونس: Rs {Number(form[`pay_${selectedRider.id}`]?.bonus || 0)} · کٹوتی: Rs {Number(form[`pay_${selectedRider.id}`]?.deduction || 0)}</p><div className="flex gap-2"><Button disabled={busy !== null} onClick={() => void payRider(selectedRider.id)}>{busy ? "ادائیگی ہو رہی ہے…" : "تصدیق اور ادائیگی"}</Button><Button variant="outline" disabled={busy !== null} onClick={() => setConfirmPay(false)}>واپس</Button></div></div>)}
     </DialogContent></Dialog>

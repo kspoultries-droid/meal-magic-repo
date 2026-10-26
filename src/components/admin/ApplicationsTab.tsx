@@ -105,6 +105,8 @@ const ApplicationsTab = () => {
     if (bulkBusy) return;
     if (targets.length === 0) return toast.error("کوئی زیر جائزہ درخواست منتخب نہیں");
     if (!window.confirm(`${targets.length} درخواستیں منظور کی جائیں؟`)) return;
+    const needsReview = targets.filter(app => app.applicant_type === "rider" && kycMap[app.user_id]?.status === "manual_review");
+    if (needsReview.length > 0 && !window.confirm(`${needsReview.length} رائیڈرز کا دستی شناختی جائزہ درکار ہے۔ کیا جائزہ لے کر ذمہ داری سے منظور کرتے ہیں؟`)) return;
     setBulkBusy(true);
     let ok = 0; let skipped = 0;
     for (const app of targets) {
