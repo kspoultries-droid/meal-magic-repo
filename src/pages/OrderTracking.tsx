@@ -38,10 +38,7 @@ const OrderTracking = () => {
   const [now, setNow] = useState(Date.now());
 
   const fetchRider = useCallback(async (orderId: string, orderKind: "food" | "grocery_cart" | "grocery_list") => {
-    const { data, error } = await supabase.rpc("get_delivery_rider_location", { _order_id: orderId, _kind: orderKind });
-    setLocationError(!!error);
-    if (error) return;
-    setRider(Array.isArray(data) ? data[0] || null : data);
+    return supabase.rpc("get_delivery_rider_location", { _order_id: orderId, _kind: orderKind });
   }, []);
 
   const fetchOrder = useCallback(async () => {
@@ -106,11 +103,23 @@ const OrderTracking = () => {
     setRider(null);
     if (!id || !order?.rider_id || !user) return;
     if (["delivered", "completed", "cancelled", "returned_to_store"].includes(order.status)) return;
-    const refresh = () => { if (document.visibilityState === "visible") { setNow(Date.now()); void fetchRider(id, kind); } };
+    let disposed = false;
+    let busy = false;
+    const refresh = async () => {
+      if (document.visibilityState !== "visible" || busy) return;
+      setNow(Date.now()); busy = true;
+      try {
+        const { data, error } = await fetchRider(id, kind);
+        if (disposed) return;
+        setLocationError(!!error);
+        if (!error) setRider(Array.isArray(data) ? data[0] || null : data);
+      } catch { if (!disposed) setLocationError(true); }
+      finally { busy = false; }
+    };
     refresh();
     const timer = setInterval(refresh, 10000);
     document.addEventListener("visibilitychange", refresh);
-    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+    return () => { disposed = true; clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
   }, [id, kind, user?.id, order?.rider_id, order?.status, fetchRider]);
 
 
