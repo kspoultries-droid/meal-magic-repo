@@ -861,6 +861,16 @@ const RidersTab = () => {
   const [riderRoleIds, setRiderRoleIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [workingId, setWorkingId] = useState<string | null>(null);
+  const [riderCities, setRiderCities] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => { supabase.from("cities").select("id,name").order("name").then(({ data }) => setRiderCities(data || [])); }, []);
+  const setRiderCity = async (riderId: string, cityId: string) => {
+    setWorkingId(riderId);
+    const { error } = await supabase.from("riders").update({ city_id: cityId } as any).eq("id", riderId);
+    setWorkingId(null);
+    if (error) { toast.error(error.message); return; }
+    setRiders(current => current.map(row => row.id === riderId ? { ...row, city_id: cityId } : row));
+    toast.success("رائیڈر کا شہر محفوظ ہو گیا");
+  };
 
   const fetchRiders = async () => {
     setLoading(true);
@@ -942,7 +952,7 @@ const RidersTab = () => {
                         {!hasRole ? "رول ہٹا ہوا" : r.is_suspended ? "معطل" : r.is_available ? "آن لائن" : "آف لائن"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs">{hasGps ? "GPS ✓" : "GPS درکار"}{r.city_id ? " • شہر ✓" : " • شہر درکار"}</TableCell>
+                    <TableCell className="text-xs"><div className="flex min-w-[140px] flex-col gap-1"><span>{hasGps ? "GPS ✓" : "GPS درکار"}</span><select aria-label="رائیڈر کا شہر" disabled={workingId === r.id} value={r.city_id || ""} onChange={e => e.target.value && void setRiderCity(r.id, e.target.value)} className={`h-7 rounded-md border bg-background px-1 text-[11px] ${r.city_id ? "" : "border-destructive text-destructive"}`}><option value="">شہر منتخب کریں</option>{riderCities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div></TableCell>
                     <TableCell>Rs {r.wallet_balance}</TableCell>
                     <TableCell>Rs {r.total_earnings}</TableCell>
                     <TableCell>
