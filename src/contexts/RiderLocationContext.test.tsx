@@ -39,22 +39,23 @@ describe("app-level rider GPS", () => {
     expect(mocks.rpc).toHaveBeenCalledWith("publish_rider_location", { _lat: 28.42, _lng: 70.3, _accuracy: 15 });
   });
   it("failed saves remain retryable rather than advancing the throttle", async () => {
-    mocks.rpc.mockResolvedValueOnce({ error: { message: "offline" }, data: null }).mockResolvedValue({ error: null, data: new Date().toISOString() });
+    let attempts = 0;
+    mocks.rpc.mockImplementation(async (name: string) => name === "rider_heartbeat" ? { error: null, data: null } : ++attempts === 1 ? { error: { message: "offline" }, data: null } : { error: null, data: new Date().toISOString() });
     render(<RiderLocationProvider><Status /></RiderLocationProvider>);
     await waitFor(() => expect(mocks.callback).not.toBeNull()); emit();
-    await waitFor(() => expect(mocks.rpc).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(attempts).toBe(1));
     await waitFor(() => expect(screen.getByRole("status").textContent).not.toBe("waiting"));
     expect(screen.getByRole("status").textContent).not.toBe("saved");
     emit();
     await waitFor(() => expect(screen.getByRole("status").textContent).toBe("saved"));
-    expect(mocks.rpc).toHaveBeenCalledTimes(2);
+    expect(attempts).toBe(2);
   });
   it("continues tracking an assigned delivery even when new offers are off", async () => {
     mocks.available = false; mocks.active = true;
     mocks.rpc.mockResolvedValue({ error: null, data: new Date().toISOString() });
     render(<RiderLocationProvider><Status /></RiderLocationProvider>);
     await waitFor(() => expect(mocks.callback).not.toBeNull()); emit();
-    await waitFor(() => expect(mocks.rpc).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.rpc).toHaveBeenCalledWith("publish_rider_location", { _lat: 28.42, _lng: 70.3, _accuracy: 15 }));
   });
   it("does not collect GPS from an idle offline rider", async () => {
     mocks.available = false;
