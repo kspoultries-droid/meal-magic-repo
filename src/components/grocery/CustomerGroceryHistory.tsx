@@ -141,7 +141,7 @@ const CustomerGroceryHistory = () => {
                 </div>
               )}
 
-              {selected.kind === "cart" && isOpen(selected.status) && (
+              {isOpen(selected.status) && (
                 <Button className="w-full" onClick={() => navigate(`/order-tracking/${selected.id}`)}>ٹریک کریں 📍</Button>
               )}
             </div>
