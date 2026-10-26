@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +97,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
   const payRider = async (rid: string) => {
     const f = form[`pay_${rid}`] || {};
+    if (busy) return;
     setBusy(`pay_${rid}`);
     const { error } = await supabase.rpc("pay_rider", {
       _rider: rid,
@@ -137,19 +137,19 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground">ماہانہ تنخواہ Rs</label>
-            <Input type="number" className="h-8" value={v("monthly_salary")} onChange={(e) => set(key, "monthly_salary", e.target.value)} />
+            <Input type="number" min="0" className="h-8" value={v("monthly_salary")} onChange={(e) => set(key, "monthly_salary", e.target.value)} />
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground">فی آرڈر Rs</label>
-            <Input type="number" className="h-8" value={v("per_order_fee")} onChange={(e) => set(key, "per_order_fee", e.target.value)} />
+            <Input type="number" min="0" className="h-8" value={v("per_order_fee")} onChange={(e) => set(key, "per_order_fee", e.target.value)} />
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground">فی کلومیٹر Rs</label>
-            <Input type="number" className="h-8" value={v("per_km_fee")} onChange={(e) => set(key, "per_km_fee", e.target.value)} />
+            <Input type="number" min="0" className="h-8" value={v("per_km_fee")} onChange={(e) => set(key, "per_km_fee", e.target.value)} />
           </div>
           <div>
             <label className="text-[10px] text-muted-foreground">کم از کم فی آرڈر Rs</label>
-            <Input type="number" className="h-8" value={v("min_order_pay")} onChange={(e) => set(key, "min_order_pay", e.target.value)} />
+            <Input type="number" min="0" className="h-8" value={v("min_order_pay")} onChange={(e) => set(key, "min_order_pay", e.target.value)} />
           </div>
         </div>
         <Button size="sm" className="h-8 w-full font-bold md:w-auto md:px-6" disabled={busy === key} onClick={() => savePlan(key === "global" ? null : key)}>
@@ -177,15 +177,15 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">تنخواہ Rs</label>
-                      <Input type="number" className="h-8" value={f.salary ?? (p?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)} onChange={(e) => set(`pay_${r.id}`, "salary", e.target.value)} />
+                      <Input type="number" min="0" className="h-8" value={f.salary ?? (p?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)} onChange={(e) => set(`pay_${r.id}`, "salary", e.target.value)} />
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">بونس Rs</label>
-                      <Input type="number" className="h-8" value={f.bonus || ""} onChange={(e) => set(`pay_${r.id}`, "bonus", e.target.value)} />
+                      <Input type="number" min="0" className="h-8" value={f.bonus || ""} onChange={(e) => set(`pay_${r.id}`, "bonus", e.target.value)} />
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">کٹوتی Rs</label>
-                      <Input type="number" className="h-8" value={f.deduction || ""} onChange={(e) => set(`pay_${r.id}`, "deduction", e.target.value)} />
+                      <Input type="number" min="0" className="h-8" value={f.deduction || ""} onChange={(e) => set(`pay_${r.id}`, "deduction", e.target.value)} />
                     </div>
                     <div>
                       <label className="text-[10px] text-muted-foreground">ریفرنس نمبر</label>
@@ -214,7 +214,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   return <section className="space-y-3" dir="rtl">
     <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2"><h2 className="flex items-center gap-2 font-bold"><Bike className="size-4" /> رائیڈر پلان اور ادائیگی</h2><div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => setSelected({ id: "global", mode: "plan" })}><Pencil className="size-3.5" /> ڈیفالٹ پلان</Button><Button size="icon" variant="outline" aria-label="ادائیگی فہرست تازہ کریں" onClick={() => void load()}><RefreshCw className="size-4" /></Button></div></div>
     <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filtered.length} />
-    {loading ? <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p> : filtered.length === 0 ? <p className="text-xs text-muted-foreground">کوئی رائیڈر نہیں ملا</p> : <div className="divide-y border-y">{filtered.slice((page - 1) * 20, page * 20).map(r => <div key={r.id} className="grid items-center gap-2 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]"><div className="min-w-0"><p className="truncate text-sm font-semibold">{names[r.id] || r.id.slice(0, 8)}</p><Badge variant="outline" className="text-[10px]">{planFor(r.id) ? "الگ پلان" : "ڈیفالٹ"}</Badge></div><div className="flex gap-4 text-xs"><span>واجب الادا <strong className="text-success">Rs {Math.round(pending[r.id] || 0)}</strong></span><span>نقد Rs {Math.round(Number(r.wallet_balance || 0))}</span></div><div className="flex gap-1"><Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, mode: "plan" })}><Pencil className="size-3" /> پلان</Button><Button size="sm" onClick={() => { setConfirmPay(false); setSelected({ id: r.id, mode: "pay" }); }}><Wallet className="size-3" /> ادائیگی</Button></div></div>)}</div>}
+    {loading ? <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p> : filtered.length === 0 ? <p className="text-xs text-muted-foreground">کوئی رائیڈر نہیں ملا</p> : <div className="divide-y border-y">{filtered.slice((page - 1) * 20, page * 20).map(r => <div key={r.id} className="grid items-center gap-2 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"><div className="min-w-0"><p className="truncate text-sm font-semibold">{names[r.id] || r.id.slice(0, 8)}</p><Badge variant="outline" className="text-[10px]">{planFor(r.id) ? "الگ پلان" : "ڈیفالٹ"}</Badge></div><div className="flex gap-4 text-xs"><span>واجب الادا <strong className="text-success">Rs {Math.round(pending[r.id] || 0)}</strong></span><span>نقد Rs {Math.round(Number(r.wallet_balance || 0))}</span></div><div className="flex gap-1"><Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, mode: "plan" })}><Pencil className="size-3" /> پلان</Button><Button size="sm" onClick={() => { setConfirmPay(false); setSelected({ id: r.id, mode: "pay" }); }}><Wallet className="size-3" /> ادائیگی</Button></div></div>)}</div>}
     <AdminPagination page={page} count={filtered.length} onPage={setPage} />
     <Dialog open={selected !== null} onOpenChange={open => { if (!open && !busy) { setSelected(null); setConfirmPay(false); } }}><DialogContent className="max-h-[85dvh] max-w-xl overflow-y-auto" dir="rtl"><DialogHeader><DialogTitle>{selected?.mode === "plan" ? "پے پلان" : "رائیڈر کی ادائیگی"} — {selected?.id === "global" ? "ڈیفالٹ" : names[selected?.id || ""]}</DialogTitle></DialogHeader>
       {selected?.mode === "plan" && planFields(selected.id, selected.id === "global" ? globalPlan : planFor(selected.id))}
