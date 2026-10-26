@@ -176,6 +176,13 @@
       "when": 1792975330853,
       "tag": "0024_rider_supervised_audit_event_compatibility",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792975443747,
+      "tag": "0025_rider_timing_and_pay_ledger_consistency",
+      "breakpoints": true
     }
   ]
 }
