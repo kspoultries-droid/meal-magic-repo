@@ -14,6 +14,9 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: "بھیج دی گئی / Sent", color: "bg-yellow-100 text-yellow-800" },
   quoted: { label: "قیمت آ گئی / Quoted", color: "bg-blue-100 text-blue-800" },
   confirmed: { label: "تصدیق شدہ / Confirmed", color: "bg-primary/20 text-primary" },
+  ready_for_pickup: { label: "پک اَپ کے لیے تیار / Ready", color: "bg-primary/10 text-primary" },
+  delivered: { label: "پہنچا دیا / Delivered", color: "bg-success/10 text-success" },
+  returned_to_store: { label: "واپس / Returned", color: "bg-warning/10 text-warning" },
   delivering: { label: "ڈلیوری / Delivering", color: "bg-orange-100 text-orange-800" },
   completed: { label: "مکمل / Done", color: "bg-green-100 text-green-800" },
   cancelled: { label: "منسوخ / Cancelled", color: "bg-destructive/20 text-destructive" },
@@ -169,15 +172,15 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
               )}
 
               {/* Delivering: Confirm Received */}
-              {selectedOrder.status === "delivering" && (
+              {["delivering", "delivered"].includes(selectedOrder.status) && (
                 <div className="space-y-2">
                   <p className="text-center text-sm text-orange-600 font-bold bg-orange-50 p-3 rounded-xl">🚴 ڈلیوری جاری ہے / Delivery in progress</p>
-                  <Button
-                    className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                  {(!selectedOrder.rider_id || selectedOrder.status === "delivered") && <Button
+                    className="w-full gap-2"
                     onClick={() => confirmReceived(selectedOrder.id)}
                   >
                     <PackageCheck className="w-5 h-5" /> سامان مل گیا / Order Received ✅
-                  </Button>
+                  </Button>}
                 </div>
               )}
 

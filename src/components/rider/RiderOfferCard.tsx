@@ -16,6 +16,8 @@ interface DeliveryOffer {
   expires_at: string;
   created_at: string;
   is_batch?: boolean;
+  estimated_earning: number | null;
+  cash_to_collect: number | null;
 }
 
 interface Props {
@@ -60,7 +62,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
   const fetchOffer = async () => {
     const { data, error } = await (supabase as any)
       .from("delivery_offers")
-      .select("id,order_id,order_kind,pickup_name,dropoff_address,total_amount,delivery_fee,distance_km,expires_at,created_at,is_batch")
+      .select("id,order_id,order_kind,pickup_name,dropoff_address,total_amount,delivery_fee,distance_km,expires_at,created_at,is_batch,estimated_earning,cash_to_collect")
       .eq("rider_id", riderId)
       .eq("status", "offered")
       .gt("expires_at", new Date().toISOString())
@@ -119,7 +121,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
     if (!offer || busy) return;
     setBusy(true);
     const { error } = await supabase.rpc("accept_delivery_offer", { _offer_id: offer.id });
-    if (error) toast.error(error.message); else toast.success("آرڈر آپ کو مل گیا ✅ — ریسٹورنٹ کی طرف روانہ ہوں");
+    if (error) toast.error(error.message); else toast.success("آرڈر آپ کو مل گیا ✅ — پک اَپ کی طرف روانہ ہوں");
     setOffer(null); setBusy(false);
     onChangedRef.current(); fetchOffer();
   };
@@ -138,7 +140,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
   const R = 44;
   const C = 2 * Math.PI * R;
   const pct = Math.min(1, secondsLeft / total);
-  const earning = Math.round(Number(offer.delivery_fee || 0));
+  const earning = offer.estimated_earning == null ? null : Math.round(Number(offer.estimated_earning));
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-background/95 backdrop-blur-sm">
@@ -168,12 +170,12 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
           <div className="rounded-xl border bg-primary/10 p-3 text-center">
             <Wallet className="mx-auto h-5 w-5 text-primary" />
             <p className="mt-1 text-[11px] text-muted-foreground">آپ کی کمائی</p>
-            <p className="text-xl font-black text-primary">Rs {earning}</p>
+            <p className="text-xl font-black text-primary">{earning == null ? "حساب زیرِتصدیق" : `Rs ${earning}`}</p>
           </div>
           <div className="rounded-xl border bg-card p-3 text-center">
             <Banknote className="mx-auto h-5 w-5" />
             <p className="mt-1 text-[11px] text-muted-foreground">کسٹمر سے وصولی</p>
-            <p className="text-xl font-black">Rs {Math.round(Number(offer.total_amount || 0))}</p>
+            <p className="text-xl font-black">{offer.cash_to_collect == null ? "وصولی زیرِتصدیق" : `Rs ${Number(offer.cash_to_collect)}`}</p>
           </div>
         </div>
 

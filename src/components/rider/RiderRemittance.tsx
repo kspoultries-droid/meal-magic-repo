@@ -56,7 +56,7 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
     const amt = Number(amount);
     if (!amt || amt <= 0) { toast.error("درست رقم درج کریں"); return; }
     if (!accountId) { toast.error("EasyLife اکاؤنٹ منتخب کریں"); return; }
-    if (amt > cashDue + 1) { toast.error(`واجب الادا رقم Rs ${Math.round(cashDue)} سے زیادہ جمع نہیں کرا سکتے`); return; }
+    if (amt > cashDue) { toast.error(`واجب الادا رقم Rs ${Math.round(cashDue)} سے زیادہ جمع نہیں کرا سکتے`); return; }
     if (pendingExists) { toast.error("آپ کی ایک درخواست پہلے سے زیرِ تصدیق ہے"); return; }
     setBusy(true);
     try {

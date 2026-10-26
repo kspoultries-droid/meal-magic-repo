@@ -21,6 +21,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RiderLevelShifts from "@/components/rider/RiderLevelShifts";
 import RiderHotspots from "@/components/rider/RiderHotspots";
 import { useRiderLocation } from "@/contexts/RiderLocationContext";
+import RiderDeliveryActions from "@/components/rider/RiderDeliveryActions";
+import { CLOSED_DELIVERIES } from "@/lib/riderOperations";
 
 
 
@@ -95,14 +97,14 @@ const RiderDashboard = () => {
     const [{ data: rider }, { data: assigned }, { data: gCart }, { data: gList }, { data: sum }] = await Promise.all([
       supabase.from("riders").select("*").eq("id", user.id).maybeSingle(),
       supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode, pickup_address, pickup_lat, pickup_lng)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("grocery_cart_orders").select("id,status,total_amount,delivery_fee,delivery_address,delivery_lat,delivery_lng,rider_id,created_at,items,grocery_stores(name)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
-      supabase.from("grocery_list_orders").select("id,status,total_amount,delivery_fee,delivery_address,delivery_lat,delivery_lng,rider_id,created_at,grocery_stores(name)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("grocery_cart_orders").select("*,grocery_stores(name)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
+      supabase.from("grocery_list_orders").select("*,grocery_stores(name)").eq("rider_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.rpc("get_rider_summary"),
     ]);
     const nextRider = rider || await ensureRiderProfile();
     setRiderData(nextRider);
     setSummary(Array.isArray(sum) ? sum[0] : sum);
-    const CLOSED = ["delivered", "completed", "cancelled"];
+    const CLOSED = CLOSED_DELIVERIES;
     const sortedAssigned = (assigned || []).slice().sort((a: any, b: any) => {
       const aClosed = CLOSED.includes(a.status) ? 1 : 0;
       const bClosed = CLOSED.includes(b.status) ? 1 : 0;
@@ -121,26 +123,15 @@ const RiderDashboard = () => {
     });
     setGroceryOrders(grocery);
 
-    (assigned || []).filter((o: any) => !["delivered", "completed", "cancelled"].includes(o.status))
+    (assigned || []).filter((o: any) => !CLOSED_DELIVERIES.includes(o.status))
       .forEach((o: any) => loadContact("food", o.id));
-    grocery.filter((o: any) => !["delivered", "completed", "cancelled"].includes(o.status))
+    grocery.filter((o: any) => !CLOSED_DELIVERIES.includes(o.status))
       .forEach((o: any) => loadContact(o._kind, o.id));
 
     setLoadingData(false);
   };
 
   useEffect(() => { if (hasRole) fetchData(!riderData); }, [hasRole, user]);
-
-  // Presence heartbeat: keeps admin command center aware that the rider app is live
-  useEffect(() => {
-    if (!hasRole || !user) return;
-    const beat = () => { void supabase.rpc("rider_heartbeat" as any); };
-    beat();
-    const timer = window.setInterval(beat, 60000);
-    const onVisible = () => { if (document.visibilityState === "visible") beat(); };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
-  }, [hasRole, user]);
 
   // Realtime online/offline status for this rider (admin can also toggle it)
   useEffect(() => {
@@ -207,40 +198,6 @@ const RiderDashboard = () => {
     fetchData(false);
   };
 
-  const markStep = async (order: any, step: "arrived_pickup" | "arrived_customer") => {
-    const pos = await new Promise<GeolocationPosition | null>((res) => {
-      if (!navigator.geolocation) return res(null);
-      navigator.geolocation.getCurrentPosition(res, () => res(null), { enableHighAccuracy: true, timeout: 10000 });
-    });
-    const { error } = await (supabase.rpc as any)("rider_mark_step", {
-      _order_id: order.id, _step: step,
-      _lat: pos?.coords.latitude ?? null, _lng: pos?.coords.longitude ?? null,
-    });
-    if (error) { toast.error(error.message); return; }
-    toast.success(step === "arrived_pickup" ? "ہوٹل پر پہنچنا درج ہو گیا" : "کسٹمر کو بتا دیا گیا");
-    fetchData(false);
-  };
-
-  const markDelivered = async (order: any) => {
-    if (order.status !== "delivering") { toast.error(t("rider.onlyAfterSent")); return; }
-    const { error } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id);
-    if (error) { toast.error(error.message); return; }
-    toast.success(t("rider.markDelivered"));
-    fetchData(false);
-  };
-
-  const markGroceryDelivered = async (order: any) => {
-    // Grocery cart orders must pass through "delivering" (picked up) before "delivered".
-    if (order._table === "grocery_cart_orders" && !["delivering", "out_for_delivery"].includes(order.status)) {
-      const { error: pickErr } = await supabase.from(order._table).update({ status: "delivering" }).eq("id", order.id);
-      if (pickErr) { toast.error(pickErr.message); return; }
-    }
-    const { error } = await supabase.from(order._table).update({ status: "delivered" }).eq("id", order.id);
-    if (error) { toast.error(error.message); return; }
-    toast.success(t("rider.groceryDelivered"));
-    fetchData(false);
-  };
-
   const mapLink = (address?: string | null, lat?: number | null, lng?: number | null) => {
     if (lat && lng) return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     if (address) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -290,7 +247,7 @@ const RiderDashboard = () => {
   );
 
   const cashDue = Number(summary?.cash_due ?? 0);
-  const CLOSED = ["delivered", "completed", "cancelled"];
+  const CLOSED = CLOSED_DELIVERIES;
   const startOfDay = (date: Date) => { const value = new Date(date); value.setHours(0, 0, 0, 0); return value; };
   const dateRange = (() => {
     const now = new Date();
@@ -406,7 +363,7 @@ const RiderDashboard = () => {
                   const pickupAddr = o.restaurants?.pickup_address || o.restaurants?.description || "";
                   const pickupMap = mapLink(pickupAddr, o.restaurants?.pickup_lat, o.restaurants?.pickup_lng);
                   const dropoffMap = mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng);
-                  const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
+                  const isClosed = CLOSED_DELIVERIES.includes(o.status);
                   return (
                     <div key={o.id} className="rounded-xl border bg-secondary/20 p-3 space-y-2">
                       <div className="flex items-center justify-between gap-2">
@@ -448,26 +405,7 @@ const RiderDashboard = () => {
                         </div>
                       )}
 
-                      {!isClosed && (
-                        <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-bold">
-                          {[
-                            { k: "arrived_pickup", label: "ہوٹل پہنچا", done: !!o.rider_arrived_at },
-                            { k: "picked", label: "اٹھا لیا", done: o.status === "delivering" || !!o.picked_up_at },
-                            { k: "arrived_customer", label: "کسٹمر پاس", done: !!o.arrived_customer_at },
-                            { k: "delivered", label: "مکمل", done: false },
-                          ].map((s, i) => (
-                            <div key={s.k} className={`rounded-md border px-1 py-1.5 ${s.done ? "bg-primary text-primary-foreground border-primary" : "bg-background/70 text-muted-foreground"}`}>
-                              {i + 1}. {s.label}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {!isClosed && !o.rider_arrived_at && o.status !== "delivering" && (
-                        <Button size="sm" variant="outline" className="w-full h-9 text-xs font-extrabold" onClick={() => markStep(o, "arrived_pickup")}>📍 میں ہوٹل پہنچ گیا</Button>
-                      )}
-                      {o.status === "delivering" && !o.arrived_customer_at && (
-                        <Button size="sm" variant="outline" className="w-full h-9 text-xs font-extrabold" onClick={() => markStep(o, "arrived_customer")}>🏠 کسٹمر کے دروازے پر پہنچ گیا</Button>
-                      )}
+                      {!isClosed && <RiderDeliveryActions order={o} kind="food" onChanged={() => fetchData(false)} />}
                       {o.status === "delivering" && (
                         <div className="space-y-1.5">
                           <label className="flex h-9 w-full cursor-pointer items-center justify-center rounded-md border border-dashed text-[11px] font-bold text-muted-foreground hover:bg-muted">
@@ -484,9 +422,7 @@ const RiderDashboard = () => {
                               }}
                             />
                           </label>
-                          <Button size="sm" className="w-full h-9 text-xs font-extrabold" onClick={() => markDelivered(o)}>
-                            {t("rider.markDelivered")}
-                          </Button>
+
                         </div>
                       )}
                     </div>
@@ -508,7 +444,7 @@ const RiderDashboard = () => {
             ) : (
               <div className="space-y-2.5">
                 {activeGroceryOrders.map((o) => {
-                  const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
+                  const isClosed = CLOSED_DELIVERIES.includes(o.status);
                   const dropoff = mapLink(o.delivery_address, o.delivery_lat, o.delivery_lng);
                   const items = Array.isArray(o.items) ? o.items : [];
                   return (
@@ -558,7 +494,7 @@ const RiderDashboard = () => {
                           </a>
                         )}
                         {!isClosed && (
-                          <Button size="sm" className="h-8 text-xs ml-auto" onClick={() => markGroceryDelivered(o)}>{t("rider.markDelivered")}</Button>
+                          <div className="w-full"><RiderDeliveryActions order={o} kind={o._kind} onChanged={() => fetchData(false)} /></div>
                         )}
                       </div>
                     </div>

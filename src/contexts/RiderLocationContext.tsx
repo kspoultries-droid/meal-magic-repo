@@ -38,6 +38,16 @@ export function RiderLocationProvider({ children }: { children: React.ReactNode 
   }, [user?.id, isRider]);
 
   useEffect(() => {
+    if (!enabled || !user || !isRider) return;
+    const heartbeat = () => { if (document.visibilityState === "visible" && navigator.onLine) void supabase.rpc("rider_heartbeat"); };
+    heartbeat();
+    const timer = window.setInterval(heartbeat, 30000);
+    document.addEventListener("visibilitychange", heartbeat);
+    window.addEventListener("online", heartbeat);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", heartbeat); window.removeEventListener("online", heartbeat); };
+  }, [enabled, user?.id, isRider]);
+
+  useEffect(() => {
     setState({ sharing: false, error: "", updatedAt: null });
     if (!enabled || !user || !isRider) return;
     if (!navigator.geolocation) { setState(s => ({ ...s, error: "اس فون پر GPS دستیاب نہیں" })); return; }
