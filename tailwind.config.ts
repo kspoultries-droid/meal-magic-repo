@@ -14,9 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Nunito Sans"', 'sans-serif'],
-        display: ['"Space Grotesk"', '"Nunito Sans"', 'sans-serif'],
-        body: ['"DM Sans"', '"Nunito Sans"', 'sans-serif'],
+        sans: ['"DM Sans"', '"Noto Sans Arabic Variable"', 'sans-serif'],
+        display: ['"Space Grotesk"', '"Noto Sans Arabic Variable"', 'sans-serif'],
+        body: ['"DM Sans"', '"Noto Sans Arabic Variable"', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

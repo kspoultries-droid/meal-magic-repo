@@ -41,7 +41,7 @@ const BottomTabBar = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border pb-[env(safe-area-inset-bottom)] shadow-soft">
+    <nav aria-label="بنیادی نیوی گیشن" className="app-bottom-nav fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border pb-[env(safe-area-inset-bottom)] shadow-card">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-1">
         {tabs
           .filter((tab) =>
@@ -57,7 +57,7 @@ const BottomTabBar = () => {
               key={tab.name}
               onClick={() => handleTab(tab)}
               aria-current={active ? "page" : undefined}
-              className="relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-none px-0 pb-1 pt-3 hover:bg-accent/50 active:scale-95"
+              className="relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-none px-0 pb-1 pt-3 hover:bg-accent/50 [&_svg]:size-5"
             >
               {active && (
                 <span className="absolute top-1 w-7 h-0.5 rounded-full bg-primary" />
@@ -65,7 +65,7 @@ const BottomTabBar = () => {
               <div className="relative h-5 w-5">
                 <Icon className={`w-5 h-5 transition-colors ${active ? "text-primary" : "text-muted-foreground"}`} strokeWidth={active ? 2.5 : 2} />
                 {tab.path === "cart" && totalItems > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-gradient-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-glow animate-scale-in">
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-soft">
                     {totalItems}
                   </span>
                 )}

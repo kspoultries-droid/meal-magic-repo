@@ -10,6 +10,7 @@ import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
+import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 
@@ -151,13 +152,13 @@ const Grocery = () => {
             const Icon = cat.icon;
             const isActive = activeCategory === cat.filter;
             return (
-              <button
+              <Button variant="ghost"
                 key={cat.name}
                 onClick={() => setActiveCategory(isActive ? null : cat.filter)}
-                className="flex flex-col items-center gap-1.5 shrink-0 w-[68px] active:scale-95 transition-transform"
+                className="flex h-auto flex-col items-center gap-1.5 shrink-0 w-[68px] whitespace-normal p-0 hover:bg-transparent [&_svg]:size-6"
               >
                 <span
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                  className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all ${
                     isActive
                       ? "bg-gradient-primary text-primary-foreground shadow-glow scale-105"
                       : "bg-card border border-border/60 text-primary shadow-soft"
@@ -168,7 +169,7 @@ const Grocery = () => {
                 <span className={`text-[10px] font-bold leading-tight text-center ${isActive ? "text-primary" : "text-foreground"}`}>
                   {t(cat.key)}
                 </span>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -191,10 +192,10 @@ const Grocery = () => {
                 ? Math.round(((p.price - p.discount_price) / p.price) * 100)
                 : 0;
               return (
-                <button
+                <Button variant="ghost"
                   key={p.id}
                   onClick={() => navigate(`/product/${p.id}`)}
-                  className="w-36 shrink-0 bg-gradient-card rounded-2xl border border-border/60 shadow-card overflow-hidden text-left active:scale-95 transition-transform"
+                  className="block h-auto whitespace-normal p-0 hover:bg-card w-36 shrink-0 bg-card rounded-lg border border-border shadow-soft overflow-hidden text-left active:scale-95 transition-transform"
                 >
                   <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
                     {p.image_url ? (
@@ -210,7 +211,7 @@ const Grocery = () => {
                   </div>
                   <div className="p-2.5">
                     <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
-                    <div className="flex items-baseline gap-1.5 mt-1">
+                    <div className="flex flex-wrap items-baseline gap-1.5 mt-1">
                       <span className="text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</span>
                       {p.discount_price && (
                         <span className="text-[10px] text-muted-foreground line-through">Rs {p.price}</span>
@@ -218,7 +219,7 @@ const Grocery = () => {
                     </div>
                     <p className="text-[10px] text-muted-foreground">{p.unit}</p>
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -236,10 +237,10 @@ const Grocery = () => {
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {topSelling.map((p, i) => (
-              <button
+              <Button variant="ghost"
                 key={p.id}
                 onClick={() => navigate(`/product/${p.id}`)}
-                className="w-36 shrink-0 bg-gradient-card rounded-2xl border border-border/60 shadow-card overflow-hidden text-left active:scale-95 transition-transform"
+                className="block h-auto whitespace-normal p-0 hover:bg-card w-36 shrink-0 bg-card rounded-lg border border-border shadow-soft overflow-hidden text-left active:scale-95 transition-transform"
               >
                 <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
                   {p.image_url ? (
@@ -253,7 +254,7 @@ const Grocery = () => {
                 </div>
                 <div className="p-2.5">
                   <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
-                  <div className="flex items-baseline gap-1.5 mt-1">
+                  <div className="flex flex-wrap items-baseline gap-1.5 mt-1">
                     <span className="text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</span>
                     {p.discount_price && (
                       <span className="text-[10px] text-muted-foreground line-through">Rs {p.price}</span>
@@ -261,7 +262,7 @@ const Grocery = () => {
                   </div>
                   <p className="text-[10px] text-muted-foreground">{p.unit}</p>
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         </section>
@@ -278,7 +279,7 @@ const Grocery = () => {
               <select
                 value={selectedCity || ""}
                 onChange={(e) => setSelectedCity(e.target.value || null)}
-                className="bg-card border rounded-full px-3 py-1.5 text-xs text-foreground outline-none"
+                className="h-10 bg-card border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">{t("grocery.allCities")}</option>
                 {cities.map((c) => (
@@ -292,17 +293,17 @@ const Grocery = () => {
             <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
             <div className="flex gap-1">
               {sortOptions.map((opt) => (
-                <button
+                <Button variant="ghost"
                   key={opt.value}
                   onClick={() => setSortBy(opt.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  className={`h-10 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                     sortBy === opt.value
                       ? "bg-gradient-primary text-primary-foreground shadow-glow"
                       : "bg-card border text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {t(opt.key)}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -320,7 +321,7 @@ const Grocery = () => {
         {loading ? (
           <StoreGridSkeleton count={6} />
         ) : stores.length === 0 ? (
-          <div className="rounded-2xl bg-gradient-primary p-6 text-center shadow-glow">
+          <div className="rounded-lg bg-gradient-primary p-6 text-center shadow-glow">
             <ShoppingBasket className="w-10 h-10 text-primary-foreground mx-auto mb-2" />
             <h3 className="text-lg font-extrabold text-primary-foreground mb-1">{t("grocery.comingSoon")}</h3>
             <p className="text-primary-foreground/80 text-xs">{t("grocery.noStores")}</p>
@@ -328,13 +329,13 @@ const Grocery = () => {
         ) : (
           <div className="space-y-3">
             {stores.map((store, i) => (
-              <button
+              <Button variant="ghost"
                 key={store.id}
                 onClick={() => navigate(`/grocery/${store.id}`)}
                 style={{ animationDelay: `${i * 50}ms` }}
-                className={`animate-fade-in-up w-full flex gap-3 bg-gradient-card rounded-2xl border border-border/60 shadow-card hover:shadow-elegant transition-all p-2.5 text-left ${!store.is_active ? "opacity-60 grayscale" : ""}`}
+                className={`animate-fade-in-up h-auto whitespace-normal hover:bg-card [&_svg]:size-4 w-full flex gap-3 bg-card rounded-lg border border-border shadow-soft hover:shadow-card transition-all p-2.5 text-left ${!store.is_active ? "opacity-60 grayscale" : ""}`}
               >
-                <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
+                <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
                   {store.image_url ? (
                     <img src={store.image_url} alt={store.name} loading="lazy" className="w-full h-full object-cover" />
                   ) : (
@@ -368,7 +369,7 @@ const Grocery = () => {
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground self-center shrink-0" />
-              </button>
+              </Button>
             ))}
           </div>
         )}

@@ -12,7 +12,7 @@ const LocationPill = ({ className = "" }: { className?: string }) => {
     <>
       <Button variant="ghost"
         onClick={() => setOpen(true)}
-        className={`flex h-9 min-w-0 max-w-[52vw] items-center gap-1.5 rounded-full bg-primary-foreground/15 px-2.5 py-1.5 text-primary-foreground hover:bg-primary-foreground/25 hover:text-primary-foreground transition-transform active:scale-95 sm:max-w-[280px] ${className}`}
+        className={`flex h-10 min-w-0 max-w-[52vw] items-center gap-1.5 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 px-2.5 py-1.5 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground sm:max-w-[280px] ${className}`}
       >
         <MapPin className="h-3.5 w-3.5 shrink-0 text-primary-foreground" />
         <span className="truncate text-[11px] font-bold text-primary-foreground">

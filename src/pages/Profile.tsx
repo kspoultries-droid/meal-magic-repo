@@ -204,7 +204,7 @@ const Profile = () => {
     <div className="min-h-screen bg-background pb-20">
 
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b px-4 h-14 flex items-center justify-between">
+      <div className="sticky top-0 z-50 bg-card border-b px-4 h-14 flex items-center justify-between shadow-soft">
         <h1 className="text-lg font-extrabold text-foreground">{t("profile.account")}</h1>
         <div className="flex items-center gap-1">
           <LanguageSwitcher />
@@ -216,10 +216,8 @@ const Profile = () => {
 
       {/* Profile Hero — Premium gradient card */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/70 px-4 pt-6 pb-8">
-        <div className="absolute -top-12 -right-8 w-44 h-44 rounded-full bg-primary-foreground/10 blur-2xl" />
-        <div className="absolute -bottom-16 -left-10 w-52 h-52 rounded-full bg-primary-foreground/5 blur-3xl" />
         <div className="relative flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary-foreground/20 backdrop-blur-md ring-2 ring-primary-foreground/30 flex items-center justify-center shadow-xl">
+          <div className="w-16 h-16 rounded-lg bg-primary-foreground/15 ring-1 ring-primary-foreground/30 flex items-center justify-center shadow-soft">
             <span className="text-2xl font-extrabold text-primary-foreground">
               {(profile?.full_name || user?.email || "U").charAt(0).toUpperCase()}
             </span>
@@ -248,7 +246,7 @@ const Profile = () => {
           </div>
         </div>
         {editing && (
-          <div className="relative mt-4 space-y-3 bg-card/95 backdrop-blur-md rounded-2xl p-4 shadow-xl">
+          <div className="relative mt-4 space-y-3 bg-card rounded-lg p-4 shadow-card">
             <Input placeholder={t("profile.fullName")} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
             <Input placeholder={t("profile.phone")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             <Input type="email" placeholder={t("profile.email")} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />

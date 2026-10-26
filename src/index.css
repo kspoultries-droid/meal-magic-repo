@@ -8,7 +8,7 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
 
 @layer base {
   :root {
-    --background: 120 15% 97%;
+    --background: 150 8% 98%;
     --foreground: 160 10% 10%;
 
     --card: 0 0% 100%;
@@ -36,7 +36,7 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
     --input: 120 10% 89%;
     --ring: 152 69% 40%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 160 5% 26%;
@@ -65,10 +65,10 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(120 20% 98%));
 
     /* Shadows */
-    --shadow-elegant: 0 10px 30px -10px hsl(152 69% 40% / 0.25);
-    --shadow-glow: 0 2px 8px hsl(152 69% 30% / 0.12);
-    --shadow-soft: 0 2px 8px -2px hsl(160 20% 20% / 0.06);
-    --shadow-card: 0 4px 16px -8px hsl(160 20% 20% / 0.1);
+    --shadow-elegant: 0 12px 28px -12px hsl(160 10% 10% / 0.18);
+    --shadow-glow: 0 2px 8px -2px hsl(160 10% 10% / 0.12);
+    --shadow-soft: 0 1px 3px hsl(160 10% 10% / 0.05);
+    --shadow-card: 0 4px 14px -6px hsl(160 10% 10% / 0.12);
 
     /* Motion */
     --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -110,7 +110,7 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
     --gradient-subtle: linear-gradient(180deg, hsl(160 10% 7%), hsl(160 10% 5%));
     --gradient-card: linear-gradient(180deg, hsl(160 10% 10%), hsl(160 10% 8%));
     --shadow-elegant: 0 10px 30px -10px hsl(152 80% 30% / 0.4);
-    --shadow-glow: 0 0 40px hsl(152 90% 60% / 0.25);
+    --shadow-glow: 0 2px 8px hsl(0 0% 0% / 0.35);
     --shadow-soft: 0 2px 12px -2px hsl(0 0% 0% / 0.4);
     --shadow-card: 0 4px 20px -8px hsl(0 0% 0% / 0.5);
   }
@@ -123,8 +123,31 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Nunito Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+    letter-spacing: 0;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  html[lang="ur"], html[lang="ar"] {
+    --font-rtl: "Noto Sans Arabic Variable", "DM Sans", sans-serif;
+  }
+
+  html[lang="ur"] body, html[lang="ar"] body,
+  html[lang="ur"] .font-display, html[lang="ar"] .font-display,
+  html[lang="ur"] h1, html[lang="ur"] h2, html[lang="ur"] h3, html[lang="ur"] h4,
+  html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3, html[lang="ar"] h4 {
+    font-family: var(--font-rtl);
+  }
+
+  button, input, textarea, select {
+    letter-spacing: 0;
   }
 
   @media (min-width: 640px) {
@@ -138,6 +161,11 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
   --primary-foreground: var(--navigation-foreground);
   --gradient-hero: var(--navigation-gradient);
   background: var(--navigation-gradient);
+}
+
+.app-bottom-nav {
+  --primary: var(--navigation-background);
+  --primary-foreground: var(--navigation-foreground);
 }
 
 .customer-category-tabs { top: var(--navbar-height); }
@@ -173,23 +201,21 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
     --border: 36 14% 87%;
     --input: 36 14% 87%;
     --ring: 31 86% 43%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
     --primary-glow: 37 92% 58%;
     --gradient-primary: linear-gradient(135deg, hsl(28 82% 42%), hsl(40 88% 48%));
     --gradient-hero: linear-gradient(135deg, hsl(38 92% 94%) 0%, hsl(31 82% 90%) 58%, hsl(24 70% 86%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(40 25% 99%), hsl(38 18% 95%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(38 24% 99%));
     --shadow-elegant: 0 12px 34px -14px hsl(25 38% 22% / 0.2);
-    --shadow-glow: 0 0 30px hsl(37 92% 58% / 0.25);
-    --shadow-soft: 0 2px 12px -2px hsl(25 20% 20% / 0.08);
-    --shadow-card: 0 6px 24px -12px hsl(25 25% 18% / 0.16);
-    font-family: "DM Sans", "Nunito Sans", sans-serif;
+    --shadow-glow: 0 2px 8px -2px hsl(25 10% 10% / 0.12);
+    --shadow-soft: 0 1px 3px hsl(25 10% 10% / 0.05);
+    --shadow-card: 0 4px 14px -6px hsl(25 10% 10% / 0.12);
   }
 
   .theme-bazar h1,
   .theme-bazar h2,
   .theme-bazar h3 {
-    font-family: "Space Grotesk", "Nunito Sans", sans-serif;
     letter-spacing: 0;
   }
 }
@@ -224,6 +250,14 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
 .admin-compact button { font-size: 0.75rem; }
 .admin-compact input,
 .admin-compact select { height: 2rem; font-size: 0.75rem; }
+
+@media (max-width: 639px) {
+  .admin-compact input, .admin-compact select {
+    min-height: 2.75rem;
+    font-size: 1rem;
+  }
+  .admin-compact button { font-size: 0.8125rem; }
+}
 
 
 @keyframes shimmer {
