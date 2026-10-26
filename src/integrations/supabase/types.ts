@@ -354,11 +354,14 @@ export type Database = {
       }
       delivery_offers: {
         Row: {
+          cash_to_collect: number | null
           created_at: string
           decline_reason: string | null
           delivery_fee: number
           distance_km: number | null
           dropoff_address: string | null
+          earning_distance_km: number | null
+          estimated_earning: number | null
           expires_at: string
           id: string
           is_batch: boolean
@@ -372,11 +375,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cash_to_collect?: number | null
           created_at?: string
           decline_reason?: string | null
           delivery_fee?: number
           distance_km?: number | null
           dropoff_address?: string | null
+          earning_distance_km?: number | null
+          estimated_earning?: number | null
           expires_at: string
           id?: string
           is_batch?: boolean
@@ -390,11 +396,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cash_to_collect?: number | null
           created_at?: string
           decline_reason?: string | null
           delivery_fee?: number
           distance_km?: number | null
           dropoff_address?: string | null
+          earning_distance_km?: number | null
+          estimated_earning?: number | null
           expires_at?: string
           id?: string
           is_batch?: boolean
@@ -4277,6 +4286,10 @@ export type Database = {
         Args: { _offer_id: string; _reason?: string }
         Returns: undefined
       }
+      delivery_dispatch_ready: {
+        Args: { _id: string; _kind: string }
+        Returns: boolean
+      }
       dispatch_next_rider: {
         Args: { _kind: string; _order_id: string }
         Returns: string
@@ -4613,6 +4626,10 @@ export type Database = {
       rider_cash_due: { Args: { _rider: string }; Returns: number }
       rider_cash_limit: { Args: never; Returns: number }
       rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
+      rider_dispatch_idle: {
+        Args: { _kind?: string; _order?: string; _rider: string }
+        Returns: boolean
+      }
       rider_end_break: { Args: never; Returns: undefined }
       rider_heartbeat: { Args: never; Returns: undefined }
       rider_hotspots: {

@@ -134,6 +134,13 @@
       "when": 1792973573722,
       "tag": "0018_unified_rider_location_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792974658485,
+      "tag": "0019_supervised_rider_dispatch_safety",
+      "breakpoints": true
     }
   ]
 }
