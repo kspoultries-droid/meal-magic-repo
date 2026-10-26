@@ -6,6 +6,18 @@
 
 html.pull-refresh-enabled { overscroll-behavior-y: contain; }
 
+.delivery-map-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid hsl(var(--card));
+  border-radius: 50%;
+  font-size: 22px;
+  box-shadow: var(--shadow-card);
+}
+.delivery-map-marker--rider { background: hsl(var(--primary)); }
+.delivery-map-marker--destination { background: hsl(var(--card)); }
+
 @layer base {
   :root {
     --background: 150 8% 98%;

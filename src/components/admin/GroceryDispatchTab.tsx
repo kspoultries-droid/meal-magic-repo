@@ -68,6 +68,9 @@ const GroceryDispatchTab = () => {
       .channel("admin-grocery-dispatch")
       .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders" }, () => fetchAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "grocery_list_orders" }, () => fetchAll())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "riders" }, ({ new: rider }) => {
+        setRiders(current => current.map(row => row.id === rider.id ? { ...row, ...rider } : row));
+      })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
@@ -76,8 +79,8 @@ const GroceryDispatchTab = () => {
   const riderPhone = (id: string) => riderProfiles.find((p) => p.id === id)?.phone || "";
 
   const nearest = (o: any) => {
-    const avail = riders.filter((r) => r.is_available && r.current_lat && r.current_lng);
-    if (!o.delivery_lat || !o.delivery_lng) return avail.slice(0, 5);
+    const avail = riders.filter((r) => r.is_available && r.current_lat != null && r.current_lng != null);
+    if (o.delivery_lat == null || o.delivery_lng == null) return avail.slice(0, 5);
     return avail
       .map((r) => ({ ...r, distance: haversineKm(r.current_lat, r.current_lng, o.delivery_lat, o.delivery_lng) }))
       .sort((a, b) => a.distance - b.distance)
