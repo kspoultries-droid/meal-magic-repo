@@ -16,6 +16,7 @@ import CartDrawer from "@/components/CartDrawer";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { ApkUpdateNotice } from "@/components/common/ApkUpdateNotice";
+import { RoleStartRedirect } from "@/components/common/RoleStartRedirect";
 import { RiderLocationProvider } from "@/contexts/RiderLocationContext";
 
 
@@ -181,6 +182,7 @@ const App = () => (
             <BrowserRouter>
               <RoutePrefetcher />
               <PullToRefresh />
+              <RoleStartRedirect />
               <CartDrawer />
               <FloatingCartBar />
               <Suspense fallback={<RouteLoading />}>

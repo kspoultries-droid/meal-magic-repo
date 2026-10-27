@@ -7,6 +7,7 @@ import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import NotificationBell from "@/components/common/NotificationBell";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { saveMode, type AppMode } from "@/lib/appMode";
 
 const Navbar = () => {
   const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, isStaff, signOut } = useAuth();
@@ -101,65 +102,50 @@ const Navbar = () => {
                     >
                       {menuOpen ? <X className="w-5 h-5 text-primary-foreground" /> : <Menu className="w-5 h-5 text-primary-foreground" />}
                     </Button>
-                    {menuOpen && (
-                      <div className="absolute right-0 top-full mt-1 w-44 bg-card border rounded-lg shadow-elegant py-2 z-50">
-                        {(isAdmin || isStaff) && (
-                          <Button variant="ghost"
-                            onClick={() => { navigate("/admin"); setMenuOpen(false); }}
-                            className="flex items-center gap-2 h-auto justify-start whitespace-normal w-full px-4 py-2.5 text-sm font-medium text-destructive hover:bg-secondary transition-colors"
-                          >
-                            <Shield className="w-4 h-4" /> ایڈمن ڈیش بورڈ
-                          </Button>
-                        )}
-                        {isRestaurantOwner && (
-                          <Button variant="ghost"
-                            onClick={() => { navigate("/restaurant-dashboard"); setMenuOpen(false); }}
-                            className="flex items-center gap-2 h-auto justify-start whitespace-normal w-full px-4 py-2.5 text-sm font-medium text-primary hover:bg-secondary transition-colors"
-                          >
-                            <Store className="w-4 h-4" /> ریسٹورنٹ ڈیش بورڈ
-                          </Button>
-                        )}
-                        {isRider && (
-                          <Button variant="ghost"
-                            onClick={() => { navigate("/rider-dashboard"); setMenuOpen(false); }}
-                            className="flex items-center gap-2 h-auto justify-start whitespace-normal w-full px-4 py-2.5 text-sm font-medium text-accent-foreground hover:bg-secondary transition-colors"
-                          >
-                            <Bike className="w-4 h-4" /> رائیڈر ڈیش بورڈ
-                          </Button>
-                        )}
-                        {isSupport && (
-                          <Button variant="ghost"
-                            onClick={() => { navigate("/support-dashboard"); setMenuOpen(false); }}
-                            className="flex items-center gap-2 h-auto justify-start whitespace-normal w-full px-4 py-2.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
-                          >
-                            <Headphones className="w-4 h-4" /> سپورٹ ڈیش بورڈ
-                          </Button>
-                        )}
-                        {isMechanic && (
-                          <Button variant="ghost"
-                            onClick={() => { navigate("/mechanic-dashboard"); setMenuOpen(false); }}
-                            className="flex items-center gap-2 h-auto justify-start whitespace-normal w-full px-4 py-2.5 text-sm font-medium text-accent-foreground hover:bg-secondary transition-colors"
-                          >
-                            <Wrench className="w-4 h-4" /> مکینک ڈیش بورڈ
-                          </Button>
-                        )}
-                        {isServiceManager && (
-                          <Button variant="ghost"
-                            onClick={() => { navigate("/service-manager"); setMenuOpen(false); }}
-                            className="flex items-center gap-2 h-auto justify-start whitespace-normal w-full px-4 py-2.5 text-sm font-medium text-accent-foreground hover:bg-secondary transition-colors"
-                          >
-                            <ClipboardList className="w-4 h-4" /> {t("role.serviceManager")}
-                          </Button>
-                        )}
-                        <div className="border-t my-1" />
-                        <Button variant="ghost"
-                          onClick={async () => { await signOut(); navigate("/"); setMenuOpen(false); }}
-                          className="flex items-center gap-2 h-auto justify-start whitespace-normal w-full px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
-                        >
-                          <LogOut className="w-4 h-4" /> لاگ آؤٹ
-                        </Button>
-                      </div>
-                    )}
+                    {menuOpen && (() => {
+                      const go = (path: string, mode?: AppMode) => {
+                        if (mode) saveMode(mode);
+                        navigate(path);
+                        setMenuOpen(false);
+                      };
+                      const items = [
+                        { show: true, label: "کسٹمر", icon: User, path: "/", mode: "customer" as AppMode },
+                        { show: isRider, label: "رائیڈر", icon: Bike, path: "/rider-dashboard", mode: "rider" as AppMode },
+                        { show: isRestaurantOwner, label: "دکان", icon: Store, path: "/restaurant-dashboard", mode: "restaurant" as AppMode },
+                        { show: isAdmin || isStaff, label: "ایڈمن", icon: Shield, path: "/admin" },
+                        { show: isSupport, label: "سپورٹ", icon: Headphones, path: "/support-dashboard" },
+                        { show: isMechanic, label: "مکینک", icon: Wrench, path: "/mechanic-dashboard" },
+                        { show: isServiceManager, label: t("role.serviceManager"), icon: ClipboardList, path: "/service-manager" },
+                      ].filter((i) => i.show);
+                      return (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                          <div className="absolute right-0 top-full mt-1 w-60 bg-card border rounded-xl shadow-elegant p-2 z-50">
+                            <p className="px-1 pb-1.5 text-[11px] font-semibold text-muted-foreground">موڈ منتخب کریں</p>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {items.map(({ label, icon: Icon, path, mode }) => (
+                                <button
+                                  key={path}
+                                  type="button"
+                                  onClick={() => go(path, mode)}
+                                  className="flex flex-col items-center justify-center gap-1 rounded-lg bg-secondary px-1 py-2 text-[11px] font-semibold text-foreground hover:bg-primary/10 transition-colors"
+                                >
+                                  <Icon className="w-4 h-4 text-primary" />
+                                  <span className="leading-tight text-center">{label}</span>
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => { await signOut(); navigate("/"); setMenuOpen(false); }}
+                              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary"
+                            >
+                              <LogOut className="w-4 h-4" /> لاگ آؤٹ
+                            </button>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </>
                 ) : (
                   <Button variant="ghost"
