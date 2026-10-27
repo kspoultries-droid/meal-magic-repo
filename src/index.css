@@ -17,6 +17,8 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
 }
 .delivery-map-marker--rider { background: hsl(var(--primary)); }
 .delivery-map-marker--destination { background: hsl(var(--card)); }
+.delivery-map-marker--pickup { background: hsl(var(--warning)); }
+.delivery-route-line { stroke: hsl(var(--primary)); }
 
 @layer base {
   :root {

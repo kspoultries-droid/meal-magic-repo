@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import NotificationBell from "@/components/common/NotificationBell";
+import LiveDeliveryRoute from "@/components/orders/LiveDeliveryRoute";
+import ReportProblemDialog from "@/components/support/ReportProblemDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -845,6 +847,7 @@ const OwnerOrdersTab = () => {
 
         {o.delivery_address && <p className="text-[11px] text-muted-foreground line-clamp-1">📍 {o.delivery_address}</p>}
         {o.notes && <p className="text-[11px] text-muted-foreground line-clamp-1">📝 {o.notes}</p>}
+        {o.rider_id && ['assigned', 'arrived_pickup'].includes(o.delivery_stage || 'assigned') && <details className="text-xs"><summary className="cursor-pointer py-2 font-bold text-primary">رائیڈر کا مقام اور راستہ / Rider route</summary><LiveDeliveryRoute orderId={o.id} kind="food" stage={o.delivery_stage || 'assigned'} audience="owner" /><ReportProblemDialog orderId={o.id} orderKind="food" /></details>}
 
         {!["delivering", "delivered", "completed", "cancelled"].includes(o.status) && (
           <div className="flex flex-wrap items-center gap-1.5 rounded-md bg-secondary/30 px-2 py-1.5">
