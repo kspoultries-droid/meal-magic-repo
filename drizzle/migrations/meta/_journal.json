@@ -260,6 +260,13 @@
       "when": 1793107597431,
       "tag": "0036_rider_background_presence_window",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793111040803,
+      "tag": "0037_referral_anti_fraud",
+      "breakpoints": true
     }
   ]
 }

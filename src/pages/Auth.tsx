@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { captureRefFromUrl, getStoredRef } from "@/lib/referral";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [referralCode, setReferralCode] = useState("");
+  const [referralCode, setReferralCode] = useState(() => { captureRefFromUrl(); return getStoredRef(); });
   const [loading, setLoading] = useState(false);
   const [signupNotice, setSignupNotice] = useState("");
   const navigate = useNavigate();
