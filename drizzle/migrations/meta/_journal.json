@@ -274,6 +274,13 @@
       "when": 1793124117743,
       "tag": "0038_promotional_ads_campaign_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793134752932,
+      "tag": "0039_product_weight_from_unit",
+      "breakpoints": true
     }
   ]
 }
