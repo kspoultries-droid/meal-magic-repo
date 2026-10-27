@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
 import { useCityServices } from "@/hooks/useCityServices";
 import { matchesSearch } from "@/lib/searchMatch";
-import { Search, Truck, BadgeCheck, Camera, X } from "lucide-react";
+import { Search, Truck, BadgeCheck, X } from "lucide-react";
 import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
@@ -140,7 +140,7 @@ const Grocery = () => {
           <div className="relative mt-3 grid grid-cols-3 gap-2 text-[10px] font-bold">
             <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><BadgeCheck className="size-3.5" /> روزانہ تازہ</span>
             <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Truck className="size-3.5" /> تیز ڈیلیوری</span>
-            <button type="button" onClick={() => navigate("/photo-order")} className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Camera className="size-3.5" /> فوٹو لسٹ</button>
+            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Percent className="size-3.5" /> 30% تک رعایت</span>
           </div>
         </div>
       </section>
