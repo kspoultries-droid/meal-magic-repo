@@ -22,10 +22,10 @@ interface Voucher {
 }
 
 const gradients = [
-  "from-foreground to-muted-foreground",
-  "from-amber-500 to-orange-500",
-  "from-destructive to-rose-500",
+  "from-amber-500 via-orange-500 to-amber-600",
   "from-primary to-primary-glow",
+  "from-destructive to-rose-500",
+  "from-emerald-500 to-teal-500",
 ];
 
 const BazarDeals = () => {
