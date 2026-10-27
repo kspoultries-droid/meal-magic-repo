@@ -22,10 +22,10 @@ interface Voucher {
 }
 
 const gradients = [
-  "from-foreground to-muted-foreground",
-  "from-amber-500 to-orange-500",
-  "from-destructive to-rose-500",
+  "from-amber-500 via-orange-500 to-amber-600",
   "from-primary to-primary-glow",
+  "from-destructive to-rose-500",
+  "from-emerald-500 to-teal-500",
 ];
 
 const BazarDeals = () => {
@@ -124,27 +124,27 @@ const BazarDeals = () => {
             <div
               key={v.id}
               style={{ animationDelay: `${i * 60}ms` }}
-              className={`animate-fade-in relative shrink-0 w-64 rounded-2xl bg-gradient-to-br ${gradients[i % gradients.length]} p-4 text-primary-foreground shadow-card overflow-hidden`}
+              className={`animate-fade-in relative shrink-0 w-52 rounded-2xl bg-gradient-to-br ${gradients[i % gradients.length]} p-3.5 text-primary-foreground shadow-card overflow-hidden`}
             >
               {/* ticket notches */}
               <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-background" />
               <div className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-background" />
-              <div className="pointer-events-none absolute -top-8 -right-8 w-24 h-24 rounded-full bg-primary-foreground/15 blur-2xl" />
+              <div className="pointer-events-none absolute -top-8 -right-8 w-20 h-20 rounded-full bg-primary-foreground/20 blur-2xl" />
 
-              <p className="text-xl font-extrabold leading-tight">
+              <p className="text-lg font-extrabold leading-tight">
                 {v.discount_type === "percent" ? `${v.discount_value}% رعایت` : `Rs ${v.discount_value} رعایت`}
               </p>
-              <p className="text-xs font-bold opacity-95 truncate">{v.title_ur || v.title}</p>
+              <p className="text-[11px] font-bold opacity-95 truncate">{v.title_ur || v.title}</p>
               {v.min_order > 0 && (
-                <p className="text-[10px] opacity-80 mt-0.5">کم از کم آرڈر: Rs {v.min_order}</p>
+                <p className="text-[9px] opacity-80 mt-0.5">کم از کم آرڈر: Rs {v.min_order}</p>
               )}
 
               <button
                 onClick={() => copyCode(v)}
-                className="mt-2.5 flex items-center justify-between w-full rounded-lg border border-dashed border-primary-foreground/50 bg-primary-foreground/15 backdrop-blur-sm px-3 py-1.5 active:scale-95 transition-transform"
+                className="mt-2 flex items-center justify-between w-full rounded-lg border border-dashed border-primary-foreground/50 bg-primary-foreground/15 backdrop-blur-sm px-2.5 py-1 active:scale-95 transition-transform"
               >
-                <span className="font-mono font-extrabold tracking-widest text-sm">{v.code}</span>
-                {copiedId === v.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4 opacity-80" />}
+                <span className="font-mono font-extrabold tracking-widest text-xs">{v.code}</span>
+                {copiedId === v.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5 opacity-80" />}
               </button>
 
               {isAdmin && (
