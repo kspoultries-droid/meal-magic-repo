@@ -350,7 +350,7 @@ const Profile = () => {
             </button>
             <button
               onClick={() => {
-                const msg = `EasyLife app join کریں اور بہترین آفرز پائیں! میرا ریفرل کوڈ: ${profile.referral_code}\n\nhttps://easylife.apnahub.online`;
+                const msg = `Easy Life ایپ ڈاؤنلوڈ کریں، پہلے آرڈر پر Rs 50 انعام! میرا کوڈ: ${profile.referral_code}\n\nhttps://easylife.apnahub.online/install?ref=${profile.referral_code}`;
                 window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
               }}
               className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground active:scale-95 transition-transform"

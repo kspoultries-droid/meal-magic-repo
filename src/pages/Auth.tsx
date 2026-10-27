@@ -16,7 +16,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [referralCode, setReferralCode] = useState("");
+  const [referralCode, setReferralCode] = useState(() => { captureRefFromUrl(); return getStoredRef(); });
   const [loading, setLoading] = useState(false);
   const [signupNotice, setSignupNotice] = useState("");
   const navigate = useNavigate();
