@@ -7,8 +7,8 @@ android {
         applicationId "app.lovable.p1324956aa36e44cebf0eabe4ab646da4"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode (System.getenv("EASYLIFE_ANDROID_BUILD") ?: "1").toInteger()
+        versionName System.getenv("EASYLIFE_ANDROID_VERSION") ?: "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
