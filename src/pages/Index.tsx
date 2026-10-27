@@ -3,7 +3,6 @@ import Navbar from "@/components/Navbar";
 import HomeHero from "@/components/home/HomeHero";
 import TopPicksRail from "@/components/home/TopPicksRail";
 import QuickCategories, { QuickFilter } from "@/components/QuickCategories";
-import PromotionalAds from "@/components/PromotionalAds";
 import CategoryRail from "@/components/home/CategoryRail";
 import HeroPromo from "@/components/home/HeroPromo";
 import RestaurantGrid from "@/components/RestaurantGrid";
@@ -42,7 +41,6 @@ const Index = () => {
 
       {!isSearching && !quickFilter && (
         <>
-          <PromotionalAds placement="home" />
           <TopPicksRail />
         </>
       )}

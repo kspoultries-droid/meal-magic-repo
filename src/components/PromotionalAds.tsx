@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Autoplay from "embla-carousel-autoplay";
@@ -26,6 +26,9 @@ export interface Ad {
 interface PromotionalAdsProps {
   placement: "home" | "grocery" | "restaurant" | "checkout" | "bazar";
   className?: string;
+  /** Built-in slides shown after paid ads (hero mode); total capped by `max`. */
+  extraSlides?: { key: string; node: React.ReactNode }[];
+  max?: number;
 }
 
 const seen = new Set<string>();
@@ -78,7 +81,7 @@ export const AdSlide = ({ ad, eager, onOpen }: { ad: Ad; eager?: boolean; onOpen
   );
 };
 
-const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
+const PromotionalAds = ({ placement, className = "", extraSlides = [], max = 8 }: PromotionalAdsProps) => {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
@@ -102,7 +105,7 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
         const inDateRange = (!ad.start_date || ad.start_date <= today) && (!ad.end_date || ad.end_date >= today);
         return placementMatch && paidForBazar && inDateRange;
       });
-      setAds(filtered as Ad[]);
+      setAds((filtered as Ad[]).slice(0, max));
       setLoaded(true);
     };
     fetchAds();
@@ -127,24 +130,29 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
     else window.open(link, "_blank", "noopener,noreferrer");
   };
 
-  if (loaded && ads.length === 0) return null;
+  const extras = extraSlides.slice(0, Math.max(0, max - ads.length));
+  const total = ads.length + extras.length;
+  if (loaded && total === 0) return null;
   if (!loaded) return <div className={`px-3 py-2 ${className}`}><div className="aspect-[2/1] w-full animate-pulse rounded-2xl bg-muted" /></div>;
 
   return (
     <section className={`px-3 py-2 ${className}`}>
-      <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: ads.length > 1, align: "start", direction: rtl ? "rtl" : "ltr" }} plugins={ads.length > 1 ? [autoplay.current] : []} className="w-full">
+      <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, align: "start", direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 ? [autoplay.current] : []} className="w-full">
         <CarouselContent className="-ml-2">
           {ads.map((ad, i) => (
             <CarouselItem key={ad.id} className="basis-full pl-2 md:basis-1/2 lg:basis-1/3">
               <AdSlide ad={ad} eager={i === 0} onOpen={() => open(ad)} />
             </CarouselItem>
           ))}
+          {extras.map((x) => (
+            <CarouselItem key={x.key} className="basis-full pl-2 md:basis-1/2 lg:basis-1/3">{x.node}</CarouselItem>
+          ))}
         </CarouselContent>
       </Carousel>
-      {ads.length > 1 && (
+      {total > 1 && (
         <div className="mt-2 flex justify-center gap-1.5">
-          {ads.map((ad, i) => (
-            <button key={ad.id} type="button" aria-label={`ایڈ ${i + 1}`} onClick={() => api?.scrollTo(i)}
+          {[...ads.map((a) => a.id), ...extras.map((x) => x.key)].map((id, i) => (
+            <button key={id} type="button" aria-label={`ایڈ ${i + 1}`} onClick={() => api?.scrollTo(i)}
               className={`h-1.5 rounded-full transition-all ${i === current ? "w-5 bg-primary" : "w-1.5 bg-muted-foreground/40"}`} />
           ))}
         </div>
