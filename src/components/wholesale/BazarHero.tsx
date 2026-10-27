@@ -10,9 +10,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface Props {
   searchQuery: string;
   onSearchChange: (v: string) => void;
+  hideAds?: boolean;
 }
 
-const BazarHero = ({ searchQuery, onSearchChange }: Props) => {
+const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const { isAdmin } = useAuth();
   const { t } = useLanguage();
   const { config, save } = useHeroSettings("hero_bazar", bazarHeroDefaults);
@@ -42,8 +43,8 @@ const BazarHero = ({ searchQuery, onSearchChange }: Props) => {
           </label>
         </div>
       </div>
-      <PromotionalAds placement="bazar" className="relative z-10 mx-auto w-full max-w-7xl px-3 py-3 sm:px-6" />
-      {config.showBadges && (
+      {!hideAds && <PromotionalAds placement="bazar" className="relative z-10 mx-auto w-full max-w-7xl px-3 py-3 sm:px-6" />}
+      {!hideAds && config.showBadges && (
         <div className="relative z-10 flex min-h-9 items-center justify-center gap-4 border-t border-border/70 bg-card/80 px-3 py-2 text-[10px] font-semibold text-muted-foreground sm:gap-10">
           <span className="flex items-center gap-1.5"><ShieldCheck className="size-3.5 shrink-0 text-primary" /> {config.badge1}</span>
           <span className="flex items-center gap-1.5"><Truck className="size-3.5 shrink-0 text-primary" /> {config.badge2}</span>

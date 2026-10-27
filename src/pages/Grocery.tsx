@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
 import { useCityServices } from "@/hooks/useCityServices";
-import PageHero from "@/components/common/PageHero";
+import { matchesSearch } from "@/lib/searchMatch";
+import { Search, Truck, BadgeCheck, X } from "lucide-react";
 import PromotionalAds from "@/components/PromotionalAds";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
@@ -36,6 +37,13 @@ const sortOptions = [
 
 const Grocery = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  useEffect(() => { const id = setTimeout(() => setDebounced(searchQuery.trim()), 300); return () => clearTimeout(id); }, [searchQuery]);
+  useEffect(() => {
+    if (!debounced || allProducts.length) return;
+    supabase.from("grocery_products").select("id, name, price, discount_price, image_url, unit, store_id, category").eq("is_available", true).limit(3000).then(({ data }) => setAllProducts(data || []));
+  }, [debounced, allProducts.length]);
   const [stores, setStores] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
   const [topSelling, setTopSelling] = useState<any[]>([]);
@@ -87,7 +95,6 @@ const Grocery = () => {
         .or("store_type.is.null,store_type.eq.retail");
       if (activeCategory) query = query.eq("category", activeCategory);
       if (selectedCity) query = query.eq("city_id", selectedCity);
-      if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
 
       if (sortBy === "rating") {
         query = query.order("rating", { ascending: false, nullsFirst: false });
@@ -97,42 +104,46 @@ const Grocery = () => {
         query = query.order("sort_order", { ascending: true }).order("created_at", { ascending: false });
       }
 
-      const { data } = await query.limit(40);
+      const { data } = await query.limit(200);
       setStores(data || []);
       setLoading(false);
     };
     fetchStores();
-  }, [activeCategory, searchQuery, selectedCity, sortBy]);
+  }, [activeCategory, selectedCity, sortBy]);
 
-  const storeCount = stores.length;
+  const storeIds = new Set(stores.map((x) => x.id));
+  const shownStores = debounced ? stores.filter((x) => matchesSearch(debounced, x.name, x.category)) : stores.slice(0, 40);
+  const productHits = debounced ? allProducts.filter((p) => storeIds.has(p.store_id) && matchesSearch(debounced, p.name, p.category)).slice(0, 40) : [];
+  const storeCount = shownStores.length;
 
   return (
     <div className="min-h-screen bg-background pb-24">
       <Navbar />
 
-      <PageHero
-        title={t("grocery.title")}
-        eyebrow={t("grocery.eyebrow")}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        placeholders={[
-          "آج گھر کے لیے کیا چاہیے؟",
-          "تازہ دودھ، سبزی یا پھل؟",
-          "آٹا، چاول یا مصالحے؟",
-          "اپنی پسند کی شے لکھیں…",
-        ]}
-        features={[
-          { emoji: "🥬", label: "روزانہ تازہ" },
-          { emoji: "💸", label: "30% تک رعایت" },
-          { emoji: "🚚", label: "مفت ڈیلیوری" },
-          { emoji: "📸", label: "فوٹو لسٹ آرڈر" },
-        ]}
-        promos={[
-          { emoji: "🥬", title: "روزانہ تازہ سبزی و پھل", subtitle: "Fresh daily from local markets" },
-          { emoji: "💸", title: "منتخب اشیاء پر 30% تک رعایت", subtitle: "Up to 30% off on selected items" },
-          { emoji: "🚚", title: "Rs 1000 سے اوپر مفت ڈیلیوری", subtitle: "Free delivery above Rs 1000" },
-        ]}
-      />
+      <section className="px-3 pt-3">
+        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl bg-gradient-hero p-4 text-primary-foreground shadow-elegant">
+          <div className="pointer-events-none absolute -left-10 -top-10 size-40 rounded-full bg-primary-foreground/10" />
+          <div className="pointer-events-none absolute -bottom-12 left-16 size-32 rounded-full bg-primary-foreground/10" />
+          <div className="relative flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold opacity-90">{t("grocery.eyebrow")}</p>
+              <h1 className="mt-0.5 text-2xl font-extrabold leading-tight">{t("grocery.title")}</h1>
+              <p className="mt-1 text-xs opacity-90">تازہ سبزی، پھل اور روزمرہ سامان — گھر کی دہلیز پر</p>
+            </div>
+            <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary-foreground/15 text-3xl backdrop-blur">🛒</span>
+          </div>
+          <label className="relative mt-4 flex h-12 items-center gap-2.5 rounded-xl bg-card px-3.5 text-card-foreground shadow-soft focus-within:ring-2 focus-within:ring-ring">
+            <Search className="size-5 shrink-0 text-primary" />
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="دکان یا چیز تلاش کریں (اردو / English)" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+            {searchQuery && <button type="button" aria-label="صاف کریں" onClick={() => setSearchQuery("")} className="grid size-7 place-items-center rounded-full bg-muted"><X className="size-3.5" /></button>}
+          </label>
+          <div className="relative mt-3 grid grid-cols-3 gap-2 text-[10px] font-bold">
+            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><BadgeCheck className="size-3.5" /> روزانہ تازہ</span>
+            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Truck className="size-3.5" /> تیز ڈیلیوری</span>
+            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Percent className="size-3.5" /> 30% تک رعایت</span>
+          </div>
+        </div>
+      </section>
 
 
       {!groceryLive ? (
@@ -140,7 +151,23 @@ const Grocery = () => {
       ) : (
       <>
       {/* Sponsored Ads */}
-      <PromotionalAds placement="grocery" />
+      {!debounced && <PromotionalAds placement="grocery" />}
+
+      {debounced && (
+        <section className="container mx-auto px-4 pt-4">
+          <h2 className="mb-2 text-base font-extrabold">«{debounced}» — {productHits.length} اشیاء</h2>
+          {productHits.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {productHits.map((p) => (
+                <Button variant="ghost" key={p.id} onClick={() => navigate(`/product/${p.id}`)} className="block h-auto overflow-hidden whitespace-normal rounded-xl border bg-card p-0 text-right shadow-soft hover:bg-card">
+                  <div className="grid h-28 place-items-center bg-secondary">{p.image_url ? <img src={img(p.image_url, 320)} alt={p.name} loading="lazy" className="size-full object-cover" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
+                  <div className="p-2"><p className="truncate text-xs font-bold">{p.name}</p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price} <span className="text-[10px] font-normal text-muted-foreground">{p.unit}</span></p></div>
+                </Button>
+              ))}
+            </div>
+          ) : <p className="rounded-xl border bg-card py-6 text-center text-xs text-muted-foreground">کوئی چیز نہیں ملی — اردو یا انگریزی میں دوسرا نام لکھیں</p>}
+        </section>
+      )}
 
       {/* Category rail */}
       <section className="container mx-auto px-4 py-4">
@@ -177,7 +204,7 @@ const Grocery = () => {
       </section>
 
       {/* Deals / Top selling products rail */}
-      {deals.length > 0 && !searchQuery && (
+      {deals.length > 0 && !debounced && (
         <section className="container mx-auto px-4 pb-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-baseline gap-2">
@@ -228,7 +255,7 @@ const Grocery = () => {
       )}
 
       {/* Top selling products rail */}
-      {topSelling.length > 0 && !searchQuery && (
+      {topSelling.length > 0 && !debounced && (
         <section className="container mx-auto px-4 pb-4">
           <div className="flex items-baseline gap-2 mb-3">
             <h2 className="text-lg font-extrabold text-foreground flex items-center gap-1.5">
@@ -321,7 +348,7 @@ const Grocery = () => {
         </div>
         {loading ? (
           <StoreGridSkeleton count={6} />
-        ) : stores.length === 0 ? (
+        ) : shownStores.length === 0 ? (
           <div className="rounded-lg bg-gradient-primary p-6 text-center shadow-glow">
             <ShoppingBasket className="w-10 h-10 text-primary-foreground mx-auto mb-2" />
             <h3 className="text-lg font-extrabold text-primary-foreground mb-1">{t("grocery.comingSoon")}</h3>
@@ -329,7 +356,7 @@ const Grocery = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {stores.map((store, i) => (
+            {shownStores.map((store, i) => (
               <Button variant="ghost"
                 key={store.id}
                 onClick={() => navigate(`/grocery/${store.id}`)}
