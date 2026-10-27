@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useState } from "react";
 import { Heart, ImageOff, Package, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
       <Button variant="ghost" onClick={onClick} className={list ? "flex h-auto w-full items-center justify-start gap-3 whitespace-normal p-2 text-start hover:bg-card" : "block h-auto w-full whitespace-normal p-0 text-start hover:bg-card"} aria-label={`${product.name} دیکھیں`}>
         <div className={`relative shrink-0 overflow-hidden bg-accent ${list ? "size-24 rounded-md" : compact ? "h-28 w-full" : "aspect-square w-full"}`}>
           {showImage ? (
-            <img src={imageUrl as string} alt={product.name} loading="lazy" onError={() => setImageFailed(true)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <img src={img(imageUrl as string, 400)} alt={product.name} loading="lazy" onError={() => setImageFailed(true)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-accent-foreground">
               <span className="grid size-10 place-items-center rounded-full border border-primary/20 bg-card/70"><Package className="size-5 text-primary" /></span>

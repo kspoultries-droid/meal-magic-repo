@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as LucideIcons from "lucide-react";
@@ -95,7 +96,7 @@ const Wholesale = () => {
             <Button variant="ghost" key={store.id} onClick={() => navigate(`/bazar/${store.id}`)} className={`group relative block h-auto whitespace-normal p-0 hover:bg-card min-w-0 overflow-hidden rounded-lg border border-border bg-card text-right shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card ${!store.is_active ? "opacity-60 grayscale" : ""}`}>
               <div className="relative h-24 w-full overflow-hidden bg-gradient-to-br from-primary/15 via-accent to-secondary sm:h-28">
                 {store.image_url ? (
-                  <img src={store.image_url} alt={store.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <img src={img(store.image_url, 480)} alt={store.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
                   <div className="grid h-full place-items-center"><span className="grid size-12 place-items-center rounded-lg border border-primary/15 bg-background/80 shadow-sm"><Store className="size-6 text-primary" /></span></div>
                 )}

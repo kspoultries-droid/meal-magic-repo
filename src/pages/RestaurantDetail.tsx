@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,7 +61,7 @@ const RestaurantDetail = () => {
       {/* Hero */}
       <div className="relative h-56 md:h-72 overflow-hidden">
         <img
-          src={restaurant.image_url || restaurantFallback}
+          src={restaurant.image_url ? img(restaurant.image_url, 960) : restaurantFallback}
           alt={restaurant.name}
           className="w-full h-full object-cover"
         />
@@ -124,7 +125,7 @@ const RestaurantDetail = () => {
                   return (
                   <div key={item.id} className={`flex items-center gap-3 rounded-lg p-3 border transition-all ${selectedQty > 0 ? "bg-accent border-primary/40 shadow-card" : "bg-card border-border hover:shadow-card"}`}>
                     {item.image_url && (
-                      <img src={item.image_url} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
+                      <img src={img(item.image_url, 200)} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-foreground">{item.name}</h3>

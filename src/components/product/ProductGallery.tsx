@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useState } from "react";
 import { Package, Star } from "lucide-react";
 
@@ -29,7 +30,7 @@ const ProductGallery = ({ images, name, rating = 0, soldCount = 0 }: Props) => {
           list.map((src, i) => (
             <img
               key={i}
-              src={src}
+              src={img(src, 900)}
               alt={`${name} ${i + 1}`}
               loading={i === 0 ? "eager" : "lazy"}
               className="w-full h-full shrink-0 snap-center object-cover"

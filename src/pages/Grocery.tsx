@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -199,7 +200,7 @@ const Grocery = () => {
                 >
                   <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
                     {p.image_url ? (
-                      <img src={p.image_url} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                      <img src={img(p.image_url, 360)} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
                     ) : (
                       <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
                     )}
@@ -244,7 +245,7 @@ const Grocery = () => {
               >
                 <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
                   {p.image_url ? (
-                    <img src={p.image_url} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                    <img src={img(p.image_url, 360)} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
                   ) : (
                     <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
                   )}
@@ -337,7 +338,7 @@ const Grocery = () => {
               >
                 <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
                   {store.image_url ? (
-                    <img src={store.image_url} alt={store.name} loading="lazy" className="w-full h-full object-cover" />
+                    <img src={img(store.image_url, 360)} alt={store.name} loading="lazy" className="w-full h-full object-cover" />
                   ) : (
                     <ShoppingBasket className="w-8 h-8 text-muted-foreground" />
                   )}

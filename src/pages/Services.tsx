@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -352,7 +353,7 @@ const Services = () => {
                   className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg border bg-card hover:shadow-sm transition-all"
                 >
               {cat.image_url ? (
-                    <img src={cat.image_url} alt={cat.name} className="w-5 h-5 object-cover rounded" />
+                    <img src={img(cat.image_url, 360)} alt={cat.name} className="w-5 h-5 object-cover rounded" />
                   ) : (
                     <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                   )}
@@ -380,7 +381,7 @@ const Services = () => {
               >
               <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center overflow-hidden`}>
                   {cat.image_url ? (
-                    <img src={cat.image_url} alt={cat.name} className={`w-full h-full object-cover ${!cat.is_active ? "grayscale" : ""}`} />
+                    <img src={img(cat.image_url, 360)} alt={cat.name} className={`w-full h-full object-cover ${!cat.is_active ? "grayscale" : ""}`} />
                   ) : (
                     <Icon className="w-4 h-4" />
                   )}
@@ -441,7 +442,7 @@ const Services = () => {
                     effectivelyActive ? "bg-secondary" : "bg-muted"
                   }`}>
                     {service.image_url ? (
-                      <img src={service.image_url} alt={service.name} className={`w-full h-full object-cover ${!effectivelyActive ? "grayscale" : ""}`} />
+                      <img src={img(service.image_url, 360)} alt={service.name} className={`w-full h-full object-cover ${!effectivelyActive ? "grayscale" : ""}`} />
                     ) : (
                       <Wrench className="w-8 h-8 text-muted-foreground" />
                     )}
@@ -582,7 +583,7 @@ const Services = () => {
               <div key={provider.id} className="bg-card rounded-2xl p-4 border flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0">
                   {provider.image_url ? (
-                    <img src={provider.image_url} alt={provider.name} className="w-full h-full object-cover" />
+                    <img src={img(provider.image_url, 360)} alt={provider.name} className="w-full h-full object-cover" />
                   ) : (
                     <Wrench className="w-5 h-5 text-muted-foreground" />
                   )}

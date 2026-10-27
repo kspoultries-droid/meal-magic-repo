@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { AdSlide } from "@/components/PromotionalAds";
 import { Plus, Trash2, RefreshCw, Megaphone, Eye, EyeOff, Package } from "lucide-react";
 
 const PLACEMENT_LABELS: Record<string, string> = {
@@ -15,6 +16,12 @@ const PLACEMENT_LABELS: Record<string, string> = {
   restaurant: "🍔 ریسٹورنٹ",
   checkout: "💳 چیک آؤٹ",
   bazar: "📦 بازار ہیرو",
+};
+
+const AD_TYPES: Record<string, { label: string; hint: string; cta: string }> = {
+  banner: { label: "🏢 برانڈ کیمپین", hint: "مثلاً JazzCash، Coca-Cola — صرف برانڈ کی تشہیر", cta: "مزید جانیں" },
+  product: { label: "🛍️ ایک پروڈکٹ", hint: "کسی ایک چیز کی قیمت اور تصویر کے ساتھ", cta: "ابھی خریدیں" },
+  offer: { label: "🏷️ ڈسکاؤنٹ / آفر", hint: "مثلاً 20% OFF یا پرومو کوڈ", cta: "آفر حاصل کریں" },
 };
 
 const AdsTab = () => {
@@ -37,6 +44,15 @@ const AdsTab = () => {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
+  const [adType, setAdType] = useState("banner");
+  const [subtitle, setSubtitle] = useState("");
+  const [ctaText, setCtaText] = useState("");
+  const [offerBadge, setOfferBadge] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [price, setPrice] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
+  const [showText, setShowText] = useState(true);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -59,6 +75,8 @@ const AdsTab = () => {
     setTitle(""); setBrandName(""); setImageUrl(""); setLinkUrl("");
     setPlacements(["home"]); setPackageId(""); setStartDate(new Date().toISOString().split("T")[0]);
     setEndDate(""); setPaymentStatus("pending"); setPaymentAmount(""); setImageFile(null); setEditId(null);
+    setAdType("banner"); setSubtitle(""); setCtaText(""); setOfferBadge(""); setPromoCode("");
+    setPrice(""); setOriginalPrice(""); setShowText(true); setPreviewUrl("");
   };
 
   const uploadImage = async (file: File): Promise<string | null> => {
@@ -88,6 +106,10 @@ const AdsTab = () => {
       end_date: endDate || new Date(new Date(startDate).getTime() + 30 * 86400000).toISOString().split("T")[0],
       payment_status: paymentStatus,
       payment_amount: parseFloat(paymentAmount) || 0,
+      ad_type: adType, subtitle: subtitle || null, cta_text: ctaText || null,
+      offer_badge: offerBadge || null, promo_code: promoCode.trim().toUpperCase() || null,
+      price: parseFloat(price) || null, original_price: parseFloat(originalPrice) || null,
+      show_text: showText,
     };
 
     let error;
@@ -111,6 +133,10 @@ const AdsTab = () => {
     setStartDate(ad.start_date); setEndDate(ad.end_date);
     setPaymentStatus(ad.payment_status || "pending");
     setPaymentAmount(ad.payment_amount?.toString() || "");
+    setAdType(ad.ad_type || "banner"); setSubtitle(ad.subtitle || ""); setCtaText(ad.cta_text || "");
+    setOfferBadge(ad.offer_badge || ""); setPromoCode(ad.promo_code || "");
+    setPrice(ad.price?.toString() || ""); setOriginalPrice(ad.original_price?.toString() || "");
+    setShowText(ad.show_text !== false);
     setDialogOpen(true);
   };
 
@@ -175,17 +201,56 @@ const AdsTab = () => {
                   <DialogTitle>{editId ? "ایڈ ایڈٹ کریں" : "نئی ایڈ شامل کریں"}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
-                  <Input placeholder="ایڈ ٹائٹل *" value={title} onChange={(e) => setTitle(e.target.value)} />
-                  <Input placeholder="برانڈ نام * (مثلاً Coca-Cola)" value={brandName} onChange={(e) => setBrandName(e.target.value)} />
-                  
+                  {/* Live preview */}
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">تصویر</label>
-                    <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="text-sm" />
-                    <span className="text-xs text-muted-foreground block mt-1">یا URL لکھیں:</span>
-                    <Input placeholder="تصویر URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">پیش منظر (فون پر ایسی نظر آئے گی)</p>
+                    <AdSlide ad={{ id: "preview", title: title || "ایڈ کا عنوان", brand_name: brandName || "برانڈ", image_url: previewUrl || imageUrl || null, link_url: linkUrl || null, sort_order: 0, ad_type: adType, subtitle, cta_text: ctaText, offer_badge: offerBadge, promo_code: promoCode, price: parseFloat(price) || null, original_price: parseFloat(originalPrice) || null, show_text: showText }} eager />
                   </div>
 
-                  <Input placeholder="لنک URL (ویب سائٹ)" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-1 block">ایڈ کی قسم *</label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {Object.entries(AD_TYPES).map(([key, t]) => (
+                        <button key={key} type="button" onClick={() => { setAdType(key); if (!ctaText) setCtaText(t.cta); }}
+                          className={`rounded-lg border px-2 py-2 text-xs font-medium ${adType === key ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}>{t.label}</button>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">{AD_TYPES[adType]?.hint}</p>
+                  </div>
+
+                  <Input placeholder="کمپنی / دکان کا نام * (مثلاً JazzCash)" value={brandName} onChange={(e) => setBrandName(e.target.value)} />
+                  <Input placeholder={adType === "product" ? "پروڈکٹ کا نام * (مثلاً Coke 1.5L)" : "بڑا عنوان * (مثلاً ہر بل پر 10% کیش بیک)"} value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Input placeholder="چھوٹی لائن (اختیاری) — مثلاً صرف اس ہفتے" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
+
+                  {adType === "product" && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input type="number" placeholder="نئی قیمت Rs" value={price} onChange={(e) => setPrice(e.target.value)} />
+                      <Input type="number" placeholder="پرانی قیمت Rs" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} />
+                    </div>
+                  )}
+                  {adType !== "banner" && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="نشان (مثلاً 20% OFF)" value={offerBadge} onChange={(e) => setOfferBadge(e.target.value)} />
+                      <Input placeholder="پرومو کوڈ (اختیاری)" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
+                    </div>
+                  )}
+                  <Input placeholder="بٹن کا لفظ (مثلاً ابھی خریدیں)" value={ctaText} onChange={(e) => setCtaText(e.target.value)} />
+
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-1 block">تصویر (چوڑی، 2:1 — مثلاً 1200×600)</label>
+                    <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0] || null; setImageFile(f); setPreviewUrl(f ? URL.createObjectURL(f) : ""); }} className="text-sm" />
+                    <span className="text-xs text-muted-foreground block mt-1">یا URL لکھیں:</span>
+                    <Input placeholder="تصویر URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                    <label className="mt-2 flex items-center gap-2 text-xs text-foreground">
+                      <input type="checkbox" checked={!showText} onChange={(e) => setShowText(!e.target.checked)} />
+                      تصویر پر پہلے سے لکھائی ہے — اوپر سے الفاظ نہ لکھیں
+                    </label>
+                  </div>
+
+                  <div>
+                    <Input placeholder="دبانے پر کہاں جائے؟" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
+                    <p className="mt-1 text-[11px] text-muted-foreground">ایپ کا صفحہ: /restaurant/... یا /grocery/... — ویب سائٹ: https://... — WhatsApp: https://wa.me/923001234567</p>
+                  </div>
 
                   <div>
                     <label className="text-sm font-medium text-foreground mb-1 block">ایڈ کی جگہ *</label>
@@ -259,6 +324,7 @@ const AdsTab = () => {
                     <TableHead>جگہیں</TableHead>
                     <TableHead>مدت</TableHead>
                     <TableHead>ادائیگی</TableHead>
+                    <TableHead>نتائج</TableHead>
                     <TableHead>سٹیٹس</TableHead>
                     <TableHead>ایکشنز</TableHead>
                   </TableRow>
@@ -292,6 +358,11 @@ const AdsTab = () => {
                           {ad.payment_status === "paid" ? "ادا شدہ" : ad.payment_status === "expired" ? "ختم" : "زیر التواء"}
                         </Badge>
                         <p className="text-xs mt-0.5">Rs {ad.payment_amount}</p>
+                      </TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">
+                        <p>👁 {ad.impressions ?? 0}</p>
+                        <p>👆 {ad.clicks ?? 0}</p>
+                        <p className="text-muted-foreground">{ad.impressions ? ((100 * (ad.clicks || 0)) / ad.impressions).toFixed(1) : "0"}%</p>
                       </TableCell>
                       <TableCell>
                         <Badge className={ad.is_active ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>

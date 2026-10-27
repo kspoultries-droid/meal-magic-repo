@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { Star, Clock, Tag, Plus, Bike, Heart } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +14,8 @@ interface RestaurantCardProps {
 
 const optimizeImageUrl = (url: string): string => {
   if (!url) return url;
-  if (url.includes('images.unsplash.com')) {
+  if (url.includes("/storage/v1/object/public/")) return img(url, 480);
+  if (url.includes("images.unsplash.com")) {
     const u = new URL(url);
     u.searchParams.set('w', '400');
     u.searchParams.set('h', '300');

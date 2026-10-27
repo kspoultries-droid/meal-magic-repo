@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link, Share2, Copy, Download, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -106,7 +107,7 @@ const StoreBanner = ({
 
       <div className="relative isolate overflow-hidden">
         {store.image_url ? (
-          <img src={store.image_url} alt={store.name} className="h-56 w-full object-cover sm:h-72" />
+          <img src={img(store.image_url, 960)} alt={store.name} className="h-56 w-full object-cover sm:h-72" />
         ) : (
           <div className="grid h-56 w-full grid-cols-4 grid-rows-2 sm:h-72">
             {collageImages.slice(0, 8).map((img, i) => <img key={i} src={img} alt="" className="h-full w-full object-cover" />)}
