@@ -28,13 +28,26 @@ export const formatDeliveryMode = (mode?: string | null) => {
   }
 };
 
-/** Billable cart weight in kg. Missing or unreadable weights fall back to a 0.5 kg parcel,
- *  and a real but tiny/zero weight is still charged a 0.1 kg minimum. */
-export const calculateCartWeight = (items: Array<{ quantity: number; weight_kg?: number | null; weight?: string | null }>) =>
+/** Reads a weight like "5kg", "500 gm", "1.5 لیٹر" from free text (mirrors DB parse_weight_kg). */
+export const parseWeightKg = (text?: string | null): number | null => {
+  if (!text) return null;
+  const m = text.toLowerCase().match(/(\d+(?:\.\d+)?)\s*(kg|kgs|kilo|کلو|gm|gms|grams?|g|گرام|ml|ltr|litre|liter|l|لیٹر)(?![a-z])/);
+  if (!m) return null;
+  let v = Number(m[1]);
+  if (["gm", "gms", "gram", "grams", "g", "گرام", "ml"].includes(m[2])) v /= 1000;
+  return v > 0 && v <= 2000 ? v : null;
+};
+
+/** Billable cart weight in kg. Uses the stored weight; when it is missing or the 0.5 kg default,
+ *  a size written in the weight/unit/name ("Rice 5kg") wins. Unknown weights fall back to 0.5 kg,
+ *  and a real but tiny weight is still charged a 0.1 kg minimum. */
+export const calculateCartWeight = (items: Array<{ quantity: number; weight_kg?: number | null; weight?: string | null; unit?: string | null; name?: string }>) =>
   items.reduce((total, item) => {
-    const raw = item.weight_kg ?? item.weight;
-    const parsed = raw === undefined || raw === null || raw === "" ? NaN : Number(raw);
-    const perUnit = Number.isFinite(parsed) ? Math.max(0.1, parsed) : 0.5;
+    const stored = item.weight_kg === undefined || item.weight_kg === null ? NaN : Number(item.weight_kg);
+    const parsed = parseWeightKg(item.unit) ?? parseWeightKg(item.weight) ?? parseWeightKg(item.name);
+    const perUnit = (!Number.isFinite(stored) || stored === 0.5) && parsed !== null
+      ? parsed
+      : Number.isFinite(stored) ? Math.max(0.1, stored) : Number(item.weight) > 0 ? Math.max(0.1, Number(item.weight)) : 0.5;
     return total + perUnit * item.quantity;
   }, 0);
 
