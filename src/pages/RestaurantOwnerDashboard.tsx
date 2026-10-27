@@ -813,7 +813,8 @@ const OwnerOrdersTab = () => {
     : orders;
   const activeOrders = visible.filter((o) => !["delivered", "completed", "cancelled"].includes(o.status));
   const doneOrders = visible.filter((o) => ["delivered", "completed", "cancelled"].includes(o.status));
-  const dayTotal = Math.round(doneOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0));
+  const foodAmount = (o: any) => Math.max(0, Math.round(Number(o.total_amount || 0) - Number(o.delivery_fee || 0)));
+  const dayTotal = doneOrders.reduce((s, o) => s + foodAmount(o), 0);
 
   const renderActive = (o: any) => {
     const deliveryMode = o.restaurants?.delivery_mode || "platform";
@@ -825,7 +826,7 @@ const OwnerOrdersTab = () => {
         <div className="flex flex-wrap items-center justify-between gap-1.5">
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
-            <span className="text-sm font-extrabold">Rs {o.total_amount}</span>
+            <span className="text-sm font-extrabold">Rs {foodAmount(o)}</span>
           </div>
           <div className="flex items-center gap-1">
             <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status}</Badge>
@@ -954,7 +955,7 @@ const OwnerOrdersTab = () => {
             <Badge className={statusColor(o.status)}>{o.status}</Badge>
             <span className="text-sm font-semibold truncate">{itemsSummary || `#${o.id.slice(0, 8)}`}</span>
           </div>
-          <span className="text-sm font-extrabold text-primary shrink-0">Rs {o.total_amount}</span>
+          <span className="text-sm font-extrabold text-primary shrink-0">Rs {foodAmount(o)}</span>
           <span className="text-xs text-muted-foreground shrink-0">{isOpen ? "▲" : "▼"}</span>
         </button>
         {isOpen && (
