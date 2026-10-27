@@ -28,6 +28,19 @@ describe("cart weight", () => {
   });
 });
 
+describe("weight from product size", () => {
+  it("counts rice 5kg bags by their real weight instead of the 0.5 kg default", () => {
+    expect(calculateCartWeight([
+      { quantity: 1, weight_kg: 0.5, name: "Peek Freans Cake Up", unit: "pack" },
+      { quantity: 1, weight_kg: 0.5, name: "باسمتی چاول / Basmati Rice 5kg", unit: "5kg" },
+      { quantity: 2, weight_kg: 0.5, name: "سیلا چاول / Sella Rice 5kg", unit: "5kg" },
+    ])).toBeCloseTo(15.5);
+  });
+  it("reads grams", () => {
+    expect(calculateCartWeight([{ quantity: 2, name: "Tea 250 gm" }])).toBeCloseTo(0.5);
+  });
+});
+
 describe("delivery mode labels", () => {
   it("names each mode in Urdu", () => {
     expect(formatDeliveryMode("rider")).toBe("مقامی رائیڈر");
