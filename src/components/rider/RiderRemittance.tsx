@@ -66,8 +66,7 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
         const path = `${user.id}/remittance-${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage.from("partner-documents").upload(path, file);
         if (upErr) throw upErr;
-        const { data: signed } = await supabase.storage.from("partner-documents").createSignedUrl(path, 60 * 60 * 24 * 365);
-        receipt_url = signed?.signedUrl || path;
+        receipt_url = path; // store the storage path; viewers get a short-lived signed link
       }
       const { error } = await supabase.from("rider_remittances").insert({
         rider_id: user.id,

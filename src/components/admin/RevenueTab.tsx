@@ -125,6 +125,11 @@ const RevenueTab = () => {
     return Array.from(m.entries()).sort((a, b) => b[1].commission - a[1].commission).slice(0, 10);
   }, [rows]);
 
+  const cell = (v: unknown) => {
+    let t = v == null ? "" : String(v);
+    if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+    return `"${t.replace(/"/g, '""')}"`;
+  };
   const exportCsv = () => {
     const header = ["date", "sector", "order_id", "vendor", "city", "gross", "rate", "commission", "delivery_fee", "net_payable", "channel"];
     const lines = rows.map((r) => [
@@ -134,7 +139,7 @@ const RevenueTab = () => {
       r.vendor_id ? vendors[r.vendor_id] || r.vendor_id : "",
       r.city_id ? cities[r.city_id] || "" : "",
       r.gross, r.rate, r.commission, r.delivery_fee, r.net_payable, r.partner_channel,
-    ].join(","));
+    ].map(cell).join(","));
     const blob = new Blob(["\uFEFF" + [header.join(","), ...lines].join("\n")], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
