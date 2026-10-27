@@ -99,6 +99,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   return (
     <header className="relative isolate">
       {searchBar}
+      <div className="relative">
       <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 ? [autoplay.current] : []} className="w-full">
         <CarouselContent className="ml-0">
           {ads.map((ad, i) => (
@@ -135,6 +136,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
         </CarouselContent>
       </Carousel>
       {total > 1 && <span dir="ltr" className="absolute bottom-3 end-3 z-10 rounded-full bg-foreground/50 px-2 py-0.5 text-[11px] font-bold text-background">{current + 1}/{total}</span>}
+      </div>
       {config.showBadges && (
         <div className="flex h-9 items-center justify-around bg-foreground/85 px-2 text-[11px] font-semibold text-background">
           <span className="flex items-center gap-1"><ShieldCheck className="size-3.5" /> {config.badge1}</span>
