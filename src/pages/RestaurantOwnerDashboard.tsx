@@ -28,6 +28,7 @@ import NewOrderBanner from "@/components/NewOrderBanner";
 import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, type VariantRow, type OptionGroupRow } from "@/components/menu/MenuOptionsEditor";
 import { printOrderReceipt } from "@/lib/receiptPrint";
 import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
+import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -565,6 +566,16 @@ const MenuTab = () => {
             {restaurants.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </div>
+        <AiSetupAssistant kind="menu" onSave={async (items) => {
+          const { error } = await supabase.from("menu_items").insert(items.map(i => ({
+            restaurant_id: selectedRest, name: i.name, description: i.description,
+            price: i.price, category: i.category || "Main",
+            variants: (i.unit ? [{ id: "base", label: i.unit, price: i.price }] : []) as any,
+          })) as any);
+          if (error) { toast.error(error.message); throw error; }
+          toast.success(`${items.length} آئٹمز مینو میں شامل ہو گئے`);
+          fetchMenu();
+        }} />
         <Dialog open={showAdd} onOpenChange={setShowAdd}>
           <DialogTrigger asChild>
             <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {t("rest.newItem")}</Button>
