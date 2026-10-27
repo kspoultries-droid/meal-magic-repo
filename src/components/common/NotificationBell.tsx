@@ -105,7 +105,8 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o && unread > 0) markAll(); }}>
+
       <PopoverTrigger asChild>
         <button aria-label="اطلاعات" className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent/40 ${className}`}>
           <Bell className="h-5 w-5" />
