@@ -15,6 +15,7 @@ import Index from "./pages/Index";
 import CartDrawer from "@/components/CartDrawer";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
+import { ApkUpdateNotice } from "@/components/common/ApkUpdateNotice";
 import { RiderLocationProvider } from "@/contexts/RiderLocationContext";
 
 
@@ -175,6 +176,7 @@ const App = () => (
           <GlobalErrorHandler>
             <Toaster />
             <Sonner />
+            <ApkUpdateNotice />
             <CourierNotifications />
             <BrowserRouter>
               <RoutePrefetcher />
