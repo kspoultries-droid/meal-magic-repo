@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import NotificationBell from "@/components/common/NotificationBell";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -282,6 +283,7 @@ const RiderDashboard = () => {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <NotificationBell />
           <LanguageSwitcher />
           <div className="flex items-center gap-1.5">
             <Switch checked={riderData?.is_available || false} onCheckedChange={toggleAvailability} />
