@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
 export interface CartItemOption {
@@ -66,6 +66,8 @@ export const buildLineId = (item: AddItemInput) => {
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const itemsRef = useRef<CartItem[]>(items);
+  itemsRef.current = items;
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
