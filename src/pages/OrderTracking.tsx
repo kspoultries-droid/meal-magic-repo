@@ -11,6 +11,7 @@ import OrderChat from "@/components/orders/OrderChat";
 import GroceryOrderAdjustments from "@/components/grocery/GroceryOrderAdjustments";
 import { useLanguage } from "@/contexts/LanguageContext";
 import DeliveryMap from "@/components/orders/DeliveryMap";
+import LiveDeliveryRoute from "@/components/orders/LiveDeliveryRoute";
 import { freshRiderLocation } from "@/lib/riderLocation";
 
 
@@ -144,7 +145,7 @@ const OrderTracking = () => {
       </div>
 
       {/* Map area */}
-      <div className="h-64 bg-secondary relative">
+      {order.rider_id && !["delivered", "completed", "cancelled", "returned_to_store"].includes(order.status) ? <div id="live-delivery-map" className="px-4 py-3"><LiveDeliveryRoute orderId={order.id} kind={kind} stage={order.delivery_stage || "assigned"} /></div> : <div className="h-64 bg-secondary relative">
         {(destination || riderPoint) ? (
           <DeliveryMap key={id} destination={destination} rider={riderPoint} />
         ) : order.delivery_address ? (
@@ -168,7 +169,7 @@ const OrderTracking = () => {
             {t("track.riderOnWay")}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Rider card */}
       {rider && !["delivered", "completed", "cancelled"].includes(order.status) && (
@@ -192,14 +193,9 @@ const OrderTracking = () => {
             {rider.location_updated_at && <span className="block text-muted-foreground">آخری اپ ڈیٹ / Updated: {new Date(rider.location_updated_at).toLocaleTimeString("en-GB")}</span>}
           </p>
           {riderPoint && (
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${rider.lat},${rider.lng}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-bold border rounded-full px-3 py-2"
-            >
+            <Button variant="outline" size="sm" onClick={() => document.getElementById('live-delivery-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
               {t("track.location")}
-            </a>
+            </Button>
           )}
         </div>
       )}

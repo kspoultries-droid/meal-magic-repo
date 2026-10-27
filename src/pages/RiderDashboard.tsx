@@ -23,6 +23,7 @@ import RiderLevelShifts from "@/components/rider/RiderLevelShifts";
 import RiderHotspots from "@/components/rider/RiderHotspots";
 import { useRiderLocation } from "@/contexts/RiderLocationContext";
 import RiderDeliveryActions from "@/components/rider/RiderDeliveryActions";
+import LiveDeliveryRoute from "@/components/orders/LiveDeliveryRoute";
 import { CLOSED_DELIVERIES } from "@/lib/riderOperations";
 
 
@@ -390,12 +391,10 @@ const RiderDashboard = () => {
                         <div className="rounded-lg bg-background/70 border p-2">
                           <p className="text-[10px] font-bold text-muted-foreground">Pickup</p>
                           <p className="font-bold truncate">{o.restaurants?.name || t("rider.restaurant")}</p>
-                          {pickupMap && <a href={pickupMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary font-bold mt-1"><Navigation className="w-3 h-3" /> {t("rider.map")}</a>}
                         </div>
                         <div className="rounded-lg bg-background/70 border p-2">
                           <p className="text-[10px] font-bold text-muted-foreground">Dropoff</p>
                           <p className="truncate">{o.delivery_address || t("rider.noAddress")}</p>
-                          {dropoffMap && <a href={dropoffMap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary font-bold mt-1"><Navigation className="w-3 h-3" /> {t("rider.map")}</a>}
                         </div>
                       </div>
 
@@ -407,6 +406,7 @@ const RiderDashboard = () => {
                         </div>
                       )}
 
+                      {!isClosed && <LiveDeliveryRoute orderId={o.id} kind="food" stage={o.delivery_stage || "assigned"} audience="rider" />}
                       {!isClosed && <RiderDeliveryActions order={o} kind="food" onChanged={() => fetchData(false)} />}
                       {o.status === "delivering" && (
                         <div className="space-y-1.5">
@@ -490,11 +490,7 @@ const RiderDashboard = () => {
                       )}
 
                       <div className="flex items-center gap-2 flex-wrap">
-                        {dropoff && (
-                          <a href={dropoff} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary font-bold">
-                            <Navigation className="w-3 h-3" /> {t("rider.map")}
-                          </a>
-                        )}
+                        {!isClosed && <div className="w-full"><LiveDeliveryRoute orderId={o.id} kind={o._kind} stage={o.delivery_stage || "assigned"} audience="rider" /></div>}
                         {!isClosed && (
                           <div className="w-full"><RiderDeliveryActions order={o} kind={o._kind} onChanged={() => fetchData(false)} /></div>
                         )}
