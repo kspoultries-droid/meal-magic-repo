@@ -3,7 +3,7 @@
 - Rider allocation is serialized per rider across offers, acceptance and manual assignment; a single readiness predicate gates grocery dispatch and acceptance, and physical delivery steps use authorized RPCs independent of kitchen status.
 - Rider offer pay is snapshotted separately from customer delivery fees; missing verified distances enter finance review, and returns retain rider capacity until dispatcher confirmation.
 - Pilot timings and offer outcomes are reported by service; batching and incentive expansion require real supervised pilot evidence, not simulated results.
-- Rider GPS has one app-level publisher writing only riders coordinates and GPS timestamps; customer tracking uses an active-order-authorized RPC, never broad rider-table reads or saved delivery addresses.
+- Rider GPS has one app-level publisher writing only riders coordinates and GPS timestamps; Android uses the background watcher and native HTTP instead of browser GPS, with Legacy Bridge enabled for background callbacks; customer tracking uses an active-order-authorized RPC, never broad rider-table reads or saved delivery addresses.
 
 - Shared typography, control surfaces, radii and elevation live in global tokens and UI primitives; keep navigation brand-isolated so page themes cannot weaken its contrast.
 

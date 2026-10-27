@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { shouldPublishFix, validRiderFix, type RiderFix } from "@/lib/riderLocation";
+import { hasNativeRiderLocation, publishNativeRiderFix, watchNativeRiderLocation } from "@/lib/nativeRiderLocation";
 
 type LocationState = { sharing: boolean; error: string; updatedAt: string | null; retry: () => void };
 const Context = createContext<LocationState>({ sharing: false, error: "", updatedAt: null, retry: () => {} });
@@ -50,23 +51,26 @@ export function RiderLocationProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     setState({ sharing: false, error: "", updatedAt: null });
     if (!enabled || !user || !isRider) return;
-    if (!navigator.geolocation) { setState(s => ({ ...s, error: "اس فون پر GPS دستیاب نہیں" })); return; }
+    const native = hasNativeRiderLocation();
+    if (!native && !navigator.geolocation) { setState(s => ({ ...s, error: "اس فون پر GPS دستیاب نہیں" })); return; }
     let disposed = false;
     let busy = false;
     let previous: RiderFix | null = null;
     let watch: number | undefined;
+    let stopNative: (() => Promise<void>) | undefined;
     const options = { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
     const failed = (error: GeolocationPositionError) => {
       if (!disposed) setState(s => ({ ...s, sharing: false, error: error.code === 1 ? "GPS کی اجازت بند ہے — فون کی ترتیبات میں لوکیشن کی اجازت دیں" : "تازہ GPS نہیں مل رہا — لوکیشن اور انٹرنیٹ چیک کریں" }));
     };
-    const publish = async (pos: GeolocationPosition) => {
-      const fix = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, at: pos.timestamp };
+    const publishFix = async (fix: RiderFix) => {
       if (disposed || busy) return;
       if (!validRiderFix(fix)) { setState(s => ({ ...s, sharing: false, error: "GPS غیر واضح ہے — بہتر سگنل کا انتظار ہے" })); return; }
       if (!shouldPublishFix(fix, previous)) return;
       busy = true;
       try {
-        const { data, error } = await supabase.rpc("publish_rider_location", { _lat: fix.lat, _lng: fix.lng, _accuracy: fix.accuracy });
+        const { data, error } = native
+          ? { data: await publishNativeRiderFix(fix), error: null }
+          : await supabase.rpc("publish_rider_location", { _lat: fix.lat, _lng: fix.lng, _accuracy: fix.accuracy });
         if (disposed) return;
         if (error || !data) setState(s => ({ ...s, sharing: false, error: "لوکیشن محفوظ نہیں ہوئی — انٹرنیٹ چیک کریں؛ دوبارہ کوشش جاری ہے" }));
         else { previous = { ...fix, at: Date.now() }; setState({ sharing: true, error: "", updatedAt: data }); }
@@ -74,6 +78,18 @@ export function RiderLocationProvider({ children }: { children: React.ReactNode 
         if (!disposed) setState(s => ({ ...s, sharing: false, error: "لوکیشن بھیجنے میں رابطہ ٹوٹ گیا" }));
       } finally { busy = false; }
     };
+    const publish = (pos: GeolocationPosition) => { void publishFix({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, at: pos.timestamp }); };
+    if (native) {
+      void watchNativeRiderLocation(fix => { void publishFix(fix); }, denied => {
+        if (!disposed) setState(s => ({ ...s, sharing: false, error: denied ? "فون کی ترتیبات میں لوکیشن کی اجازت دیں" : "تازہ GPS نہیں مل رہا — لوکیشن چیک کریں" }));
+      }).then(stop => {
+        if (disposed) void stop();
+        else stopNative = stop;
+      }).catch(() => {
+        if (!disposed) setState(s => ({ ...s, sharing: false, error: "پس منظر لوکیشن شروع نہیں ہوئی — اجازتیں اور تازہ APK چیک کریں" }));
+      });
+      return () => { disposed = true; void stopNative?.(); };
+    }
     const acquire = () => { if (document.visibilityState === "visible") navigator.geolocation.getCurrentPosition(publish, failed, options); };
     const start = () => { watch = navigator.geolocation.watchPosition(publish, failed, options); acquire(); };
     const visible = () => {
