@@ -560,6 +560,9 @@ const RiderDashboard = () => {
               </p>
             )}
 
+            <Button className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-remit")}>
+              <Wallet className="w-4 h-4 mr-1.5" /> رقم جمع کرائیں
+            </Button>
             <Button variant="outline" className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-payments")}>
               <Wallet className="w-4 h-4 mr-1.5" /> {t("rider.paymentsButton")}
             </Button>

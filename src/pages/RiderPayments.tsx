@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Wallet, Banknote, Receipt, Star } from "lucide-react";
-import RiderRemittance from "@/components/rider/RiderRemittance";
 
 const RiderPayments = () => {
   const { user, loading } = useAuth();
@@ -103,7 +102,9 @@ const RiderPayments = () => {
           </CardContent>
         </Card>
 
-        <RiderRemittance cashDue={cashDue} onSubmitted={load} />
+        <Button className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-remit")}>
+          <Banknote className="w-4 h-4 mr-1.5" /> رقم جمع کرائیں
+        </Button>
 
         <Card>
           <CardHeader className="py-3">

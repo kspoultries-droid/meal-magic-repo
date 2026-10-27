@@ -71,6 +71,7 @@ const RestaurantDetail = lazyWithRetry(() => import("./pages/RestaurantDetail"))
 const RestaurantOwnerDashboard = lazyWithRetry(() => import("./pages/RestaurantOwnerDashboard"));
 const RiderDashboard = lazyWithRetry(() => import("./pages/RiderDashboard"));
 const RiderPayments = lazyWithRetry(() => import("./pages/RiderPayments"));
+const RiderRemit = lazyWithRetry(() => import("./pages/RiderRemit"));
 const Checkout = lazyWithRetry(() => import("./pages/Checkout"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
@@ -194,6 +195,7 @@ const App = () => (
                   <Route path="/restaurant-dashboard" element={<RestaurantOwnerDashboard />} />
                   <Route path="/rider-dashboard" element={<RiderDashboard />} />
                   <Route path="/rider-payments" element={<RiderPayments />} />
+                  <Route path="/rider-remit" element={<RiderRemit />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/install" element={<Install />} />
