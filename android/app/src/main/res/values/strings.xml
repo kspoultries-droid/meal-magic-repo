@@ -4,4 +4,6 @@
     <string name="title_activity_main">Easy Life</string>
     <string name="package_name">app.lovable.p1324956aa36e44cebf0eabe4ab646da4</string>
     <string name="custom_url_scheme">app.lovable.p1324956aa36e44cebf0eabe4ab646da4</string>
+    <string name="capacitor_background_geolocation_notification_channel_name">رائیڈر کی جاری لوکیشن</string>
+    <string name="capacitor_background_geolocation_notification_icon">drawable/ic_tracking</string>
 </resources>

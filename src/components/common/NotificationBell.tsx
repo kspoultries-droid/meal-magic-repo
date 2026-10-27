@@ -7,6 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { enableWebPush } from "@/lib/webPush";
+import { Capacitor } from "@capacitor/core";
+import { enableNativePush } from "@/lib/nativePush";
 
 type Notif = { id: string; title: string; body: string | null; path: string | null; kind: string; read_at: string | null; created_at: string };
 
@@ -26,6 +28,8 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
   const [open, setOpen] = useState(false);
 
   const [pushOk, setPushOk] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const native = Capacitor.isNativePlatform();
 
   useEffect(() => {
     if (!user) { setItems([]); return; }
@@ -61,7 +65,7 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
   // Permission pehle se mili ho to device khud register karo
   useEffect(() => {
     setPushOk(false);
-    if (!user || !("Notification" in window) || Notification.permission !== "granted" || window.top !== window.self) return;
+    if (native || !user || !("Notification" in window) || Notification.permission !== "granted" || window.top !== window.self) return;
     enableWebPush(user.id).then((r) => setPushOk(r === "registered")).catch((e) => console.error("auto push register", e));
   }, [user?.id]);
 
@@ -84,18 +88,20 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
   };
 
   const askPermission = async () => {
-    if (window.top !== window.self) return toast.info("اطلاعات چالو کرنے کے لیے ایپ الگ ٹیب میں کھولیں");
+    if (pushBusy) return;
+    if (!native && window.top !== window.self) return toast.info("اطلاعات چالو کرنے کے لیے ایپ الگ ٹیب میں کھولیں");
     let r: string;
-    try { r = await enableWebPush(user.id); } catch (e) {
+    setPushBusy(true);
+    try { r = native ? await enableNativePush() : await enableWebPush(user.id); } catch (e) {
       console.error(e);
-      return toast.error("فون رجسٹر نہیں ہو سکا — انٹرنیٹ چیک کر کے دوبارہ کوشش کریں");
-    }
+      return toast.error(e instanceof Error ? e.message : "فون رجسٹر نہیں ہو سکا — انٹرنیٹ چیک کر کے دوبارہ کوشش کریں");
+    } finally { setPushBusy(false); }
     setPushOk(r === "registered");
-    if (r === "registered") toast.success("اطلاعات چالو ہو گئیں — ایپ بند ہونے پر بھی آئیں گی");
+    if (r === "registered") toast.success("فون اطلاعات کے لیے رجسٹر ہو گیا — فون سے زبردستی بند کرنے یا اجازت روکنے پر اطلاعات رک سکتی ہیں");
     else if (r === "not-configured") toast.error("سرور پر اطلاعات کی ترتیب ابھی مکمل نہیں — ایڈمن سے رابطہ کریں");
     else if (r === "unsupported") toast.error("یہ براؤزر پس منظر کی اطلاعات سپورٹ نہیں کرتا — Chrome استعمال کریں");
     else if (r === "open-in-new-tab") toast.info("ایپ الگ ٹیب میں کھولیں");
-    else toast.error("اجازت نہیں ملی — براؤزر سیٹنگ سے چالو کریں");
+    else toast.error(native ? "فون کی ترتیبات میں Easy Life کی اطلاعات کی اجازت دیں" : "اجازت نہیں ملی — براؤزر سیٹنگ سے چالو کریں");
   };
 
   return (
@@ -133,10 +139,10 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
             </button>
           ))}
         </div>
-        {"Notification" in window && (pushOk ? (
+        {(native || "Notification" in window) && (pushOk ? (
           <p className="w-full border-t py-2 text-center text-[11px] text-muted-foreground">✅ یہ فون اطلاعات کے لیے رجسٹر ہے</p>
         ) : (
-          <button onClick={askPermission} className="w-full border-t py-2 text-xs font-semibold text-primary">🔔 فون پر اطلاعات چالو کریں (ایپ بند ہونے پر بھی)</button>
+          <Button variant="ghost" disabled={pushBusy} onClick={askPermission} className="w-full rounded-none border-t py-2 text-xs font-semibold text-primary"><Bell className="h-3.5 w-3.5" /> {pushBusy ? "فون رجسٹر ہو رہا ہے…" : "فون پر اطلاعات چالو کریں"}</Button>
         ))}
       </PopoverContent>
     </Popover>

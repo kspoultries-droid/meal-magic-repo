@@ -22,6 +22,7 @@ jobs:
           java-version: 21
       - run: npm install --legacy-peer-deps
       - run: npm run build
+      - run: mkdir -p android/app/src/main/assets
       - run: npx cap sync android
       # Firebase config for native push: add repository secret GOOGLE_SERVICES_JSON (contents of google-services.json)
       - name: Write google-services.json

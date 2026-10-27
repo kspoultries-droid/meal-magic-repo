@@ -116,8 +116,10 @@ const MyReelsManager = ({ restrictSourceId }: Props) => {
       if (error) { toast.error(error.message); setSaving(false); return; }
       toast.success("ریل بھیج دی گئی — ایڈمن کی منظوری کے بعد شائع ہوگی 🎬");
       reset(); setOpen(false); loadAll();
-    } catch {}
-    setSaving(false);
+    } catch (error) {
+      console.error("Reel submission failed", error);
+      toast.error(error instanceof Error ? error.message : "ریل نہیں بھیجی گئی — انٹرنیٹ چیک کرکے دوبارہ کوشش کریں");
+    } finally { setSaving(false); }
   };
 
   const remove = async (id: string) => {

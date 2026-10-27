@@ -3,6 +3,7 @@ import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { saveNativePushToken } from "@/lib/nativePush";
 
 export type PushState = "unsupported" | "idle" | "granted" | "denied";
 
@@ -18,15 +19,7 @@ export const usePushNotifications = () => {
   const saveToken = useCallback(
     async (token: string) => {
       if (!user) return;
-      await (supabase as any).from("device_tokens").upsert(
-        {
-          user_id: user.id,
-          token,
-          platform: Capacitor.getPlatform(),
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "token" }
-      );
+      await saveNativePushToken(token);
     },
     [user?.id]
   );
@@ -53,13 +46,16 @@ export const usePushNotifications = () => {
   useEffect(() => {
     if (!isNative || !user) return;
     let cleanup: (() => void) | undefined;
+    let disposed = false;
 
     (async () => {
       const { PushNotifications } = await import("@capacitor/push-notifications");
 
       const listeners = await Promise.all([
         PushNotifications.addListener("registration", (t) => {
-          void saveToken(t.value);
+          void saveToken(t.value).catch(() => {
+            if (!disposed) toast.error("فون کی اطلاعات رجسٹر نہیں ہوئیں — گھنٹی سے دوبارہ چالو کریں");
+          });
         }),
         PushNotifications.addListener("registrationError", (err) => {
           console.error("Push registration error:", err);
@@ -72,6 +68,8 @@ export const usePushNotifications = () => {
           if (typeof path === "string" && path.startsWith("/")) window.location.assign(path);
         }),
       ]);
+      if (disposed) { listeners.forEach(listener => void listener.remove()); return; }
+      cleanup = () => listeners.forEach((l) => void l.remove());
 
       try {
         await PushNotifications.createChannel({ id: "orders", name: "Orders", importance: 5, sound: "default", vibration: true });
@@ -83,10 +81,9 @@ export const usePushNotifications = () => {
         setState("granted");
       }
 
-      cleanup = () => listeners.forEach((l) => void l.remove());
-    })();
+    })().catch(() => { if (!disposed) setState("idle"); });
 
-    return () => cleanup?.();
+    return () => { disposed = true; cleanup?.(); };
   }, [isNative, user?.id, saveToken]);
 
   return { isNative, state, register };

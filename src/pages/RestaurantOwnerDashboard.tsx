@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import NotificationBell from "@/components/common/NotificationBell";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,6 +98,7 @@ const RestaurantOwnerDashboard = () => {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+          <NotificationBell />
           <LanguageSwitcher />
           <Button variant="outline" size="sm" className="h-8 shrink-0 px-2 text-xs" onClick={() => { signOut(); navigate("/"); }}>
             <LogOut className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("common.logout")}</span>
