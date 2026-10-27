@@ -109,22 +109,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       option_ids: raw.option_ids || [],
       options: raw.options || [],
     };
-    setItems((prev) => {
-      const first = prev[0];
-      if (first) {
-        const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
-        const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
-        if (!sameSource || !sameShop) {
-          // Never silently wipe a cart: ask first (one shop = one rider trip = one bill).
-          toast.warning(`آپ کے کارٹ میں «${first.restaurant}» کی اشیاء ہیں۔ ایک آرڈر میں ایک ہی دکان کی چیزیں آ سکتی ہیں۔`, {
-            id: "cart-swap", duration: 8000,
-            action: { label: "پرانا کارٹ ہٹا کر شامل کریں", onClick: () => { setItems([item]); toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 }); } },
-          });
-          return prev;
-        }
+    const first = itemsRef.current[0];
+    if (first) {
+      const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
+      const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
+      if (!sameSource || !sameShop) {
+        // Never silently wipe a cart: ask first (one shop = one rider trip = one bill).
+        toast.warning(`آپ کے کارٹ میں «${first.restaurant}» کی اشیاء ہیں۔ ایک آرڈر میں ایک ہی دکان کی چیزیں آ سکتی ہیں۔`, {
+          id: "cart-swap", duration: 8000,
+          action: { label: "پرانا ہٹا کر شامل کریں", onClick: () => { setItems([item]); toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 }); } },
+        });
+        return;
       }
-      return mergeItems(prev, [item]);
-    });
+    }
+    setItems((prev) => mergeItems(prev, [item]));
     toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 });
   }, [mergeItems]);
 
