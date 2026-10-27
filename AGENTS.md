@@ -1,6 +1,7 @@
 # Project rules
 - Admin search and record dialogs reuse authorized table reads and existing action RPCs; list filtering/pagination and mobile presentation must not alter dispatch or approval rules.
 - Rider allocation is serialized per rider across offers, acceptance and manual assignment; a single readiness predicate gates grocery dispatch and acceptance, and physical delivery steps use authorized RPCs independent of kitchen status.
+- One server function (rider_assign_block_reason) decides rider eligibility and returns the specific reason; auto-dispatch uses a multi-minute presence window because closed-app phones report GPS sparsely, while staff manual assignment skips presence but never skips busy/suspended/offer checks.
 - Rider offer pay is snapshotted separately from customer delivery fees; missing verified distances enter finance review, and returns retain rider capacity until dispatcher confirmation.
 - Pilot timings and offer outcomes are reported by service; batching and incentive expansion require real supervised pilot evidence, not simulated results.
 - Rider GPS has one app-level publisher writing only riders coordinates and GPS timestamps; Android uses the background watcher and native HTTP instead of browser GPS, with Legacy Bridge enabled for background callbacks; customer tracking uses an active-order-authorized RPC, never broad rider-table reads or saved delivery addresses.

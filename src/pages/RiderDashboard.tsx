@@ -25,6 +25,7 @@ import { useRiderLocation } from "@/contexts/RiderLocationContext";
 import RiderDeliveryActions from "@/components/rider/RiderDeliveryActions";
 import LiveDeliveryRoute from "@/components/orders/LiveDeliveryRoute";
 import { CLOSED_DELIVERIES } from "@/lib/riderOperations";
+import RiderPushGuard from "@/components/rider/RiderPushGuard";
 
 
 
@@ -301,6 +302,7 @@ const RiderDashboard = () => {
           </Button>
         </div>
       </header>
+      {user && <RiderPushGuard userId={user.id} />}
 
       <div className="p-3 space-y-3">
         {locationStatus ? (

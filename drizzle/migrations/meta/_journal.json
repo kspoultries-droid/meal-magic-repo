@@ -253,6 +253,13 @@
       "when": 1793105436225,
       "tag": "0035_rider_city_gps_fallback",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793107597431,
+      "tag": "0036_rider_background_presence_window",
+      "breakpoints": true
     }
   ]
 }
