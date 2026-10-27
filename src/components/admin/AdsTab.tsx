@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { AdSlide } from "@/components/PromotionalAds";
+import AdProductPicker from "@/components/admin/AdProductPicker";
 import { Plus, Trash2, RefreshCw, Megaphone, Eye, EyeOff, Package } from "lucide-react";
 
 const PLACEMENT_LABELS: Record<string, string> = {
@@ -247,6 +248,14 @@ const AdsTab = () => {
                     </label>
                   </div>
 
+                  <AdProductPicker onPick={(p) => {
+                    setLinkUrl(`/product/${p.id}`);
+                    if (!title) setTitle(p.name);
+                    if (!brandName && p.store) setBrandName(p.store);
+                    if (!imageUrl && !previewUrl && p.image) setImageUrl(p.image);
+                    if (p.price && !price) setPrice(String(p.price));
+                    toast.success("پروڈکٹ جوڑ دی گئی");
+                  }} />
                   <div>
                     <Input placeholder="دبانے پر کہاں جائے؟" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
                     <p className="mt-1 text-[11px] text-muted-foreground">ایپ کا صفحہ: /restaurant/... یا /grocery/... — ویب سائٹ: https://... — WhatsApp: https://wa.me/923001234567</p>
