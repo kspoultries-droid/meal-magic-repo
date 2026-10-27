@@ -64,7 +64,7 @@ jobs:
           BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
           $BT/apksigner verify --print-certs "$APK" | tee cert.txt
           grep -qi "70:8b:51:c4:15:57:05:35:f8:cd:8f:38:0e:44:ac:f2:10:a8:39:44:6c:fc:07:51:6b:cf:77:fa:cc:02:53:00\|708b51c415570535f8cd8f380e44acf210a839446cfc07516bcf77facc025300" cert.txt
-          $BT/aapt dump badging "$APK" | head -1 | grep -q "versionCode='$EASYLIFE_ANDROID_BUILD'"
+          $BT/aapt2 dump badging "$APK" | head -1 | grep -q "versionCode='$EASYLIFE_ANDROID_BUILD'"
       - uses: actions/upload-artifact@v5
         with:
           name: easy-life-apk
