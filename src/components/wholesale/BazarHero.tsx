@@ -16,7 +16,11 @@ interface Props {
 const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const { isAdmin } = useAuth();
   const { t } = useLanguage();
-  const { config, save } = useHeroSettings("hero_bazar", bazarHeroDefaults);
+  const { config, loaded, save } = useHeroSettings("hero_bazar", bazarHeroDefaults);
+
+  if (!loaded) {
+    return <header aria-busy="true" aria-label="بازار" className="min-h-[210px] border-b border-border bg-muted" />;
+  }
 
   return (
     <header className="relative isolate overflow-hidden border-b border-border">

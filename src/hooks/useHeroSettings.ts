@@ -8,16 +8,23 @@ export const useHeroSettings = (key: HeroSettingsKey, defaults: HeroConfig) => {
   const [config, setConfig] = useState<HeroConfig>(defaults);
   const [loaded, setLoaded] = useState(false);
 
-  const load = useCallback(async () => {
-    const { data } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
-    setConfig(parseHeroConfig(data?.value, defaults));
-    setLoaded(true);
+  useEffect(() => {
+    let active = true;
+    setLoaded(false);
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
+        if (!active) return;
+        if (!error) setConfig(parseHeroConfig(data?.value, defaults));
+      } finally {
+        if (active) setLoaded(true);
+      }
+    };
+    void fetchSettings().catch(() => undefined);
+    return () => { active = false; };
+    // Defaults are stable module constants; reload when the settings key changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   const save = useCallback(
     async (next: HeroConfig) => {
