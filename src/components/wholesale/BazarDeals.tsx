@@ -108,84 +108,44 @@ const BazarDeals = () => {
   };
 
   return (
-    <section className="py-3">
-      <div className="container mx-auto px-4 flex items-center gap-2 mb-2.5">
-        <div className="w-7 h-7 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-          <Ticket className="w-4 h-4 text-primary-foreground" />
-        </div>
-        <h2 className="text-base font-extrabold text-foreground">واؤچرز اور ڈیلز</h2>
-        <span className="text-[11px] text-muted-foreground">Vouchers & Deals</span>
-      </div>
-
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
-        {vouchers.map((v, i) => {
-          const left = daysLeft(v.valid_until);
-          return (
-            <div
-              key={v.id}
-              style={{ animationDelay: `${i * 60}ms` }}
-              className={`animate-fade-in relative shrink-0 w-52 rounded-2xl bg-gradient-to-br ${gradients[i % gradients.length]} p-3.5 text-primary-foreground shadow-card overflow-hidden`}
-            >
-              {/* ticket notches */}
-              <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-background" />
-              <div className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-background" />
-              <div className="pointer-events-none absolute -top-8 -right-8 w-20 h-20 rounded-full bg-primary-foreground/20 blur-2xl" />
-
-              <p className="text-lg font-extrabold leading-tight">
-                {v.discount_type === "percent" ? `${v.discount_value}% رعایت` : `Rs ${v.discount_value} رعایت`}
-              </p>
-              <p className="text-[11px] font-bold opacity-95 truncate">{v.title_ur || v.title}</p>
-              {v.min_order > 0 && (
-                <p className="text-[9px] opacity-80 mt-0.5">کم از کم آرڈر: Rs {v.min_order}</p>
-              )}
-
-              <button
-                onClick={() => copyCode(v)}
-                className="mt-2 flex items-center justify-between w-full rounded-lg border border-dashed border-primary-foreground/50 bg-primary-foreground/15 backdrop-blur-sm px-2.5 py-1 active:scale-95 transition-transform"
-              >
-                <span className="font-mono font-extrabold tracking-widest text-xs">{v.code}</span>
-                {copiedId === v.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5 opacity-80" />}
-              </button>
-
-              {isAdmin && (
-                <div className="absolute top-2 left-2 flex gap-1">
-                  <button
-                    onClick={() => closeVoucher(v.id)}
-                    title="بند کریں"
-                    className="w-6 h-6 rounded-full bg-background/85 text-foreground flex items-center justify-center active:scale-90 transition-transform"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => deleteVoucher(v.id)}
-                    title="حذف کریں"
-                    className="w-6 h-6 rounded-full bg-background/85 text-destructive flex items-center justify-center active:scale-90 transition-transform"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
-
-              {left !== null && (
-                <p className="flex items-center gap-1 text-[9px] font-semibold opacity-80 mt-1.5">
-                  <Clock className="w-2.5 h-2.5" /> {left} دن باقی
-                </p>
-              )}
-            </div>
-          );
-        })}
-
+    <section className="bg-gradient-to-b from-accent/40 to-transparent px-3 py-2.5">
+      <div className="mb-1.5 flex items-center justify-between">
+        <h2 className="flex items-center gap-1.5 text-sm font-extrabold text-foreground"><Ticket className="size-4 text-primary" /> واؤچر جمع کریں، بچت کریں</h2>
         {isAdmin && (
-          <button
-            onClick={() => setDialogOpen(true)}
-            className="shrink-0 w-40 rounded-2xl border-2 border-dashed border-primary/50 bg-card text-primary flex flex-col items-center justify-center gap-1 py-6 active:scale-95 transition-transform"
-          >
-            <Plus className="w-6 h-6" />
-            <span className="text-xs font-bold">نیا واؤچر</span>
-            <span className="text-[10px] opacity-70">Add voucher</span>
+          <button onClick={() => setDialogOpen(true)} className="flex items-center gap-0.5 rounded-full border border-primary/40 px-2 py-0.5 text-[11px] font-bold text-primary">
+            <Plus className="size-3" /> نیا واؤچر
           </button>
         )}
       </div>
+      {vouchers.length === 0 ? (
+        <p className="rounded-xl bg-card py-3 text-center text-xs text-muted-foreground">ابھی کوئی واؤچر نہیں</p>
+      ) : (
+        <div className="flex overflow-x-auto scrollbar-hide rounded-xl bg-card shadow-card">
+          {vouchers.map((v) => {
+            const left = daysLeft(v.valid_until);
+            return (
+              <div key={v.id} className="relative shrink-0 border-e border-dashed border-border last:border-e-0">
+                <button onClick={() => copyCode(v)} className="flex w-36 flex-col items-start px-3 py-2 text-start active:bg-muted">
+                  <span className="text-base font-extrabold leading-tight text-primary">
+                    {v.discount_type === "percent" ? `${v.discount_value}% OFF` : `Rs ${v.discount_value}`}
+                  </span>
+                  <span className="w-full truncate text-[11px] font-semibold text-foreground">{v.title_ur || v.title}</span>
+                  <span className="flex w-full items-center justify-between gap-1 text-[10px] text-muted-foreground">
+                    <span className="truncate">{v.min_order > 0 ? `Rs ${v.min_order}+ پر` : left !== null ? <><Clock className="inline size-2.5" /> {left} دن</> : v.code}</span>
+                    {copiedId === v.id ? <Check className="size-3 text-primary" /> : <Copy className="size-3" />}
+                  </span>
+                </button>
+                {isAdmin && (
+                  <div className="absolute end-1 top-1 flex gap-0.5">
+                    <button onClick={() => closeVoucher(v.id)} title="بند کریں" className="grid size-5 place-items-center rounded-full bg-muted text-foreground"><X className="size-3" /></button>
+                    <button onClick={() => deleteVoucher(v.id)} title="حذف کریں" className="grid size-5 place-items-center rounded-full bg-muted text-destructive"><Trash2 className="size-3" /></button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
