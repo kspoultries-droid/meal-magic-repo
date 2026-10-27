@@ -84,6 +84,7 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
+  const rtl = typeof document !== "undefined" && getComputedStyle(document.documentElement).direction === "rtl";
   const autoplay = useRef(Autoplay({ delay: 4000, stopOnInteraction: false }));
 
   useEffect(() => {
@@ -131,7 +132,7 @@ const PromotionalAds = ({ placement, className = "" }: PromotionalAdsProps) => {
 
   return (
     <section className={`px-3 py-2 ${className}`}>
-      <Carousel setApi={setApi} opts={{ loop: ads.length > 1, align: "start" }} plugins={ads.length > 1 ? [autoplay.current] : []} className="w-full">
+      <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: ads.length > 1, align: "start", direction: rtl ? "rtl" : "ltr" }} plugins={ads.length > 1 ? [autoplay.current] : []} className="w-full">
         <CarouselContent className="-ml-2">
           {ads.map((ad, i) => (
             <CarouselItem key={ad.id} className="basis-full pl-2 md:basis-1/2 lg:basis-1/3">
