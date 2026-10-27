@@ -29,7 +29,12 @@ jobs:
         env:
           GSJ: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
-          if [ -n "$GSJ" ]; then echo "$GSJ" > android/app/google-services.json; fi
+          if [ -n "$GSJ" ]; then
+            printf '%s' "$GSJ" > android/app/google-services.json
+            node -e "const fs=require('fs'); const c=JSON.parse(fs.readFileSync('android/app/google-services.json','utf8')); const id='app.lovable.p1324956aa36e44cebf0eabe4ab646da4'; if(!c.client?.some(x=>x.client_info?.android_client_info?.package_name===id)) throw new Error('Firebase Android package does not match Easy Life');"
+          else
+            echo "::warning::GOOGLE_SERVICES_JSON is missing. This APK can open the app but Android push notifications will not work."
+          fi
       - run: chmod +x android/gradlew
       - run: ./gradlew assembleDebug
         working-directory: android
