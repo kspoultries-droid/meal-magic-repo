@@ -4740,6 +4740,15 @@ export type Database = {
             }
             Returns: undefined
           }
+      rider_assign_block_reason: {
+        Args: {
+          _kind?: string
+          _manual?: boolean
+          _order?: string
+          _rider: string
+        }
+        Returns: string
+      }
       rider_cash_due: { Args: { _rider: string }; Returns: number }
       rider_cash_limit: { Args: never; Returns: number }
       rider_cash_outstanding: { Args: { _rider: string }; Returns: number }
