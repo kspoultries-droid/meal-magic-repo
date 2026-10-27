@@ -2632,6 +2632,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          phone_norm: string
+          referee_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          phone_norm: string
+          referee_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          phone_norm?: string
+          referee_id?: string
+          referrer_id?: string
+        }
+        Relationships: []
+      }
       refunds: {
         Row: {
           amount: number
