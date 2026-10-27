@@ -4,6 +4,11 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    # Website changes reach the APK live; only native changes need a new APK.
+    paths:
+      - "android/**"
+      - "capacitor.config.ts"
+      - ".github/workflows/android.yml"
 
 permissions:
   contents: write

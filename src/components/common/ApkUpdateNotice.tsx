@@ -16,7 +16,7 @@ export function ApkUpdateNotice() {
     let disposed = false;
     let lastCheck = 0;
     let checking = false;
-    let dismissedBuild = 0;
+    let dismissedBuild = Number(localStorage.getItem("easylife.apkDismissedBuild") || 0);
     let controller: AbortController | undefined;
     const check = async () => {
       if (disposed || checking || document.visibilityState === "hidden" || Date.now() - lastCheck < 60 * 60 * 1000) return;
@@ -62,6 +62,7 @@ export function ApkUpdateNotice() {
   }, []);
 
   const dismiss = () => {
+    try { if (release?.build) localStorage.setItem("easylife.apkDismissedBuild", String(release.build)); } catch { /* ignore */ }
     window.dispatchEvent(new CustomEvent("easylife:apk-update-dismiss", { detail: release?.build }));
     setOpen(false);
   };
