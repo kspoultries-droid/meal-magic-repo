@@ -15,6 +15,8 @@ import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import useBazarPrefs from "@/hooks/useBazarPrefs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { matchesSearch } from "@/lib/searchMatch";
+import { X } from "lucide-react";
 
 const PAGE_SIZE = 60;
 const defaultFilters: BazarFilters = { sort: "featured", minPrice: "", maxPrice: "", minRating: "", size: "", color: "", discountOnly: false, nationwide: false, wishlistOnly: false };
@@ -23,6 +25,9 @@ const readVariants = (product: BazarProduct & { variants?: unknown }) => !Array.
 
 const Wholesale = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+  useEffect(() => { const id = setTimeout(() => setDebounced(searchQuery.trim()), 300); return () => clearTimeout(id); }, [searchQuery]);
+  const searching = debounced.length > 0;
   const [stores, setStores] = useState<StoreRow[]>([]);
   const [products, setProducts] = useState<(BazarProduct & { variants?: unknown })[]>([]);
   const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
@@ -48,10 +53,9 @@ const Wholesale = () => {
 
   const fetchProductPage = async (list: StoreRow[], from: number) => {
     const ids = list.map((s) => s.id); if (!ids.length) return [] as (BazarProduct & { variants?: unknown })[];
-    let query: any = supabase.from("grocery_products").select("id, store_id, name, price, discount_price, wholesale_price, image_url, images, unit, min_order_qty, is_available, rating, sold_count, category, variants").in("store_id", ids).eq("is_available", true).order("sort_order", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).order("id", { ascending: true }).range(from, from + PAGE_SIZE - 1);
-    if (searchQuery.trim()) query = query.ilike("name", `%${searchQuery.trim()}%`);
+    let query: any = supabase.from("grocery_products").select("id, store_id, name, price, discount_price, wholesale_price, image_url, images, unit, min_order_qty, is_available, rating, sold_count, category, variants").in("store_id", ids).eq("is_available", true).order("sort_order", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }).order("id", { ascending: true }).range(from, from + (debounced ? 999 : PAGE_SIZE - 1));
     const { data, error } = await query; if (error) console.error("Bazar products could not load", error);
-    const nameById = new Map(list.map((s) => [s.id, s.name])); return (data || []).map((p: any) => ({ ...p, storeName: nameById.get(p.store_id) }));
+    const nameById = new Map(list.map((s) => [s.id, s.name])); const rows = (data || []).map((p: any) => ({ ...p, storeName: nameById.get(p.store_id) })); return debounced ? rows.filter((p: any) => matchesSearch(debounced, p.name, p.category, p.storeName)) : rows;
   };
 
   useEffect(() => {
@@ -60,11 +64,11 @@ const Wholesale = () => {
       let query: any = supabase.from("grocery_stores").select("id, name, image_url, category, rating, minimum_order, is_active, ships_nationwide, city_id").eq("store_type", "wholesale").neq("subscription_status", "paused");
       if (selectedCity) query = query.eq("city_id", selectedCity); if (activeShopCategory) query = query.eq("shop_category", activeShopCategory);
       const { data: storeData, error: storeError } = await query.order("sort_order").order("created_at", { ascending: false }); if (storeError) console.error("Bazar stores could not load", storeError);
-      const list = storeData || []; setStores(list); const page = await fetchProductPage(list, 0); setProducts(page); setHasMore(page.length === PAGE_SIZE); setLoading(false);
+      const list = storeData || []; setStores(list); const page = await fetchProductPage(list, 0); setProducts(page); setHasMore(!debounced && page.length === PAGE_SIZE); setLoading(false);
     }; fetchAll();
-  }, [searchQuery, selectedCity, activeCategory, activeShopCategory]);
+  }, [debounced, selectedCity, activeCategory, activeShopCategory]);
 
-  const filteredStores = useMemo(() => searchQuery ? stores.filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase())) : stores, [stores, searchQuery]);
+  const filteredStores = useMemo(() => debounced ? stores.filter((s) => matchesSearch(debounced, s.name, s.category)) : stores, [stores, debounced]);
   const filteredProducts = useMemo(() => {
     const min = Number(filters.minPrice) || 0; const max = Number(filters.maxPrice) || Number.POSITIVE_INFINITY; const storeById = new Map(stores.map((store) => [store.id, store]));
     return products.filter((p) => { const price = p.wholesale_price ?? p.discount_price ?? p.price; const variants = readVariants(p); const sizes = variants.map((v) => v.size || v.label || v.name || "").filter(Boolean); const colors = variants.map((v) => v.color || "").filter(Boolean); return (!activeCategory || activeCategory === "All" || p.category === activeCategory) && price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.nationwide || storeById.get(p.store_id)?.ships_nationwide) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase()))); }).sort((a, b) => { const priceA = a.wholesale_price ?? a.discount_price ?? a.price; const priceB = b.wholesale_price ?? b.discount_price ?? b.price; if (filters.sort === "price-low") return priceA - priceB; if (filters.sort === "price-high") return priceB - priceA; if (filters.sort === "rating") return (b.rating || 0) - (a.rating || 0); if (filters.sort === "discount") return (1 - priceB / b.price) - (1 - priceA / a.price); return 0; });
@@ -79,7 +83,15 @@ const Wholesale = () => {
   const bestSelling = [...products].sort((a, b) => Number(b.sold_count || 0) - Number(a.sold_count || 0)).slice(0, 10);
   const rail = (items: (BazarProduct & { variants?: unknown })[]) => <div dir="ltr" className="no-scrollbar flex w-full gap-2 overflow-x-auto px-3 pb-1 sm:px-6">{items.map((p) => <div dir="rtl" key={p.id}><BazarProductCard product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} /></div>)}</div>;
 
-  return <div className="theme-bazar min-h-screen w-full overflow-x-clip bg-background pb-24"><Navbar /><BazarHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+  return <div className="theme-bazar min-h-screen w-full overflow-x-clip bg-background pb-24"><Navbar /><BazarHero searchQuery={searchQuery} onSearchChange={setSearchQuery} hideAds={searching} />
+    {searching ? <section className="w-full px-3 pt-3 sm:px-6">
+      <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-card px-3 py-2 shadow-soft"><p className="min-w-0 truncate text-xs"><span className="text-muted-foreground">نتائج: </span><b>«{debounced}»</b> · {filteredStores.length} دکانیں · {filteredProducts.length} اشیاء</p><Button variant="ghost" size="sm" onClick={() => setSearchQuery("")} className="h-8 shrink-0 gap-1 px-2 text-xs"><X className="size-3.5" /> صاف کریں</Button></div>
+      {loading ? <StoreGridSkeleton count={4} /> : <>
+        {filteredStores.length > 0 && <div className="mb-4"><h2 className="mb-2 flex items-center gap-1.5 font-display text-base font-bold"><Store className="size-4 text-primary" /> دکانیں</h2><div className="space-y-2">{filteredStores.map((store) => <Button variant="ghost" key={store.id} onClick={() => navigate(`/bazar/${store.id}`)} className="flex h-auto w-full items-center gap-3 whitespace-normal rounded-xl border bg-card p-2 text-right shadow-soft hover:bg-card"><span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-lg bg-accent">{store.image_url ? <img src={img(store.image_url, 160)} alt={store.name} loading="lazy" className="size-full object-cover" /> : <Store className="size-6 text-primary" />}</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold">{store.name}</span><span className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground"><Star className="size-3 fill-primary text-primary" />{store.rating ?? t("bazar.new")} · {store.category}</span></span><ChevronRight className="size-4 shrink-0 rotate-180 text-muted-foreground" /></Button>)}</div></div>}
+        {filteredProducts.length > 0 && <div><h2 className="mb-2 flex items-center gap-1.5 font-display text-base font-bold"><Package className="size-4 text-primary" /> اشیاء</h2><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{filteredProducts.slice(0, visible).map((p) => <BazarProductCard key={p.id} product={p} onClick={() => openProduct(p)} isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div>{visible < filteredProducts.length && <Button variant="outline" onClick={() => setVisible((v) => v + 20)} className="mx-auto mt-4 flex">{t("bazar.loadMore")}</Button>}</div>}
+        {filteredStores.length === 0 && filteredProducts.length === 0 && <div className="rounded-xl border bg-card py-12 text-center"><Search className="mx-auto mb-2 size-8 text-muted-foreground" /><p className="text-sm font-semibold">کچھ نہیں ملا</p><p className="mt-1 text-xs text-muted-foreground">دوسرا نام یا اردو/انگریزی میں لکھ کر دیکھیں</p></div>}
+      </>}
+    </section> : <>
     {allCats.length > 0 && <section className="w-full px-3 py-2 sm:px-6"><div dir="ltr" className="no-scrollbar flex w-full gap-1.5 overflow-x-auto pb-1"><div dir="rtl"><Button variant={!activeCategory && !activeShopCategory ? "default" : "outline"} onClick={() => { setActiveCategory(null); setActiveShopCategory(null); }} className="h-10 shrink-0 rounded-lg px-2.5 text-[10px] font-bold">{t("bazar.all")}</Button></div>{allCats.map((cat: any) => { const Icon = (LucideIcons as any)[cat.icon] || Package; const isShop = cat.kind === "shop"; const isActive = isShop ? activeShopCategory === cat.name : activeCategory === cat.name; return <div dir="rtl" key={cat.id}><Button variant={isActive ? "default" : "outline"} onClick={() => { if (isShop) { setActiveShopCategory(isActive ? null : cat.name); setActiveCategory(null); } else { setActiveCategory(isActive ? null : cat.name); setActiveShopCategory(null); } }} className="h-10 shrink-0 gap-1 rounded-lg px-2 text-[10px] font-semibold"><span className="grid size-5 place-items-center rounded-md bg-accent"><Icon className="size-3" /></span><span>{cat.name_ur || cat.name}</span></Button></div>; })}</div></section>}
     <BazarDeals />
     {flashDeals.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Zap className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">{t("bazar.flashSale")}</h2></div>{rail(flashDeals)}</section>}
@@ -120,6 +132,7 @@ const Wholesale = () => {
     {recentProducts.length > 0 && <section className="w-full py-3"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Search className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">{t("bazar.recentlyViewed")}</h2></div>{rail(recentProducts)}</section>}
     <BazarFilterBar filters={filters} onChange={setFilters} resultCount={filteredProducts.length} grid={grid} onGridChange={setGrid} sizes={variantValues.sizes} colors={variantValues.colors} />
     <section className="w-full px-3 pt-5 sm:px-6"><div className="mb-3 flex items-center gap-2"><Flame className="size-4 text-destructive" /><h2 className="font-display text-xl font-bold">{t("bazar.justForYou")}</h2></div>{loading ? <StoreGridSkeleton count={6} /> : filteredProducts.length === 0 ? <div className="rounded-xl border bg-card py-12 text-center"><Package className="mx-auto mb-2 size-8 text-muted-foreground" /><p className="text-sm font-semibold">{t("bazar.noProducts")}</p><p className="mt-1 text-xs text-muted-foreground">{t("bazar.changeFilters")}</p></div> : <><div className={grid ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" : "space-y-2"}>{filteredProducts.slice(0, visible).map((p) => <BazarProductCard key={p.id} product={p} list={!grid} onClick={() => openProduct(p)} isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} />)}</div>{(visible < filteredProducts.length || hasMore) && <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="mx-auto mt-5 flex">{loadingMore ? t("bazar.loading") : t("bazar.loadMore")}<ChevronRight className="size-4" /></Button>}</>}</section>
+    </>}
     <AppShareButton section="grocery" /><BottomTabBar />
   </div>;
 };
