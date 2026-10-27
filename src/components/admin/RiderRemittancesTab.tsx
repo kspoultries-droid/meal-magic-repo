@@ -7,6 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Banknote, RefreshCw, ExternalLink } from "lucide-react";
 
+// Receipts are stored as storage paths (older rows hold a full signed URL); open with a 5-minute link.
+const openReceipt = async (stored: string) => {
+  const m = stored.match(/\/partner-documents\/([^?]+)/);
+  const path = m ? decodeURIComponent(m[1]) : stored;
+  const win = window.open("", "_blank", "noopener");
+  const { data, error } = await supabase.storage.from("partner-documents").createSignedUrl(path, 300);
+  if (error || !data?.signedUrl) { win?.close(); toast.error("رسید نہیں کھل سکی"); return; }
+  if (win) win.location.href = data.signedUrl; else window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+};
+
 const STATUS_TABS = [
   { key: "pending", label: "زیرِ تصدیق" },
   { key: "approved", label: "منظور شدہ" },
@@ -163,9 +173,9 @@ const RiderRemittancesTab = () => {
                 </div>
 
                 {r.receipt_url && (
-                  <a href={r.receipt_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+                  <button type="button" onClick={() => openReceipt(r.receipt_url)} className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
                     <ExternalLink className="w-3 h-3" /> رسید دیکھیں
-                  </a>
+                  </button>
                 )}
 
                 {r.status === "pending" && (
