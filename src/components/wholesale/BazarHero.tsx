@@ -4,6 +4,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { BadgeCheck, Gift, Search, ShieldCheck, Store, Truck, Video, X, type LucideIcon } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import HeroEditor from "@/components/common/HeroEditor";
+import BazarSlidesManager from "@/components/wholesale/BazarSlidesManager";
 import { useHeroSettings } from "@/hooks/useHeroSettings";
 import { bazarHeroDefaults, heroBackgroundStyle } from "@/lib/heroConfig";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,13 +47,14 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const autoplay = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
   const rtl = typeof document !== "undefined" && getComputedStyle(document.documentElement).direction === "rtl";
 
+  const [reload, setReload] = useState(0);
   useEffect(() => {
     supabase.from("promotional_ads").select("*").eq("is_active", true).order("sort_order").then(({ data }) => {
       const today = new Date().toISOString().slice(0, 10);
       setAds(((data || []) as any[]).filter((ad) => ad.placements?.includes("bazar_top") && ad.payment_status === "paid"
         && (!ad.start_date || ad.start_date <= today) && (!ad.end_date || ad.end_date >= today)).slice(0, MAX_SLIDES) as Ad[]);
     });
-  }, []);
+  }, [reload]);
 
   useEffect(() => {
     if (!api) return;
@@ -87,7 +89,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
         {searchQuery && <button type="button" aria-label="صاف کریں" onClick={() => onSearchChange("")} className="grid size-8 place-items-center text-muted-foreground"><X className="size-4" /></button>}
         <span className="m-1 grid h-8 place-items-center rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground">تلاش</span>
       </label>
-      {isAdmin && <HeroEditor config={config} defaults={bazarHeroDefaults} onSave={save} />}
+      {isAdmin && <BazarSlidesManager onChanged={() => setReload((n) => n + 1)} extra={<HeroEditor config={config} defaults={bazarHeroDefaults} onSave={save} />} />}
     </div>
   );
 
