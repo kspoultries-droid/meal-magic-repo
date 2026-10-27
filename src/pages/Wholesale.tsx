@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import * as LucideIcons from "lucide-react";
 import { BadgeCheck, ChevronRight, Flame, MapPin, Package, Search, Star, Store, Truck, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
+import PromotionalAds from "@/components/PromotionalAds";
+import { useStatusBarOverlay } from "@/hooks/useStatusBarOverlay";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
 import BazarDeals from "@/components/wholesale/BazarDeals";
@@ -74,6 +75,7 @@ const Wholesale = () => {
     return products.filter((p) => { const price = p.wholesale_price ?? p.discount_price ?? p.price; const variants = readVariants(p); const sizes = variants.map((v) => v.size || v.label || v.name || "").filter(Boolean); const colors = variants.map((v) => v.color || "").filter(Boolean); return (!activeCategory || activeCategory === "All" || p.category === activeCategory) && price >= min && price <= max && (!filters.minRating || (p.rating || 0) >= Number(filters.minRating)) && (!filters.discountOnly || price < p.price) && (!filters.nationwide || storeById.get(p.store_id)?.ships_nationwide) && (!filters.wishlistOnly || wishlist.includes(p.id)) && (!filters.size || sizes.some((s) => s.toLowerCase().includes(filters.size.toLowerCase()))) && (!filters.color || colors.some((c) => c.toLowerCase().includes(filters.color.toLowerCase()))); }).sort((a, b) => { const priceA = a.wholesale_price ?? a.discount_price ?? a.price; const priceB = b.wholesale_price ?? b.discount_price ?? b.price; if (filters.sort === "price-low") return priceA - priceB; if (filters.sort === "price-high") return priceB - priceA; if (filters.sort === "rating") return (b.rating || 0) - (a.rating || 0); if (filters.sort === "discount") return (1 - priceB / b.price) - (1 - priceA / a.price); return 0; });
   }, [products, stores, filters, wishlist, activeCategory]);
   const loadMore = async () => { if (visible + 20 <= products.length) { setVisible((v) => v + 20); return; } if (!hasMore || loadingMore) { setVisible((v) => Math.min(v + 20, products.length)); return; } setLoadingMore(true); const page = await fetchProductPage(stores, products.length); setProducts((prev) => [...prev, ...page]); setHasMore(page.length === PAGE_SIZE); setVisible((v) => v + 20); setLoadingMore(false); };
+  useStatusBarOverlay();
   const openProduct = (p: BazarProduct) => { pushRecent(p.id); navigate(`/product/${p.id}`); };
   const allCats = [...shopCategories, ...categories.filter((c) => c.name !== "All")];
   const variantValues = useMemo(() => { const sizes = new Set<string>(); const colors = new Set<string>(); products.forEach((product) => readVariants(product).forEach((v) => { if (v.size || v.label) sizes.add(v.size || v.label || ""); if (v.color) colors.add(v.color); })); return { sizes: [...sizes].slice(0, 12), colors: [...colors].slice(0, 12) }; }, [products]);
@@ -83,7 +85,7 @@ const Wholesale = () => {
   const bestSelling = [...products].sort((a, b) => Number(b.sold_count || 0) - Number(a.sold_count || 0)).slice(0, 10);
   const rail = (items: (BazarProduct & { variants?: unknown })[]) => <div dir="ltr" className="no-scrollbar flex w-full gap-2 overflow-x-auto px-3 pb-1 sm:px-6">{items.map((p) => <div dir="rtl" key={p.id}><BazarProductCard product={p} onClick={() => openProduct(p)} compact isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} /></div>)}</div>;
 
-  return <div className="theme-bazar min-h-screen w-full overflow-x-clip bg-background pb-24"><Navbar /><BazarHero searchQuery={searchQuery} onSearchChange={setSearchQuery} hideAds={searching} />
+  return <div className="theme-bazar min-h-screen w-full overflow-x-clip bg-background pb-24"><BazarHero searchQuery={searchQuery} onSearchChange={setSearchQuery} hideAds={searching} />
     {searching ? <section className="w-full px-3 pt-3 sm:px-6">
       <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-card px-3 py-2 shadow-soft"><p className="min-w-0 truncate text-xs"><span className="text-muted-foreground">نتائج: </span><b>«{debounced}»</b> · {filteredStores.length} دکانیں · {filteredProducts.length} اشیاء</p><Button variant="ghost" size="sm" onClick={() => setSearchQuery("")} className="h-8 shrink-0 gap-1 px-2 text-xs"><X className="size-3.5" /> صاف کریں</Button></div>
       {loading ? <StoreGridSkeleton count={4} /> : <>
@@ -93,11 +95,12 @@ const Wholesale = () => {
       </>}
     </section> : <>
     {allCats.length > 0 && <section className="w-full px-3 py-2 sm:px-6"><div dir="ltr" className="no-scrollbar flex w-full gap-1.5 overflow-x-auto pb-1"><div dir="rtl"><Button variant={!activeCategory && !activeShopCategory ? "default" : "outline"} onClick={() => { setActiveCategory(null); setActiveShopCategory(null); }} className="h-10 shrink-0 rounded-lg px-2.5 text-[10px] font-bold">{t("bazar.all")}</Button></div>{allCats.map((cat: any) => { const Icon = (LucideIcons as any)[cat.icon] || Package; const isShop = cat.kind === "shop"; const isActive = isShop ? activeShopCategory === cat.name : activeCategory === cat.name; return <div dir="rtl" key={cat.id}><Button variant={isActive ? "default" : "outline"} onClick={() => { if (isShop) { setActiveShopCategory(isActive ? null : cat.name); setActiveCategory(null); } else { setActiveCategory(isActive ? null : cat.name); setActiveShopCategory(null); } }} className="h-10 shrink-0 gap-1 rounded-lg px-2 text-[10px] font-semibold"><span className="grid size-5 place-items-center rounded-md bg-accent"><Icon className="size-3" /></span><span>{cat.name_ur || cat.name}</span></Button></div>; })}</div></section>}
-    <BazarDeals />
+    <div id="bazar-deals" className="scroll-mt-16"><BazarDeals /></div>
     {flashDeals.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Zap className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">{t("bazar.flashSale")}</h2></div>{rail(flashDeals)}</section>}
     {topRanked.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Star className="size-4 text-primary" /><h2 className="font-display text-lg font-bold">{t("bazar.topRated")}</h2></div>{rail(topRanked)}</section>}
     {bestSelling.length > 0 && <section className="w-full py-2"><div className="mb-2 flex items-center gap-2 px-3 sm:px-6"><Flame className="size-4 text-destructive" /><h2 className="font-display text-lg font-bold">{t("bazar.bestSelling")}</h2></div>{rail(bestSelling)}</section>}
-    <section className="w-full py-3">
+    <PromotionalAds placement="bazar" className="mx-auto w-full max-w-7xl py-3 sm:px-6" />
+    <section id="bazar-shops" className="w-full scroll-mt-16 py-3">
       <div className="mb-2 flex items-center justify-between gap-2 px-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-2"><Store className="size-4 shrink-0 text-primary" /><h2 className="truncate font-display text-lg font-bold">{t("bazar.verifiedWholesalers")}</h2></div>
         <label className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground"><MapPin className="size-3" /><select value={selectedCity || ""} onChange={(e) => setSelectedCity(e.target.value || null)} className="max-w-[7rem] rounded-md border bg-card px-2 py-1 text-xs text-foreground outline-none"><option value="">{t("bazar.allCities")}</option>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
