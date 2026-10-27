@@ -357,9 +357,15 @@ const Checkout = () => {
 
         {/* Order Summary - Glass */}
         <div className="glass rounded-2xl p-4 border border-border/50 shadow-elegant animate-fade-in">
-          <h2 className="text-sm font-extrabold text-foreground mb-2.5 flex items-center gap-1.5">
-            <span className="w-1 h-4 bg-gradient-primary rounded-full" /> {t("checkout.orderDetails")}
-          </h2>
+          <div className="mb-2.5 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-extrabold text-foreground flex items-center gap-1.5">
+              <span className="w-1 h-4 bg-gradient-primary rounded-full" /> {t("checkout.orderDetails")}
+            </h2>
+            {items[0]?.sourceId && (
+              <button type="button" onClick={() => navigate(items[0].source === "grocery" ? (storeType === "wholesale" ? `/bazar/${items[0].sourceId}` : `/grocery/${items[0].sourceId}`) : `/restaurant/${items[0].sourceId}`)}
+                className="rounded-full border border-primary/40 px-2.5 py-1 text-[11px] font-bold text-primary">+ مزید اشیاء شامل کریں</button>
+            )}
+          </div>
           <div className="space-y-2">
             {items.map((item) => (
               <div key={item.id} className="flex items-center justify-between text-sm gap-2 rounded-lg bg-secondary/35 px-2.5 py-2">
