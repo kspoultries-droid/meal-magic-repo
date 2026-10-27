@@ -267,6 +267,13 @@
       "when": 1793111040803,
       "tag": "0037_referral_anti_fraud",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793124117743,
+      "tag": "0038_promotional_ads_campaign_fields",
+      "breakpoints": true
     }
   ]
 }

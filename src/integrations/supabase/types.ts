@@ -2465,53 +2465,83 @@ export type Database = {
       }
       promotional_ads: {
         Row: {
+          ad_type: string
           brand_name: string
+          clicks: number
           created_at: string | null
+          cta_text: string | null
           end_date: string
           id: string
           image_url: string | null
+          impressions: number
           is_active: boolean | null
           link_url: string | null
+          offer_badge: string | null
+          original_price: number | null
           package_id: string | null
           payment_amount: number | null
           payment_status: string | null
           placements: string[]
+          price: number | null
+          promo_code: string | null
+          show_text: boolean
           sort_order: number | null
           start_date: string
+          subtitle: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
+          ad_type?: string
           brand_name: string
+          clicks?: number
           created_at?: string | null
+          cta_text?: string | null
           end_date?: string
           id?: string
           image_url?: string | null
+          impressions?: number
           is_active?: boolean | null
           link_url?: string | null
+          offer_badge?: string | null
+          original_price?: number | null
           package_id?: string | null
           payment_amount?: number | null
           payment_status?: string | null
           placements?: string[]
+          price?: number | null
+          promo_code?: string | null
+          show_text?: boolean
           sort_order?: number | null
           start_date?: string
+          subtitle?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
+          ad_type?: string
           brand_name?: string
+          clicks?: number
           created_at?: string | null
+          cta_text?: string | null
           end_date?: string
           id?: string
           image_url?: string | null
+          impressions?: number
           is_active?: boolean | null
           link_url?: string | null
+          offer_badge?: string | null
+          original_price?: number | null
           package_id?: string | null
           payment_amount?: number | null
           payment_status?: string | null
           placements?: string[]
+          price?: number | null
+          promo_code?: string | null
+          show_text?: boolean
           sort_order?: number | null
           start_date?: string
+          subtitle?: string | null
           title?: string
           updated_at?: string | null
         }
@@ -4847,6 +4877,10 @@ export type Database = {
           rider_actions: number
           total_actions: number
         }[]
+      }
+      track_ad_event: {
+        Args: { _ad_id: string; _kind: string }
+        Returns: undefined
       }
       validate_voucher: {
         Args: { _code: string; _scope: string; _subtotal: number }
