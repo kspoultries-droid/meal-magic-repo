@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Mail, Lock, User, ArrowLeft, Phone, Fingerprint, Gift } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { lovable } from "@/integrations/lovable/index";
+import { Capacitor } from "@capacitor/core";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -192,7 +193,10 @@ const Auth = () => {
             </form>
           )}
 
-          {/* Google Sign In */}
+          {/* Google Sign In (hidden inside the Android app: Google blocks sign-in in app webviews and the session lands in Chrome instead) */}
+          {Capacitor.isNativePlatform() ? (
+            <p className="mt-4 rounded-md bg-muted p-3 text-center text-xs text-muted-foreground">ایپ میں ای میل اور پاس ورڈ سے لاگ ان کریں۔ Google لاگ ان ویب سائٹ پر دستیاب ہے۔</p>
+          ) : (
           <div className="mt-4">
             <div className="relative flex items-center justify-center my-3">
               <div className="border-t border-border w-full" />
@@ -231,6 +235,7 @@ const Auth = () => {
               Apple سے {isLogin ? "لاگ ان" : "سائن اپ"}
             </Button>
           </div>
+          )}
 
           <div className="mt-3 text-center">
             <Button variant="link"
