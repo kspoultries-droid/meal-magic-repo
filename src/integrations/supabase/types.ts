@@ -50,6 +50,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_setup_usage: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_owner: {
         Row: {
           created_at: string
