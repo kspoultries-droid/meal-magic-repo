@@ -64,7 +64,7 @@ const Services = () => {
   const [locatingUser, setLocatingUser] = useState(false);
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
-  const { config: heroConfig, save: saveHero } = useHeroSettings("hero_services", servicesHeroDefaults);
+  const { config: heroConfig, loaded: heroLoaded, save: saveHero } = useHeroSettings("hero_services", servicesHeroDefaults);
   const servicesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -281,7 +281,9 @@ const Services = () => {
       <Navbar />
 
       {/* Header - editable premium hero */}
-      <div className="relative overflow-hidden px-4" style={heroBackgroundStyle(heroConfig)}>
+      {!heroLoaded ? (
+        <div aria-busy="true" aria-label="ہوم سروسز" className="min-h-[210px] bg-muted" />
+      ) : <div className="relative overflow-hidden px-4" style={heroBackgroundStyle(heroConfig)}>
         <div className="relative">
           {isAdmin && (
             <div className="mb-2 flex justify-end">
@@ -311,7 +313,7 @@ const Services = () => {
             </div>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* Promotional Ads - hide when category selected */}
       {!activeCategory && <PromotionalAds placement="home" />}
