@@ -1,5 +1,11 @@
 apply plugin: 'com.android.application'
 
+// Workflow-issued Android version code; must increase on every published APK.
+def easyLifeBuild = (System.getenv("EASYLIFE_ANDROID_BUILD") ?: "1") as Integer
+def easyLifeVersion = System.getenv("EASYLIFE_ANDROID_VERSION") ?: "1.0"
+def easyLifeKeystore = file("easylife-release.p12")
+def easyLifeKeystorePassword = System.getenv("EASYLIFE_KEYSTORE_PASSWORD")
+
 android {
     namespace = "app.lovable.p1324956aa36e44cebf0eabe4ab646da4"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +13,8 @@ android {
         applicationId "app.lovable.p1324956aa36e44cebf0eabe4ab646da4"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode (System.getenv("EASYLIFE_ANDROID_BUILD") ?: "1").toInteger()
-        versionName System.getenv("EASYLIFE_ANDROID_VERSION") ?: "1.0"
+        versionCode easyLifeBuild
+        versionName easyLifeVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +22,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            // Stable certificate so every new APK installs over the previous one.
+            if (easyLifeKeystore.exists() && easyLifeKeystorePassword) {
+                storeFile easyLifeKeystore
+                storeType "pkcs12"
+                storePassword easyLifeKeystorePassword
+                keyAlias "easylife"
+                keyPassword easyLifeKeystorePassword
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

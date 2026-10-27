@@ -45,13 +45,31 @@ jobs:
           BUILD=$((100000 + ${{ github.run_number }}))
           echo "EASYLIFE_ANDROID_BUILD=$BUILD" >> "$GITHUB_ENV"
           echo "EASYLIFE_ANDROID_VERSION=1.0.${{ github.run_number }}" >> "$GITHUB_ENV"
-      - run: ./gradlew assembleDebug
+      # Stable signing: the certificate lives in the repo, its password only in the ANDROID_KEYSTORE_PASSWORD secret.
+      - name: Prepare signing key
+        env:
+          KSP: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KSP" ]; then
+            echo "::error::ANDROID_KEYSTORE_PASSWORD is required so new APKs install over the previous app."
+            exit 1
+          fi
+          base64 -d android/app/easylife-release.p12.b64 > android/app/easylife-release.p12
+          echo "EASYLIFE_KEYSTORE_PASSWORD=$KSP" >> "$GITHUB_ENV"
+      - run: ./gradlew assembleRelease
         working-directory: android
+      - name: Verify APK signature and version
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $BT/apksigner verify --print-certs "$APK" | tee cert.txt
+          grep -qi "70:8b:51:c4:15:57:05:35:f8:cd:8f:38:0e:44:ac:f2:10:a8:39:44:6c:fc:07:51:6b:cf:77:fa:cc:02:53:00\|708b51c415570535f8cd8f380e44acf210a839446cfc07516bcf77facc025300" cert.txt
+          $BT/aapt2 dump badging "$APK" | head -1 | grep -q "versionCode='$EASYLIFE_ANDROID_BUILD'"
       - uses: actions/upload-artifact@v5
         with:
           name: easy-life-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-      - run: cp android/app/build/outputs/apk/debug/app-debug.apk EasyLife.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+      - run: cp android/app/build/outputs/apk/release/app-release.apk EasyLife.apk
       # Public one-click download: /releases/latest/download/EasyLife.apk
       - uses: softprops/action-gh-release@v2
         with:
