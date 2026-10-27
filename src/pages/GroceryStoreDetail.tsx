@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -285,7 +286,7 @@ const GroceryStoreDetail = () => {
                          onClick={() => !isOwner && navigate(`/product/${product.id}`)}
                        >
                           {product.image_url ? (
-                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                            <img src={img(product.image_url, 360)} alt={product.name} className="w-full h-full object-cover" />
                           ) : (
                             <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
                           )}

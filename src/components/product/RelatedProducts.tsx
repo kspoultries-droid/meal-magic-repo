@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useNavigate } from "react-router-dom";
 import { Package } from "lucide-react";
 
@@ -29,7 +30,7 @@ const RelatedProducts = ({ items, title = "ملتی جلتی اشیاء" }: { it
             >
               <div className="relative aspect-square bg-secondary flex items-center justify-center overflow-hidden">
                 {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                  <img src={img(p.image_url, 300)} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
                 ) : (
                   <Package className="w-7 h-7 text-muted-foreground" />
                 )}

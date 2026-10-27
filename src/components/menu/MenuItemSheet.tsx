@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -124,7 +125,7 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
       <SheetContent side="bottom" className="h-[85vh] p-0 rounded-t-3xl flex flex-col">
         <SheetHeader className="p-0">
           {item.image_url && (
-            <img src={item.image_url} alt={item.name} className="w-full h-40 object-cover rounded-t-3xl" />
+            <img src={img(item.image_url, 640)} alt={item.name} className="w-full h-40 object-cover rounded-t-3xl" />
           )}
           <div className="px-5 pt-3">
             <SheetTitle className="text-left text-lg font-extrabold">{item.name}</SheetTitle>
