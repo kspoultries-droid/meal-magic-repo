@@ -1,3 +1,4 @@
+import { img } from "@/lib/imageUrl";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, Clock, Crown } from "lucide-react";
@@ -75,7 +76,7 @@ const TopPicksRail = () => {
           >
             <div className="relative h-24 overflow-hidden">
               <img
-                src={p.image}
+                src={img(p.image, 300)}
                 alt={p.name}
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
