@@ -2,7 +2,8 @@ import { act, render, screen, waitFor, cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RiderLocationProvider, useRiderLocation } from "./RiderLocationContext";
 
-const mocks = vi.hoisted(() => ({ rpc: vi.fn(), callback: null as null | PositionCallback, available: true, active: false }));
+const mocks = vi.hoisted(() => ({ rpc: vi.fn(), callback: null as null | PositionCallback, available: true, active: false, native: false, nativeWatch: vi.fn(), nativePublish: vi.fn(), stopNative: vi.fn() }));
+vi.mock("@/lib/nativeRiderLocation", () => ({ hasNativeRiderLocation: () => mocks.native, watchNativeRiderLocation: mocks.nativeWatch, publishNativeRiderFix: mocks.nativePublish }));
 vi.mock("@/hooks/useAuth", () => ({ useAuth: () => ({ user: { id: "rider-test" }, isRider: true }) }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {
   rpc: mocks.rpc,
@@ -22,6 +23,8 @@ const emit = () => act(() => {
 });
 beforeEach(() => {
   mocks.available = true; mocks.active = false; mocks.callback = null; mocks.rpc.mockReset();
+  mocks.native = false; mocks.nativeWatch.mockReset(); mocks.nativePublish.mockReset(); mocks.stopNative.mockReset();
+  mocks.nativeWatch.mockResolvedValue(mocks.stopNative);
   Object.defineProperty(navigator, "geolocation", { configurable: true, value: {
     watchPosition: vi.fn((callback: PositionCallback) => { mocks.callback = callback; return 1; }),
     getCurrentPosition: vi.fn(), clearWatch: vi.fn(),
@@ -29,6 +32,18 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 describe("app-level rider GPS", () => {
+  it("uses only the native watcher for Android and publishes background fixes through native HTTP", async () => {
+    mocks.native = true;
+    mocks.nativePublish.mockResolvedValue(new Date().toISOString());
+    const { unmount } = render(<RiderLocationProvider><Status /></RiderLocationProvider>);
+    await waitFor(() => expect(mocks.nativeWatch).toHaveBeenCalledTimes(1));
+    expect(navigator.geolocation.watchPosition).not.toHaveBeenCalled();
+    act(() => mocks.nativeWatch.mock.calls[0][0]({ lat: 28.42, lng: 70.3, accuracy: 15, at: Date.now() }));
+    await waitFor(() => expect(mocks.nativePublish).toHaveBeenCalledWith({ lat: 28.42, lng: 70.3, accuracy: 15, at: expect.any(Number) }));
+    expect(mocks.rpc.mock.calls.some(call => call[0] === "publish_rider_location")).toBe(false);
+    unmount();
+    expect(mocks.stopNative).toHaveBeenCalledTimes(1);
+  });
   it("only confirms sharing after a successful publish", async () => {
     mocks.rpc.mockResolvedValue({ data: new Date().toISOString(), error: null });
     render(<RiderLocationProvider><Status /></RiderLocationProvider>);
