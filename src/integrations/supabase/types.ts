@@ -4408,6 +4408,10 @@ export type Database = {
           rider_phone: string
         }[]
       }
+      get_delivery_route_context: {
+        Args: { _kind: string; _order_id: string }
+        Returns: Json
+      }
       get_order_customer_contact: {
         Args: { _kind: string; _order_id: string }
         Returns: {
