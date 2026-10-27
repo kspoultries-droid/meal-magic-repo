@@ -85,6 +85,7 @@ const ProductDetail = () => {
         sourceId: store.id,
         weight_kg: product.weight_kg,
         weight: product.weight,
+        unit: product.unit,
         variant_id: selectedVariantCartId,
         variant_label: variantLabel || null,
       });
@@ -228,6 +229,16 @@ const ProductDetail = () => {
               <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" aria-label="بڑھائیں" onClick={addToCart}><Plus className="h-4 w-4" /></Button>
             </div>
           )}
+          {quantity > 0 ? (<>
+            <Button variant="outline" className="h-11 min-w-0 flex-1 rounded-xl border-primary/40 px-2 text-[13px] font-extrabold text-primary shadow-sm" onClick={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)}>
+              <Store className="me-1.5 h-4 w-4 shrink-0" />
+              <span className="truncate">مزید اشیاء لیں</span>
+            </Button>
+            <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={() => navigate("/checkout")}>
+              <span className="truncate">چیک آؤٹ ({items.reduce((n, i) => n + i.quantity, 0)})</span>
+              <ArrowLeft className="ms-1.5 h-4 w-4 shrink-0" />
+            </Button>
+          </>) : (<>
           <Button variant="outline" className="h-11 min-w-0 flex-1 rounded-xl border-primary/40 px-2 text-[13px] font-extrabold text-primary shadow-sm" onClick={addToCart}>
             <ShoppingBag className="me-1.5 h-4 w-4 shrink-0" />
             <span className="truncate">کارٹ میں شامل</span>
@@ -236,6 +247,7 @@ const ProductDetail = () => {
             <span className="truncate">ابھی خریدیں</span>
             <ArrowLeft className="ms-1.5 h-4 w-4 shrink-0" />
           </Button>
+          </>)}
         </div>
       </div>
     </div>

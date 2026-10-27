@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
 export interface CartItemOption {
@@ -26,6 +26,7 @@ export interface CartItem {
   sourceId?: string;
   weight_kg?: number | null;
   weight?: string | null;
+  unit?: string | null;
   variant_id?: string | null;
   variant_label?: string | null;
   option_ids?: string[];
@@ -65,6 +66,8 @@ export const buildLineId = (item: AddItemInput) => {
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const itemsRef = useRef<CartItem[]>(items);
+  itemsRef.current = items;
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -108,20 +111,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       option_ids: raw.option_ids || [],
       options: raw.options || [],
     };
-    setItems((prev) => {
-      const first = prev[0];
-      if (first) {
-        const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
-        const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
-        if (!sameSource || !sameShop) {
-          toast.error("کارٹ صرف ایک شاپ سے ہو سکتا ہے — پرانا صاف کر کے نیا شامل کیا گیا", {
-            id: "cart-swap", duration: 2500,
-          });
-          return [item];
-        }
+    const first = itemsRef.current[0];
+    if (first) {
+      const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
+      const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
+      if (!sameSource || !sameShop) {
+        // Never silently wipe a cart: ask first (one shop = one rider trip = one bill).
+        toast.warning(`آپ کے کارٹ میں «${first.restaurant}» کی اشیاء ہیں۔ ایک آرڈر میں ایک ہی دکان کی چیزیں آ سکتی ہیں۔`, {
+          id: "cart-swap", duration: 8000,
+          action: { label: "پرانا ہٹا کر شامل کریں", onClick: () => { setItems([item]); toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 }); } },
+        });
+        return;
       }
-      return mergeItems(prev, [item]);
-    });
+    }
+    setItems((prev) => mergeItems(prev, [item]));
     toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 });
   }, [mergeItems]);
 

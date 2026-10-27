@@ -4657,6 +4657,7 @@ export type Database = {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
       }
+      parse_weight_kg: { Args: { _txt: string }; Returns: number }
       pay_rider: {
         Args: {
           _bonus: number
