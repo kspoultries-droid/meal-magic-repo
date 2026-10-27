@@ -38,6 +38,7 @@ import BankAccountsTab from "@/components/admin/BankAccountsTab";
 import RiderPayTab from "@/components/admin/RiderPayTab";
 import OverviewTab from "@/components/admin/OverviewTab";
 import AlertCenter from "@/components/admin/AlertCenter";
+import StuckDispatchAlarm from "@/components/admin/StuckDispatchAlarm";
 import TeamTab from "@/components/admin/TeamTab";
 import ApprovalsTab from "@/components/admin/ApprovalsTab";
 import TeamActivityTab from "@/components/admin/TeamActivityTab";
@@ -108,6 +109,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <StuckDispatchAlarm onOpen={() => goto("operations", "orders")} />
       <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur px-3 py-2 sm:px-5 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-base font-bold text-primary">{t("dash.admin")}</h1>
         <div className="flex flex-wrap items-center gap-1.5">
