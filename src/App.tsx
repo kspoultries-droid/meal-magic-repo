@@ -74,6 +74,7 @@ const RiderPayments = lazyWithRetry(() => import("./pages/RiderPayments"));
 const RiderRemit = lazyWithRetry(() => import("./pages/RiderRemit"));
 const Checkout = lazyWithRetry(() => import("./pages/Checkout"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
+const MyOrders = lazyWithRetry(() => import("./pages/MyOrders"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const Install = lazyWithRetry(() => import("./pages/Install"));
 const Grocery = lazyWithRetry(() => import("./pages/Grocery"));
@@ -198,6 +199,7 @@ const App = () => (
                   <Route path="/rider-remit" element={<RiderRemit />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/my-orders" element={<MyOrders />} />
                   <Route path="/install" element={<Install />} />
                   <Route path="/grocery" element={<Grocery />} />
                   <Route path="/product/:id" element={<ProductDetail />} />

@@ -18,6 +18,7 @@ import AccountTile from "@/components/profile/AccountTile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import { useCart } from "@/contexts/CartContext";
+import { ORDER_TABS, orderTabOf } from "@/pages/MyOrders";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
@@ -257,10 +258,35 @@ const Profile = () => {
         )}
       </div>
 
+       {/* Daraz-style My Orders strip */}
+       <div className="px-4 -mt-4 relative">
+         <div className="bg-card rounded-2xl border shadow-card">
+           <button onClick={() => navigate("/my-orders")} className="flex w-full items-center justify-between px-4 py-3 border-b">
+             <span className="text-sm font-extrabold text-foreground">{t("profile.myOrders")}</span>
+             <span className="flex items-center text-xs text-muted-foreground">سب دیکھیں <ChevronRight className="w-4 h-4" /></span>
+           </button>
+           <div className="grid grid-cols-4 py-3">
+             {ORDER_TABS.slice(1).map((tb) => {
+               const n = orders.filter((o) => orderTabOf(o.status) === tb.key).length;
+               const Icon = tb.icon;
+               return (
+                 <button key={tb.key} onClick={() => navigate(`/my-orders?tab=${tb.key}`)} className="relative flex flex-col items-center gap-1 active:scale-95 transition-transform">
+                   <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                     <Icon className="w-5 h-5" />
+                     {n > 0 && tb.key !== "cancelled" && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">{n}</span>}
+                   </span>
+                   <span className="text-[11px] font-semibold text-foreground">{tb.label}</span>
+                 </button>
+               );
+             })}
+           </div>
+         </div>
+       </div>
+
        {/* Quick Actions */}
        <div className="px-4 py-4">
          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-           <AccountTile icon={<ShoppingBag className="w-5 h-5" />} label={t("profile.myOrders")} value={`${orders.length} ${t("profile.ordersCount")}`} active={showOrders} onClick={() => setShowOrders(!showOrders)} />
+           <AccountTile icon={<ShoppingBag className="w-5 h-5" />} label={t("profile.myOrders")} value={`${orders.length} ${t("profile.ordersCount")}`} onClick={() => navigate("/my-orders")} />
            <AccountTile icon={<Heart className="w-5 h-5" />} label={t("profile.favorites")} value={t("profile.savedItems")} onClick={() => toast.info(t("profile.favSoon"))} />
            <AccountTile icon={<MapPin className="w-5 h-5" />} label={t("profile.savedAddresses")} value={`${addresses.length || ""} ${t("profile.addressesWord")}`} onClick={openAddresses} />
            <AccountTile icon={<Wallet className="w-5 h-5" />} label={t("profile.wallet")} value={t("profile.seeBalance")} onClick={() => navigate("/wallet")} />
