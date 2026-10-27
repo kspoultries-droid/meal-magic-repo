@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet, Copy, Plus, Trash2, Navigation, Star, Store, Bike, Package, RefreshCw } from "lucide-react";
+import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet, Copy, Plus, Trash2, Navigation, Star, Store, Bike, Package, RefreshCw, Smartphone } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -265,6 +265,20 @@ const Profile = () => {
            <AccountTile icon={<MapPin className="w-5 h-5" />} label={t("profile.savedAddresses")} value={`${addresses.length || ""} ${t("profile.addressesWord")}`} onClick={openAddresses} />
            <AccountTile icon={<Wallet className="w-5 h-5" />} label={t("profile.wallet")} value={t("profile.seeBalance")} onClick={() => navigate("/wallet")} />
          </div>
+         <button
+           type="button"
+           onClick={() => navigate("/install")}
+           className="mt-2.5 flex w-full items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-card active:scale-[0.99]"
+         >
+           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+             <Smartphone className="h-5 w-5" />
+           </span>
+           <span className="min-w-0 flex-1">
+             <span className="block text-xs font-extrabold text-foreground">ایپ انسٹال کریں / Install App</span>
+             <span className="block text-[10px] text-muted-foreground">APK ڈاؤن لوڈ، فون پر انسٹال اور اپ ڈیٹ — سب ایک جگہ</span>
+           </span>
+           <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
+         </button>
        </div>
 
       {/* Addresses Dialog */}
