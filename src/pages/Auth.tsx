@@ -18,11 +18,13 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signupNotice, setSignupNotice] = useState("");
   const navigate = useNavigate();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSignupNotice("");
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -30,7 +32,7 @@ const Auth = () => {
         toast.success("لاگ ان کامیاب!");
         navigate("/");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -39,7 +41,12 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        toast.success("اکاؤنٹ بن گیا! ای میل چیک کریں۔");
+        if (data.session) {
+          toast.success("اکاؤنٹ بن گیا، آپ لاگ اِن ہیں۔");
+          navigate("/");
+        } else {
+          setSignupNotice("تصدیق کے لیے اپنی ای میل چیک کریں۔ ای میل میں موجود لنک کھولنے کے بعد لاگ اِن کریں۔");
+        }
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -115,6 +122,11 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {signupNotice && (
+            <p role="status" className="mb-4 rounded-md bg-muted p-3 text-center text-sm text-foreground">
+              {signupNotice}
+            </p>
+          )}
           {isLogin ? (
             <Tabs defaultValue="email" className="w-full">
               <TabsList className="grid w-full grid-cols-3 mb-4">
@@ -241,7 +253,7 @@ const Auth = () => {
             <Button variant="link"
               type="button"
               className="h-auto whitespace-normal text-sm text-primary"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => { setIsLogin(!isLogin); setSignupNotice(""); }}
             >
               {isLogin ? "اکاؤنٹ نہیں ہے؟ سائن اپ کریں" : "پہلے سے اکاؤنٹ ہے؟ لاگ ان کریں"}
             </Button>
