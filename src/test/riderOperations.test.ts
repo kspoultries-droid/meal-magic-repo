@@ -4,12 +4,16 @@ import { deliveryCash, deliveryClosed, groceryReady, nextDeliveryAction, riderPr
 const now = Date.parse("2026-10-26T00:26:00Z");
 const at = new Date(now).toISOString();
 describe("supervised rider operations", () => {
-  it("excludes old availability even with a fresh heartbeat", () => {
-    expect(riderPresenceFresh({ is_available: true, last_seen_at: at, location_updated_at: new Date(now - 91000).toISOString() }, now)).toBe(false);
+  it("keeps a closed-app rider available for 10 minutes after the last phone signal", () => {
+    const nineMin = new Date(now - 9 * 60000).toISOString();
+    expect(riderPresenceFresh({ is_available: true, last_seen_at: nineMin, location_updated_at: nineMin }, now)).toBe(true);
+  });
+  it("excludes old GPS even with a fresh heartbeat", () => {
+    expect(riderPresenceFresh({ is_available: true, last_seen_at: at, location_updated_at: new Date(now - 11 * 60000).toISOString() }, now)).toBe(false);
     expect(riderPresenceFresh({ is_available: true, last_seen_at: at, location_updated_at: at }, now)).toBe(true);
   });
   it("excludes fresh GPS with an old heartbeat", () => {
-    expect(riderPresenceFresh({ is_available: true, last_seen_at: new Date(now - 91000).toISOString(), location_updated_at: at }, now)).toBe(false);
+    expect(riderPresenceFresh({ is_available: true, last_seen_at: new Date(now - 11 * 60000).toISOString(), location_updated_at: at }, now)).toBe(false);
   });
   it("grocery confirmation and packing do not mean ready for pickup", () => {
     for (const state of ["confirmed", "picking", "packed", "delivering"]) expect(groceryReady(state)).toBe(false);
