@@ -38,7 +38,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
-  const [rolesLoading, setRolesLoading] = useState(false);
+  // Start true so `loading` never reports false before the first role check runs;
+  // otherwise children (e.g. RoleStartRedirect) see user set with roles still false.
+  const [rolesLoading, setRolesLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isRestaurantOwner, setIsRestaurantOwner] = useState(false);
   const [isRider, setIsRider] = useState(false);
