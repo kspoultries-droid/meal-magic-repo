@@ -20,3 +20,4 @@
 - Shared grocery and Bazar banners insert into a unique version folder with the store-ID filename; this preserves owner-scoped policies and avoids overwrite SELECT requirements and stale image caching.
 - Grocery and Bazar product uploads share a unique-folder product-ID filename helper, including new-product galleries; existing owner-scoped storage policies remain authoritative.
 - AI setup helpers call the ai-setup-assistant function (cheap model, per-user daily limit logged in ai_setup_usage) and only return drafts; saving goes through normal owner-scoped inserts.
+- Shop item bulk tools (quick edit, shared catalog_items picker, CSV/XLSX import) write only the owner's own grocery_products rows; the catalog stores names/photos without prices because each shop sets its own price.
