@@ -217,6 +217,42 @@ export type Database = {
           },
         ]
       }
+      catalog_items: {
+        Row: {
+          brand: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          unit: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          unit?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          unit?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           auto_dispatch: boolean

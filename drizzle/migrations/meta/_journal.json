@@ -281,6 +281,13 @@
       "when": 1793134752932,
       "tag": "0039_product_weight_from_unit",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793186353622,
+      "tag": "0040_shared_product_catalog",
+      "breakpoints": true
     }
   ]
 }
