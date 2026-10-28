@@ -1,10 +1,9 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
-import HomeHero from "@/components/home/HomeHero";
+import FoodHero from "@/components/home/FoodHero";
 import TopPicksRail from "@/components/home/TopPicksRail";
 import QuickCategories, { QuickFilter } from "@/components/QuickCategories";
 import CategoryRail from "@/components/home/CategoryRail";
-import HeroPromo from "@/components/home/HeroPromo";
 import RestaurantGrid from "@/components/RestaurantGrid";
 import Footer from "@/components/Footer";
 import BottomTabBar from "@/components/BottomTabBar";
@@ -23,12 +22,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle pb-24">
       <Navbar />
-      <HomeHero searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+      <FoodHero searchQuery={searchQuery} onSearchChange={setSearchQuery} hideAds={isSearching || !!quickFilter} />
       {!foodLive ? (
         <ServiceUnavailableNotice kind="food" city={city} cities={cities} onCityChange={setCityId} />
       ) : (
       <>
-      {!isSearching && !quickFilter && <HeroPromo />}
       <QuickCategories
         active={quickFilter}
         onChange={(f) => {

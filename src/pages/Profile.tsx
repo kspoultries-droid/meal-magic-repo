@@ -727,7 +727,7 @@ const Profile = () => {
               <AlertDialogCancel>{t("profile.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={async () => { await signOut(); navigate("/"); }}
+                onClick={async () => { try { localStorage.removeItem(cacheKey); } catch { /* ignore */ } await signOut(); navigate("/"); }}
               >
                 {t("profile.yesLogout")}
               </AlertDialogAction>
