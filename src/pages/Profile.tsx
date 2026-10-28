@@ -45,12 +45,34 @@ const Profile = () => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
+  const cacheKey = user ? `easylife:profile-cache:${user.id}` : "";
+  const applyData = (d: any) => {
+    setProfile(d.profile);
+    setOrders(d.orders || []);
+    setRoles(d.roles || []);
+    setPartnerAssets(d.partnerAssets);
+    setWalletBalance(Number(d.walletBalance || 0));
+    setForm({
+      full_name: d.profile?.full_name || "",
+      phone: d.profile?.phone || "",
+      address: d.profile?.address || "",
+      email: user?.email || "",
+    });
+  };
+
   const fetchData = async () => {
     if (!user) {
       setLoading(false);
       return;
     }
-    setLoading(true);
+    // Show last-known account data instantly; refresh silently in background.
+    let hasCache = false;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached && !profile) { applyData(JSON.parse(cached)); hasCache = true; setLoading(false); }
+      else if (profile) hasCache = true;
+    } catch { /* ignore */ }
+    if (!hasCache) setLoading(true);
     try {
       const fallbackProfile = {
         id: user.id,
@@ -78,32 +100,29 @@ const Profile = () => {
         supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
       ]);
       if (profileError) console.error("Profile load error:", profileError);
-      const nextProfile = prof || fallbackProfile;
-      setProfile(nextProfile);
-      setOrders(ords || []);
-      setRoles((userRoles || []).map((r: any) => r.role));
-      setPartnerAssets({
-        restaurants: ownedRestaurants || [],
-        stores: ownedStores || [],
-        serviceProvider: serviceProvider || null,
-        rider: riderProfile || null,
-      });
-      setWalletBalance(Number((walletData as any)?.balance || 0));
-      setForm({
-        full_name: nextProfile.full_name || "",
-        phone: nextProfile.phone || "",
-        address: nextProfile.address || "",
-        email: user.email || "",
-      });
+      const data = {
+        profile: prof || fallbackProfile,
+        orders: ords || [],
+        roles: (userRoles || []).map((r: any) => r.role),
+        partnerAssets: {
+          restaurants: ownedRestaurants || [],
+          stores: ownedStores || [],
+          serviceProvider: serviceProvider || null,
+          rider: riderProfile || null,
+        },
+        walletBalance: Number((walletData as any)?.balance || 0),
+      };
+      applyData(data);
+      try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* quota */ }
     } catch (error) {
       console.error("Profile data load error:", error);
-      toast.error("اکاؤنٹ ڈیٹا لوڈ نہیں ہوا، دوبارہ کوشش کریں۔");
+      if (!hasCache) toast.error("اکاؤنٹ ڈیٹا لوڈ نہیں ہوا، دوبارہ کوشش کریں۔");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, [user]);
+  useEffect(() => { fetchData(); }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -112,7 +131,7 @@ const Profile = () => {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `customer_id=eq.${user.id}` }, () => fetchData())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user?.id]);
 
   const updateProfile = async () => {
     if (!user) return;
@@ -199,7 +218,14 @@ const Profile = () => {
     toast.success("پارٹنر access تازہ ہو گیا");
   };
 
-  if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading", "…")}</div>;
+  if ((authLoading && !profile) || (loading && !profile)) return (
+    <div className="min-h-screen bg-background pb-20" aria-busy="true" aria-label={t("common.loading", "…")}>
+      <div className="h-14 border-b bg-card" />
+      <div className="h-36 bg-primary/80 animate-pulse" />
+      <div className="mx-4 -mt-6 h-28 rounded-2xl bg-card shadow-soft animate-pulse" />
+      <div className="mx-4 mt-3 grid grid-cols-2 gap-3">{[0,1,2,3].map((i) => <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />)}</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -701,7 +727,7 @@ const Profile = () => {
               <AlertDialogCancel>{t("profile.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={async () => { await signOut(); navigate("/"); }}
+                onClick={async () => { try { localStorage.removeItem(cacheKey); } catch { /* ignore */ } await signOut(); navigate("/"); }}
               >
                 {t("profile.yesLogout")}
               </AlertDialogAction>
