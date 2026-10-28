@@ -20,7 +20,7 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
   const [saving, setSaving] = useState(false);
   const [quick, setQuick] = useState({ name: "", price: "", discount: "", unit: "", category: categories[0] || "General" });
 
-  const shown = useMemo(() => products.filter((p) => !q || matchesSearch(`${p.name} ${p.category || ""}`, q)).slice(0, 300), [products, q]);
+  const shown = useMemo(() => products.filter((p) => !q || matchesSearch(q, p.name, p.category)).slice(0, 300), [products, q]);
   const dirty = Object.keys(drafts);
 
   const draftOf = (p: any): Draft => drafts[p.id] || { price: String(p.price ?? ""), discount: p.discount_price ? String(p.discount_price) : "", available: p.is_available !== false };
@@ -136,7 +136,7 @@ function CatalogPicker({ storeId, existing, onChanged }: { storeId: string; exis
   }, []);
 
   const have = useMemo(() => new Set(existing.map((p) => `${p.name}`.toLowerCase())), [existing]);
-  const shown = useMemo(() => items.filter((i) => !have.has(i.name.toLowerCase()) && (!q || matchesSearch(`${i.name} ${i.category}`, q))).slice(0, 200), [items, q, have]);
+  const shown = useMemo(() => items.filter((i) => !have.has(i.name.toLowerCase()) && (!q || matchesSearch(q, i.name, i.category))).slice(0, 200), [items, q, have]);
   const picked = Object.entries(prices).filter(([, v]) => Number(v) > 0);
 
   const addPicked = async () => {
