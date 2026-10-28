@@ -198,7 +198,7 @@ function ExcelImport({ storeId, products, onChanged }: { storeId: string; produc
   const onFile = async (file: File) => {
     setBusy(true); setErrors([]);
     try {
-      const rows: unknown[][] = /\.xlsx$/i.test(file.name) ? (await readXlsxFile(file)) as unknown[][] : parseCsv(await file.text());
+      const rows: unknown[][] = /\.xlsx$/i.test(file.name) ? (((await readXlsxFile(file))[0]?.data || []) as unknown[][]) : parseCsv(await file.text());
       const { products: parsed, errors: errs } = rowsToProducts(rows, storeId);
       const ownIds = new Set(products.map((p) => p.id));
       const valid = parsed.map((p) => (ownIds.has(p.id) ? p : { ...p, id: crypto.randomUUID() }));
