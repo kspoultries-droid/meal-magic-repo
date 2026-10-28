@@ -131,7 +131,7 @@ const Profile = () => {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `customer_id=eq.${user.id}` }, () => fetchData())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user?.id]);
 
   const updateProfile = async () => {
     if (!user) return;
@@ -218,7 +218,14 @@ const Profile = () => {
     toast.success("پارٹنر access تازہ ہو گیا");
   };
 
-  if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading", "…")}</div>;
+  if ((authLoading && !profile) || (loading && !profile)) return (
+    <div className="min-h-screen bg-background pb-20" aria-busy="true" aria-label={t("common.loading", "…")}>
+      <div className="h-14 border-b bg-card" />
+      <div className="h-36 bg-primary/80 animate-pulse" />
+      <div className="mx-4 -mt-6 h-28 rounded-2xl bg-card shadow-soft animate-pulse" />
+      <div className="mx-4 mt-3 grid grid-cols-2 gap-3">{[0,1,2,3].map((i) => <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />)}</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background pb-20">
