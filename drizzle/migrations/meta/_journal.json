@@ -288,6 +288,13 @@
       "when": 1793186353622,
       "tag": "0040_shared_product_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793346268895,
+      "tag": "0041_account_daily_coins_and_photos",
+      "breakpoints": true
     }
   ]
 }
