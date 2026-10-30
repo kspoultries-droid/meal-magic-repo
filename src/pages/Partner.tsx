@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Store, ShoppingCart, Package, Wrench, Bike, CheckCircle2, ExternalLink } from "lucide-react";
 
 import RiderVerification, { type RiderKycState } from "@/components/partner/RiderVerification";
+import PartnerVerification, { type PartnerKycState } from "@/components/partner/PartnerVerification";
 
 type PartnerType = "restaurant" | "grocery" | "wholesale" | "service_provider" | "rider";
 
@@ -60,8 +61,7 @@ const Partner = () => {
     cnic: "", email: "", city_id: "", address: "", category: "",
     referral_code: "",
   });
-  const [cnicFile, setCnicFile] = useState<File | null>(null);
-  const [shopFile, setShopFile] = useState<File | null>(null);
+  const [pkyc, setPkyc] = useState<PartnerKycState>({ kycOk: false, shopPath: null, chequePath: null, lat: null, lng: null, payout: { payout_method: "", bank_name: "", account_title: "", account_number: "" } });
   const [platefile, setPlateFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [kyc, setKyc] = useState<RiderKycState>({
@@ -103,12 +103,23 @@ const Partner = () => {
       navigate("/auth");
       return;
     }
+    if (!isRider && !user.email_confirmed_at) {
+      toast.error("پہلے اپنی ای میل کی تصدیق کریں، پھر درخواست دیں");
+      return;
+    }
+    if (form.cnic.replace(/\D/g, "").length !== 13) { toast.error("شناختی کارڈ نمبر 13 ہندسوں کا لکھیں"); return; }
+    if (form.phone.replace(/\D/g, "").length < 10) { toast.error("درست فون نمبر لکھیں"); return; }
+    if (!form.city_id) { toast.error("شہر منتخب کریں"); return; }
+    if (form.address.trim().length < 10) { toast.error("مکمل پتہ لکھیں (کارڈ کے پتے سے میل کھاتا)"); return; }
     if (isRider) {
-      if (form.cnic.replace(/\D/g, "").length !== 13) { toast.error("شناختی کارڈ نمبر 13 ہندسوں کا لکھیں"); return; }
-      if (!form.city_id) { toast.error("شہر منتخب کریں"); return; }
-      if (form.address.trim().length < 10) { toast.error("مکمل پتہ لکھیں (کارڈ کے پتے سے میل کھاتا)"); return; }
       if (!kyc.verified) { toast.error("پہلے شناخت کی تصدیق مکمل کریں"); return; }
       if (!kyc.biometric) { toast.error("فنگر پرنٹ / بایومیٹرک رجسٹر کرنا لازمی ہے"); return; }
+    } else {
+      if (!pkyc.kycOk) { toast.error("شناختی کارڈ اور سیلفی کی تصدیق مکمل کریں"); return; }
+      if (!pkyc.shopPath || pkyc.lat == null) { toast.error("دکان کی تصویر اور نقشے پر جگہ لازمی ہے"); return; }
+      if (!pkyc.payout.payout_method || !pkyc.payout.account_title || pkyc.payout.account_number.length < 8 || !pkyc.chequePath) {
+        toast.error("ادائیگی کا اکاؤنٹ اور چیک / ثبوت کی تصویر لازمی ہے"); return;
+      }
     }
     setSubmitting(true);
 
@@ -122,8 +133,7 @@ const Partner = () => {
       numberplate_url = kyc.platePath;
       selfie_url = kyc.selfiePath;
     } else {
-      if (cnicFile) cnic_image_url = await uploadDoc(cnicFile, "cnic");
-      if (shopFile) shop_image_url = await uploadDoc(shopFile, "shop");
+      shop_image_url = pkyc.shopPath;
     }
 
     // Resolve referral code -> referrer user id (optional)
@@ -143,6 +153,8 @@ const Partner = () => {
       extra.cnic_back_url = kyc.cnicBackPath;
       extra.kyc_status = kyc.status;
       extra.biometric_registered = kyc.biometric;
+    } else {
+      Object.assign(extra, pkyc.payout, { cheque_path: pkyc.chequePath });
     }
 
     const { data: inserted, error } = await supabase.from("partner_applications").insert({
@@ -153,6 +165,8 @@ const Partner = () => {
       phone, whatsapp, cnic, address, category,
       email: email || user.email,
       city_id: city_id || null,
+      location_lat: isRider ? null : pkyc.lat,
+      location_lng: isRider ? null : pkyc.lng,
       cnic_image_url,
       shop_image_url,
       extra,
@@ -261,7 +275,7 @@ const Partner = () => {
                     onChange={e => setForm({ ...form, phone: e.target.value })} />
                   <Input placeholder="WhatsApp" value={form.whatsapp}
                     onChange={e => setForm({ ...form, whatsapp: e.target.value })} />
-                  <Input placeholder={tab === "rider" ? "شناختی کارڈ نمبر *" : "CNIC (اختیاری)"} value={form.cnic}
+                  <Input placeholder="شناختی کارڈ نمبر *" inputMode="numeric" value={form.cnic}
                     onChange={e => setForm({ ...form, cnic: e.target.value })} />
                   <Input placeholder="ای میل" value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })} />
@@ -287,19 +301,7 @@ const Partner = () => {
                     onChange={setKyc}
                   />
                 ) : (
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="text-xs space-y-1">
-                      <span className="text-muted-foreground">CNIC تصویر (اختیاری)</span>
-                      <Input type="file" accept="image/*" onChange={e => setCnicFile(e.target.files?.[0] || null)} />
-                      {cnicFile && <span className="text-[10px] text-primary">✓ {cnicFile.name}</span>}
-                    </label>
-                    <label className="text-xs space-y-1">
-                      <span className="text-muted-foreground">دکان تصویر (اختیاری)</span>
-                      <Input type="file" accept="image/*" onChange={e => setShopFile(e.target.files?.[0] || null)} />
-                      {shopFile && <span className="text-[10px] text-primary">✓ {shopFile.name}</span>}
-                    </label>
-                  </div>
+                  <PartnerVerification cnic={form.cnic} fullName={form.owner_name} address={form.address} onChange={setPkyc} />
                 )}
 
                 <Input placeholder="ریفرل کوڈ (اگر کسی نے دیا ہو)" value={form.referral_code}
