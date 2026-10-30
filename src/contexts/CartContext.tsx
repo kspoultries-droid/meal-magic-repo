@@ -43,7 +43,7 @@ export type AddItemInput = Omit<CartItem, "quantity" | "id" | "menu_item_id"> & 
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: AddItemInput) => void;
+  addItem: (item: AddItemInput) => boolean;
   addItems: (items: AddItemInput[]) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -121,11 +121,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: "cart-swap", duration: 8000,
           action: { label: "پرانا ہٹا کر شامل کریں", onClick: () => { setItems([item]); toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 }); } },
         });
-        return;
+        return false;
       }
     }
     setItems((prev) => mergeItems(prev, [item]));
     toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 });
+    return true;
   }, [mergeItems]);
 
   const addItems = useCallback((rawItems: AddItemInput[]) => {
