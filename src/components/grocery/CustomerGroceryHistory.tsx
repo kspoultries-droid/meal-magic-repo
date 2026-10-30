@@ -73,7 +73,7 @@ const CustomerGroceryHistory = () => {
         return (
           <button
             key={`${o.kind}-${o.id}`}
-            onClick={() => setSelected(o)}
+            onClick={() => navigate(`/order-tracking/${o.id}`)}
             className="w-full text-left bg-card rounded-2xl p-4 border space-y-1"
           >
             <div className="flex items-center justify-between">
