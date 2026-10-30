@@ -34,10 +34,11 @@ const dashboardLabel: Record<PartnerType, string> = {
 
 const Partner = () => {
   const navigate = useNavigate();
-  const { user, isRider, isRestaurantOwner, isMechanic, refreshRoles } = useAuth();
+  const { user, isAdmin, isRider, isRestaurantOwner, isMechanic, refreshRoles } = useAuth();
 
-  // Role-conflict aware: rider can't apply as vendor; vendor can't apply as rider
+  // Role-conflict aware: rider can't apply as vendor; vendor can't apply as rider (admins can test all)
   const availableTypes = TYPES.filter(t => {
+    if (isAdmin) return true;
     if (isRider) return t.value === "rider"; // rider stays rider
     if (isRestaurantOwner || isMechanic) return t.value !== "rider"; // vendors can't become riders
     return true;
