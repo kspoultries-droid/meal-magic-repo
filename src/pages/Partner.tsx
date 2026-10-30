@@ -228,6 +228,11 @@ const Partner = () => {
               </div>
             ) : (
             <Tabs value={tab} onValueChange={(v) => setTab(v as PartnerType)}>
+              {!isAdmin && isRider && (
+                <p className="mb-3 p-3 rounded-lg bg-muted text-xs text-muted-foreground text-center">
+                  آپ کا اکاؤنٹ رائیڈر ہے، اس لیے دکان، ریسٹورنٹ، بازار یا سروس کی درخواست کے لیے الگ اکاؤنٹ سے سائن اِن کریں۔
+                </p>
+              )}
               <TabsList className="grid h-auto mb-4" style={{ gridTemplateColumns: `repeat(${availableTypes.length}, minmax(0, 1fr))` }}>
                 {availableTypes.map(t => (
                   <TabsTrigger key={t.value} value={t.value} className="flex-col gap-1 py-2 text-[10px]">
