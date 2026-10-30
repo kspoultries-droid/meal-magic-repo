@@ -1,202 +1,127 @@
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Minus, Plus, Trash2, ShoppingBag, History, CheckCircle2, Clock, XCircle, Package, ArrowLeft, Tag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Package, Store, ReceiptText, ChevronLeft, Truck } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { img } from "@/lib/imageUrl";
 
-const STATUS_LABELS: Record<string, { key: string; icon: React.ReactNode; color: string }> = {
-  pending: { key: "status.sent", icon: <Clock className="w-3 h-3" />, color: "text-yellow-600" },
-  quoted: { key: "status.quoted", icon: <Clock className="w-3 h-3" />, color: "text-blue-600" },
-  confirmed: { key: "status.confirmed", icon: <CheckCircle2 className="w-3 h-3" />, color: "text-primary" },
-  delivering: { key: "status.delivering", icon: <Clock className="w-3 h-3" />, color: "text-orange-600" },
-  completed: { key: "status.completed", icon: <CheckCircle2 className="w-3 h-3" />, color: "text-green-600" },
-  cancelled: { key: "status.cancelled", icon: <XCircle className="w-3 h-3" />, color: "text-destructive" },
-};
-
+/** Clean marketplace-style cart: one shop header, list rows, add-more rail and a sticky checkout bar. */
 const CartDrawer = () => {
   const { items, isOpen, setIsOpen, updateQuantity, removeItem, clearCart, totalItems, totalPrice } = useCart();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { t, lang } = useLanguage();
-  const [completedOrders, setCompletedOrders] = useState<any[]>([]);
-  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(false);
-  const [activeTab, setActiveTab] = useState("cart");
-
-  useEffect(() => {
-    if (isOpen && user && activeTab === "orders") {
-      fetchCompletedOrders();
-    }
-  }, [isOpen, user, activeTab]);
+  const { t } = useLanguage();
+  const [recommended, setRecommended] = useState<any[]>([]);
+  const go = (path: string) => { setIsOpen(false); navigate(path); };
 
   useEffect(() => {
     const sourceId = items[0]?.sourceId;
-    const isGrocery = items[0]?.source === "grocery";
-    if (!isOpen || !sourceId || !isGrocery) {
-      setRecommendedProducts([]);
-      return;
-    }
-    supabase.from("grocery_products")
-      .select("id,name,price,discount_price,image_url")
-      .eq("store_id", sourceId)
-      .eq("is_available", true)
-      .limit(5)
-      .then(({ data }) => setRecommendedProducts((data || []).filter((product: any) => !items.some((item) => item.menu_item_id === product.id))));
+    if (!isOpen || !sourceId || items[0]?.source !== "grocery") { setRecommended([]); return; }
+    supabase.from("grocery_products").select("id,name,price,discount_price,image_url")
+      .eq("store_id", sourceId).eq("is_available", true).limit(8)
+      .then(({ data }) => setRecommended((data || []).filter((p: any) => !items.some((i) => i.menu_item_id === p.id))));
   }, [isOpen, items]);
 
-  const fetchCompletedOrders = async () => {
-    if (!user) return;
-    setLoadingOrders(true);
-    const { data } = await supabase
-      .from("orders")
-      .select("*, order_items(*)")
-      .eq("customer_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    setCompletedOrders(data || []);
-    setLoadingOrders(false);
-  };
+  const shop = items[0]?.restaurant;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0 bg-gradient-to-b from-background via-background to-secondary/30 border-l border-border/50 h-[calc(100dvh-4rem-env(safe-area-inset-bottom))] top-0 bottom-auto">
-        <SheetHeader className="px-6 pt-6 pb-3 bg-gradient-hero text-primary-foreground shadow-glow">
-          <SheetTitle className="flex items-center gap-2 text-primary-foreground">
-            <div className="w-9 h-9 rounded-full glass flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4" />
-            </div>
-            <span className="text-lg font-extrabold">{t("cart.title")}</span>
+      <SheetContent className="top-0 bottom-auto flex h-[calc(100dvh-4rem-env(safe-area-inset-bottom))] w-full flex-col gap-0 bg-muted/40 p-0 sm:max-w-md">
+        <SheetHeader className="border-b bg-card px-4 py-3 text-start">
+          <SheetTitle className="flex items-center gap-2 pe-8 text-base font-extrabold">
+            <ShoppingBag className="size-5 text-primary" />
+            {t("cart.title")}
+            {totalItems > 0 && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">{totalItems}</span>}
+            <button type="button" onClick={() => go("/my-orders")} className="ms-auto flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+              <ReceiptText className="size-4" /> {t("common.orders")}
+            </button>
           </SheetTitle>
         </SheetHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="mx-4 mt-3 grid grid-cols-2 glass border border-border/50 p-1 h-11">
-            <TabsTrigger value="cart" className="gap-1.5 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow rounded-md">
-              <ShoppingBag className="w-4 h-4" /> {t("tab.cart")} ({totalItems})
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="gap-1.5 data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow rounded-md">
-              <History className="w-4 h-4" /> {t("common.orders")}
-            </TabsTrigger>
-          </TabsList>
-
-           {/* Cart Tab */}
-           <TabsContent value="cart" className="flex-1 flex flex-col overflow-hidden px-4 mt-0">
-             {items.length === 0 ? (
-               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground animate-fade-in">
-                 <div className="w-24 h-24 rounded-full glass flex items-center justify-center mb-4 shadow-card">
-                   <ShoppingBag className="w-12 h-12 opacity-40" />
-                 </div>
-                 <p className="text-lg font-bold text-foreground">{t("cart.empty")}</p>
-                 <p className="text-sm mt-1">{t("cart.startAdding")} 🛒</p>
-                 <Button variant="outline" className="mt-4" onClick={() => { setIsOpen(false); navigate("/wholesale"); }}>{t("cart.browseBazar")} <ArrowLeft className="ms-2 h-4 w-4" /></Button>
-               </div>
-             ) : (
-               <>
-                 <div className="flex-1 overflow-y-auto space-y-2.5 py-4">
-                   {items.map((item, idx) => (
-                     <div key={item.id} style={{ animationDelay: `${idx * 40}ms` }} className="flex gap-3 glass border border-border/50 rounded-2xl p-3 shadow-card animate-fade-in hover:shadow-elegant transition-shadow">
-                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-secondary ring-1 ring-border/50">
-                         {item.image ? <img src={item.image} alt={item.name} className="h-full w-full object-cover" /> : <Package className="m-auto mt-5 h-6 w-6 text-muted-foreground" />}
-                       </div>
-                       <div className="flex min-w-0 flex-1 flex-col">
-                         <p className="font-bold text-foreground text-sm truncate">{item.name}</p>
-                         <p className="text-[11px] text-muted-foreground truncate">{item.restaurant}</p>
-                         {(item.variant_label || (item.options && item.options.length > 0)) && <p className="text-[10px] text-muted-foreground truncate">{item.variant_label || item.options?.map((o) => o.choice).join(" • ")}</p>}
-                         <p className="text-sm font-extrabold text-primary mt-auto">Rs. {item.price.toLocaleString()} {t("cart.each")}</p>
-                       </div>
-                       <div className="flex flex-col items-end justify-between">
-                         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" aria-label={t("cart.remove")} onClick={() => removeItem(item.id)}><Trash2 className="w-4 h-4" /></Button>
-                         <div className="flex items-center gap-1 rounded-full border border-border/50 bg-background/80 p-0.5">
-                           <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" aria-label={t("cart.decrease")} onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus className="w-3 h-3" /></Button>
-                           <span className="w-4 text-center text-xs font-extrabold">{item.quantity}</span>
-                           <Button size="icon" className="h-6 w-6 rounded-full" aria-label={t("cart.increase")} onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="w-3 h-3" /></Button>
-                         </div>
-                       </div>
-                     </div>
-                   ))}
-                   {recommendedProducts.length > 0 && (
-                     <div className="pt-2">
-                       <div className="mb-2 flex items-center justify-between"><p className="text-xs font-extrabold text-foreground">{t("cart.addMore")}</p><Button variant="link" size="sm" className="h-auto p-0 text-[10px]" onClick={() => { setIsOpen(false); navigate("/wholesale"); }}>{t("cart.seeAll")}</Button></div>
-                       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-                         {recommendedProducts.map((product) => { const price = product.discount_price || product.price; return <button key={product.id} type="button" onClick={() => { setIsOpen(false); navigate(`/product/${product.id}`); }} className="w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-card text-left"><div className="h-20 bg-secondary">{product.image_url ? <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" /> : <Package className="m-auto mt-6 h-6 w-6 text-muted-foreground" />}</div><div className="p-1.5"><p className="truncate text-[10px] font-bold text-foreground">{product.name}</p><p className="text-[11px] font-extrabold text-primary">Rs {price}</p></div></button>; })}
-                       </div>
-                     </div>
-                   )}
-                 </div>
-
-                 <div className="glass border-t border-border/50 -mx-4 px-4 pt-4 pb-5 space-y-2.5 shadow-elegant rounded-t-3xl">
-                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t("cart.subtotal")}</span><span className="font-bold text-foreground">Rs. {totalPrice.toLocaleString()}</span></div>
-                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t("common.delivery")}</span><span className="font-bold text-success">{t("cart.deliveryAtCheckout")}</span></div>
-                   <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t("cart.voucher")}</span><span className="font-bold text-muted-foreground">{t("cart.voucherAtCheckout")}</span></div>
-                   <div className="flex justify-between items-baseline border-t border-dashed pt-3"><span className="font-bold text-foreground">{t("cart.grandTotal")}</span><span className="text-2xl font-extrabold text-primary">Rs. {totalPrice.toLocaleString()}</span></div>
-                   <Button className="w-full h-12 text-base font-bold" onClick={() => { setIsOpen(false); navigate("/checkout"); }}>{t("cart.checkout")} — Rs. {totalPrice.toLocaleString()}</Button>
-                   <Button variant="ghost" onClick={clearCart} className="w-full text-xs text-muted-foreground hover:text-destructive">{t("cart.clear")}</Button>
-                 </div>
-               </>
-             )}
-           </TabsContent>
-
-          {/* Orders Tab */}
-          <TabsContent value="orders" className="flex-1 overflow-y-auto px-6 mt-0">
-            {!user ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-16">
-                <p className="text-sm">{t("cart.loginForOrders")}</p>
-              </div>
-            ) : loadingOrders ? (
-              <div className="flex items-center justify-center py-16 text-muted-foreground">
-                <p>{t("common.loading")}</p>
-              </div>
-            ) : completedOrders.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-16">
-                <History className="w-16 h-16 mb-4 opacity-30" />
-                <p className="text-lg font-semibold">{t("cart.noOrders")}</p>
-                <p className="text-sm">{t("cart.ordersHere")}</p>
-              </div>
-            ) : (
-              <div className="space-y-3 py-4">
-                {completedOrders.map((order) => {
-                  const status = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
-                  const orderItems = order.order_items || [];
-                  const date = new Date(order.created_at).toLocaleDateString(lang === "ur" ? "ur-PK" : lang, {
-                    day: "numeric", month: "short", year: "numeric"
-                  });
-                  return (
-                    <div key={order.id} className="bg-secondary/50 rounded-xl p-4 space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className={`text-xs font-bold flex items-center gap-1 ${status.color}`}>
-                            {status.icon} {t(status.key as any)}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{date}</p>
-                        </div>
-                        <p className="text-sm font-extrabold text-primary">Rs. {order.total_amount}</p>
+        {items.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+            <div className="mb-4 grid size-20 place-items-center rounded-full bg-card shadow-soft"><ShoppingBag className="size-9 text-muted-foreground" /></div>
+            <p className="text-base font-bold">{t("cart.empty")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("cart.startAdding")}</p>
+            <div className="mt-5 flex gap-2">
+              <Button onClick={() => go("/")}>{t("common.food" as any) === "common.food" ? "Food" : t("common.food" as any)}</Button>
+              <Button variant="outline" onClick={() => go("/grocery")}>Grocery</Button>
+              <Button variant="outline" onClick={() => go("/wholesale")}>{t("cart.browseBazar")}</Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex-1 space-y-3 overflow-y-auto p-3">
+              <section className="overflow-hidden rounded-xl border bg-card">
+                <div className="flex items-center gap-2 border-b px-3 py-2.5">
+                  <Store className="size-4 text-primary" />
+                  <p className="min-w-0 flex-1 truncate text-sm font-bold">{shop}</p>
+                  <button type="button" onClick={clearCart} className="text-xs font-semibold text-muted-foreground hover:text-destructive">{t("cart.clear")}</button>
+                </div>
+                <ul className="divide-y">
+                  {items.map((item) => (
+                    <li key={item.id} className="flex gap-3 p-3">
+                      <div className="size-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-muted">
+                        {item.image ? <img src={img(item.image, 160)} alt={item.name} loading="lazy" className="size-full object-cover" /> : <Package className="m-auto mt-6 size-6 text-muted-foreground" />}
                       </div>
-                      {orderItems.length > 0 && (
-                        <div className="space-y-1">
-                          {orderItems.map((item: any) => (
-                            <div key={item.id} className="flex justify-between text-xs text-muted-foreground">
-                              <span>{item.name} × {item.quantity}</span>
-                              <span>Rs. {item.price * item.quantity}</span>
-                            </div>
-                          ))}
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <div className="flex items-start gap-2">
+                          <p className="line-clamp-2 flex-1 text-sm font-semibold leading-snug">{item.name}</p>
+                          <button type="button" aria-label={t("cart.remove")} onClick={() => removeItem(item.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="size-4" /></button>
                         </div>
-                      )}
-                      {order.delivery_address && (
-                        <p className="text-[10px] text-muted-foreground truncate">📍 {order.delivery_address}</p>
-                      )}
-                    </div>
-                  );
-                })}
+                        {(item.variant_label || (item.options && item.options.length > 0)) && <p className="truncate text-[11px] text-muted-foreground">{item.variant_label || item.options?.map((o) => o.choice).join(" • ")}</p>}
+                        <div className="mt-auto flex items-end justify-between pt-1.5">
+                          <div>
+                            <p className="text-sm font-extrabold">Rs {(item.price * item.quantity).toLocaleString()}</p>
+                            {item.quantity > 1 && <p className="text-[10px] text-muted-foreground">Rs {item.price.toLocaleString()} × {item.quantity}</p>}
+                          </div>
+                          <div className="flex h-8 items-center rounded-lg border">
+                            <button type="button" aria-label={t("cart.decrease")} onClick={() => updateQuantity(item.id, item.quantity - 1)} className="grid h-full w-8 place-items-center text-muted-foreground"><Minus className="size-3.5" /></button>
+                            <span className="w-7 text-center text-sm font-bold">{item.quantity}</span>
+                            <button type="button" aria-label={t("cart.increase")} onClick={() => updateQuantity(item.id, item.quantity + 1)} className="grid h-full w-8 place-items-center text-primary"><Plus className="size-3.5" /></button>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              {recommended.length > 0 && (
+                <section className="rounded-xl border bg-card p-3">
+                  <p className="mb-2 text-sm font-bold">{t("cart.addMore")}</p>
+                  <div className="scrollbar-hide flex gap-2 overflow-x-auto">
+                    {recommended.map((p) => (
+                      <button key={p.id} type="button" onClick={() => go(`/product/${p.id}`)} className="w-24 shrink-0 text-start">
+                        <div className="h-24 overflow-hidden rounded-lg bg-muted">{p.image_url ? <img src={img(p.image_url, 200)} alt={p.name} loading="lazy" className="size-full object-cover" /> : <Package className="m-auto mt-8 size-6 text-muted-foreground" />}</div>
+                        <p className="mt-1 truncate text-[11px] font-medium">{p.name}</p>
+                        <p className="text-xs font-bold">Rs {p.discount_price || p.price}</p>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              <section className="space-y-2 rounded-xl border bg-card p-3 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">{t("cart.subtotal")} ({totalItems})</span><span className="font-semibold">Rs {totalPrice.toLocaleString()}</span></div>
+                <div className="flex justify-between"><span className="flex items-center gap-1 text-muted-foreground"><Truck className="size-3.5" />{t("common.delivery")}</span><span className="text-xs text-muted-foreground">{t("cart.deliveryAtCheckout")}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">{t("cart.voucher")}</span><span className="text-xs text-muted-foreground">{t("cart.voucherAtCheckout")}</span></div>
+              </section>
+            </div>
+
+            <div className="flex items-center gap-3 border-t bg-card px-4 py-3 shadow-elegant">
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground">{t("cart.grandTotal")}</p>
+                <p className="text-lg font-extrabold text-primary">Rs {totalPrice.toLocaleString()}</p>
               </div>
-            )}
-          </TabsContent>
-        </Tabs>
+              <Button className="ms-auto h-11 flex-1 text-sm font-bold" onClick={() => go("/checkout")}>
+                {t("cart.checkout")} <ChevronLeft className="size-4 ltr:rotate-180" />
+              </Button>
+            </div>
+          </>
+        )}
       </SheetContent>
     </Sheet>
   );
