@@ -76,10 +76,10 @@ const ProductDetail = () => {
     setSelectedVariantId(variants[0] ? String(variants[0].id || variants[0].label) : "");
   }, [product?.id, variants]);
 
-  const addToCart = () => {
-    if (!product || !store) return;
+  const addToCart = (): boolean => {
+    if (!product || !store) return false;
     const variantLabel = selectedVariant?.label || selectedVariant?.name;
-      addItem({
+      return addItem({
         id: product.id,
         name: variantLabel ? `${product.name} — ${variantLabel}` : product.name,
         restaurant: store.name,
@@ -96,8 +96,9 @@ const ProductDetail = () => {
   };
 
   const buyNow = () => {
-    addToCart();
-    navigate("/checkout");
+    // Only open checkout when the item actually went into the cart;
+    // if the cart holds another shop's items, addItem warns and returns false.
+    if (addToCart()) navigate("/checkout");
   };
 
   if (loading) return (
