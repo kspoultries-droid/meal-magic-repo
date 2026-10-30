@@ -45,11 +45,7 @@ const CartDrawer = () => {
             <div className="mb-4 grid size-20 place-items-center rounded-full bg-card shadow-soft"><ShoppingBag className="size-9 text-muted-foreground" /></div>
             <p className="text-base font-bold">{t("cart.empty")}</p>
             <p className="mt-1 text-sm text-muted-foreground">{t("cart.startAdding")}</p>
-            <div className="mt-5 flex gap-2">
-              <Button onClick={() => go("/")}>{t("common.food" as any) === "common.food" ? "Food" : t("common.food" as any)}</Button>
-              <Button variant="outline" onClick={() => go("/grocery")}>Grocery</Button>
-              <Button variant="outline" onClick={() => go("/wholesale")}>{t("cart.browseBazar")}</Button>
-            </div>
+            <Button className="mt-5" onClick={() => go("/wholesale")}>{t("cart.browseBazar")}</Button>
           </div>
         ) : (
           <>
