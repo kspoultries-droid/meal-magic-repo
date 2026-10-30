@@ -16,7 +16,7 @@ const OrderConfirmation = () => {
   const [locOpen, setLocOpen] = useState(false);
 
   const isGrocery = type === "grocery";
-  const trackingPath = isGrocery ? `/profile` : `/order-tracking/${id}`;
+  const trackingPath = `/order-tracking/${id}`;
 
   useEffect(() => {
     const fetch = async () => {
@@ -99,7 +99,7 @@ const OrderConfirmation = () => {
                 onOpenChange={setLocOpen}
                 onSelected={async (loc) => {
                   const table = isGrocery ? "grocery_cart_orders" : "orders";
-                  const { error } = await supabase.from(table).update({ delivery_address: loc.address }).eq("id", id!);
+                  const { error } = await supabase.from(table).update({ delivery_address: loc.address }).eq("id", id || "");
                   if (error) return toast.error("پتہ تبدیل نہیں ہو سکا");
                   setOrder((o: any) => ({ ...o, delivery_address: loc.address }));
                   toast.success("ڈیلیوری کا پتہ اپڈیٹ ہو گیا");

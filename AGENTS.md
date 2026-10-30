@@ -1,4 +1,7 @@
 # Project rules
+- Account orders use one cross-service list and the existing authorized tracking page as canonical details; keep delivery and courier decisions server-authoritative.
+- Daily loyalty visits use a server-dated, unique user/day RPC with no client coin writes or wallet conversion; profile photos are owner-scoped private objects and signed on demand.
+- Recently viewed products store a bounded account-scoped local history; this is browsing convenience, never authoritative price or permission data.
 - Admin search and record dialogs reuse authorized table reads and existing action RPCs; list filtering/pagination and mobile presentation must not alter dispatch or approval rules.
 - Rider allocation is serialized per rider across offers, acceptance and manual assignment; a single readiness predicate gates grocery dispatch and acceptance, and physical delivery steps use authorized RPCs independent of kitchen status.
 - One server function (rider_assign_block_reason) decides rider eligibility and returns the specific reason; auto-dispatch uses a multi-minute presence window because closed-app phones report GPS sparsely, while staff manual assignment skips presence but never skips busy/suspended/offer checks.

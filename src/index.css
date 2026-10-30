@@ -330,3 +330,13 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.account-page { background: hsl(var(--muted) / .45); }
+.account-identity { background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--card)) 75%); }
+.account-band { background: hsl(var(--card)); margin-top: 8px; }
+.account-promo { background: hsl(var(--accent)); border: 1px solid hsl(var(--primary) / .1); }
+.account-invite { background: hsl(var(--warning) / .08); border: 1px solid hsl(var(--warning) / .12); }
+.account-art { display: flex; flex-shrink: 0; align-items: center; justify-content: center; height: 48px; width: 48px; border-radius: 12px; background: linear-gradient(145deg,hsl(var(--accent)),hsl(var(--primary) / .22)); color: hsl(var(--primary)); box-shadow: inset 0 1px 2px hsl(var(--card) / .7); }
+.account-art-1 { background: linear-gradient(145deg,hsl(var(--warning) / .1),hsl(var(--warning) / .3)); color: hsl(var(--foreground)); }
+.account-art-2 { background: linear-gradient(145deg,hsl(var(--secondary)),hsl(var(--primary) / .18)); }
+.account-art-3 { background: linear-gradient(145deg,hsl(var(--destructive) / .05),hsl(var(--destructive) / .17)); color: hsl(var(--destructive)); }

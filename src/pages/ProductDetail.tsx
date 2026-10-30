@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, BadgeCheck, Check, ChevronRight, Clock3, Heart, MapPin, Minus, Plus, Share2, ShoppingBag, Star, Store, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { recordRecent } from "@/lib/recentlyViewed";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import ProductGallery from "@/components/product/ProductGallery";
@@ -14,6 +16,7 @@ import RelatedProducts, { type RelatedItem } from "@/components/product/RelatedP
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { items, addItem, updateQuantity, setIsOpen } = useCart();
   const [product, setProduct] = useState<any>(null);
@@ -41,6 +44,7 @@ const ProductDetail = () => {
          supabase.from("grocery_products").select("id,name,price,discount_price,wholesale_price,image_url").eq("store_id", productData.store_id).neq("id", id).eq("is_available", true).limit(6),
          (supabase.from("grocery_reviews_public" as any).select("id,rating,comment,photo_urls,video_url,created_at").eq("store_id", productData.store_id).order("created_at", { ascending: false }).limit(20) as any),
        ]);
+       recordRecent(productData, user?.id);
        setProduct(productData);
        setStore(storeData);
        setRelated(relatedData || []);

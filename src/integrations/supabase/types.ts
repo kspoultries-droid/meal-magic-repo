@@ -409,6 +409,32 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_coin_visits: {
+        Row: {
+          coins: number
+          user_id: string
+          visit_date: string
+        }
+        Insert: {
+          coins?: number
+          user_id: string
+          visit_date: string
+        }
+        Update: {
+          coins?: number
+          user_id?: string
+          visit_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_coin_visits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_offers: {
         Row: {
           cash_to_collect: number | null
@@ -4414,6 +4440,7 @@ export type Database = {
         Args: { _kind: string; _order_id: string; _user_id: string }
         Returns: boolean
       }
+      claim_daily_coin: { Args: never; Returns: Json }
       confirm_payout_received: {
         Args: { _payout_id: string }
         Returns: undefined
