@@ -202,6 +202,31 @@ const ApplicationsTab = () => {
                         )}
                       </div>
                     )}
+                    {app.applicant_type !== "rider" && app.extra && (
+                      <div className="mt-2 rounded-lg border p-2 space-y-1 text-xs">
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant={app.extra.kyc_status === "verified" ? "default" : app.extra.kyc_status ? "secondary" : "destructive"} className="text-[10px]">
+                            شناخت: {app.extra.kyc_status === "verified" ? "تصدیق شدہ" : app.extra.kyc_status === "manual_review" ? "دستی جائزہ" : "پرانی درخواست — تصدیق نہیں"}
+                          </Badge>
+                          {app.extra.email_verified && <Badge variant="outline" className="text-[10px]">ای میل تصدیق شدہ</Badge>}
+                          {app.extra.cnic_expiry && <Badge variant="outline" className="text-[10px]">کارڈ میعاد: {app.extra.cnic_expiry}</Badge>}
+                        </div>
+                        {app.extra.account_number && (
+                          <p>💳 {app.extra.payout_method} {app.extra.bank_name ? `· ${app.extra.bank_name}` : ""} · {app.extra.account_title} · {app.extra.account_number}</p>
+                        )}
+                        {app.location_lat && (
+                          <a className="text-primary underline" target="_blank" rel="noreferrer" href={`https://maps.google.com/?q=${app.location_lat},${app.location_lng}`}>نقشے پر دکان دیکھیں</a>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          {app.extra.cnic_back_url && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(app.extra.cnic_back_url)}><FileImage className="w-3 h-3 mr-1" /> CNIC پیچھے</Button>}
+                          {app.extra.selfie_url && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(app.extra.selfie_url)}><FileImage className="w-3 h-3 mr-1" /> سیلفی</Button>}
+                          {app.extra.cheque_path && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => viewDoc(app.extra.cheque_path)}><FileImage className="w-3 h-3 mr-1" /> چیک / اکاؤنٹ ثبوت</Button>}
+                        </div>
+                        {Array.isArray(app.extra.risk_flags) && app.extra.risk_flags.map((r: string) => (
+                          <p key={r} className="text-destructive">⚠️ {r}</p>
+                        ))}
+                      </div>
+                    )}
                     {app.applicant_type === "rider" && (() => {
                       const k = kycMap[app.user_id];
                       if (!k) return <p className="text-xs text-destructive mt-2">⚠️ تصدیق کا ریکارڈ موجود نہیں</p>;
