@@ -6,7 +6,9 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { img } from "@/lib/imageUrl";
 import { toast } from "sonner";
-import heroFood from "@/assets/hero-food.jpg";
+import foodBiryani from "@/assets/food-biryani.jpg";
+import foodKarahi from "@/assets/food-karahi.jpg";
+import foodBbq from "@/assets/food-bbq.jpg";
 import type { Ad } from "@/components/PromotionalAds";
 
 interface Props {
@@ -18,9 +20,9 @@ interface Props {
 /** Food page top banner (Bazar style): search sits on the rotating cards; paid "home" ads first, then EasyLife slides. */
 const MAX_SLIDES = 8;
 const SLIDES = [
-  { key: "s1", eyebrow: "آج ہی آرڈر کریں", title: "پہلے آرڈر پر مفت ڈیلیوری", cta: "ابھی حاصل کریں", to: "/category/biryani" },
-  { key: "s2", eyebrow: "منتخب ریسٹورنٹس پر", title: "روزانہ نئی ڈیلز اور رعایت", cta: "ڈیلز دیکھیں", to: "/category/burgers" },
-  { key: "s3", eyebrow: "آپ کے قریب", title: "30 منٹ میں تیز ڈیلیوری", cta: "آرڈر کریں", to: "/category/pizza" },
+  { key: "s1", eyebrow: "آج ہی آرڈر کریں", title: "پہلے آرڈر پر مفت ڈیلیوری", cta: "ابھی حاصل کریں", to: "/category/biryani", image: foodBiryani },
+  { key: "s2", eyebrow: "منتخب ریسٹورنٹس پر", title: "روزانہ نئی ڈیلز اور رعایت", cta: "ڈیلز دیکھیں", to: "/category/burgers", image: foodKarahi },
+  { key: "s3", eyebrow: "آپ کے قریب", title: "30 منٹ میں تیز ڈیلیوری", cta: "آرڈر کریں", to: "/category/pizza", image: foodBbq },
 ];
 const PLACEHOLDERS = ["آج کیا کھانے کا دل ہے؟", "بریانی، پیزا یا برگر؟", "قریبی ریسٹورنٹس تلاش کریں…"];
 
@@ -36,6 +38,9 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [ph, setPh] = useState(0);
+  const [closed, setClosed] = useState(() => { try { return localStorage.getItem("easylife:food-hero-closed") === "1"; } catch { return false; } });
+  const closeCards = () => { setClosed(true); try { localStorage.setItem("easylife:food-hero-closed", "1"); } catch { /* ignore */ } };
+  const openCards = () => { setClosed(false); try { localStorage.removeItem("easylife:food-hero-closed"); } catch { /* ignore */ } };
   const autoplay = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
   const rtl = typeof document !== "undefined" && getComputedStyle(document.documentElement).direction === "rtl";
 
@@ -80,12 +85,14 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   );
 
   if (hideAds) return <header className="relative h-[4.25rem] bg-gradient-hero">{searchBar}</header>;
+  if (closed) return <header className="relative h-[5.75rem] bg-gradient-hero">{searchBar}<button type="button" onClick={openCards} className="absolute bottom-1.5 start-3 text-[11px] font-bold text-primary-foreground underline">آفرز دوبارہ دکھائیں</button></header>;
 
   const H = "h-56 sm:h-72";
   return (
     <header className="relative isolate">
       {searchBar}
       <div className="relative">
+        <button type="button" onClick={closeCards} aria-label="کارڈز بند کریں" className="absolute end-3 top-16 z-20 grid size-7 place-items-center rounded-full bg-foreground/55 text-background"><X className="size-4" /></button>
         <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 ? [autoplay.current] : []} className="w-full">
           <CarouselContent className="ml-0">
             {ads.map((ad, i) => (
@@ -108,10 +115,11 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
             ))}
             {slides.map((s) => (
               <CarouselItem key={s.key} className="basis-full pl-0">
-                <button type="button" onClick={() => go(s.to)} className={`relative block ${H} w-full overflow-hidden bg-gradient-hero text-start`}>
-                  <img src={heroFood} alt="" loading="lazy" decoding="async" className="absolute inset-y-0 end-0 h-full w-1/2 object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-l from-transparent via-primary/60 to-primary rtl:bg-gradient-to-r" />
-                  <div className="absolute inset-x-0 bottom-0 max-w-[62%] p-4 pb-6 text-primary-foreground">
+                <button type="button" onClick={() => go(s.to)} className={`relative block ${H} w-full overflow-hidden bg-muted text-start`}>
+                  <img src={s.image} alt="" width={1024} height={640} loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
+                  <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-foreground/40 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-foreground/80 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 max-w-[75%] p-4 pb-6 text-background">
                     <p className="text-xs font-bold opacity-90">{s.eyebrow}</p>
                     <p className="mt-1 font-display text-2xl font-extrabold leading-tight">{s.title}</p>
                     <span className="mt-3 inline-block rounded-full bg-card px-4 py-1.5 text-xs font-bold text-primary">{s.cta}</span>
