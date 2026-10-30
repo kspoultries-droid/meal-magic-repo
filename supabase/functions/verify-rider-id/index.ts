@@ -42,7 +42,8 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => null);
     if (!body) return json({ error: "Invalid body" }, 400);
 
-    const { front_path, back_path, selfie_path, cnic, full_name, address, application_id } = body as Record<string, string>;
+    const { front_path, back_path, selfie_path, cnic, full_name, address, application_id, purpose } = body as Record<string, string>;
+    const isPartner = purpose === "partner";
     if (!front_path || !back_path || !selfie_path) return json({ error: "تینوں تصاویر لازمی ہیں" }, 400);
     const ownPrefix = `${user.id}/`;
     if ([front_path, back_path, selfie_path].some((p) => typeof p !== "string" || !p.startsWith(ownPrefix) || p.includes(".."))) {
@@ -53,14 +54,16 @@ Deno.serve(async (req) => {
     if (!full_name || !address) return json({ error: "نام اور پتہ لازمی ہے" }, 400);
 
     // Duplicate CNIC guard (another user already verified/pending with this CNIC)
-    const { data: dup } = await admin
+    const { data: dup } = isPartner
+      ? await admin.from("partner_kyc_checks").select("user_id,status").eq("cnic_number", cnicDigits).neq("status", "rejected").neq("user_id", user.id).limit(1).maybeSingle()
+      : await admin
       .from("rider_verifications")
       .select("id,user_id,status")
       .eq("cnic_number", cnicDigits)
       .neq("status", "rejected")
       .maybeSingle();
     if (dup && dup.user_id !== user.id) {
-      return json({ error: "یہ شناختی کارڈ پہلے ہی کسی رائیڈر کے نام رجسٹرڈ ہے" }, 409);
+      return json({ error: isPartner ? "یہ شناختی کارڈ کسی اور اکاؤنٹ سے پہلے ہی تصدیق شدہ ہے" : "یہ شناختی کارڈ پہلے ہی کسی رائیڈر کے نام رجسٹرڈ ہے" }, 409);
     }
 
     const signed = await Promise.all(
@@ -196,7 +199,13 @@ Set declared_address_matches_card true if it refers to the same place as EITHER 
       updated_at: new Date().toISOString(),
     };
 
-    const { error: upErr } = await admin
+    const { error: upErr } = isPartner
+      ? await admin.from("partner_kyc_checks").upsert({
+          user_id: user.id, cnic_number: cnicDigits, status, ai_score: score,
+          failure_reason: row.failure_reason, front_path, back_path, selfie_path,
+          cnic_expiry: expiryDate, updated_at: row.updated_at,
+        }, { onConflict: "user_id" })
+      : await admin
       .from("rider_verifications")
       .upsert(row, { onConflict: "user_id" });
     if (upErr) {
