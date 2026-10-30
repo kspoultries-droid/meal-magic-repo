@@ -14,6 +14,8 @@ import DeliveryMap from "@/components/orders/DeliveryMap";
 import LiveDeliveryRoute from "@/components/orders/LiveDeliveryRoute";
 import { freshRiderLocation } from "@/lib/riderLocation";
 import { orderTabOf } from "@/pages/MyOrders";
+import { useCart } from "@/contexts/CartContext";
+import { RotateCcw } from "lucide-react";
 
 
 
@@ -40,6 +42,22 @@ const OrderTracking = () => {
   const [hasReview, setHasReview] = useState(false);
   const [locationError, setLocationError] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const { addItems, setIsOpen: setCartOpen } = useCart();
+  const reorder = async () => {
+    if (!order?.order_items?.length) return;
+    const { data: r } = await supabase.from("restaurants").select("name").eq("id", order.restaurant_id).maybeSingle();
+    addItems(order.order_items.map((i: any) => {
+      const options = Array.isArray(i.options) ? i.options : [];
+      return {
+        menu_item_id: i.menu_item_id, name: i.name, restaurant: r?.name || "",
+        price: Number(i.unit_price ?? i.price), quantity: i.quantity, image: i.image || "",
+        source: "restaurant" as const, sourceId: order.restaurant_id,
+        variant_id: i.variant_id || null, variant_label: i.variant_label || null,
+        options, option_ids: options.map((x: any) => x.choice_id).filter(Boolean),
+      };
+    }));
+    setCartOpen(true);
+  };
 
   const fetchRider = useCallback(async (orderId: string, orderKind: "food" | "grocery_cart" | "grocery_list") => {
     return supabase.rpc("get_delivery_rider_location", { _order_id: orderId, _kind: orderKind });
@@ -306,6 +324,11 @@ const OrderTracking = () => {
           >
             <Star className="w-4 h-4" />
             {hasReview ? t("track.updateReview") : t("track.rateRestaurant")}
+          </Button>
+        )}
+        {kind === "food" && ["delivered", "completed", "cancelled"].includes(order.status) && user && order.customer_id === user.id && order.order_items?.length > 0 && (
+          <Button variant="outline" onClick={reorder} className="w-full mt-3 h-12 font-bold rounded-xl gap-2">
+            <RotateCcw className="w-4 h-4" /> {L("Re-order", "دوبارہ آرڈر")}
           </Button>
         )}
       </div>
