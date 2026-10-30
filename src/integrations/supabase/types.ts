@@ -2136,6 +2136,45 @@ export type Database = {
           },
         ]
       }
+      partner_kyc_checks: {
+        Row: {
+          ai_score: number | null
+          back_path: string | null
+          cnic_expiry: string | null
+          cnic_number: string
+          failure_reason: string | null
+          front_path: string | null
+          selfie_path: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_score?: number | null
+          back_path?: string | null
+          cnic_expiry?: string | null
+          cnic_number: string
+          failure_reason?: string | null
+          front_path?: string | null
+          selfie_path?: string | null
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_score?: number | null
+          back_path?: string | null
+          cnic_expiry?: string | null
+          cnic_number?: string
+          failure_reason?: string | null
+          front_path?: string | null
+          selfie_path?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_accounts: {
         Row: {
           account_number: string | null
