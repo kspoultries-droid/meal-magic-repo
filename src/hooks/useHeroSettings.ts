@@ -5,17 +5,23 @@ import { HeroConfig, parseHeroConfig } from "@/lib/heroConfig";
 export type HeroSettingsKey = "hero_bazar" | "hero_services";
 
 export const useHeroSettings = (key: HeroSettingsKey, defaults: HeroConfig) => {
-  const [config, setConfig] = useState<HeroConfig>(defaults);
-  const [loaded, setLoaded] = useState(false);
+  const cacheKey = `easylife:${key}`;
+  const readCache = () => { try { const raw = localStorage.getItem(cacheKey); return raw ? parseHeroConfig(raw, defaults) : null; } catch { return null; } };
+  const [config, setConfig] = useState<HeroConfig>(() => readCache() ?? defaults);
+  // With a cached copy the page shows instantly; only the very first visit waits.
+  const [loaded, setLoaded] = useState(() => readCache() !== null);
 
   useEffect(() => {
     let active = true;
-    setLoaded(false);
+    setLoaded(readCache() !== null);
     const fetchSettings = async () => {
       try {
         const { data, error } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
         if (!active) return;
-        if (!error) setConfig(parseHeroConfig(data?.value, defaults));
+        if (!error) {
+          setConfig(parseHeroConfig(data?.value, defaults));
+          try { if (data?.value != null) localStorage.setItem(cacheKey, typeof data.value === "string" ? data.value : JSON.stringify(data.value)); } catch { /* ignore */ }
+        }
       } finally {
         if (active) setLoaded(true);
       }
@@ -31,6 +37,7 @@ export const useHeroSettings = (key: HeroSettingsKey, defaults: HeroConfig) => {
       const { error } = await supabase.from("app_settings").update({ value: JSON.stringify(next) }).eq("key", key);
       if (error) throw error;
       setConfig(next);
+      try { localStorage.setItem(cacheKey, JSON.stringify(next)); } catch { /* ignore */ }
     },
     [key],
   );
