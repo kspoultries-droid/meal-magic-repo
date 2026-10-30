@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import DeliveryMap from "@/components/orders/DeliveryMap";
 import LiveDeliveryRoute from "@/components/orders/LiveDeliveryRoute";
 import { freshRiderLocation } from "@/lib/riderLocation";
+import { orderTabOf } from "@/pages/MyOrders";
 
 
 
@@ -28,7 +29,9 @@ const OrderTracking = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang, dir } = useLanguage();
+  const L = (en: string, ur: string) => lang === "ur" ? ur : en;
+  const [showMap, setShowMap] = useState(false);
   const [order, setOrder] = useState<any>(null);
   const [kind, setKind] = useState<"food" | "grocery_cart" | "grocery_list">("food");
   const [rider, setRider] = useState<any>(null);
@@ -124,28 +127,38 @@ const OrderTracking = () => {
   }, [id, kind, user?.id, order?.rider_id, order?.status, fetchRider]);
 
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
+  if (loading) return <div className="min-h-screen p-4 space-y-4"><div className="h-14 bg-muted animate-pulse rounded-lg"/><div className="h-52 bg-muted animate-pulse rounded-lg"/><div className="h-64 bg-muted animate-pulse rounded-lg"/></div>;
   if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("track.notFound")}</div>;
 
   const normalizedStatus = ["completed", "delivered"].includes(order.status) ? "delivered" : order.delivery_stage === "assigned" || order.delivery_stage === "arrived_pickup" ? (["delivering", "ready_for_pickup", "ready", "packed", "picking"].includes(order.status) ? "preparing" : order.status) : ["out_for_delivery", "delivering"].includes(order.status) ? "delivering" : ["ready", "ready_for_pickup", "packed", "picking"].includes(order.status) ? "preparing" : order.status;
-  const currentStepIndex = orderSteps.findIndex((s) => s.key === normalizedStatus);
+  const currentStepIndex = orderTabOf(order.status, order.delivery_stage) === "onway" ? 3 : Math.max(0, orderSteps.findIndex((s) => s.key === normalizedStatus));
   const isCancelled = ["cancelled", "returned_to_store"].includes(order.status);
   const locationFresh = !locationError && freshRiderLocation(rider?.location_updated_at, now);
   const riderPoint = locationFresh && Number.isFinite(rider?.lat) && Number.isFinite(rider?.lng) ? { lat: rider.lat, lng: rider.lng } : null;
   const destination = Number.isFinite(order.delivery_lat) && Number.isFinite(order.delivery_lng) ? { lat: order.delivery_lat, lng: order.delivery_lng } : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="account-page min-h-screen pb-8" dir={dir}>
       {/* Header */}
       <div className="sticky top-0 z-50 bg-card border-b px-4 h-14 flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
-          <ArrowLeft className="h-5 w-5" />
+        <Button variant="ghost" size="icon" onClick={() => navigate("/my-orders")}>
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" />
         </Button>
-        <h1 className="text-lg font-extrabold text-foreground">{t("track.title")}</h1>
+        <h1 className="text-lg font-extrabold text-foreground">{L("Order details", "آرڈر کی تفصیل")}</h1>
       </div>
 
+      <section className="bg-card px-5 py-5 border-b">
+        <p className="text-xs text-muted-foreground mb-2">#{order.id.slice(0, 8)} · {new Date(order.created_at).toLocaleString("en-GB")}</p>
+        <h2 className={`text-xl font-bold ${isCancelled ? "text-destructive" : "text-primary"}`}>{isCancelled ? t("track.cancelled") : t(orderSteps[currentStepIndex].noteKey)}</h2>
+        <div className="flex items-center gap-2 mt-4">
+          {orderSteps.map((step, index) => <div key={step.key} className={`h-1 flex-1 rounded-full ${!isCancelled && index <= currentStepIndex ? "bg-primary" : "bg-border"}`} />)}
+        </div>
+        <Button variant="link" className="px-0 mt-2 text-xs" onClick={() => document.getElementById("order-progress")?.scrollIntoView({behavior:"smooth"})}>{L("View delivery progress", "ڈیلیوری کے مراحل دیکھیں")}</Button>
+        {!isCancelled && !["delivered", "completed"].includes(order.status) && <Button variant="outline" size="sm" className="ms-3" onClick={() => setShowMap(!showMap)}><MapPin className="h-4 w-4 me-1"/>{showMap ? L("Hide map", "نقشہ چھپائیں") : L("Live map", "براہِ راست نقشہ")}</Button>}
+      </section>
+
       {/* Map area */}
-      {order.rider_id && !["delivered", "completed", "cancelled", "returned_to_store"].includes(order.status) ? <div id="live-delivery-map" className="px-4 py-3"><LiveDeliveryRoute orderId={order.id} kind={kind} stage={order.delivery_stage || "assigned"} /></div> : <div className="h-64 bg-secondary relative">
+      {showMap && (order.rider_id && !["delivered", "completed", "cancelled", "returned_to_store"].includes(order.status) ? <div id="live-delivery-map" className="px-4 py-3"><LiveDeliveryRoute orderId={order.id} kind={kind} stage={order.delivery_stage || "assigned"} /></div> : <div className="h-64 bg-secondary relative">
         {(destination || riderPoint) ? (
           <DeliveryMap key={id} destination={destination} rider={riderPoint} />
         ) : order.delivery_address ? (
@@ -169,7 +182,7 @@ const OrderTracking = () => {
             {t("track.riderOnWay")}
           </div>
         )}
-      </div>}
+      </div>)}
 
       {/* Rider card */}
       {rider && !["delivered", "completed", "cancelled"].includes(order.status) && (
@@ -189,8 +202,8 @@ const OrderTracking = () => {
           <OrderChat orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} role="customer" label={t("track.chat")} />
           <div className="mt-2"><ReportProblemDialog orderId={order.id} orderKind={kind === "food" ? "food" : "grocery"} /></div>
           <p className={`w-full text-xs ${locationFresh ? "text-success" : "text-warning"}`} aria-live="polite">
-            {locationError ? "لوکیشن سے رابطہ نہیں ہو رہا / Connection interrupted" : locationFresh ? "رائیڈر کا تازہ GPS / Live rider GPS" : "تازہ لوکیشن کا انتظار / Waiting for fresh GPS"}
-            {rider.location_updated_at && <span className="block text-muted-foreground">آخری اپ ڈیٹ / Updated: {new Date(rider.location_updated_at).toLocaleTimeString("en-GB")}</span>}
+            {locationError ? L("Connection interrupted", "لوکیشن سے رابطہ نہیں ہو رہا") : locationFresh ? L("Live rider GPS", "رائیڈر کا تازہ مقام") : L("Waiting for fresh GPS", "تازہ لوکیشن کا انتظار")}
+            {rider.location_updated_at && <span className="block text-muted-foreground">{L("Updated", "آخری اپ ڈیٹ")}: {new Date(rider.location_updated_at).toLocaleTimeString("en-GB")}</span>}
           </p>
           {riderPoint && (
             <Button variant="outline" size="sm" onClick={() => document.getElementById('live-delivery-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
@@ -213,11 +226,11 @@ const OrderTracking = () => {
         />
       )}
 
-      {order.delivery_stage === "return_pending" && <p className="mx-4 mt-4 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning">ڈیلیوری میں مسئلہ؛ سپورٹ نگرانی کر رہی ہے / Delivery under review</p>}
+      {order.delivery_stage === "return_pending" && <p className="mx-4 mt-4 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning">{L("Delivery under review", "ڈیلیوری میں مسئلہ؛ سپورٹ نگرانی کر رہی ہے")}</p>}
 
       {/* Order Status Steps */}
 
-      <div className="px-6 py-6">
+      <div id="order-progress" className="account-band px-5 py-5">
         <h2 className="text-lg font-extrabold text-foreground mb-6">
           {isCancelled ? `${t("track.cancelled")} ❌` : orderSteps[currentStepIndex] ? t(orderSteps[currentStepIndex].noteKey) : t("track.title")}
         </h2>
@@ -232,13 +245,13 @@ const OrderTracking = () => {
                 <div key={step.key} className="flex items-start gap-4">
                   {/* Line + Circle */}
                   <div className="flex flex-col items-center">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                       isCompleted ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
                     } ${isCurrent ? "ring-4 ring-primary/20" : ""}`}>
                       <Icon className="w-5 h-5" />
                     </div>
                     {index < orderSteps.length - 1 && (
-                      <div className={`w-0.5 h-10 ${isCompleted && index < currentStepIndex ? "bg-primary" : "bg-border"}`} />
+                      <div className={`w-0.5 h-7 ${isCompleted && index < currentStepIndex ? "bg-primary" : "bg-border"}`} />
                     )}
                   </div>
                   {/* Label */}
@@ -254,8 +267,9 @@ const OrderTracking = () => {
       </div>
 
       {/* Order Details */}
-      <div className="px-6 pb-8">
-        <div className="bg-card rounded-2xl border p-4 space-y-3">
+      <div className="account-band px-5 py-5">
+        <div className="space-y-3">
+          <h2 className="font-bold">{L("Items & payment", "اشیا اور ادائیگی")}</h2>
           <div className="flex justify-between items-center">
             <p className="text-xs text-muted-foreground font-mono">#{order.id.slice(0, 8)}</p>
             <p className="text-sm font-extrabold text-primary">Rs {order.total_amount}</p>
@@ -263,12 +277,16 @@ const OrderTracking = () => {
           {order.delivery_address && (
             <p className="text-sm text-muted-foreground">📍 {order.delivery_address}</p>
           )}
-          {order.order_items?.map((item: any) => (
-            <div key={item.id} className="flex justify-between text-sm">
+          {(order.order_items || (Array.isArray(order.items) ? order.items : [])).map((item: any, index: number) => (
+            <div key={item.id || index} className="flex justify-between gap-3 text-sm border-b py-2">
               <span>{item.name} × {item.quantity}</span>
-              <span className="font-bold">Rs {item.price * item.quantity}</span>
+              <span className="font-bold shrink-0">Rs {Number(item.unit_price ?? item.price) * item.quantity}</span>
             </div>
           ))}
+          <div className="flex justify-between text-sm"><span>{L("Delivery fee", "ڈیلیوری فیس")}</span><span>Rs {Number(order.delivery_fee || 0)}</span></div>
+          {Number(order.discount_amount) > 0 && <div className="flex justify-between text-sm text-primary"><span>{L("Discount", "رعایت")}</span><span>- Rs {Number(order.discount_amount)}</span></div>}
+          <div className="flex justify-between text-base font-bold border-t pt-3"><span>{L("Total", "کل")}</span><span>Rs {Number(order.total_amount || 0).toLocaleString("en-US")}</span></div>
+          <p className="text-xs text-muted-foreground">{L("Payment", "ادائیگی")}: {order.payment_method === "cod" || !order.payment_method ? L("Cash on delivery", "ڈیلیوری پر نقد") : order.payment_method}</p>
         </div>
 
         {kind === "grocery_cart" && (
@@ -286,7 +304,7 @@ const OrderTracking = () => {
             onClick={() => setReviewOpen(true)}
             className="w-full mt-4 h-12 font-extrabold rounded-xl bg-gradient-primary shadow-glow gap-2"
           >
-            <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" />
+            <Star className="w-4 h-4" />
             {hasReview ? t("track.updateReview") : t("track.rateRestaurant")}
           </Button>
         )}
