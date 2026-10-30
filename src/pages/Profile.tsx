@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,11 +19,27 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import { useCart } from "@/contexts/CartContext";
 import { ORDER_TABS, orderTabOf } from "@/pages/MyOrders";
+import { Capacitor } from "@capacitor/core";
+import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
+import { Camera, Coins, HelpCircle, History, Share2 } from "lucide-react";
+import { readRecent } from "@/lib/recentlyViewed";
+import rewardsImage from "@/assets/account-rewards.jpg";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang, dir } = useLanguage();
+  const L = (en: string, ur: string) => lang === "ur" ? ur : en;
+  const photoInput = useRef<HTMLInputElement>(null);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [coinBalance, setCoinBalance] = useState<number | null>(null);
+  const [showCoins, setShowCoins] = useState(false);
+  const [showRecent, setShowRecent] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+  const recent = readRecent(user?.id);
+  const native = Capacitor.isNativePlatform();
+  const installed = native || window.matchMedia("(display-mode: standalone)").matches;
   const { addItems, setIsOpen: setCartOpen } = useCart();
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
@@ -89,6 +105,8 @@ const Profile = () => {
         { data: serviceProvider },
         { data: riderProfile },
         { data: walletData },
+        { data: groceryOrders },
+        { data: listOrders },
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("orders").select("*, order_items(*), restaurants(name)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(20),
@@ -98,11 +116,13 @@ const Profile = () => {
         supabase.from("service_providers").select("id,name,is_available,is_active").eq("user_id", user.id).maybeSingle(),
         supabase.from("riders").select("id,is_available").eq("id", user.id).maybeSingle(),
         supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
+        supabase.from("grocery_cart_orders").select("id,status").eq("customer_id", user.id).order("created_at", {ascending:false}).limit(50),
+        supabase.from("grocery_list_orders").select("id,status").eq("customer_id", user.id).order("created_at", {ascending:false}).limit(50),
       ]);
       if (profileError) console.error("Profile load error:", profileError);
       const data = {
         profile: prof || fallbackProfile,
-        orders: ords || [],
+        orders: [...(ords || []), ...(groceryOrders || []), ...(listOrders || [])],
         roles: (userRoles || []).map((r: any) => r.role),
         partnerAssets: {
           restaurants: ownedRestaurants || [],
@@ -141,9 +161,9 @@ const Profile = () => {
     if (email && email !== user.email) {
       const { error: eErr } = await supabase.auth.updateUser({ email });
       if (eErr) { toast.error("ای میل: " + eErr.message); }
-      else toast.success("ای میل تصدیقی لنک بھیج دیا گیا");
+      else toast.success(L("Email confirmation sent", "ای میل تصدیقی لنک بھیج دیا گیا"));
     }
-    toast.success("پروفائل اپڈیٹ ہو گیا!");
+    toast.success(L("Profile updated", "پروفائل محفوظ ہو گیا"));
     setEditing(false);
     fetchData();
   };
@@ -179,7 +199,7 @@ const Profile = () => {
 
   const saveAddress = async () => {
     if (!user) return;
-    if (!newAddr.address.trim()) { toast.error("پتہ لکھیں"); return; }
+    if (!newAddr.address.trim()) { toast.error(L("Enter an address", "پتہ لکھیں")); return; }
     const isFirst = addresses.length === 0;
     const { error } = await supabase.from("user_addresses").insert({
       user_id: user.id, label: newAddr.label || "Home",
@@ -187,7 +207,7 @@ const Profile = () => {
       is_default: isFirst,
     });
     if (error) { toast.error(error.message); return; }
-    toast.success("پتہ محفوظ ہو گیا");
+    toast.success(L("Address saved", "پتہ محفوظ ہو گیا"));
     setNewAddr({ label: "Home", address: "", lat: null, lng: null });
     fetchAddresses();
   };
@@ -205,552 +225,95 @@ const Profile = () => {
     fetchAddresses();
   };
 
-  const statusColor = (s: string) => {
-    const map: Record<string, string> = { pending: "bg-warning text-warning-foreground", confirmed: "bg-primary text-primary-foreground", preparing: "bg-accent text-accent-foreground", delivering: "bg-primary text-primary-foreground", delivered: "bg-success text-success-foreground", cancelled: "bg-destructive text-destructive-foreground" };
-    return map[s] || "bg-muted text-muted-foreground";
+  useEffect(() => {
+    let active = true;
+    setPhotoUrl("");
+    const path = profile?.avatar_url;
+    if (path?.startsWith(`${user?.id}/`)) {
+      supabase.storage.from("profile-photos").createSignedUrl(path, 300).then(({data}) => { if(active) setPhotoUrl(data?.signedUrl || ""); });
+    } else if (path?.startsWith("https://")) setPhotoUrl(path);
+    return () => { active = false; };
+  }, [profile?.avatar_url, user?.id]);
+  useEffect(() => {
+    if (!user) return;
+    supabase.rpc("claim_daily_coin").then(({data, error}) => { if (!error && data) setCoinBalance(Number((data as any).balance)); });
+  }, [user?.id]);
+  const uploadPhoto = async (file?: File) => {
+    if (!file || !user) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5 * 1024 * 1024) { toast.error(L("Choose a JPG, PNG or WebP under 5 MB", "5 MB سے چھوٹی JPG، PNG یا WebP تصویر منتخب کریں")); return; }
+    setPhotoBusy(true);
+    const path = `${user.id}/${crypto.randomUUID()}.${file.type.split("/")[1]}`;
+    const {error} = await supabase.storage.from("profile-photos").upload(path, file, {upsert:false});
+    if (error) { toast.error(error.message); setPhotoBusy(false); return; }
+    const saved = await supabase.from("profiles").update({avatar_url:path}).eq("id",user.id);
+    if(saved.error) toast.error(saved.error.message);
+    else { await fetchData(); toast.success(L("Photo saved", "تصویر محفوظ ہو گئی")); }
+    setPhotoBusy(false);
   };
-
-  const statusLabel = (s: string) => t((`status.${s}`) as any, s);
-
-  const refreshPartnerAccess = async () => {
-    await refreshRoles();
-    await fetchData();
-    toast.success("پارٹنر access تازہ ہو گیا");
+  const registerPasskey = async () => {
+    if (native || !browserSupportsWebAuthn() || window.self !== window.top) {
+      window.open(`https://easylife.apnahub.online/profile`, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setPasskeyBusy(true);
+    try {
+      const {data} = await supabase.auth.getSession();
+      if (!data.session) throw new Error(L("Sign in first", "پہلے لاگ ان کریں"));
+      const call = async (path:string, body:object) => {
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn/${path}`, {method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${data.session?.access_token}`,apikey:import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}, body:JSON.stringify(body)});
+        const json = await res.json(); if(!res.ok || json.error) throw new Error(json.error || "Passkey request failed"); return json;
+      };
+      const options = await call("register-options",{});
+      const credential = await startRegistration({optionsJSON:options});
+      await call("register-verify",{credential,deviceName:"My Phone"});
+      toast.success(L("Passkey registered", "فنگر پرنٹ رجسٹر ہو گیا"));
+    } catch (error:any) { toast.error(error.name === "NotAllowedError" ? L("Registration cancelled", "رجسٹریشن منسوخ ہوئی") : error.message); }
+    finally { setPasskeyBusy(false); }
   };
-
-  if ((authLoading && !profile) || (loading && !profile)) return (
-    <div className="min-h-screen bg-background pb-20" aria-busy="true" aria-label={t("common.loading", "…")}>
-      <div className="h-14 border-b bg-card" />
-      <div className="h-36 bg-primary/80 animate-pulse" />
-      <div className="mx-4 -mt-6 h-28 rounded-2xl bg-card shadow-soft animate-pulse" />
-      <div className="mx-4 mt-3 grid grid-cols-2 gap-3">{[0,1,2,3].map((i) => <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />)}</div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-background pb-20">
-
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-card border-b px-4 h-14 flex items-center justify-between shadow-soft">
-        <h1 className="text-lg font-extrabold text-foreground">{t("profile.account")}</h1>
-        <div className="flex items-center gap-1">
-          <LanguageSwitcher />
-          <button className="p-2 rounded-full hover:bg-secondary">
-            <Settings className="w-5 h-5 text-muted-foreground" />
-          </button>
-        </div>
-      </div>
-
-      {/* Profile Hero — Premium gradient card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/70 px-4 pt-6 pb-8">
-        <div className="relative flex items-center gap-4">
-          <div className="w-16 h-16 rounded-lg bg-primary-foreground/15 ring-1 ring-primary-foreground/30 flex items-center justify-center shadow-soft">
-            <span className="text-2xl font-extrabold text-primary-foreground">
-              {(profile?.full_name || user?.email || "U").charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-extrabold text-primary-foreground truncate">{profile?.full_name || user?.email?.split("@")[0] || "User"}</h2>
-            <button onClick={() => setEditing(!editing)} className="text-xs text-primary-foreground/80 hover:text-primary-foreground underline underline-offset-2">
-              {editing ? t("profile.cancel") : t("profile.viewEdit")}
-            </button>
-            {user && (
-              <div className="mt-1.5 flex items-center gap-2">
-                <code className="text-[10px] font-mono bg-primary-foreground/15 text-primary-foreground px-2 py-0.5 rounded-full backdrop-blur-sm">
-                  ID: {user.id.slice(0, 8)}
-                </code>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(user.id.slice(0, 8));
-                    toast.success("ID کاپی ہو گئی — ایڈمن کو بھیجیں");
-                  }}
-                  className="text-[10px] text-primary-foreground/90 hover:text-primary-foreground flex items-center gap-0.5"
-                >
-                  <Copy className="w-3 h-3" /> {t("profile.copy")}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        {editing && (
-          <div className="relative mt-4 space-y-3 bg-card rounded-lg p-4 shadow-card">
-            <Input placeholder={t("profile.fullName")} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-            <Input placeholder={t("profile.phone")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            <Input type="email" placeholder={t("profile.email")} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <Input placeholder={t("profile.address")} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            <p className="text-[11px] text-muted-foreground">{t("profile.emailNote")}</p>
-            <Button onClick={updateProfile} className="w-full">{t("profile.save")}</Button>
-          </div>
-        )}
-      </div>
-
-       {/* Daraz-style My Orders strip */}
-       <div className="px-4 -mt-4 relative">
-         <div className="bg-card rounded-2xl border shadow-card">
-           <button onClick={() => navigate("/my-orders")} className="flex w-full items-center justify-between px-4 py-3 border-b">
-             <span className="text-sm font-extrabold text-foreground">{t("profile.myOrders")}</span>
-             <span className="flex items-center text-xs text-muted-foreground">سب دیکھیں <ChevronRight className="w-4 h-4" /></span>
-           </button>
-           <div className="grid grid-cols-4 py-3">
-             {ORDER_TABS.slice(1).map((tb) => {
-               const n = orders.filter((o) => orderTabOf(o.status) === tb.key).length;
-               const Icon = tb.icon;
-               return (
-                 <button key={tb.key} onClick={() => navigate(`/my-orders?tab=${tb.key}`)} className="relative flex flex-col items-center gap-1 active:scale-95 transition-transform">
-                   <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                     <Icon className="w-5 h-5" />
-                     {n > 0 && tb.key !== "cancelled" && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">{n}</span>}
-                   </span>
-                   <span className="text-[11px] font-semibold text-foreground">{tb.label}</span>
-                 </button>
-               );
-             })}
-           </div>
-         </div>
-       </div>
-
-       {/* Quick Actions */}
-       <div className="px-4 py-4">
-         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-           <AccountTile icon={<ShoppingBag className="w-5 h-5" />} label={t("profile.myOrders")} value={`${orders.length} ${t("profile.ordersCount")}`} onClick={() => navigate("/my-orders")} />
-           <AccountTile icon={<Heart className="w-5 h-5" />} label={t("profile.favorites")} value={t("profile.savedItems")} onClick={() => toast.info(t("profile.favSoon"))} />
-           <AccountTile icon={<MapPin className="w-5 h-5" />} label={t("profile.savedAddresses")} value={`${addresses.length || ""} ${t("profile.addressesWord")}`} onClick={openAddresses} />
-           <AccountTile icon={<Wallet className="w-5 h-5" />} label={t("profile.wallet")} value={t("profile.seeBalance")} onClick={() => navigate("/wallet")} />
-         </div>
-         <button
-           type="button"
-           onClick={() => navigate("/install")}
-           className="mt-2.5 flex w-full items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-card active:scale-[0.99]"
-         >
-           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-             <Smartphone className="h-5 w-5" />
-           </span>
-           <span className="min-w-0 flex-1">
-             <span className="block text-xs font-extrabold text-foreground">ایپ انسٹال کریں / Install App</span>
-             <span className="block text-[10px] text-muted-foreground">APK ڈاؤن لوڈ، فون پر انسٹال اور اپ ڈیٹ — سب ایک جگہ</span>
-           </span>
-           <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
-         </button>
-       </div>
-
-      {/* Addresses Dialog */}
-      <Dialog open={showAddresses} onOpenChange={setShowAddresses}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{t("profile.savedAddresses")}</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            {addresses.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">{t("profile.noSavedAddress")}</p>
-            ) : addresses.map((a) => (
-              <div key={a.id} className="p-3 rounded-xl border bg-card space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-primary" />
-                    <span className="font-semibold text-sm">{a.label}</span>
-                    {a.is_default && <Badge className="text-[10px]">{t("profile.default")}</Badge>}
-                  </div>
-                  <div className="flex gap-1">
-                    {!a.is_default && (
-                      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => makeDefault(a.id)}>
-                        <Star className="w-3 h-3" />
-                      </Button>
-                    )}
-                    <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive" onClick={() => deleteAddress(a.id)}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">{a.address}</p>
-                {a.lat && <p className="text-[10px] text-muted-foreground font-mono">📍 {a.lat.toFixed(4)}, {a.lng.toFixed(4)}</p>}
-              </div>
-            ))}
-
-            <div className="border-t pt-3 space-y-2">
-              <p className="text-sm font-semibold">{t("profile.addAddress")}</p>
-              <Input placeholder="Label (Home / Office / Other)" value={newAddr.label} onChange={(e) => setNewAddr({ ...newAddr, label: e.target.value })} />
-              <Input placeholder={t("profile.fullAddress")} value={newAddr.address} onChange={(e) => setNewAddr({ ...newAddr, address: e.target.value })} />
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={useMyLocation} disabled={locBusy} className="flex-1">
-                  <Navigation className="w-4 h-4 mr-1" /> {locBusy ? "..." : t("profile.useLocation")}
-                </Button>
-                <Button onClick={saveAddress} className="flex-1">
-                  <Plus className="w-4 h-4 mr-1" /> {t("profile.save")}
-                </Button>
-              </div>
-              {newAddr.lat && <p className="text-[10px] text-primary font-mono">📍 {newAddr.lat.toFixed(4)}, {newAddr.lng.toFixed(4)}</p>}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Referral Card */}
-      {profile?.referral_code && (
-        <div className="px-4 pb-2">
-          <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2">
-            <span className="shrink-0 text-[11px] text-muted-foreground">{t("profile.referralCode")}</span>
-            <span className="min-w-0 flex-1 truncate font-mono text-sm font-extrabold tracking-widest text-primary">
-              {profile.referral_code}
-            </span>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(profile.referral_code);
-                toast.success("کوڈ کاپی ہو گیا");
-              }}
-              aria-label="کاپی"
-              className="rounded-lg border bg-card p-1.5 active:scale-95 transition-transform"
-            >
-              <Copy className="h-3.5 w-3.5 text-primary" />
-            </button>
-            <button
-              onClick={() => {
-                const msg = `Easy Life ایپ ڈاؤنلوڈ کریں، پہلے آرڈر پر Rs 50 انعام! میرا کوڈ: ${profile.referral_code}\n\nhttps://easylife.apnahub.online/install?ref=${profile.referral_code}`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
-              }}
-              className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground active:scale-95 transition-transform"
-            >
-              {t("profile.share")}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Orders Section (collapsible) */}
-      {showOrders && (
-        <div className="px-4 pb-4">
-          <h3 className="text-lg font-extrabold text-foreground mb-3">{t("profile.myOrders")}</h3>
-          <div className="mb-4"><CustomerGroceryHistory /></div>
-          {orders.length === 0 ? (
-            <p className="text-center text-muted-foreground py-6">{t("profile.noFoodOrders")}</p>
-          ) : (
-            <div className="space-y-3">
-              {orders.map((o) => (
-                <div key={o.id} className="bg-card rounded-2xl p-4 border space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                      <p className="font-bold text-foreground">Rs {o.total_amount}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</p>
-                    </div>
-                    <Badge className={statusColor(o.status)}>{statusLabel(o.status)}</Badge>
-                  </div>
-                  {o.status !== "delivered" && o.status !== "cancelled" && (
-                    <Button size="sm" variant="outline" className="w-full mt-2 text-xs" onClick={() => navigate(`/order-tracking/${o.id}`)}>
-                      {t("profile.track")} 📍
-                    </Button>
-                  )}
-                  {(o.status === "delivered" || o.status === "completed") && (
-                    <Button size="sm" variant="outline" className="w-full mt-2 text-xs font-bold" onClick={() => setReviewOrder(o)}>
-                      {t("profile.review")} ⭐
-                    </Button>
-                  )}
-                  {o.order_items?.length > 0 && (
-                    <Button
-                      size="sm"
-                      className="w-full mt-2 text-xs font-bold"
-                      onClick={() => {
-                        addItems(
-                          o.order_items.map((i: any) => {
-                            const options = Array.isArray(i.options)
-                              ? (i.options as { group_id?: string; group?: string; choice_id?: string; choice?: string; price_delta?: number }[])
-                              : [];
-                            return {
-                              menu_item_id: i.menu_item_id,
-                              name: i.name,
-                              restaurant: o.restaurants?.name || "",
-                              price: Number(i.unit_price ?? i.price),
-                              quantity: i.quantity,
-                              image: i.image || "",
-                              source: "restaurant" as const,
-                              sourceId: o.restaurant_id,
-                              variant_id: i.variant_id || null,
-                              variant_label: i.variant_label || null,
-                              options,
-                              option_ids: options.map((opt) => opt.choice_id).filter(Boolean),
-                            };
-                          })
-                        );
-                        setCartOpen(true);
-                      }}
-                    >
-                      🔁 دوبارہ آرڈر کریں / Re-order
-                    </Button>
-                  )}
-                  {o.order_items?.length > 0 && (
-                    <>
-                      <button className="flex items-center gap-1 text-xs text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
-                        {expandedOrder === o.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                        {expandedOrder === o.id ? t("profile.hide") : `${t("profile.items")} (${o.order_items.length})`}
-                      </button>
-                      {expandedOrder === o.id && (
-                        <div className="bg-secondary/30 rounded-xl p-3 space-y-1">
-                          {o.order_items.map((item: any) => (
-                            <div key={item.id} className="flex justify-between text-sm">
-                              <span>{item.name} × {item.quantity}</span>
-                              <span className="font-bold">Rs {item.price * item.quantity}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Perks Section */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-extrabold text-foreground">{t("profile.workDashboard")}</h3>
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={refreshPartnerAccess}>
-            <RefreshCw className="w-3 h-3 mr-1" /> {t("profile.refresh")}
+  const dashboards = [
+    ...(roles.includes("admin") ? [{name:t("dash.admin"),path:"/admin",icon:Settings}] : []),
+    ...(roles.includes("restaurant_owner") ? [{name:t("dash.restaurant"),path:"/restaurant-dashboard",icon:Store}] : []),
+    ...(roles.includes("rider") ? [{name:t("dash.rider"),path:"/rider-dashboard",icon:Bike}] : []),
+    ...(roles.includes("support") ? [{name:t("dash.support"),path:"/support-dashboard",icon:Headphones}] : []),
+    ...(roles.includes("mechanic") || partnerAssets.serviceProvider ? [{name:t("dash.mechanic"),path:"/mechanic-dashboard",icon:Wrench}] : []),
+    ...(roles.includes("service_manager") ? [{name:t("dash.serviceManager", L("Service management","سروس انتظام")),path:"/service-manager-dashboard",icon:Wrench}] : []),
+    ...partnerAssets.stores.map(store=>({name:store.name,path:`/grocery/${store.id}`,icon:Store})),
+  ];
+  if (!user || !profile) return <div className="min-h-screen bg-background p-4 space-y-4"><div className="h-36 bg-muted animate-pulse rounded-lg"/><div className="h-28 bg-muted animate-pulse rounded-lg"/></div>;
+  const title = profile.full_name || user.email?.split("@")[0] || L("My account", "میرا اکاؤنٹ");
+  return <div className="account-page min-h-screen pb-24" dir={dir}>
+    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur border-b"><div className="mx-auto max-w-3xl h-14 flex items-center justify-between px-4"><h1 className="font-bold text-base">{t("profile.account")}</h1><div className="flex items-center gap-1"><LanguageSwitcher/><Button variant="ghost" size="icon" aria-label={L("Edit profile","پروفائل تبدیل کریں")} onClick={()=>setEditing(true)}><Settings className="h-5 w-5"/></Button></div></div></header>
+    <main className="max-w-3xl mx-auto">
+      <section className="account-identity px-5 pt-7 pb-6">
+        <div className="flex gap-4 items-center">
+          <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e=>void uploadPhoto(e.target.files?.[0])}/>
+          <Button variant="ghost" disabled={photoBusy} aria-label={L("Change profile photo","پروفائل تصویر بدلیں")} onClick={()=>photoInput.current?.click()} className="relative shrink-0 h-20 w-20 rounded-full p-0 bg-card ring-4 ring-card shadow-card overflow-visible">
+            {photoUrl ? <img src={photoUrl} alt={title} className="h-20 w-20 rounded-full object-cover"/> : <span className="text-3xl font-bold text-primary">{title.charAt(0).toUpperCase()}</span>}
+            <span className="absolute bottom-0 end-0 rounded-full bg-primary text-primary-foreground p-1.5 border-2 border-card"><Camera className="h-3.5 w-3.5"/></span>
           </Button>
+          <div className="min-w-0 flex-1"><h2 className="text-2xl font-extrabold break-words leading-snug">{title}</h2><Button variant="link" className="h-auto p-0 text-muted-foreground text-xs mt-1" onClick={()=>setEditing(true)}>{t("profile.viewEdit")} <Pencil className="h-3 w-3 ms-1"/></Button><div className="flex gap-3 mt-2 text-xs text-muted-foreground"><span><b className="text-foreground">{orders.length}</b> {t("profile.ordersCount")}</span><span>·</span><span><b className="text-foreground">{coinBalance ?? "—"}</b> {L("Coins","سکے")}</span><Button variant="ghost" size="icon" className="h-5 w-5" aria-label={L("Copy account ID","اکاؤنٹ شناخت کاپی کریں")} onClick={()=>{navigator.clipboard.writeText(user.id);toast.success(L("ID copied","شناخت کاپی ہو گئی"));}}><Copy className="h-3 w-3"/></Button></div></div>
         </div>
-        <div className="bg-card rounded-2xl border divide-y">
-          {partnerAssets.rider && (
-            <button onClick={() => navigate("/rider-dashboard")} className="flex items-center justify-between w-full px-4 py-4 bg-primary/5 hover:bg-primary/10 transition-colors">
-              <div className="flex items-center gap-3 text-left">
-                <Bike className="w-5 h-5 text-primary" />
-                <div>
-                  <span className="text-sm font-bold text-foreground block">{t("profile.riderStart")}</span>
-                  <span className="text-[11px] text-muted-foreground">{t("profile.riderStartSub")}</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-          {partnerAssets.restaurants.map((restaurant) => (
-            <button key={restaurant.id} onClick={() => navigate("/restaurant-dashboard")} className="flex items-center justify-between w-full px-4 py-4 bg-primary/5 hover:bg-primary/10 transition-colors">
-              <div className="flex items-center gap-3 text-left">
-                <Store className="w-5 h-5 text-primary" />
-                <div>
-                  <span className="text-sm font-bold text-foreground block">{restaurant.name}</span>
-                  <span className="text-[11px] text-muted-foreground">{t("profile.restaurantSub")}</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          ))}
-          {partnerAssets.stores.map((store) => (
-            <button key={store.id} onClick={() => navigate(`/grocery/${store.id}`)} className="flex items-center justify-between w-full px-4 py-4 bg-primary/5 hover:bg-primary/10 transition-colors">
-              <div className="flex items-center gap-3 text-left">
-                <Package className="w-5 h-5 text-primary" />
-                <div>
-                  <span className="text-sm font-bold text-foreground block">{store.name}</span>
-                  <span className="text-[11px] text-muted-foreground">{store.store_type === "wholesale" ? t("profile.wholesale") : t("profile.grocery")} — {t("profile.storeSub")}</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          ))}
-          {partnerAssets.serviceProvider && (
-            <button onClick={() => navigate("/mechanic-dashboard")} className="flex items-center justify-between w-full px-4 py-4 bg-primary/5 hover:bg-primary/10 transition-colors">
-              <div className="flex items-center gap-3 text-left">
-                <Wrench className="w-5 h-5 text-primary" />
-                <div>
-                  <span className="text-sm font-bold text-foreground block">{partnerAssets.serviceProvider.name}</span>
-                  <span className="text-[11px] text-muted-foreground">{t("profile.serviceSub")}</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-          {roles.includes("restaurant_owner") && (
-            <button onClick={() => navigate("/restaurant-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Pencil className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">{t("dash.restaurant", "Restaurant Dashboard")}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-          {roles.includes("rider") && (
-            <button onClick={() => navigate("/rider-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Crown className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">{t("dash.rider", "Rider Dashboard")}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-          {roles.includes("admin") && (
-            <button onClick={() => navigate("/admin")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Settings className="w-5 h-5 text-destructive" />
-                <span className="text-sm font-semibold text-foreground">{t("dash.admin", "Admin Dashboard")}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-          {roles.includes("support") && (
-            <button onClick={() => navigate("/support-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Headphones className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">{t("dash.support", "Support Dashboard")}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-          {roles.includes("mechanic") && (
-            <button onClick={() => navigate("/mechanic-dashboard")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <Wrench className="w-5 h-5 text-orange-500" />
-                <span className="text-sm font-semibold text-foreground">{t("dash.mechanic", "Mechanic Dashboard")}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-          <button onClick={() => navigate("/wallet")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <Wallet className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-foreground">{t("profile.wallet")}</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-          <button onClick={() => navigate("/partner")} className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors border-t">
-            <div className="flex items-center gap-3">
-              <Crown className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-foreground">🤝 {t("profile.becomePartner")}</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-          <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <Crown className="w-5 h-5 text-purple-500" />
-              <span className="text-sm font-semibold text-foreground">Become a pro</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-          <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <Gift className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-foreground">EasyLife Rewards</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-          <button className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors">
-            <div className="flex items-center gap-3">
-              <Ticket className="w-5 h-5 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Vouchers</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
-      </div>
-
-      {/* Fingerprint Registration */}
-      <div className="px-4 py-2">
-        <h3 className="text-lg font-extrabold text-foreground mb-3">{t("profile.security")}</h3>
-        <div className="bg-card rounded-2xl border divide-y">
-          <button
-            onClick={async () => {
-              try {
-                const session = await supabase.auth.getSession();
-                const token = session.data.session?.access_token;
-                if (!token) { toast.error("پہلے لاگ ان کریں"); return; }
-
-                const optRes = await fetch(
-                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn/register-options`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "Authorization": `Bearer ${token}`,
-                      "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                    },
-                    body: JSON.stringify({}),
-                  }
-                );
-                const optData = await optRes.json();
-                if (optData.error) throw new Error(optData.error);
-
-                const credential = await startRegistration({ optionsJSON: optData });
-
-                const verifyRes = await fetch(
-                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webauthn/register-verify`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "Authorization": `Bearer ${token}`,
-                      "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                    },
-                    body: JSON.stringify({ credential, deviceName: "My Phone" }),
-                  }
-                );
-                const verifyData = await verifyRes.json();
-                if (verifyData.error) throw new Error(verifyData.error);
-
-                toast.success("فنگر پرنٹ رجسٹر ہو گیا! 🎉 / Fingerprint registered!");
-              } catch (err: any) {
-                if (err.name === "NotAllowedError") {
-                  toast.error("فنگر پرنٹ منسوخ ہو گیا");
-                } else {
-                  toast.error(err.message || "فنگر پرنٹ رجسٹر نہیں ہوا");
-                }
-              }
-            }}
-            className="flex items-center justify-between w-full px-4 py-4 hover:bg-secondary/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Fingerprint className="w-5 h-5 text-primary" />
-              <div className="text-left">
-                <span className="text-sm font-semibold text-foreground block">{t("profile.registerFingerprint")}</span>
-                <span className="text-xs text-muted-foreground">{t("profile.fingerprintSub")}</span>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
-      </div>
-
-      {/* Logout */}
-      <div className="px-4 py-6">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
-            >
-              <LogOut className="w-4 h-4 mr-2" /> {t("profile.logout")}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t("profile.logoutQ")}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t("profile.logoutConfirm")}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t("profile.cancel")}</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={async () => { try { localStorage.removeItem(cacheKey); } catch { /* ignore */ } await signOut(); navigate("/"); }}
-              >
-                {t("profile.yesLogout")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-
-      {reviewOrder && user && (
-        <OrderReviewDialog
-          open={!!reviewOrder}
-          onOpenChange={(v) => !v && setReviewOrder(null)}
-          orderId={reviewOrder.id}
-          restaurantId={reviewOrder.restaurant_id}
-          customerId={user.id}
-          kind="food"
-          riderId={reviewOrder.rider_id}
-          items={(reviewOrder.order_items || []).map((i: any) => ({ name: i.name, quantity: i.quantity }))}
-        />
-      )}
-      <BottomTabBar />
-    </div>
-  );
+      </section>
+      <section className="bg-card px-4 pb-5 grid grid-cols-2 gap-3">
+        <Button variant="ghost" onClick={()=>setShowCoins(true)} className="account-promo h-28 p-3 justify-start gap-2 text-start"><img src={rewardsImage} alt="" width={76} height={76} className="h-16 w-16 rounded-lg object-cover"/><span className="min-w-0"><b className="block text-sm">{L("EasyLife Coins","ایزی لائف سکے")}</b><span className="block text-primary text-xs mt-1">{coinBalance ?? "—"} {L("coins","سکے")}</span><span className="block text-[10px] text-muted-foreground mt-1">{L("Daily check-in","روزانہ حاضری")}</span></span></Button>
+        <Button variant="ghost" onClick={()=>{if(profile.referral_code){const text=L(`Download EasyLife. My referral code: ${profile.referral_code}`,`ایزی لائف ڈاؤن لوڈ کریں۔ میرا ریفرل کوڈ: ${profile.referral_code}`);window.open(`https://wa.me/?text=${encodeURIComponent(text+"\nhttps://easylife.apnahub.online/install?ref="+profile.referral_code)}`,"_blank","noopener,noreferrer");}}} className="account-invite h-28 p-3 justify-start gap-3 text-start"><span className="account-art"><Gift className="h-8 w-8"/></span><span className="min-w-0"><b className="block text-sm">{L("Invite friends","دوستوں کو بلائیں")}</b><span className="block text-xs mt-1 text-muted-foreground">{L("Share EasyLife","ایزی لائف شیئر کریں")}</span><Share2 className="h-4 w-4 mt-2 text-primary"/></span></Button>
+      </section>
+      <section className="account-band px-4 py-4">
+        <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-lg">{t("profile.myOrders")}</h3><Button variant="link" className="h-auto p-0 text-xs text-muted-foreground" onClick={()=>navigate("/my-orders")}>{L("View all","سب دیکھیں")} <ChevronRight className="h-4 w-4 rtl:rotate-180"/></Button></div>
+        <div className="grid grid-cols-4 gap-1">{ORDER_TABS.slice(1).map(tb=>{const Icon=tb.icon;const n=orders.filter(o=>orderTabOf(o.status,o.delivery_stage)===tb.key).length;return <Button variant="ghost" key={tb.key} onClick={()=>navigate(`/my-orders?tab=${tb.key}`)} className="h-20 flex-col gap-2 p-1 relative"><Icon className="h-7 w-7 text-primary"/>{n>0&&<span className="absolute top-0 end-3 rounded-full bg-destructive text-destructive-foreground text-[10px] px-1.5">{n}</span>}<span className="text-[11px] font-medium whitespace-normal leading-snug">{lang==="ur"?tb.label:tb.en}</span></Button>})}</div>
+      </section>
+      <section className="account-band px-4 py-4"><div className="flex justify-between items-center mb-3"><h3 className="font-bold text-lg">{L("Recently viewed","حال ہی میں دیکھی گئی اشیا")}</h3>{recent.length>3&&<Button variant="link" className="text-xs h-auto p-0" onClick={()=>setShowRecent(true)}>{L("View more","مزید دیکھیں")}</Button>}</div>{recent.length ? <div className="flex gap-3 overflow-x-auto pb-1">{recent.slice(0,8).map(item=><Button variant="ghost" key={item.id} onClick={()=>navigate(`/product/${item.id}`)} className="h-auto p-0 flex-col items-start w-28 shrink-0 gap-1.5 text-start"><span className="w-28 h-28 bg-secondary rounded-lg overflow-hidden">{item.image_url ? <img src={item.image_url} alt={item.name} loading="lazy" className="h-full w-full object-contain"/>:<Package className="h-8 w-8 m-10 text-muted-foreground"/>}</span><span className="text-xs line-clamp-1 w-full">{item.name}</span><b className="text-sm text-primary">Rs {Number(item.wholesale_price??item.discount_price??item.price).toLocaleString("en-US")}</b></Button>)}</div>:<div className="flex items-center gap-3 py-3 text-muted-foreground"><History className="h-7 w-7"/><span className="text-xs">{L("No recently viewed items yet","ابھی کوئی چیز نہیں دیکھی گئی")}</span><Button variant="link" className="ms-auto text-xs" onClick={()=>navigate("/bazar")}>{L("Shop","خریداری")}</Button></div>}</section>
+      <section className="account-band px-4 py-4"><h3 className="font-bold text-lg mb-3">{t("profile.wallet")}</h3><Button variant="ghost" className="bg-secondary/60 w-full h-auto py-3 px-4 justify-between" onClick={()=>navigate("/wallet")}><span className="text-start"><span className="text-xs text-muted-foreground block">{L("Available balance","دستیاب بیلنس")}</span><b className="text-xl">Rs {walletBalance.toLocaleString("en-US")}</b></span><span className="text-primary text-xs">{L("View wallet","والیٹ دیکھیں")} <ChevronRight className="inline h-4 w-4 rtl:rotate-180"/></span></Button></section>
+      <section className="account-band p-4 grid grid-cols-4 gap-x-2 gap-y-5">{[{label:t("profile.savedAddresses"),icon:MapPin,action:openAddresses},{label:L("Help centre","مدد مرکز"),icon:Headphones,action:()=>navigate("/profile?help=1")},{label:t("profile.review"),icon:Star,action:()=>navigate("/my-orders?tab=delivered")},{label:t("profile.becomePartner"),icon:Store,action:()=>navigate("/partner")},{label:L("Grocery","گروسری"),icon:ShoppingBag,action:()=>navigate("/grocery")},{label:L("Bazar","بازار"),icon:Package,action:()=>navigate("/bazar")},{label:L("Services","سروسز"),icon:Wrench,action:()=>navigate("/services")},{label:L("Account settings","اکاؤنٹ ترتیبات"),icon:Settings,action:()=>setEditing(true)}].map((tile,i)=><Button key={tile.label} variant="ghost" onClick={tile.action} className="h-auto flex-col p-0 gap-2"><span className={`account-art account-art-${i%4}`}><tile.icon className="h-6 w-6"/></span><span className="text-[11px] leading-snug whitespace-normal text-center">{tile.label}</span></Button>)}</section>
+      {dashboards.length>0&&<section className="account-band p-4"><div className="flex justify-between mb-2"><h3 className="font-bold">{t("profile.workDashboard")}</h3><Button variant="ghost" size="icon" aria-label={t("profile.refresh")} onClick={async()=>{await refreshRoles();await fetchData();}}><RefreshCw className="h-4 w-4"/></Button></div>{dashboards.map((d,i)=><Button key={i} variant="ghost" className="w-full h-12 justify-start gap-3 border-b last:border-0" onClick={()=>navigate(d.path)}><d.icon className="h-5 w-5 text-primary"/><span className="truncate">{d.name}</span><ChevronRight className="h-4 w-4 ms-auto rtl:rotate-180"/></Button>)}</section>}
+      <section className="account-band p-4"><h3 className="font-bold mb-3">{t("profile.security")}</h3><Button variant="ghost" disabled={passkeyBusy} onClick={registerPasskey} className="w-full h-auto py-3 justify-start gap-3 text-start"><Fingerprint className="h-6 w-6 text-primary shrink-0"/><span className="flex-1 whitespace-normal"><b className="block text-sm">{native?L("Passkey in browser","براؤزر میں فنگر پرنٹ"):t("profile.registerFingerprint")}</b><span className="block text-xs text-muted-foreground mt-1">{native?L("APK passkeys are not supported yet","APK میں فنگر پرنٹ کی سہولت ابھی دستیاب نہیں"):t("profile.fingerprintSub")}</span></span><ChevronRight className="h-4 w-4 rtl:rotate-180"/></Button>{!installed&&<Button variant="ghost" className="w-full justify-start gap-3" onClick={()=>navigate("/install")}><Smartphone className="h-5 w-5 text-primary"/>{L("Install app","ایپ انسٹال کریں")}</Button>}</section>
+      <div className="p-4"><AlertDialog><AlertDialogTrigger asChild><Button variant="outline" className="w-full text-destructive"><LogOut className="h-4 w-4 me-2"/>{t("profile.logout")}</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t("profile.logoutQ")}</AlertDialogTitle><AlertDialogDescription>{t("profile.logoutConfirm")}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>{t("profile.cancel")}</AlertDialogCancel><AlertDialogAction onClick={async()=>{localStorage.removeItem(cacheKey);await signOut();navigate("/");}}>{t("profile.yesLogout")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div>
+    </main>
+    <Dialog open={editing} onOpenChange={setEditing}><DialogContent><DialogHeader><DialogTitle>{t("profile.viewEdit")}</DialogTitle></DialogHeader><div className="space-y-3"><Input aria-label={t("profile.fullName")} placeholder={t("profile.fullName")} value={form.full_name} onChange={e=>setForm({...form,full_name:e.target.value})}/><Input placeholder={t("profile.phone")} value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}/><Input type="email" placeholder={t("profile.email")} value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/><Input placeholder={t("profile.address")} value={form.address} onChange={e=>setForm({...form,address:e.target.value})}/><p className="text-xs text-muted-foreground">{t("profile.emailNote")}</p><Button className="w-full" onClick={updateProfile}>{t("profile.save")}</Button></div></DialogContent></Dialog>
+    <Dialog open={showAddresses} onOpenChange={setShowAddresses}><DialogContent className="max-h-[85vh] overflow-auto"><DialogHeader><DialogTitle>{t("profile.savedAddresses")}</DialogTitle></DialogHeader>{addresses.map(a=><div key={a.id} className="border-b py-2"><div className="flex items-center justify-between"><b className="text-sm">{a.label}</b><div>{!a.is_default&&<Button variant="ghost" size="icon" aria-label={t("profile.default")} onClick={()=>makeDefault(a.id)}><Star className="h-4 w-4"/></Button>}<Button variant="ghost" size="icon" aria-label={L("Delete address","پتہ حذف کریں")} onClick={()=>deleteAddress(a.id)}><Trash2 className="h-4 w-4 text-destructive"/></Button></div></div><p className="text-xs text-muted-foreground">{a.address}</p></div>)}<Input placeholder={L("Label (Home / Office)","نام (گھر / دفتر)")} value={newAddr.label} onChange={e=>setNewAddr({...newAddr,label:e.target.value})}/><Input placeholder={t("profile.fullAddress")} value={newAddr.address} onChange={e=>setNewAddr({...newAddr,address:e.target.value})}/><Button variant="outline" disabled={locBusy} onClick={useMyLocation}>{t("profile.useLocation")}</Button><Button onClick={saveAddress}>{t("profile.save")}</Button></DialogContent></Dialog>
+    <Dialog open={showCoins} onOpenChange={setShowCoins}><DialogContent><DialogHeader><DialogTitle>{L("EasyLife Coins","ایزی لائف سکے")}</DialogTitle></DialogHeader><img src={rewardsImage} alt="" className="h-32 w-32 mx-auto rounded-lg"/><p className="text-3xl font-bold text-center text-primary">{coinBalance ?? "—"}</p><p className="text-sm text-center">{L("1 coin per daily account visit. Today's visit is recorded automatically.","روزانہ اکاؤنٹ کھولنے پر 1 سکہ۔ آج کی حاضری خودکار محفوظ ہو جاتی ہے۔")}</p><p className="text-xs text-muted-foreground text-center">{L("Coins are not cash. Redemption is not available yet.","سکے نقد رقم نہیں؛ انہیں خرچ کرنے کی سہولت ابھی دستیاب نہیں۔")}</p></DialogContent></Dialog>
+    <Dialog open={showRecent} onOpenChange={setShowRecent}><DialogContent className="max-h-[85vh] overflow-auto"><DialogHeader><DialogTitle>{L("Recently viewed","حال ہی میں دیکھی گئی اشیا")}</DialogTitle></DialogHeader>{recent.map(item=><Button key={item.id} variant="ghost" className="justify-start" onClick={()=>navigate(`/product/${item.id}`)}>{item.name}</Button>)}</DialogContent></Dialog>
+    <BottomTabBar/>
+  </div>;
 };
-
 export default Profile;
