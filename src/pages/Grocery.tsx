@@ -42,7 +42,7 @@ const Grocery = () => {
   useEffect(() => { const id = setTimeout(() => setDebounced(searchQuery.trim()), 300); return () => clearTimeout(id); }, [searchQuery]);
   useEffect(() => {
     if (!debounced || allProducts.length) return;
-    supabase.from("grocery_products").select("id, name, price, discount_price, image_url, unit, store_id, category").eq("is_available", true).limit(3000).then(({ data }) => setAllProducts(data || []));
+    supabase.from("grocery_products").select("id, name, price, discount_price, image_url, unit, store_id, category, grocery_stores!inner(store_type)").or("store_type.is.null,store_type.eq.retail", { referencedTable: "grocery_stores" }).eq("is_available", true).limit(3000).then(({ data }) => setAllProducts(data || []));
   }, [debounced, allProducts.length]);
   const [stores, setStores] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
@@ -60,7 +60,8 @@ const Grocery = () => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
     supabase
       .from("grocery_products")
-      .select("id, name, price, discount_price, image_url, unit, store_id, is_special_offer, sort_order")
+      .select("id, name, price, discount_price, image_url, unit, store_id, is_special_offer, sort_order, grocery_stores!inner(store_type)")
+      .or("store_type.is.null,store_type.eq.retail", { referencedTable: "grocery_stores" })
       .eq("is_available", true)
       .eq("is_special_offer", true)
       .limit(2000)

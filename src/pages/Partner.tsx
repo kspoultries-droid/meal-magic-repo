@@ -178,7 +178,7 @@ const Partner = () => {
     if (error) { toast.error(error.message); return; }
     toast.success("درخواست جمع ہو گئی! ایڈمن جلد رابطہ کرے گا۔");
     setForm({ business_name: "", owner_name: "", phone: "", whatsapp: "", cnic: "", email: "", city_id: "", address: "", category: "", referral_code: "" });
-    setCnicFile(null); setShopFile(null); setPlateFile(null); setSelfieFile(null);
+    setPlateFile(null); setSelfieFile(null);
     const { data } = await supabase.from("partner_applications").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     setMyApps(data || []);
   };
