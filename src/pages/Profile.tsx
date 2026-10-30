@@ -6,22 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, ShoppingBag, Heart, MapPin, ChevronRight, ChevronDown, ChevronUp, Crown, Gift, Ticket, LogOut, User, Pencil, Fingerprint, Wrench, Headphones, Wallet, Copy, Plus, Trash2, Navigation, Star, Store, Bike, Package, RefreshCw, Smartphone } from "lucide-react";
+import { Settings, ShoppingBag, MapPin, ChevronRight, Gift, LogOut, Pencil, Fingerprint, Wrench, Headphones, Copy, Trash2, Star, Store, Bike, Package, RefreshCw, Smartphone } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
-import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
-import CustomerGroceryHistory from "@/components/grocery/CustomerGroceryHistory";
-import AccountTile from "@/components/profile/AccountTile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
-import { useCart } from "@/contexts/CartContext";
 import { ORDER_TABS, orderTabOf } from "@/pages/MyOrders";
 import { Capacitor } from "@capacitor/core";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
-import { Camera, Coins, HelpCircle, History, Share2 } from "lucide-react";
+import { Camera, History, Share2 } from "lucide-react";
 import { readRecent } from "@/lib/recentlyViewed";
 import rewardsImage from "@/assets/account-rewards.jpg";
 
@@ -42,7 +37,6 @@ const Profile = () => {
   const recent = readRecent(user?.id);
   const native = Capacitor.isNativePlatform();
   const installed = native || window.matchMedia("(display-mode: standalone)").matches;
-  const { addItems, setIsOpen: setCartOpen } = useCart();
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
@@ -50,13 +44,10 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone: "", address: "", email: "" });
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const [showOrders, setShowOrders] = useState(false);
   const [showAddresses, setShowAddresses] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [newAddr, setNewAddr] = useState({ label: "Home", address: "", lat: null as number | null, lng: null as number | null });
   const [locBusy, setLocBusy] = useState(false);
-  const [reviewOrder, setReviewOrder] = useState<any>(null);
   const [partnerAssets, setPartnerAssets] = useState({ restaurants: [] as any[], stores: [] as any[], serviceProvider: null as any, rider: null as any });
 
   useEffect(() => {
@@ -138,7 +129,7 @@ const Profile = () => {
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* quota */ }
     } catch (error) {
       console.error("Profile data load error:", error);
-      if (!hasCache) toast.error("اکاؤنٹ ڈیٹا لوڈ نہیں ہوا، دوبارہ کوشش کریں۔");
+      if (!hasCache) toast.error(L("Account could not load. Try again.","اکاؤنٹ ڈیٹا لوڈ نہیں ہوا، دوبارہ کوشش کریں۔"));
     } finally {
       setLoading(false);
     }
@@ -179,7 +170,7 @@ const Profile = () => {
   const openAddresses = () => { setShowAddresses(true); fetchAddresses(); };
 
   const useMyLocation = () => {
-    if (!navigator.geolocation) { toast.error("Geolocation not supported"); return; }
+    if (!navigator.geolocation) { toast.error(L("Location is unavailable", "لوکیشن دستیاب نہیں")); return; }
     setLocBusy(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -192,9 +183,9 @@ const Profile = () => {
         } catch {}
         setNewAddr({ ...newAddr, address: addr, lat: latitude, lng: longitude });
         setLocBusy(false);
-        toast.success("لوکیشن مل گئی");
+        toast.success(L("Location found", "لوکیشن مل گئی"));
       },
-      (err) => { setLocBusy(false); toast.error("لوکیشن نہیں ملی: " + err.message); },
+      (err) => { setLocBusy(false); toast.error(L("Location not found: ", "لوکیشن نہیں ملی: ") + err.message); },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };

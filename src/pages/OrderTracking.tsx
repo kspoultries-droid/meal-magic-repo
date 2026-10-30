@@ -206,7 +206,7 @@ const OrderTracking = () => {
             {rider.location_updated_at && <span className="block text-muted-foreground">{L("Updated", "آخری اپ ڈیٹ")}: {new Date(rider.location_updated_at).toLocaleTimeString("en-GB")}</span>}
           </p>
           {riderPoint && (
-            <Button variant="outline" size="sm" onClick={() => document.getElementById('live-delivery-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
+            <Button variant="outline" size="sm" onClick={() => { setShowMap(true); window.setTimeout(() => document.getElementById('live-delivery-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150); }}>
               {t("track.location")}
             </Button>
           )}
