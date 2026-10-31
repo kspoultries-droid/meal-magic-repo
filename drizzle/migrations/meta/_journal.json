@@ -330,6 +330,13 @@
       "when": 1793406757263,
       "tag": "0046_service_review_aggregate_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793406941780,
+      "tag": "0047_service_supervision_and_checklists",
+      "breakpoints": true
     }
   ]
 }

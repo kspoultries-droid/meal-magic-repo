@@ -3467,11 +3467,51 @@ export type Database = {
           },
         ]
       }
+      service_assignment_history: {
+        Row: {
+          actor_id: string
+          booking_id: string
+          created_at: string
+          id: string
+          new_provider_id: string
+          old_provider_id: string | null
+          reason: string
+        }
+        Insert: {
+          actor_id: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          new_provider_id: string
+          old_provider_id?: string | null
+          reason: string
+        }
+        Update: {
+          actor_id?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          new_provider_id?: string
+          old_provider_id?: string | null
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_assignment_history_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "service_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_bookings: {
         Row: {
           address: string
           advance_fee: number | null
           advance_paid: boolean | null
+          checklist_completed: string[]
+          checklist_snapshot: Json
           city_id: string | null
           completed_at: string | null
           completion_notes: string | null
@@ -3494,6 +3534,8 @@ export type Database = {
           address: string
           advance_fee?: number | null
           advance_paid?: boolean | null
+          checklist_completed?: string[]
+          checklist_snapshot?: Json
           city_id?: string | null
           completed_at?: string | null
           completion_notes?: string | null
@@ -3516,6 +3558,8 @@ export type Database = {
           address?: string
           advance_fee?: number | null
           advance_paid?: boolean | null
+          checklist_completed?: string[]
+          checklist_snapshot?: Json
           city_id?: string | null
           completed_at?: string | null
           completion_notes?: string | null
@@ -3575,6 +3619,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           sort_order: number | null
+          work_checklist: Json
         }
         Insert: {
           color?: string
@@ -3585,6 +3630,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           sort_order?: number | null
+          work_checklist?: Json
         }
         Update: {
           color?: string
@@ -3595,6 +3641,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           sort_order?: number | null
+          work_checklist?: Json
         }
         Relationships: []
       }
@@ -4566,13 +4613,22 @@ export type Database = {
         Args: { _application_id: string }
         Returns: undefined
       }
+      assign_service_provider: {
+        Args: { _booking_id: string; _provider_id: string; _reason: string }
+        Returns: undefined
+      }
       award_weekly_rider_bonus: { Args: never; Returns: number }
       can_access_order_chat: {
         Args: { _kind: string; _order_id: string; _user_id: string }
         Returns: boolean
       }
+      can_supervise_service: { Args: { _booking_id: string }; Returns: boolean }
       can_upload_service_evidence: { Args: { _path: string }; Returns: boolean }
       claim_daily_coin: { Args: never; Returns: Json }
+      complete_service_check: {
+        Args: { _booking_id: string; _done: boolean; _item_id: string }
+        Returns: undefined
+      }
       confirm_payout_received: {
         Args: { _payout_id: string }
         Returns: undefined
@@ -4985,6 +5041,10 @@ export type Database = {
         Args: { _kind: string; _note: string; _order_id: string }
         Returns: undefined
       }
+      resolve_service_issue: {
+        Args: { _reply: string; _ticket_id: string }
+        Returns: undefined
+      }
       restaurant_announce_delay: {
         Args: { _minutes: number; _order_id: string }
         Returns: undefined
@@ -5087,6 +5147,10 @@ export type Database = {
       }
       set_service_availability: {
         Args: { _available: boolean }
+        Returns: undefined
+      }
+      set_service_checklist: {
+        Args: { _category_id: string; _items: Json }
         Returns: undefined
       }
       staff_add: {
