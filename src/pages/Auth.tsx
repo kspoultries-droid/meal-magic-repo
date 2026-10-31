@@ -22,6 +22,8 @@ const Auth = () => {
   const [referralCode, setReferralCode] = useState(() => { captureRefFromUrl(); return getStoredRef(); });
   const [loading, setLoading] = useState(false);
   const [signupNotice, setSignupNotice] = useState("");
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotNotice, setForgotNotice] = useState("");
   const navigate = useNavigate();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -63,6 +65,23 @@ const Auth = () => {
           setSignupNotice("تصدیق کے لیے اپنی ای میل چیک کریں۔ ای میل میں موجود لنک کھولنے کے بعد لاگ اِن کریں۔");
         }
       }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setForgotNotice("");
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setForgotNotice("پاسورڈ بدلنے کا لنک ای میل پر بھیج دیا گیا ہے۔ نہ آئے تو Spam بھی دیکھیں۔");
     } catch (error: any) {
       toast.error(error.message);
     } finally {
