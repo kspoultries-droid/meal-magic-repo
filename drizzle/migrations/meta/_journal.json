@@ -393,6 +393,13 @@
       "when": 1793411393157,
       "tag": "0055_wallet_receipt_initialize_missing_wallet",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1793411508040,
+      "tag": "0056_wallet_receipt_admin_retention",
+      "breakpoints": true
     }
   ]
 }
