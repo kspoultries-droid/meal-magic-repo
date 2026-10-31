@@ -22,6 +22,8 @@ const Auth = () => {
   const [referralCode, setReferralCode] = useState(() => { captureRefFromUrl(); return getStoredRef(); });
   const [loading, setLoading] = useState(false);
   const [signupNotice, setSignupNotice] = useState("");
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotNotice, setForgotNotice] = useState("");
   const navigate = useNavigate();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -63,6 +65,23 @@ const Auth = () => {
           setSignupNotice("تصدیق کے لیے اپنی ای میل چیک کریں۔ ای میل میں موجود لنک کھولنے کے بعد لاگ اِن کریں۔");
         }
       }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setForgotNotice("");
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setForgotNotice("پاسورڈ بدلنے کا لنک ای میل پر بھیج دیا گیا ہے۔ نہ آئے تو Spam بھی دیکھیں۔");
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -153,7 +172,28 @@ const Auth = () => {
               </div>
             </div>
           )}
-          {isLogin ? (
+          {forgotMode ? (
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <p className="text-sm text-muted-foreground text-center">
+                اپنی ای میل لکھیں۔ پاسورڈ بدلنے کا لنک ای میل پر آئے گا۔
+              </p>
+              {forgotNotice && (
+                <div role="status" className="rounded-md bg-muted p-3 text-center text-sm text-foreground">
+                  {forgotNotice}
+                </div>
+              )}
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input type="email" placeholder="ای میل" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "لوڈ ہو رہا ہے..." : "لنک بھیجیں"}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => { setForgotMode(false); setForgotNotice(""); }}>
+                واپس لاگ ان پر
+              </Button>
+            </form>
+          ) : isLogin ? (
             <Tabs defaultValue="email" className="w-full">
               <TabsList className="grid w-full grid-cols-3 mb-4">
                 <TabsTrigger value="email" className="text-xs"><Mail className="h-3 w-3 mr-1" /> ای میل</TabsTrigger>
@@ -173,6 +213,9 @@ const Auth = () => {
                     <Input type={showPassword ? "text" : "password"} placeholder="پاسورڈ" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" required minLength={6} />
                     <button type="button" aria-label="پاسورڈ دیکھیں" className="absolute right-3 top-3 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
                   </div>
+                   <button type="button" className="text-xs text-primary self-end" onClick={() => { setForgotMode(true); setForgotNotice(""); }}>
+                    پاسورڈ بھول گئے ہیں؟ / Forgot password?
+                  </button>
                    <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "لوڈ ہو رہا ہے..." : "لاگ ان"}
                   </Button>
