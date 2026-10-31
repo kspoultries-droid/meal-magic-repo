@@ -400,6 +400,13 @@
       "when": 1793411508040,
       "tag": "0056_wallet_receipt_admin_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1793411594357,
+      "tag": "0057_company_public_read_grants",
+      "breakpoints": true
     }
   ]
 }
