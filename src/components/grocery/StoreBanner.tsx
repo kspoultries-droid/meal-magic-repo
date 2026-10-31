@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import PhotoTips from "@/components/media/PhotoTips";
+import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 
 
 // Grocery collage images per category
@@ -89,6 +90,11 @@ const StoreBanner = ({
   const nameColor = store.name_color || "#ffffff";
   const collageImages = COLLAGE_SETS[store.category] || COLLAGE_SETS.General;
 
+  // Product form: category list and category-aware optional fields
+  const productCategories = Array.from(new Set([...groceryCategories, "Electronics", "Mobiles", "Clothing", "Shoes", "Home & Kitchen", "Beauty", "Sports", "Toys", "Hardware", "Other"]));
+  const isClothingCat = ["Clothing", "Shoes"].includes(newProduct.category);
+  const isTechCat = ["Electronics", "Mobiles"].includes(newProduct.category);
+
   const updateStore = async (updates: Record<string, any>) => {
     const { error } = await supabase.from("grocery_stores").update(updates).eq("id", storeId);
     if (error) { toast.error("اپڈیٹ ناکام: " + error.message); return; }
@@ -115,7 +121,7 @@ const StoreBanner = ({
         )}
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-foreground/80 via-foreground/35 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
-          <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className="truncate text-xl font-extrabold sm:text-3xl">{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p></div>
+          <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className="text-xl font-extrabold leading-tight break-words sm:text-3xl">{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p></div>
           {isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label="بینر تبدیل" onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${crypto.randomUUID()}/${storeId}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: false, contentType: photo.file.type }); if (upErr) throw new Error(upErr.message); const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: urlData.publicUrl }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || "بینر محفوظ نہیں ہو سکا"); toast.success("بینر تبدیل ہو گیا"); onRefresh(); }} /></div>}
         </div>
       </div>
@@ -333,21 +339,53 @@ const StoreBanner = ({
             <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
               <DialogTrigger asChild><Button size="sm" className="h-7 text-xs"><Plus className="me-1 h-3 w-3" /> پروڈکٹ شامل</Button></DialogTrigger>
               <DialogContent className="max-h-[88vh] max-w-2xl overflow-y-auto">
-                <DialogHeader><DialogTitle>مکمل پروڈکٹ تفصیل / Product information</DialogTitle></DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid gap-2 sm:grid-cols-2"><Input placeholder="نام / Product name *" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} /><Input placeholder="برانڈ / Brand" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} /><Input placeholder="قیمت / Price (Rs) *" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} /><Input placeholder="ڈسکاؤنٹ قیمت / Sale price" type="number" value={newProduct.discount_price} onChange={(e) => setNewProduct({...newProduct, discount_price: e.target.value})} /></div>
-                  <div className="grid gap-2 sm:grid-cols-3"><select className="w-full rounded-md border bg-background p-2 text-sm text-foreground" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>{groceryCategories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}</select><Input placeholder="یونٹ / Unit" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} /><Input placeholder="اسٹاک / Stock quantity" type="number" value={newProduct.stock_qty} onChange={(e) => setNewProduct({...newProduct, stock_qty: e.target.value})} /></div>
-                  <div><p className="mb-2 text-xs font-extrabold text-foreground">ڈلیوری کا وزن اور قسم — کرایہ اسی سے طے ہو گا</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="حسابی وزن / Weight (kg) — مثلاً 50" type="number" step="0.1" min="0.1" value={newProduct.weight_kg} onChange={(e) => setNewProduct({...newProduct, weight_kg: e.target.value})} /><select className="w-full rounded-md border bg-background p-2 text-sm text-foreground" value={newProduct.shipping_class} onChange={(e) => setNewProduct({...newProduct, shipping_class: e.target.value})}><option value="standard">عام پارسل / Standard</option><option value="fragile">نازک / Fragile</option><option value="bulk">بلک / Bulk</option><option value="oversized">بڑا سامان / Oversized</option></select></div></div>
-                  <div><p className="mb-2 text-xs font-extrabold text-foreground">لباس، جوتے اور variants</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="سائز / Sizes — S, M, L, 40, 41" value={newProduct.sizes} onChange={(e) => setNewProduct({...newProduct, sizes: e.target.value})} /><Input placeholder="رنگ / Colours — کالا, سفید" value={newProduct.colors} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value})} /></div></div>
-                  <div><p className="mb-2 text-xs font-extrabold text-foreground">مکمل specifications</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="SKU / ماڈل نمبر" value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} /><Input placeholder="وزن / Weight" value={newProduct.weight} onChange={(e) => setNewProduct({...newProduct, weight: e.target.value})} /><Input placeholder="سائز یا dimensions" value={newProduct.dimensions} onChange={(e) => setNewProduct({...newProduct, dimensions: e.target.value})} /><Input placeholder="مواد / Material" value={newProduct.material} onChange={(e) => setNewProduct({...newProduct, material: e.target.value})} /><Input placeholder="وولٹیج / Voltage" value={newProduct.voltage} onChange={(e) => setNewProduct({...newProduct, voltage: e.target.value})} /><Input placeholder="موبائل اسکرین سائز" value={newProduct.screen_size} onChange={(e) => setNewProduct({...newProduct, screen_size: e.target.value})} /><Input placeholder="RAM" value={newProduct.ram} onChange={(e) => setNewProduct({...newProduct, ram: e.target.value})} /><Input placeholder="Storage / میموری" value={newProduct.storage} onChange={(e) => setNewProduct({...newProduct, storage: e.target.value})} /></div></div>
-                  <Textarea placeholder="مکمل تفصیل / Made from, استعمال، خصوصیات، compatibility اور warranty" rows={4} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
-                  <Input placeholder="Tags — نیا, premium, wholesale" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
-                  <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
-                  <div className="space-y-2"><label className="text-xs font-bold text-muted-foreground">پروڈکٹ کی تصاویر / Product photos</label><ProductPhotoUploader multiple label="تصاویر منتخب کریں" onDone={(photos) => setNewProduct({ ...newProduct, imageFiles: photos.map((photo) => photo.file) })} /><p className="text-[10px] text-muted-foreground">اپنی اصل پروڈکٹ کی تصویر لیں — ایپ خود روشنی اور کٹائی بہتر کر دے گی</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر تیار ہیں</p>}<PhotoTips /></div>
+                <DialogHeader><DialogTitle>نئی پروڈکٹ / Add product</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <p className="rounded-lg bg-primary/5 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">یہ فارم <b>ایک</b> چیز کے لیے ہے۔ سینکڑوں اشیا ایک ساتھ ڈالنے کے لیے <b>اسٹاک</b> ٹیب سے Excel/CSV امپورٹ یا <b>AI مددگار</b> استعمال کریں۔</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Input placeholder="نام / Product name *" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                    <Input placeholder="قیمت / Price (Rs) *" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                    <Input placeholder="ڈسکاؤنٹ قیمت / Sale price" type="number" value={newProduct.discount_price} onChange={(e) => setNewProduct({...newProduct, discount_price: e.target.value})} />
+                    <select className="w-full rounded-md border bg-background p-2 text-sm text-foreground" value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>{productCategories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}</select>
+                    <Input list="unit-options" placeholder="یونٹ / Unit — piece, kg, litre" value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} />
+                    <Input placeholder="اسٹاک / Stock" type="number" value={newProduct.stock_qty} onChange={(e) => setNewProduct({...newProduct, stock_qty: e.target.value})} />
+                  </div>
+                  <datalist id="unit-options"><option value="piece" /><option value="kg" /><option value="g" /><option value="litre" /><option value="ml" /><option value="dozen" /><option value="pack" /><option value="box" /><option value="meter" /><option value="set" /></datalist>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Input placeholder="ڈیلیوری وزن / Weight (kg)" type="number" step="0.1" min="0.1" value={newProduct.weight_kg} onChange={(e) => setNewProduct({...newProduct, weight_kg: e.target.value})} />
+                    <select className="w-full rounded-md border bg-background p-2 text-sm text-foreground" value={newProduct.shipping_class} onChange={(e) => setNewProduct({...newProduct, shipping_class: e.target.value})}><option value="standard">عام پارسل / Standard</option><option value="fragile">نازک / Fragile</option><option value="bulk">بلک / Bulk</option><option value="oversized">بڑا سامان / Oversized</option></select>
+                  </div>
+                  {isClothingCat && (
+                    <div><p className="mb-2 text-xs font-extrabold text-foreground">لباس / جوتے — سائز اور رنگ</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="سائز / Sizes — S, M, L, 40, 41" value={newProduct.sizes} onChange={(e) => setNewProduct({...newProduct, sizes: e.target.value})} /><Input placeholder="رنگ / Colours — کالا, سفید" value={newProduct.colors} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value})} /><Input placeholder="مواد / Material" value={newProduct.material} onChange={(e) => setNewProduct({...newProduct, material: e.target.value})} /></div></div>
+                  )}
+                  {isTechCat && (
+                    <div><p className="mb-2 text-xs font-extrabold text-foreground">بجلی / موبائل — specifications</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="برانڈ / Brand" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} /><Input placeholder="SKU / ماڈل نمبر" value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} /><Input placeholder="وولٹیج / Voltage" value={newProduct.voltage} onChange={(e) => setNewProduct({...newProduct, voltage: e.target.value})} /><Input placeholder="موبائل اسکرین سائز" value={newProduct.screen_size} onChange={(e) => setNewProduct({...newProduct, screen_size: e.target.value})} /><Input placeholder="RAM" value={newProduct.ram} onChange={(e) => setNewProduct({...newProduct, ram: e.target.value})} /><Input placeholder="Storage / میموری" value={newProduct.storage} onChange={(e) => setNewProduct({...newProduct, storage: e.target.value})} /></div></div>
+                  )}
+                  <details className="rounded-lg border border-border/60 p-3">
+                    <summary className="cursor-pointer text-xs font-bold text-muted-foreground">مزید تفصیل (اختیاری) — برانڈ، ماڈل، tags، مکمل تفصیل، تصویر لنک</summary>
+                    <div className="mt-3 space-y-2">
+                      {!isTechCat && <div className="grid gap-2 sm:grid-cols-2"><Input placeholder="برانڈ / Brand" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} /><Input placeholder="SKU / ماڈل نمبر" value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} /></div>}
+                      {!isClothingCat && !isTechCat && <div className="grid gap-2 sm:grid-cols-2"><Input placeholder="وزن / Weight — مثلاً 500g" value={newProduct.weight} onChange={(e) => setNewProduct({...newProduct, weight: e.target.value})} /><Input placeholder="سائز یا dimensions" value={newProduct.dimensions} onChange={(e) => setNewProduct({...newProduct, dimensions: e.target.value})} /><Input placeholder="مواد / Material" value={newProduct.material} onChange={(e) => setNewProduct({...newProduct, material: e.target.value})} /></div>}
+                      <Textarea placeholder="مکمل تفصیل / استعمال، خصوصیات، warranty" rows={3} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
+                      <Input placeholder="Tags — نیا, premium, wholesale" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
+                      <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                    </div>
+                  </details>
+                  <div className="space-y-2"><label className="text-xs font-bold text-muted-foreground">پروڈکٹ کی تصاویر / Product photos (8 تک)</label><ProductPhotoUploader multiple label="تصاویر منتخب کریں" onDone={(photos) => setNewProduct({ ...newProduct, imageFiles: photos.map((photo) => photo.file) })} /><p className="text-[10px] text-muted-foreground">گیلری سے ایک ساتھ کئی تصاویر منتخب کر سکتے ہیں، پھر «محفوظ کریں» دبائیں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر تیار ہیں</p>}<PhotoTips /></div>
                   <Button onClick={addProduct} className="w-full">پروڈکٹ محفوظ کریں</Button>
                 </div>
               </DialogContent>
             </Dialog>
+
+            <AiSetupAssistant kind="grocery" onSave={async (items) => {
+              let added = 0;
+              for (const item of items) {
+                const { error } = await supabase.from("grocery_products").insert({ store_id: storeId, name: item.name.trim(), price: Number(item.price) || 0, unit: item.unit || "piece", category: item.category || "General", description: item.description || null });
+                if (!error) added++;
+              }
+              toast.success(`${added} اشیا شامل ہو گئیں / Items added`);
+              onRefresh();
+            }} />
           </div>
         )}
       </div>

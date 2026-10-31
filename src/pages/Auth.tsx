@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Mail, Lock, User, ArrowLeft, Phone, Fingerprint, Gift } from "lucide-react";
+import { Mail, Lock, User, ArrowLeft, Phone, Fingerprint, Gift, Eye, EyeOff } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { lovable } from "@/integrations/lovable/index";
 import { Capacitor } from "@capacitor/core";
@@ -16,6 +16,8 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [referralCode, setReferralCode] = useState(() => { captureRefFromUrl(); return getStoredRef(); });
   const [loading, setLoading] = useState(false);
@@ -33,6 +35,11 @@ const Auth = () => {
         toast.success("لاگ ان کامیاب!");
         navigate("/");
       } else {
+        if (password !== confirmPassword) {
+          toast.error("دونوں پاسورڈ ایک جیسے نہیں / Passwords do not match");
+          setLoading(false);
+          return;
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -145,9 +152,10 @@ const Auth = () => {
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input type="password" placeholder="پاسورڈ" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" required minLength={6} />
+                    <Input type={showPassword ? "text" : "password"} placeholder="پاسورڈ" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" required minLength={6} />
+                    <button type="button" aria-label="پاسورڈ دیکھیں" className="absolute right-3 top-3 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "لوڈ ہو رہا ہے..." : "لاگ ان"}
                   </Button>
                 </form>
@@ -194,7 +202,12 @@ const Auth = () => {
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="password" placeholder="پاسورڈ" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" required minLength={6} />
+                <Input type={showPassword ? "text" : "password"} placeholder="پاسورڈ" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" required minLength={6} />
+                <button type="button" aria-label="پاسورڈ دیکھیں" className="absolute right-3 top-3 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input type={showPassword ? "text" : "password"} placeholder="پاسورڈ دوبارہ لکھیں / Confirm password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="pl-10 pr-10" required minLength={6} />
               </div>
               <div className="relative">
                 <Gift className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />

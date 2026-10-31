@@ -157,11 +157,19 @@ const GroceryStoreDetail = () => {
     fetchData();
   };
 
-  const uploadProductImage = async (productId: string, photo: PreparedPhoto) => {
-    const imageUrl = await uploadGroceryProductPhoto(productId, photo.file);
-    const { error } = await supabase.from("grocery_products").update({ image_url: imageUrl }).eq("id", productId).select("id").single();
+  const uploadProductImage = async (productId: string, photos: PreparedPhoto[]) => {
+    const current = products.find((p) => p.id === productId);
+    const existing = Array.isArray(current?.images) ? current.images : [];
+    const urls: string[] = [];
+    for (const photo of photos) {
+      try { urls.push(await uploadGroceryProductPhoto(productId, photo.file)); }
+      catch (e) { toast.error("تصویر محفوظ نہیں ہوئی: " + (e instanceof Error ? e.message : "دوبارہ کوشش کریں")); }
+    }
+    if (!urls.length) return;
+    const images = [...existing, ...urls];
+    const { error } = await supabase.from("grocery_products").update({ image_url: current?.image_url || urls[0], images }).eq("id", productId).select("id").single();
     if (error) throw new Error(error.message);
-    toast.success("تصویر اپڈیٹ / Image updated");
+    toast.success(`${urls.length} تصاویر محفوظ / Photos saved`);
     fetchData();
   };
 
@@ -295,7 +303,7 @@ const GroceryStoreDetail = () => {
                           {!isOwner && product.rating > 0 && <span className="absolute bottom-1 left-1 rounded-md bg-foreground/70 px-1.5 py-0.5 text-[9px] font-bold text-background">★ {Number(product.rating).toFixed(1)}</span>}
                          {isOwner && (
                           <div className="absolute bottom-1 right-1 flex gap-1">
-                            <ProductPhotoUploader compact onDone={async (photos) => { if (photos[0]) await uploadProductImage(product.id, photos[0]); }} />
+                            <ProductPhotoUploader compact multiple onDone={async (photos) => { await uploadProductImage(product.id, photos); }} />
                           </div>
                         )}
 
