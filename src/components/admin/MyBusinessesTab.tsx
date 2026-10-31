@@ -10,6 +10,7 @@ import { Dialog,DialogContent,DialogHeader,DialogTitle } from "@/components/ui/d
 import { Plus,Store,Wrench,ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { storePath } from "@/lib/storePresentation";
 const schema=z.object({kind:z.enum(["restaurant","grocery","wholesale","service_provider"]),name:z.string().trim().min(2).max(150),city:z.string().uuid(),address:z.string().trim().min(8).max(500),phone:z.string().regex(/^\+?[0-9]{10,15}$/),category:z.string()}).refine(v=>v.kind!=="service_provider"||z.string().uuid().safeParse(v.category).success,"Choose service category");
 const empty={kind:"restaurant" as "restaurant"|"grocery"|"wholesale"|"service_provider",name:"",city:"",address:"",phone:"",category:""};
 export default function MyBusinessesTab(){

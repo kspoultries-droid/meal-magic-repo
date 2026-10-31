@@ -19,6 +19,7 @@ import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { Camera, History, Share2 } from "lucide-react";
 import { readRecent } from "@/lib/recentlyViewed";
 import rewardsImage from "@/assets/account-rewards.jpg";
+import { storePath } from "@/lib/storePresentation";
 
 const Profile = () => {
   const { user, loading: authLoading, refreshRoles, signOut } = useAuth();
@@ -277,7 +278,7 @@ const Profile = () => {
     ...(roles.includes("support") ? [{name:t("dash.support"),path:"/support-dashboard",icon:Headphones}] : []),
     ...(roles.includes("mechanic") || partnerAssets.serviceProvider ? [{name:t("dash.mechanic"),path:"/mechanic-dashboard",icon:Wrench}] : []),
     ...(roles.includes("service_manager") ? [{name:L("Service management","سروس انتظام"),path:"/service-manager",icon:Wrench}] : []),
-    ...partnerAssets.stores.map(store=>({name:store.name,path:`/grocery/${store.id}`,icon:Store})),
+    ...partnerAssets.stores.map(store=>({name:store.name,path:storePath(store.id,store.store_type),icon:Store})),
   ];
   if (!user || !profile) return <div className="min-h-screen bg-background p-4 space-y-4"><div className="h-36 bg-muted animate-pulse rounded-lg"/><div className="h-28 bg-muted animate-pulse rounded-lg"/></div>;
   const title = profile.full_name || user.email?.split("@")[0] || L("My account", "میرا اکاؤنٹ");
