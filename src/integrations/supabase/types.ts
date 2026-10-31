@@ -5220,6 +5220,10 @@ export type Database = {
         Args: { _category_id: string; _items: Json }
         Returns: undefined
       }
+      shop_public_reviews: {
+        Args: { _limit?: number; _store_id: string }
+        Returns: Json
+      }
       staff_add: {
         Args: {
           _city_ids?: string[]
