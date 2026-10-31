@@ -66,6 +66,7 @@ const lazyWithRetry = <T extends { default: React.ComponentType<any> }>(
 
 
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
 const RestaurantDetail = lazyWithRetry(() => import("./pages/RestaurantDetail"));
 const RestaurantOwnerDashboard = lazyWithRetry(() => import("./pages/RestaurantOwnerDashboard"));
@@ -192,6 +193,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/restaurant/:id" element={<RestaurantDetail />} />
                   <Route path="/restaurant-dashboard" element={<RestaurantOwnerDashboard />} />
