@@ -35,6 +35,13 @@ const Auth = () => {
         toast.success("لاگ ان کامیاب!");
         navigate("/");
       } else {
+        const domain = email.trim().toLowerCase().split("@")[1] || "";
+        const typos: Record<string, string> = { "gmial.com": "gmail.com", "gmai.com": "gmail.com", "gmail.co": "gmail.com", "gmal.com": "gmail.com", "gmail.con": "gmail.com", "gamil.com": "gmail.com", "yahoo.co": "yahoo.com", "yaho.com": "yahoo.com", "hotmial.com": "hotmail.com", "outlok.com": "outlook.com" };
+        if (typos[domain]) {
+          toast.error(`کیا آپ کی ای میل @${typos[domain]} ہے؟ براہ کرم درست کریں۔`);
+          setLoading(false);
+          return;
+        }
         if (password !== confirmPassword) {
           toast.error("دونوں پاسورڈ ایک جیسے نہیں / Passwords do not match");
           setLoading(false);
@@ -131,9 +138,20 @@ const Auth = () => {
         </CardHeader>
         <CardContent>
           {signupNotice && (
-            <p role="status" className="mb-4 rounded-md bg-muted p-3 text-center text-sm text-foreground">
-              {signupNotice}
-            </p>
+            <div role="status" className="mb-4 space-y-2 rounded-md bg-muted p-3 text-center text-sm text-foreground">
+              <p>{signupNotice}</p>
+              <p className="font-semibold break-all" dir="ltr">{email}</p>
+              <p className="text-xs text-muted-foreground">ای میل غلط لکھی ہے؟ نیچے درست کر کے دوبارہ اکاؤنٹ بنائیں۔ ای میل نہ ملے تو Spam بھی دیکھیں۔</p>
+              <div className="flex justify-center gap-2">
+                <Button type="button" size="sm" variant="outline" disabled={loading} onClick={async () => {
+                  setLoading(true);
+                  const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: window.location.origin } });
+                  setLoading(false);
+                  if (error) toast.error(error.message); else toast.success("ای میل دوبارہ بھیج دی گئی");
+                }}>دوبارہ بھیجیں</Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => setSignupNotice("")}>ای میل بدلیں</Button>
+              </div>
+            </div>
           )}
           {isLogin ? (
             <Tabs defaultValue="email" className="w-full">
