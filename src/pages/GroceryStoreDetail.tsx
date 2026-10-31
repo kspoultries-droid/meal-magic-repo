@@ -65,13 +65,13 @@ const GroceryStoreDetail = () => {
       : (productsData || []).filter((p: any) => p.is_available);
     setProducts(visibleProducts);
     setIsOwner(Boolean(storeData && user && storeData.owner_id === user.id));
-    if (storeData && id && !useStorePathMatches(storeData.store_type)) {
+    if (storeData && id && !storePathMatches(storeData.store_type)) {
       navigate(storePath(id, storeData.store_type), { replace: true });
     }
     setLoading(false);
   };
 
-  const useStorePathMatches = (type: string | null) => isBazar === (type === "wholesale");
+  const storePathMatches = (type: string | null) => isBazar === (type === "wholesale");
 
   useEffect(() => {
     if (id) fetchData();
@@ -416,25 +416,25 @@ const GroceryStoreDetail = () => {
           <TabsContent value="orders">
             {isOwner ? (
               <>
-                <ShopkeeperCartOrders storeId={id!} />
-                <ShopkeeperListOrders storeId={id!} />
+                <ShopkeeperCartOrders storeId={store.id} />
+                <ShopkeeperListOrders storeId={store.id} />
               </>
             ) : (
               <div className="space-y-2">
-                <PhotoListOrder storeId={id!} storeName={store.name} advancePercent={store.advance_percent || 0} />
-                <CustomerListOrders storeId={id!} />
+                <PhotoListOrder storeId={store.id} storeName={store.name} advancePercent={store.advance_percent || 0} />
+                <CustomerListOrders storeId={store.id} />
               </div>
             )}
           </TabsContent>
           )}
           {isOwner && (
             <TabsContent value="reels">
-              <MyReelsManager restrictSourceId={id!} />
+              <MyReelsManager restrictSourceId={store.id} />
             </TabsContent>
           )}
           {isOwner && (
             <TabsContent value="stock">
-              <StoreInventoryTools storeId={id!} products={products} categories={GROCERY_CATEGORIES} onChanged={fetchData} />
+              <StoreInventoryTools storeId={store.id} products={products} categories={GROCERY_CATEGORIES} onChanged={fetchData} />
             </TabsContent>
           )}
         </Tabs>
