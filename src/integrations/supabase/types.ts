@@ -719,6 +719,7 @@ export type Database = {
           courier_updated_at: string | null
           created_at: string
           currency: string
+          customer_delivery_fee: number
           customer_id: string
           delivered_at: string | null
           delivery_address: string | null
@@ -729,6 +730,7 @@ export type Database = {
           delivery_lng: number | null
           delivery_method: string
           delivery_mode_calc: string | null
+          delivery_policy_snapshot: Json | null
           delivery_stage: string
           discount_amount: number
           dispatch_state: string
@@ -758,6 +760,7 @@ export type Database = {
           rider_id: string | null
           shipment_status: string | null
           shipped_at: string | null
+          shipping_cost: number
           sold_recorded: boolean
           status: string
           store_id: string
@@ -785,6 +788,7 @@ export type Database = {
           courier_updated_at?: string | null
           created_at?: string
           currency?: string
+          customer_delivery_fee?: number
           customer_id: string
           delivered_at?: string | null
           delivery_address?: string | null
@@ -795,6 +799,7 @@ export type Database = {
           delivery_lng?: number | null
           delivery_method?: string
           delivery_mode_calc?: string | null
+          delivery_policy_snapshot?: Json | null
           delivery_stage?: string
           discount_amount?: number
           dispatch_state?: string
@@ -824,6 +829,7 @@ export type Database = {
           rider_id?: string | null
           shipment_status?: string | null
           shipped_at?: string | null
+          shipping_cost?: number
           sold_recorded?: boolean
           status?: string
           store_id: string
@@ -851,6 +857,7 @@ export type Database = {
           courier_updated_at?: string | null
           created_at?: string
           currency?: string
+          customer_delivery_fee?: number
           customer_id?: string
           delivered_at?: string | null
           delivery_address?: string | null
@@ -861,6 +868,7 @@ export type Database = {
           delivery_lng?: number | null
           delivery_method?: string
           delivery_mode_calc?: string | null
+          delivery_policy_snapshot?: Json | null
           delivery_stage?: string
           discount_amount?: number
           dispatch_state?: string
@@ -890,6 +898,7 @@ export type Database = {
           rider_id?: string | null
           shipment_status?: string | null
           shipped_at?: string | null
+          shipping_cost?: number
           sold_recorded?: boolean
           status?: string
           store_id?: string
@@ -1336,6 +1345,7 @@ export type Database = {
           created_at: string | null
           delivery_time: string | null
           fee_paid_until: string | null
+          free_delivery_above: number | null
           id: string
           image_url: string | null
           is_active: boolean | null
@@ -1348,6 +1358,8 @@ export type Database = {
           opening_time: string | null
           owner_id: string
           pays_delivery_fee: boolean
+          pickup_lat: number | null
+          pickup_lng: number | null
           rating: number | null
           ships_nationwide: boolean
           shop_category: string | null
@@ -1368,6 +1380,7 @@ export type Database = {
           created_at?: string | null
           delivery_time?: string | null
           fee_paid_until?: string | null
+          free_delivery_above?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
@@ -1380,6 +1393,8 @@ export type Database = {
           opening_time?: string | null
           owner_id: string
           pays_delivery_fee?: boolean
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           rating?: number | null
           ships_nationwide?: boolean
           shop_category?: string | null
@@ -1400,6 +1415,7 @@ export type Database = {
           created_at?: string | null
           delivery_time?: string | null
           fee_paid_until?: string | null
+          free_delivery_above?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
@@ -1412,6 +1428,8 @@ export type Database = {
           opening_time?: string | null
           owner_id?: string
           pays_delivery_fee?: boolean
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           rating?: number | null
           ships_nationwide?: boolean
           shop_category?: string | null
@@ -5215,6 +5233,17 @@ export type Database = {
         }
         Returns: string
       }
+      save_shop_order_settings: {
+        Args: {
+          _auto_accept: boolean
+          _free_above: number
+          _lat: number
+          _lng: number
+          _pays_delivery: boolean
+          _store_id: string
+        }
+        Returns: undefined
+      }
       service_assignment_candidates: {
         Args: { _booking_id: string }
         Returns: {
@@ -5244,6 +5273,17 @@ export type Database = {
       set_service_checklist: {
         Args: { _category_id: string; _items: Json }
         Returns: undefined
+      }
+      shop_delivery_quote: {
+        Args: {
+          _city_id: string
+          _lat: number
+          _lng: number
+          _store_id: string
+          _subtotal: number
+          _weight_kg: number
+        }
+        Returns: Json
       }
       shop_mark_order_ready: { Args: { _order_id: string }; Returns: undefined }
       shop_public_reviews: {
