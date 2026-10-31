@@ -191,7 +191,7 @@ const ProductDetail = () => {
             {activeTab === "overview" && (
               <>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <InfoTile icon={<Truck className="h-4 w-4" />} label="ڈیلیوری" value={product.delivery_days || "1–3 دن"} />
+                  <InfoTile icon={<Truck className="h-4 w-4" />} label="ڈیلیوری" value={product.delivery_days || (store.ships_nationwide ? "کورئیر کے مطابق" : "مقامی رائیڈر")} />
                   <InfoTile icon={<Clock3 className="h-4 w-4" />} label="تیاری" value={store.delivery_time || "دکان کے مطابق"} />
                   <InfoTile icon={<ShoppingBag className="h-4 w-4" />} label="فروخت" value={String(product.sold_count || 0)} />
                 </div>
@@ -221,7 +221,7 @@ const ProductDetail = () => {
         <section className="mx-4 mt-3 space-y-3">
           <div className="rounded-2xl border border-primary/20 bg-accent/50 p-4">
             <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Truck className="h-5 w-5" /></div><div><p className="text-sm font-extrabold text-foreground">ڈیلیوری کا طریقہ</p><p className="text-xs text-muted-foreground">{store.ships_nationwide ? "ملک بھر میں کورئیر دستیاب" : "مقامی رائیڈر کے ذریعے محفوظ ڈیلیوری"}</p></div></div>
-            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-accent-foreground"><span className="rounded-full bg-background px-3 py-1.5">{product.delivery_days || "1–3 دن"}</span><span className="rounded-full bg-background px-3 py-1.5">محفوظ پیکنگ</span><span className="rounded-full bg-background px-3 py-1.5">آرڈر ٹریکنگ</span></div>
+            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-accent-foreground"><span className="rounded-full bg-background px-3 py-1.5">{product.delivery_days || (store.ships_nationwide ? "کورئیر کے مطابق" : "مقامی ڈیلیوری")}</span><span className="rounded-full bg-background px-3 py-1.5">محفوظ پیکنگ</span><span className="rounded-full bg-background px-3 py-1.5">آرڈر ٹریکنگ</span></div>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary"><Store className="h-5 w-5" /></div><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-foreground">{store.name}</p><p className="text-xs text-muted-foreground">{store.rating ? `★ ${store.rating}` : "نئی دکان"} · تصدیق شدہ شاپ</p></div><Button variant="outline" size="sm" onClick={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)}>دکان دیکھیں <ChevronRight className="ms-1 h-3 w-3" /></Button></div>
