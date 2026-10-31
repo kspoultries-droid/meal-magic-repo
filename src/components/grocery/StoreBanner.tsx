@@ -89,6 +89,11 @@ const StoreBanner = ({
   const nameColor = store.name_color || "#ffffff";
   const collageImages = COLLAGE_SETS[store.category] || COLLAGE_SETS.General;
 
+  // Product form: category list and category-aware optional fields
+  const productCategories = Array.from(new Set([...groceryCategories, "Electronics", "Mobiles", "Clothing", "Shoes", "Home & Kitchen", "Beauty", "Sports", "Toys", "Hardware", "Other"]));
+  const isClothingCat = ["Clothing", "Shoes"].includes(newProduct.category);
+  const isTechCat = ["Electronics", "Mobiles"].includes(newProduct.category);
+
   const updateStore = async (updates: Record<string, any>) => {
     const { error } = await supabase.from("grocery_stores").update(updates).eq("id", storeId);
     if (error) { toast.error("اپڈیٹ ناکام: " + error.message); return; }
