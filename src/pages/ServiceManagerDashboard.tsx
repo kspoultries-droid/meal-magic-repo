@@ -89,6 +89,7 @@ const ServiceManagerDashboard = () => {
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<string | null>(null);
+  const [complaints, setComplaints] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && (!user || (!isServiceManager && !isAdmin))) {
@@ -180,7 +181,16 @@ const ServiceManagerDashboard = () => {
       .in("category_id", categoryIds);
 
     if (providerData) setProviders(providerData);
+    const { data: issues, error } = await supabase.from("support_tickets").select("service_provider_id,status,category").eq("order_kind","service").limit(500);
+    if (error) toast.error(error.message);
+    setComplaints(issues || []);
   };
+
+  useEffect(() => {
+    if (!categories.length) return;
+    const timer = setInterval(() => { if (document.visibilityState === "visible") void fetchAllData(categories.map(c => c.id)); }, 20000);
+    return () => clearInterval(timer);
+  }, [categories]);
 
   const updateServicePrice = async (id: string, price: number) => {
     const { error } = await supabase
@@ -347,6 +357,7 @@ const ServiceManagerDashboard = () => {
                         <p className="font-semibold text-sm">{p.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {p.service_categories?.name} · ⭐ {Number(p.rating).toFixed(1)} ({p.total_reviews})
+                          <span className="block text-destructive">کھلی شکایات: {complaints.filter(c => c.service_provider_id === p.id && c.status === "open").length} · رویے کی شکایات: {complaints.filter(c => c.service_provider_id === p.id && c.category === "behaviour").length}</span>
                         </p>
                         {p.phone && (
                           <a href={`tel:${p.phone}`} className="text-xs text-primary flex items-center gap-1 mt-0.5">
