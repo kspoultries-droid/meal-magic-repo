@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 import GroceryPicking from "@/components/grocery/GroceryPicking";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   storeId: string;
@@ -56,6 +57,9 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
   const [selected, setSelected] = useState<any>(null);
   const [updating, setUpdating] = useState(false);
   const [showDone, setShowDone] = useState(false);
+  const [showChanges, setShowChanges] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = useCallback(async () => {
@@ -66,6 +70,7 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
       .order("created_at", { ascending: false })
       .limit(40);
     setOrders(data || []);
+    setSelected((prev: any) => prev ? (data || []).find(o => o.id === prev.id) || prev : null);
     setLoading(false);
   }, [storeId]);
 
@@ -107,7 +112,7 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
 
   const setStatus = async (orderId: string, status: string) => {
     setUpdating(true);
-    const { error } = await supabase.from("grocery_cart_orders").update({ status }).eq("id", orderId);
+    const { error } = await supabase.rpc("shop_order_action", { _order_id: orderId, _action: status === "confirmed" ? "accept" : "ready" });
     if (error) toast.error(error.message);
     else {
       toast.success("اپڈیٹ ہو گیا / Updated");
@@ -118,21 +123,19 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
   };
 
   const rejectOrder = async (orderId: string) => {
-    const reason = window.prompt("مسترد کرنے کی وجہ لکھیں / Reason for rejection");
+    const reason = rejectReason;
     if (!reason || !reason.trim()) {
       toast.error("وجہ لازمی ہے / Reason is required");
       return;
     }
     setUpdating(true);
-    const { error } = await supabase
-      .from("grocery_cart_orders")
-      .update({ status: "cancelled", cancellation_reason: reason.trim(), reject_reason: reason.trim() } as any)
-      .eq("id", orderId);
+    const { error } = await supabase.rpc("shop_order_action", { _order_id: orderId, _action: "cancel", _reason: reason.trim() });
     if (error) toast.error(error.message);
     else {
       toast.success("آرڈر مسترد کر دیا گیا");
       fetchOrders();
       setSelected(null);
+      setRejecting(false); setRejectReason("");
     }
     setUpdating(false);
   };
@@ -148,9 +151,9 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
     const status = STATUS_MAP[o.status] || STATUS_MAP.pending;
     const items = Array.isArray(o.items) ? o.items : [];
     return (
-      <button
-        onClick={() => setSelected(o)}
-        className="w-full text-left p-3 bg-secondary rounded-xl hover:bg-accent transition-colors space-y-1"
+      <Button variant="ghost"
+        onClick={() => { setSelected(o); setShowChanges(false); setRejecting(false); }}
+        className="h-auto w-full block text-left p-3 bg-secondary rounded-lg hover:bg-accent transition-colors space-y-1"
       >
         <div className="flex items-center justify-between gap-2">
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${status.color}`}>{status.label}</span>
@@ -163,7 +166,7 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
             <MapPin className="w-3 h-3" /> {o.delivery_address}
           </p>
         )}
-      </button>
+      </Button>
     );
   };
 
@@ -229,6 +232,8 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
                     <span className="font-bold">Rs {Number(it.price) * Number(it.quantity)}</span>
                   </div>
                 ))}
+                <div className="flex justify-between text-xs"><span>گاہک کی ڈیلیوری فیس</span><span>Rs {selected.delivery_fee_payer === "vendor" ? 0 : selected.delivery_fee}</span></div>
+                {selected.delivery_fee_payer === "vendor" && <div className="flex justify-between text-xs text-muted-foreground"><span>دکان کے ذمے ڈیلیوری</span><span>Rs {selected.delivery_fee}</span></div>}
                 <div className="flex justify-between text-sm font-extrabold border-t pt-1 mt-1">
                   <span>کل / Total</span>
                   <span className="text-primary">Rs {selected.total_amount}</span>
@@ -255,7 +260,8 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
                 </p>
               )}
 
-              {["confirmed", "picking", "preparing", "packed"].includes(selected.status) && (
+              {["confirmed", "picking", "preparing", "packed"].includes(selected.status) && <Button variant="outline" size="sm" onClick={() => setShowChanges(v => !v)}>اشیا / وزن / متبادل {showChanges ? "چھپائیں" : "دیکھیں"}</Button>}
+              {showChanges && ["confirmed", "picking", "preparing", "packed"].includes(selected.status) && (
                 <GroceryPicking
                   orderId={selected.id}
                   storeId={storeId}
@@ -269,27 +275,16 @@ const ShopkeeperCartOrders = ({ storeId }: Props) => {
                   <Button className="flex-1" disabled={updating} onClick={() => setStatus(selected.id, "confirmed")}>
                     {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : "قبول کریں / Accept"}
                   </Button>
-                  <Button variant="destructive" disabled={updating} onClick={() => rejectOrder(selected.id)}>
+                  <Button variant="destructive" disabled={updating} onClick={() => setRejecting(true)}>
                     مسترد
                   </Button>
                 </div>
               )}
 
-              {selected.status === "confirmed" && (
-                <Button className="w-full" disabled={updating} onClick={() => setStatus(selected.id, "picking")}>
-                  پکنگ شروع / Start Picking
-                </Button>
-              )}
-
-              {["picking", "preparing"].includes(selected.status) && (
-                <Button className="w-full" disabled={updating} onClick={() => setStatus(selected.id, "packed")}>
-                  پیک ہو گیا / Mark Packed
-                </Button>
-              )}
-
-              {selected.status === "packed" && (
+              {rejecting && <div className="space-y-2"><Textarea aria-label="مسترد کرنے کی وجہ" placeholder="مسترد کرنے کی وجہ" value={rejectReason} onChange={e => setRejectReason(e.target.value)} maxLength={500} /><Button variant="destructive" disabled={updating || rejectReason.trim().length < 3} onClick={() => rejectOrder(selected.id)}>وجہ کے ساتھ مسترد</Button></div>}
+              {["confirmed", "picking", "preparing", "packed"].includes(selected.status) && (
                 <Button className="w-full" disabled={updating} onClick={() => setStatus(selected.id, "ready_for_pickup")}>
-                  پک اپ کے لیے تیار / Ready for pickup
+                  پیک کرکے تیار / Packed & ready
                 </Button>
               )}
 

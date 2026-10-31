@@ -17,6 +17,7 @@ import { orderTabOf } from "@/pages/MyOrders";
 import { useCart } from "@/contexts/CartContext";
 import { RotateCcw } from "lucide-react";
 import ServiceJobPanel from "@/components/services/ServiceJobPanel";
+import { shopStatusStep } from "@/lib/shopOrders";
 
 
 
@@ -109,9 +110,9 @@ const OrderTracking = () => {
   // Check existing review
   useEffect(() => {
     if (!id || !user) return;
-    supabase.from("order_reviews").select("id").eq("order_id", id).eq("customer_id", user.id).maybeSingle()
+    supabase.from(kind === "food" ? "order_reviews" : "grocery_reviews").select("id").eq("order_id", id).maybeSingle()
       .then(({ data }) => setHasReview(!!data));
-  }, [id, user, reviewOpen]);
+  }, [id, user, kind, reviewOpen]);
 
   // Realtime updates
   useEffect(() => {
@@ -157,7 +158,9 @@ const OrderTracking = () => {
   if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("track.notFound")}</div>;
 
   const normalizedStatus = ["completed", "delivered"].includes(order.status) ? "delivered" : order.delivery_stage === "assigned" || order.delivery_stage === "arrived_pickup" ? (["delivering", "ready_for_pickup", "ready", "packed", "picking"].includes(order.status) ? "preparing" : order.status) : ["out_for_delivery", "delivering"].includes(order.status) ? "delivering" : ["ready", "ready_for_pickup", "packed", "picking"].includes(order.status) ? "preparing" : order.status;
-  const currentStepIndex = orderTabOf(order.status, order.delivery_stage) === "onway" ? 3 : Math.max(0, orderSteps.findIndex((s) => s.key === normalizedStatus));
+  const currentStepIndex = kind !== "food" ? shopStatusStep(order.status, order.delivery_stage) : orderTabOf(order.status, order.delivery_stage) === "onway" ? 3 : Math.max(0, orderSteps.findIndex((s) => s.key === normalizedStatus));
+  const shopLabels = [L("Order received", "آرڈر موصول ہوا"), L("Shop accepted order", "دکان نے آرڈر قبول کیا"), L("Packing / ready for pickup", "پیکنگ / روانگی کے لیے تیار"), L("Delivery in progress", "ڈیلیوری جاری"), L("Delivered", "پہنچا دیا گیا")];
+  const stepNote = (index: number) => kind === "food" ? t(orderSteps[index].noteKey) : shopLabels[index];
   const isCancelled = ["cancelled", "returned_to_store"].includes(order.status);
   const locationFresh = !locationError && freshRiderLocation(rider?.location_updated_at, now);
   const riderPoint = locationFresh && Number.isFinite(rider?.lat) && Number.isFinite(rider?.lng) ? { lat: rider.lat, lng: rider.lng } : null;
@@ -175,7 +178,8 @@ const OrderTracking = () => {
 
       <section className="bg-card px-5 py-5 border-b">
         <p className="text-xs text-muted-foreground mb-2">#{order.id.slice(0, 8)} · {new Date(order.created_at).toLocaleString("en-GB")}</p>
-        <h2 className={`text-xl font-bold ${isCancelled ? "text-destructive" : "text-primary"}`}>{isCancelled ? t("track.cancelled") : t(orderSteps[currentStepIndex].noteKey)}</h2>
+        {kind !== "food" && <p className="mb-2 font-bold">{order.grocery_stores?.name}</p>}
+        <h2 className={`text-xl font-bold ${isCancelled ? "text-destructive" : "text-primary"}`}>{isCancelled ? t("track.cancelled") : stepNote(currentStepIndex)}</h2>
         <div className="flex items-center gap-2 mt-4">
           {orderSteps.map((step, index) => <div key={step.key} className={`h-1 flex-1 rounded-full ${!isCancelled && index <= currentStepIndex ? "bg-primary" : "bg-border"}`} />)}
         </div>
@@ -258,13 +262,13 @@ const OrderTracking = () => {
 
       <div id="order-progress" className="account-band px-5 py-5">
         <h2 className="text-lg font-extrabold text-foreground mb-6">
-          {isCancelled ? `${t("track.cancelled")} ❌` : orderSteps[currentStepIndex] ? t(orderSteps[currentStepIndex].noteKey) : t("track.title")}
+          {isCancelled ? `${t("track.cancelled")} ❌` : stepNote(currentStepIndex)}
         </h2>
 
         {!isCancelled && (
           <div className="space-y-0">
             {orderSteps.map((step, index) => {
-              const Icon = step.icon;
+              const Icon = kind !== "food" && index === 2 ? Package : step.icon;
               const isCompleted = index <= currentStepIndex;
               const isCurrent = index === currentStepIndex;
               return (
@@ -282,8 +286,8 @@ const OrderTracking = () => {
                   </div>
                   {/* Label */}
                   <div className="pt-2">
-                    <p className={`text-sm font-bold ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>{t(step.labelKey)}</p>
-                    {isCurrent && <p className="text-xs text-primary mt-0.5">{t(step.noteKey)}</p>}
+                    <p className={`text-sm font-bold ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>{kind === "food" ? t(step.labelKey) : shopLabels[index]}</p>
+                    {isCurrent && <p className="text-xs text-primary mt-0.5">{stepNote(index)}</p>}
                   </div>
                 </div>
               );
@@ -309,9 +313,9 @@ const OrderTracking = () => {
               <span className="font-bold shrink-0">Rs {Number(item.unit_price ?? item.price) * item.quantity}</span>
             </div>
           ))}
-          <div className="flex justify-between text-sm"><span>{L("Delivery fee", "ڈیلیوری فیس")}</span><span>Rs {Number(order.delivery_fee || 0)}</span></div>
+          <div className="flex justify-between text-sm"><span>{L("Delivery fee", "ڈیلیوری فیس")}</span><span>Rs {order.delivery_fee_payer === "vendor" ? 0 : Number(order.delivery_fee || 0)}</span></div>
           {Number(order.discount_amount) > 0 && <div className="flex justify-between text-sm text-primary"><span>{L("Discount", "رعایت")}</span><span>- Rs {Number(order.discount_amount)}</span></div>}
-          <div className="flex justify-between text-base font-bold border-t pt-3"><span>{L("Total", "کل")}</span><span>Rs {Number(order.total_amount || 0).toLocaleString("en-US")}</span></div>
+          <div className="flex justify-between text-base font-bold border-t pt-3"><span>{L("Total", "کل")}</span><span>Rs {Number(order.final_amount ?? order.total_amount ?? 0).toLocaleString("en-US")}</span></div>
           <p className="text-xs text-muted-foreground">{L("Payment", "ادائیگی")}: {order.payment_method === "cod" || !order.payment_method ? L("Cash on delivery", "ڈیلیوری پر نقد") : order.payment_method}</p>
         </div>
 
@@ -325,13 +329,13 @@ const OrderTracking = () => {
         )}
 
         {/* Review CTA — only after delivered/completed */}
-        {["delivered", "completed"].includes(order.status) && user && order.customer_id === user.id && order.restaurant_id && (
+        {["delivered", "completed"].includes(order.status) && user && order.customer_id === user.id && (order.restaurant_id || kind === "grocery_cart") && (
           <Button
             onClick={() => setReviewOpen(true)}
             className="w-full mt-4 h-12 font-extrabold rounded-xl bg-gradient-primary shadow-glow gap-2"
           >
             <Star className="w-4 h-4" />
-            {hasReview ? t("track.updateReview") : t("track.rateRestaurant")}
+            {hasReview ? t("track.updateReview") : kind === "food" ? t("track.rateRestaurant") : L("Rate shop", "دکان کو رائے دیں")}
           </Button>
         )}
         {kind === "food" && ["delivered", "completed", "cancelled"].includes(order.status) && user && order.customer_id === user.id && order.order_items?.length > 0 && (
@@ -341,12 +345,13 @@ const OrderTracking = () => {
         )}
       </div>
 
-      {order && user && order.restaurant_id && (
+      {order && user && (order.restaurant_id || kind === "grocery_cart") && (
         <OrderReviewDialog
           open={reviewOpen}
           onOpenChange={setReviewOpen}
           orderId={order.id}
-          restaurantId={order.restaurant_id}
+          restaurantId={order.restaurant_id || order.store_id}
+          kind={kind === "food" ? "food" : "grocery"}
           customerId={user.id}
           riderId={order.rider_id}
           onSubmitted={() => setHasReview(true)}
