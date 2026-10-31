@@ -26,12 +26,10 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("service_reviews").insert({
-      booking_id: booking.id,
-      service_id: booking.service_id,
-      customer_id: booking.customer_id,
-      rating,
-      comment: comment.trim() || null,
+    const { error } = await supabase.rpc("submit_service_review", {
+      _booking_id: booking.id,
+      _rating: rating,
+      _comment: comment.trim() || null,
     });
     setSubmitting(false);
     if (error) {
@@ -62,7 +60,7 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
           {/* Star Rating */}
           <div className="flex justify-center gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
-              <button
+              <Button variant="ghost" size="icon" aria-label={`${star} / 5`}
                 key={star}
                 onClick={() => setRating(star)}
                 onMouseEnter={() => setHoverRating(star)}
@@ -72,11 +70,11 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
                 <Star
                   className={`w-10 h-10 ${
                     star <= (hoverRating || rating)
-                      ? "fill-yellow-400 text-yellow-400"
+                      ? "fill-warning text-warning"
                       : "text-muted-foreground"
                   }`}
                 />
-              </button>
+              </Button>
             ))}
           </div>
           <p className="text-center text-sm text-muted-foreground">

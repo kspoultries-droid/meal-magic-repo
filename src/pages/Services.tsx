@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/drawer";
 import HelplineSection from "@/components/services/HelplineSection";
 import FeedbackDialog from "@/components/services/FeedbackDialog";
+import ServiceJobPanel from "@/components/services/ServiceJobPanel";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PromotionalAds from "@/components/PromotionalAds";
 import HeroEditor from "@/components/common/HeroEditor";
 import { useHeroSettings } from "@/hooks/useHeroSettings";
@@ -57,6 +59,7 @@ const Services = () => {
   const [feedbackBooking, setFeedbackBooking] = useState<any>(null);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [allBookings, setAllBookings] = useState<any[]>([]);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [carModel, setCarModel] = useState("");
   const [oilCompany, setOilCompany] = useState("");
   const [nearbyProviders, setNearbyProviders] = useState<any[]>([]);
@@ -251,7 +254,7 @@ const Services = () => {
     setSubmitting(true);
     const carInfo = isOilChange ? `Car: ${carModel} | Oil: ${oilCompany}` : isCarService && carModel ? `Car: ${carModel}` : "";
     const fullNotes = [carInfo, bookingNotes].filter(Boolean).join(" | ");
-    const { error } = await supabase.rpc("create_service_booking", {
+    const { data: bookingId, error } = await supabase.rpc("create_service_booking", {
       _service_id: selectedService.id,
       _address: bookingAddress,
       _scheduled_date: bookingDate,
@@ -260,10 +263,10 @@ const Services = () => {
     });
     setSubmitting(false);
     if (error) {
-      toast.error(t("services.bookingFailed"));
+      toast.error(error.message || t("services.bookingFailed"));
       console.error(error);
     } else {
-      toast.success("Booking successful! Advance fee: Rs " + advanceFee + " / بکنگ کامیاب! ایڈوانس فیس: Rs " + advanceFee + " ✅");
+      toast.success("بکنگ محفوظ ہو گئی / Booking saved");
       setSelectedService(null);
       setBookingDate("");
       setBookingTime("");
@@ -271,6 +274,7 @@ const Services = () => {
       setCarModel("");
       setOilCompany("");
       fetchAllBookings();
+      if (bookingId) navigate(`/order-tracking/${bookingId}`);
     }
   };
 
@@ -527,6 +531,7 @@ const Services = () => {
                   {b.notes && (
                     <p className="text-[10px] text-muted-foreground">📝 {b.notes}</p>
                   )}
+                  <Button variant="outline" size="sm" onClick={() => setSelectedBookingId(b.id)}>تفصیل، کوٹیشن اور بل / Details, quote & bill</Button>
                 </div>
               );
             })}
@@ -624,6 +629,12 @@ const Services = () => {
       <HelplineSection />
 
       {/* Feedback Dialog */}
+      <Dialog open={!!selectedBookingId} onOpenChange={(open) => { if (!open) setSelectedBookingId(null); }}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>بکنگ کی تفصیل / Booking details</DialogTitle></DialogHeader>
+          {allBookings.find(b => b.id === selectedBookingId) && <ServiceJobPanel booking={allBookings.find(b => b.id === selectedBookingId)} mode="customer" onChanged={fetchAllBookings} />}
+        </DialogContent>
+      </Dialog>
       <FeedbackDialog
         open={!!feedbackBooking}
         onOpenChange={() => setFeedbackBooking(null)}

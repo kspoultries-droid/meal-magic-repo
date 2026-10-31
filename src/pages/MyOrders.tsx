@@ -35,13 +35,14 @@ export default function MyOrders() {
         supabase.from("orders").select("*,order_items(*),restaurants(name,image_url)").eq("customer_id",user.id).order("created_at",{ascending:false}).limit(50),
         supabase.from("grocery_cart_orders").select("*,grocery_stores(name)").eq("customer_id",user.id).order("created_at",{ascending:false}).limit(50),
         supabase.from("grocery_list_orders").select("*,grocery_stores(name)").eq("customer_id",user.id).order("created_at",{ascending:false}).limit(50),
+        supabase.from("service_bookings").select("*,services(name,image_url)").eq("customer_id",user.id).order("created_at",{ascending:false}).limit(50),
       ]);
       if(!alive)return;
       setError(results.some(r=>!!r.error));
-      setOrders(results.flatMap((r,i)=>(r.data||[]).map(o=>({...o,kind:["food","grocery_cart","grocery_list"][i]}))).sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)));setLoading(false);
+      setOrders(results.flatMap((r,i)=>(r.data||[]).map(o=>({...o,kind:["food","grocery_cart","grocery_list","service"][i]}))).sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)));setLoading(false);
     }; void load();
     const channel=supabase.channel(`account-orders-${user.id}`);
-    for(const table of ["orders","grocery_cart_orders","grocery_list_orders"])channel.on("postgres_changes",{event:"*",schema:"public",table,filter:`customer_id=eq.${user.id}`},()=>void load());
+    for(const table of ["orders","grocery_cart_orders","grocery_list_orders","service_bookings"])channel.on("postgres_changes",{event:"*",schema:"public",table,filter:`customer_id=eq.${user.id}`},()=>void load());
     channel.subscribe();return()=>{alive=false;void supabase.removeChannel(channel);};
   },[user?.id]);
   const list=tab==="all"?orders:orders.filter(o=>orderTabOf(o.status,o.delivery_stage)===tab);

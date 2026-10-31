@@ -16,6 +16,7 @@ import { freshRiderLocation } from "@/lib/riderLocation";
 import { orderTabOf } from "@/pages/MyOrders";
 import { useCart } from "@/contexts/CartContext";
 import { RotateCcw } from "lucide-react";
+import ServiceJobPanel from "@/components/services/ServiceJobPanel";
 
 
 
@@ -36,6 +37,7 @@ const OrderTracking = () => {
   const [showMap, setShowMap] = useState(false);
   const [order, setOrder] = useState<any>(null);
   const [kind, setKind] = useState<"food" | "grocery_cart" | "grocery_list">("food");
+  const [serviceBooking, setServiceBooking] = useState<any>(null);
   const [rider, setRider] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -88,6 +90,10 @@ const OrderTracking = () => {
         const { data: list } = await supabase.from("grocery_list_orders").select("*, grocery_stores(name)").eq("id", id).maybeSingle();
         setKind("grocery_list");
         setOrder(list || null);
+        if (!list) {
+          const { data: service } = await supabase.from("service_bookings").select("*,services(name,image_url)").eq("id", id).maybeSingle();
+          setServiceBooking(service);
+        }
         if (!list?.rider_id) setRider(null);
       }
     }
@@ -96,7 +102,7 @@ const OrderTracking = () => {
 
 
   useEffect(() => {
-    setOrder(null); setRider(null); setLoading(true); setLocationError(false);
+    setOrder(null); setServiceBooking(null); setRider(null); setLoading(true); setLocationError(false);
     void fetchOrder();
   }, [fetchOrder]);
 
@@ -115,6 +121,7 @@ const OrderTracking = () => {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` }, () => fetchOrder())
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_cart_orders", filter: `id=eq.${id}` }, () => fetchOrder())
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_list_orders", filter: `id=eq.${id}` }, () => fetchOrder())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "service_bookings", filter: `id=eq.${id}` }, () => fetchOrder())
       .subscribe();
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") void fetchOrder(); }, 20000);
     return () => { clearInterval(timer); supabase.removeChannel(channel); };
@@ -146,6 +153,7 @@ const OrderTracking = () => {
 
 
   if (loading) return <div className="min-h-screen p-4 space-y-4"><div className="h-14 bg-muted animate-pulse rounded-lg"/><div className="h-52 bg-muted animate-pulse rounded-lg"/><div className="h-64 bg-muted animate-pulse rounded-lg"/></div>;
+  if (serviceBooking) return <div className="min-h-screen bg-background pb-10" dir={dir}><header className="sticky top-0 z-40 bg-card border-b flex items-center gap-2 p-3"><Button variant="ghost" size="icon" aria-label={L("Back", "واپس")} onClick={() => navigate("/my-orders")}><ArrowLeft className="h-5 w-5 rtl:rotate-180"/></Button><h1 className="font-bold">{L("Service booking", "سروس بکنگ")}</h1></header><main className="max-w-2xl mx-auto p-4"><ServiceJobPanel booking={serviceBooking} mode="customer" onChanged={() => void fetchOrder()}/></main></div>;
   if (!order) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("track.notFound")}</div>;
 
   const normalizedStatus = ["completed", "delivered"].includes(order.status) ? "delivered" : order.delivery_stage === "assigned" || order.delivery_stage === "arrived_pickup" ? (["delivering", "ready_for_pickup", "ready", "packed", "picking"].includes(order.status) ? "preparing" : order.status) : ["out_for_delivery", "delivering"].includes(order.status) ? "delivering" : ["ready", "ready_for_pickup", "packed", "picking"].includes(order.status) ? "preparing" : order.status;
