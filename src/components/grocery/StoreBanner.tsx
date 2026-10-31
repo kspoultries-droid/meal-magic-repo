@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import PhotoTips from "@/components/media/PhotoTips";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
@@ -73,7 +73,7 @@ interface StoreBannerProps {
   showAddProduct: boolean;
   setShowAddProduct: (v: boolean) => void;
   newProduct: any;
-  setNewProduct: (v: any) => void;
+  setNewProduct: Dispatch<SetStateAction<any>>;
   addProduct: () => void;
   onNavigateBack: () => void;
 }
@@ -83,6 +83,19 @@ const StoreBanner = ({
   showAddProduct, setShowAddProduct, newProduct, setNewProduct, addProduct, onNavigateBack
 }: StoreBannerProps) => {
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showDeliveryEditor, setShowDeliveryEditor] = useState(false);
+  const [deliveryDraft, setDeliveryDraft] = useState("");
+  const [deliverySaving, setDeliverySaving] = useState(false);
+  const editDelivery = () => { setDeliveryDraft(store.delivery_time || ""); setShowDeliveryEditor(true); };
+  const saveDelivery = async () => {
+    setDeliverySaving(true);
+    const { error } = await supabase.from("grocery_stores").update({ delivery_time: deliveryDraft.trim() || null }).eq("id", storeId).select("id").single();
+    setDeliverySaving(false);
+    if (error) { toast.error("وقت محفوظ نہیں ہوا: " + error.message); return; }
+    setShowDeliveryEditor(false);
+    toast.success("ڈیلیوری وقت محفوظ ہو گیا / Delivery estimate saved");
+    onRefresh();
+  };
   
   const theme = BANNER_THEMES[store.banner_theme] || BANNER_THEMES.none;
   const nameStyle = NAME_STYLES[store.name_style] || NAME_STYLES.bold;
@@ -131,8 +144,8 @@ const StoreBanner = ({
          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
            <span className="flex items-center gap-1"><Star className="size-4 text-primary" /> {store.rating || "New"}</span>
            <span className="flex items-center gap-1">
-             <Clock className="size-4" /> {store.delivery_time || "تیز ڈیلیوری"}
-             {isOwner && <button className="text-muted-foreground hover:text-foreground" aria-label="ڈیلیوری وقت تبدیل کریں" onClick={async () => { const val = prompt("ڈلیوری ٹائم / Delivery Time:", store.delivery_time); if (val && val.trim()) await updateStore({ delivery_time: val.trim() }); }}><Pencil className="size-3" /></button>}
+             <Clock className="size-4" /> {store.delivery_time ? `اندازاً / Estimate: ${store.delivery_time}` : "ڈیلیوری وقت غیرمقرر / Not set"}
+             {isOwner && <Button size="icon" variant="ghost" className="size-8" aria-label="ڈیلیوری وقت تبدیل کریں" onClick={editDelivery}><Pencil className="size-4" /></Button>}
            </span>
            <span className="flex items-center gap-1 font-semibold text-foreground">
              {store.category}
@@ -140,6 +153,16 @@ const StoreBanner = ({
            </span>
            {isOwner && <button className="ms-auto text-muted-foreground hover:text-foreground" aria-label="دکان کا نام تبدیل کریں" onClick={async () => { const newName = prompt("دکان کا نام / Store Name:", store.name); if (newName && newName.trim() && newName.trim() !== store.name) await updateStore({ name: newName.trim() }); }}><Pencil className="size-4" /></button>}
          </div>
+
+        <Dialog open={showDeliveryEditor} onOpenChange={(open) => { if (!deliverySaving) setShowDeliveryEditor(open); }}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader><DialogTitle>ڈیلیوری کا اندازاً وقت / Delivery estimate</DialogTitle></DialogHeader>
+            <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); void saveDelivery(); }}>
+              <label className="block space-y-2 text-sm"><span>وقت / Time</span><Input value={deliveryDraft} onChange={(event) => setDeliveryDraft(event.target.value)} placeholder="مثلاً 45–60 منٹ یا 2–3 دن" disabled={deliverySaving} /></label>
+              <div className="flex gap-2"><Button type="button" variant="outline" disabled={deliverySaving} onClick={() => setDeliveryDraft("")}>وقت ہٹائیں</Button><Button type="submit" className="flex-1" disabled={deliverySaving}>{deliverySaving ? "محفوظ ہو رہا ہے…" : "محفوظ کریں"}</Button></div>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         {/* Shop Timing & Open/Close Toggle for Owner */}
         {isOwner && (
@@ -371,7 +394,7 @@ const StoreBanner = ({
                       <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
                     </div>
                   </details>
-                  <div className="space-y-2"><label className="text-xs font-bold text-muted-foreground">پروڈکٹ کی تصاویر / Product photos (8 تک)</label><ProductPhotoUploader multiple label="تصاویر منتخب کریں" onDone={(photos) => setNewProduct({ ...newProduct, imageFiles: photos.map((photo) => photo.file) })} /><p className="text-[10px] text-muted-foreground">گیلری سے ایک ساتھ کئی تصاویر منتخب کر سکتے ہیں، پھر «محفوظ کریں» دبائیں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر تیار ہیں</p>}<PhotoTips /></div>
+                  <div className="space-y-2"><label className="text-xs font-bold text-muted-foreground">پروڈکٹ کی تصاویر / Product photos (8 تک)</label><ProductPhotoUploader multiple label="تصاویر منتخب کریں" onDone={(photos) => setNewProduct((previous: any) => ({ ...previous, imageFiles: [...(previous.imageFiles || []), ...photos.map((photo) => photo.file)].slice(0, 8) }))} /><p className="text-[10px] text-muted-foreground">گیلری سے ایک ساتھ کئی تصاویر منتخب کر سکتے ہیں، پھر «محفوظ کریں» دبائیں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر تیار ہیں</p>}<PhotoTips /></div>
                   <Button onClick={addProduct} className="w-full">پروڈکٹ محفوظ کریں</Button>
                 </div>
               </DialogContent>

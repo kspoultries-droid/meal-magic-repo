@@ -18,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import MyReelsManager from "@/components/reels/MyReelsManager";
 import ProductPhotoUploader, { PreparedPhoto } from "@/components/media/ProductPhotoUploader";
 import { uploadGroceryProductPhoto } from "@/lib/groceryProductImages";
+import { storePath, mergeProductPhotos } from "@/lib/storePresentation";
 import StoreInventoryTools from "@/components/grocery/StoreInventoryTools";
 
 import BottomTabBar from "@/components/BottomTabBar";
@@ -63,11 +64,14 @@ const GroceryStoreDetail = () => {
       ? (productsData || [])
       : (productsData || []).filter((p: any) => p.is_available);
     setProducts(visibleProducts);
-    if (storeData && user) {
-      setIsOwner(storeData.owner_id === user.id);
+    setIsOwner(Boolean(storeData && user && storeData.owner_id === user.id));
+    if (storeData && id && !storePathMatches(storeData.store_type)) {
+      navigate(storePath(id, storeData.store_type), { replace: true });
     }
     setLoading(false);
   };
+
+  const storePathMatches = (type: string | null) => isBazar === (type === "wholesale");
 
   useEffect(() => {
     if (id) fetchData();
@@ -159,18 +163,16 @@ const GroceryStoreDetail = () => {
 
   const uploadProductImage = async (productId: string, photos: PreparedPhoto[]) => {
     const current = products.find((p) => p.id === productId);
-    const existing = Array.isArray(current?.images) ? current.images : [];
     const urls: string[] = [];
     for (const photo of photos) {
       try { urls.push(await uploadGroceryProductPhoto(productId, photo.file)); }
-      catch (e) { toast.error("تصویر محفوظ نہیں ہوئی: " + (e instanceof Error ? e.message : "دوبارہ کوشش کریں")); }
+      catch (e) { throw new Error("تصویر محفوظ نہیں ہوئی: " + (e instanceof Error ? e.message : "دوبارہ کوشش کریں")); }
     }
     if (!urls.length) return;
-    const images = [...existing, ...urls];
-    const { error } = await supabase.from("grocery_products").update({ image_url: current?.image_url || urls[0], images }).eq("id", productId).select("id").single();
+    const { error } = await supabase.from("grocery_products").update(mergeProductPhotos(current || {}, urls)).eq("id", productId).select("id").single();
     if (error) throw new Error(error.message);
     toast.success(`${urls.length} تصاویر محفوظ / Photos saved`);
-    fetchData();
+    await fetchData();
   };
 
 
@@ -220,7 +222,7 @@ const GroceryStoreDetail = () => {
       <StoreBanner
         store={store}
         isOwner={isOwner}
-        storeId={id!}
+        storeId={store.id}
         onRefresh={fetchData}
         categories={GROCERY_CATEGORIES}
         showAddProduct={showAddProduct}
@@ -228,7 +230,7 @@ const GroceryStoreDetail = () => {
         newProduct={newProduct}
         setNewProduct={setNewProduct}
         addProduct={addProduct}
-        onNavigateBack={() => navigate("/grocery")}
+        onNavigateBack={() => navigate(store.store_type === "wholesale" ? "/bazar" : "/grocery")}
       />
 
       {/* Category Chips - Sticky */}
@@ -296,7 +298,7 @@ const GroceryStoreDetail = () => {
                          onClick={() => !isOwner && navigate(`/product/${product.id}`)}
                        >
                           {product.image_url ? (
-                            <img src={img(product.image_url, 360)} alt={product.name} className="w-full h-full object-cover" />
+                            <img src={img(product.image_url, 360)} onError={(e) => { if (e.currentTarget.src !== product.image_url) e.currentTarget.src = product.image_url; }} alt={product.name} className="w-full h-full object-cover" />
                           ) : (
                             <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
                           )}
@@ -338,6 +340,7 @@ const GroceryStoreDetail = () => {
                               <span className="text-[10px] text-muted-foreground">تفصیل / Details:</span>
                               <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="پروڈکٹ کی تفصیل لکھیں..." rows={3} className="mt-1 text-xs" />
                             </div>
+                            <ProductPhotoUploader multiple label="تصویر تبدیل کریں" onDone={(photos) => uploadProductImage(product.id, photos)} />
                             <div className="flex gap-1">
                               <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
                                 <Check className="w-3 h-3 mr-0.5" /> محفوظ / Save
@@ -414,25 +417,25 @@ const GroceryStoreDetail = () => {
           <TabsContent value="orders">
             {isOwner ? (
               <>
-                <ShopkeeperCartOrders storeId={id!} />
-                <ShopkeeperListOrders storeId={id!} />
+                <ShopkeeperCartOrders storeId={store.id} />
+                <ShopkeeperListOrders storeId={store.id} />
               </>
             ) : (
               <div className="space-y-2">
-                <PhotoListOrder storeId={id!} storeName={store.name} advancePercent={store.advance_percent || 0} />
-                <CustomerListOrders storeId={id!} />
+                <PhotoListOrder storeId={store.id} storeName={store.name} advancePercent={store.advance_percent || 0} />
+                <CustomerListOrders storeId={store.id} />
               </div>
             )}
           </TabsContent>
           )}
           {isOwner && (
             <TabsContent value="reels">
-              <MyReelsManager restrictSourceId={id!} />
+              <MyReelsManager restrictSourceId={store.id} />
             </TabsContent>
           )}
           {isOwner && (
             <TabsContent value="stock">
-              <StoreInventoryTools storeId={id!} products={products} categories={GROCERY_CATEGORIES} onChanged={fetchData} />
+              <StoreInventoryTools storeId={store.id} products={products} categories={GROCERY_CATEGORIES} onChanged={fetchData} />
             </TabsContent>
           )}
         </Tabs>
