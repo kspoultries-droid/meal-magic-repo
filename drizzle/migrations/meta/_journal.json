@@ -337,6 +337,13 @@
       "when": 1793406941780,
       "tag": "0047_service_supervision_and_checklists",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1793407016717,
+      "tag": "0048_service_assignment_candidate_scope",
+      "breakpoints": true
     }
   ]
 }

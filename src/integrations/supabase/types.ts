@@ -5135,6 +5135,14 @@ export type Database = {
         }
         Returns: string
       }
+      service_assignment_candidates: {
+        Args: { _booking_id: string }
+        Returns: {
+          id: string
+          name: string
+          rating: number
+        }[]
+      }
       service_booking_contact: { Args: { _booking_id: string }; Returns: Json }
       service_job_action: {
         Args: {
