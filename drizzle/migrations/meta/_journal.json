@@ -316,6 +316,13 @@
       "when": 1793406139124,
       "tag": "0044_service_contact_and_provider_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1793406514544,
+      "tag": "0045_service_evidence_exact_path_authorization",
+      "breakpoints": true
     }
   ]
 }

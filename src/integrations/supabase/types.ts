@@ -4571,6 +4571,7 @@ export type Database = {
         Args: { _kind: string; _order_id: string; _user_id: string }
         Returns: boolean
       }
+      can_upload_service_evidence: { Args: { _path: string }; Returns: boolean }
       claim_daily_coin: { Args: never; Returns: Json }
       confirm_payout_received: {
         Args: { _payout_id: string }
