@@ -4320,11 +4320,20 @@ export type Database = {
           amount: number
           balance_after: number
           created_at: string
+          deposit_account_id: string | null
           description: string | null
           id: string
+          paid_at: string | null
           payment_method: string | null
+          payment_reference: string | null
+          receipt_path: string | null
+          receipt_sha256: string | null
           reference_id: string | null
           reference_type: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          risk_flags: string[]
           status: string
           type: string
           user_id: string
@@ -4334,11 +4343,20 @@ export type Database = {
           amount: number
           balance_after?: number
           created_at?: string
+          deposit_account_id?: string | null
           description?: string | null
           id?: string
+          paid_at?: string | null
           payment_method?: string | null
+          payment_reference?: string | null
+          receipt_path?: string | null
+          receipt_sha256?: string | null
           reference_id?: string | null
           reference_type?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          risk_flags?: string[]
           status?: string
           type: string
           user_id: string
@@ -4348,17 +4366,33 @@ export type Database = {
           amount?: number
           balance_after?: number
           created_at?: string
+          deposit_account_id?: string | null
           description?: string | null
           id?: string
+          paid_at?: string | null
           payment_method?: string | null
+          payment_reference?: string | null
+          receipt_path?: string | null
+          receipt_sha256?: string | null
           reference_id?: string | null
           reference_type?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          risk_flags?: string[]
           status?: string
           type?: string
           user_id?: string
           wallet_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_deposit_account_id_fkey"
+            columns: ["deposit_account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "wallet_transactions_wallet_id_fkey"
             columns: ["wallet_id"]
@@ -4565,6 +4599,17 @@ export type Database = {
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
+      admin_create_own_business: {
+        Args: {
+          _address: string
+          _category_id?: string
+          _city_id: string
+          _kind: string
+          _name: string
+          _phone: string
+        }
+        Returns: string
+      }
       admin_daily_trend: {
         Args: { _days?: number }
         Returns: {
@@ -5071,6 +5116,15 @@ export type Database = {
             }
             Returns: undefined
           }
+      review_wallet_topup: {
+        Args: {
+          _approve: boolean
+          _confirmed_reference?: string
+          _id: string
+          _note: string
+        }
+        Returns: undefined
+      }
       rider_assign_block_reason: {
         Args: {
           _kind?: string
@@ -5184,6 +5238,18 @@ export type Database = {
         Args: { _booking_id: string; _comment: string; _rating: number }
         Returns: undefined
       }
+      submit_wallet_receipt: {
+        Args: {
+          _account_id: string
+          _amount: number
+          _paid_at: string
+          _receipt_path: string
+          _reference: string
+          _sha256: string
+          _user_id: string
+        }
+        Returns: string
+      }
       sync_shop_open_state: { Args: never; Returns: number }
       team_performance: {
         Args: { _days?: number }
@@ -5208,6 +5274,17 @@ export type Database = {
         Returns: Json
       }
       vendor_payable: { Args: { _vendor: string }; Returns: number }
+      wallet_deposit_accounts: {
+        Args: never
+        Returns: {
+          account_number: string
+          account_title: string
+          bank_name: string
+          id: string
+          label: string
+          method: string
+        }[]
+      }
     }
     Enums: {
       app_role:
