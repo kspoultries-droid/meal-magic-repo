@@ -31,3 +31,5 @@
 - Company/footer content uses validated shared app settings and internal information pages; never publish placeholder links or invented legal/contact details.
 - Admin-owned businesses are created through an admin-authorized RPC with server-derived ownership; reuse existing owner tools and keep new shops inactive until their details are ready.
 - Shared store details and account/admin links derive marketplace mode from persisted store_type, not a caller's URL; uploaded replacement photos become the cover while retaining the gallery.
+
+- Authentication emails use the managed auth-email-hook and versioned email-js handler; never add queue infrastructure because this project uses managed delivery.
