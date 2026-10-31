@@ -435,6 +435,27 @@
       "when": 1793449321187,
       "tag": "0061_shop_atomic_checkout_and_inventory_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1793449957039,
+      "tag": "0062_shop_checkout_result_identifier",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1793450009289,
+      "tag": "0063_shop_item_event_types",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1793450151561,
+      "tag": "0064_shop_snapshot_integrity",
+      "breakpoints": true
     }
   ]
 }

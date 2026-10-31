@@ -1,0 +1,2 @@
+ALTER TABLE public.order_events DROP CONSTRAINT order_events_event_type_check;
+ALTER TABLE public.order_events ADD CONSTRAINT order_events_event_type_check CHECK(event_type IN ('status','shipment','courier','item','substitution','approval','voucher_applied'));
