@@ -272,7 +272,7 @@ const Profile = () => {
   };
   const dashboards = [
     ...(roles.includes("admin") ? [{name:t("dash.admin"),path:"/admin",icon:Settings}] : []),
-    ...(roles.includes("restaurant_owner") ? [{name:t("dash.restaurant"),path:"/restaurant-dashboard",icon:Store}] : []),
+    ...(partnerAssets.restaurants.length > 0 ? [{name:t("dash.restaurant"),path:"/restaurant-dashboard",icon:Store}] : []),
     ...(roles.includes("rider") ? [{name:t("dash.rider"),path:"/rider-dashboard",icon:Bike}] : []),
     ...(roles.includes("support") ? [{name:t("dash.support"),path:"/support-dashboard",icon:Headphones}] : []),
     ...(roles.includes("mechanic") || partnerAssets.serviceProvider ? [{name:t("dash.mechanic"),path:"/mechanic-dashboard",icon:Wrench}] : []),
@@ -291,7 +291,7 @@ const Profile = () => {
             {photoUrl ? <img src={photoUrl} alt={title} className="h-20 w-20 rounded-full object-cover"/> : <span className="text-3xl font-bold text-primary">{title.charAt(0).toUpperCase()}</span>}
             <span className="absolute bottom-0 end-0 rounded-full bg-primary text-primary-foreground p-1.5 border-2 border-card"><Camera className="h-3.5 w-3.5"/></span>
           </Button>
-          <div className="min-w-0 flex-1"><h2 className="text-2xl font-extrabold break-words leading-snug">{title}</h2><Button variant="link" className="h-auto p-0 text-muted-foreground text-xs mt-1" onClick={()=>setEditing(true)}>{t("profile.viewEdit")} <Pencil className="h-3 w-3 ms-1"/></Button><div className="flex gap-3 mt-2 text-xs text-muted-foreground"><span><b className="text-foreground">{orders.length}</b> {t("profile.ordersCount")}</span><span>·</span><span><b className="text-foreground">{coinBalance ?? "—"}</b> {L("Coins","سکے")}</span><Button variant="ghost" size="icon" className="h-5 w-5" aria-label={L("Copy account ID","اکاؤنٹ شناخت کاپی کریں")} onClick={()=>{navigator.clipboard.writeText(user.id);toast.success(L("ID copied","شناخت کاپی ہو گئی"));}}><Copy className="h-3 w-3"/></Button></div></div>
+          <div className="min-w-0 flex-1"><h2 className="text-2xl font-extrabold break-words leading-snug">{title}</h2><Button variant="link" className="h-auto p-0 text-muted-foreground text-xs mt-1" onClick={()=>setEditing(true)}>{t("profile.viewEdit")} <Pencil className="h-3 w-3 ms-1"/></Button><div className="flex gap-3 mt-2 text-xs text-muted-foreground"><span><b className="text-foreground">{orders.length}</b> {t("profile.ordersCount")}</span><span>·</span><span><b className="text-foreground">{coinBalance ?? "—"}</b> {L("Coins","سکے")}</span><span className="flex items-center gap-1"><span className="font-mono text-[10px] text-muted-foreground" dir="ltr">ID: {user.id.slice(0,8)}…</span><Button variant="ghost" size="icon" className="h-5 w-5" aria-label={L("Copy account ID","اکاؤنٹ شناخت کاپی کریں")} onClick={()=>{navigator.clipboard.writeText(user.id);toast.success(L("ID copied","شناخت کاپی ہو گئی"));}}><Copy className="h-3 w-3"/></Button></span></div></div>
         </div>
       </section>
       <section className="bg-card px-4 pb-5 grid grid-cols-2 gap-3">

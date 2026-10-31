@@ -378,7 +378,7 @@ const Grocery = () => {
                 </div>
                 <div className="flex-1 min-w-0 py-0.5">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-extrabold text-foreground text-sm truncate">{store.name}</h3>
+                    <h3 className="font-extrabold text-foreground text-sm line-clamp-2 leading-snug">{store.name}</h3>
                     {store.rating > 0 && (
                       <span className="flex items-center gap-0.5 text-[11px] font-bold text-foreground shrink-0">
                         <Star className="w-3 h-3 text-warning fill-warning" /> {store.rating}

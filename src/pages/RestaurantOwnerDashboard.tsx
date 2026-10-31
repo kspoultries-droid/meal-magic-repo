@@ -42,8 +42,10 @@ const RestaurantOwnerDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      supabase.rpc("has_role", { _user_id: user.id, _role: "restaurant_owner" as any })
-        .then(({ data }) => setHasRole(!!data));
+      // Access is decided by actually owning a restaurant, not by the shared vendor role
+      // (grocery/wholesale partners hold the same role but must not see this dashboard).
+      supabase.from("restaurants").select("id").eq("owner_id", user.id).limit(1)
+        .then(({ data }) => setHasRole(!!data?.length));
     }
   }, [user]);
 
