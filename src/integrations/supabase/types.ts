@@ -5176,6 +5176,7 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: string[]
       }
+      save_company_settings: { Args: { _values: Json }; Returns: undefined }
       save_provider_service: {
         Args: {
           _active: boolean

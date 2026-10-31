@@ -365,6 +365,13 @@
       "when": 1793410754266,
       "tag": "0051_wallet_receipt_review_and_admin_businesses",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1793410898220,
+      "tag": "0052_company_settings_validated_save",
+      "breakpoints": true
     }
   ]
 }

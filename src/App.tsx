@@ -90,6 +90,7 @@ const ServiceManagerDashboard = lazyWithRetry(() => import("./pages/ServiceManag
 const Wholesale = lazyWithRetry(() => import("./pages/Wholesale"));
 const ProductDetail = lazyWithRetry(() => import("./pages/ProductDetail"));
 const OrderConfirmation = lazyWithRetry(() => import("./pages/OrderConfirmation"));
+const CompanyInfo = lazyWithRetry(() => import("./pages/CompanyInfo"));
 const Partner = lazyWithRetry(() => import("./pages/Partner"));
 const Operations = lazyWithRetry(() => import("./pages/Operations"));
 const Reels = lazyWithRetry(() => import("./pages/Reels"));
@@ -219,6 +220,7 @@ const App = () => (
                   <Route path="/bazar" element={<Wholesale />} />
                   <Route path="/order-confirmation/:type/:id" element={<OrderConfirmation />} />
                   <Route path="/partner" element={<Partner />} />
+                  <Route path="/company/:page" element={<CompanyInfo />} />
                   <Route path="/operations" element={<Operations />} />
                   <Route path="/reels" element={<Reels />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
