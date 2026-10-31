@@ -1,0 +1,1 @@
+CREATE POLICY "Admin removes unattached wallet receipts" ON storage.objects FOR DELETE TO authenticated USING(bucket_id='wallet-receipts' AND public.has_role(auth.uid(),'admin') AND NOT EXISTS(SELECT 1 FROM public.wallet_transactions t WHERE t.receipt_path=storage.objects.name));
