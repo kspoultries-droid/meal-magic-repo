@@ -14,6 +14,8 @@ Deno.serve(async req => {
     const {data:{user},error:authError} = await client.auth.getUser();
     if (authError || !user) return reply({error:"Sign in first"},401);
     if (!user.email_confirmed_at) return reply({error:"Verify your email first"},403);
+    const {data:pending} = await client.from("wallet_transactions").select("id").eq("user_id",user.id).eq("type","topup").eq("status","pending").limit(1);
+    if (pending?.length) return reply({error:"A request is already pending; wait for its review"},400);
     if (Number(req.headers.get("content-length") || 0) > 6*1024*1024) return reply({error:"Receipt must be under 5 MB"},400);
     const form = await req.formData();
     const parsed = schema.safeParse(Object.fromEntries(["amount","accountId","reference","paidAt"].map(k=>[k,form.get(k)])));
