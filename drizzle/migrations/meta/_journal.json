@@ -414,6 +414,13 @@
       "when": 1793449114728,
       "tag": "0058_shop_questions_verified_reviews",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1793449169675,
+      "tag": "0059_shop_stock_reservations",
+      "breakpoints": true
     }
   ]
 }

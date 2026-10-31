@@ -737,6 +737,7 @@ export type Database = {
           fee_breakdown: Json
           final_amount: number | null
           id: string
+          inventory_managed: boolean
           is_gift: boolean | null
           items: Json
           items_adjustment: number
@@ -757,6 +758,7 @@ export type Database = {
           rider_id: string | null
           shipment_status: string | null
           shipped_at: string | null
+          sold_recorded: boolean
           status: string
           store_id: string
           substitution_adjustment: number
@@ -801,6 +803,7 @@ export type Database = {
           fee_breakdown?: Json
           final_amount?: number | null
           id?: string
+          inventory_managed?: boolean
           is_gift?: boolean | null
           items?: Json
           items_adjustment?: number
@@ -821,6 +824,7 @@ export type Database = {
           rider_id?: string | null
           shipment_status?: string | null
           shipped_at?: string | null
+          sold_recorded?: boolean
           status?: string
           store_id: string
           substitution_adjustment?: number
@@ -865,6 +869,7 @@ export type Database = {
           fee_breakdown?: Json
           final_amount?: number | null
           id?: string
+          inventory_managed?: boolean
           is_gift?: boolean | null
           items?: Json
           items_adjustment?: number
@@ -885,6 +890,7 @@ export type Database = {
           rider_id?: string | null
           shipment_status?: string | null
           shipped_at?: string | null
+          sold_recorded?: boolean
           status?: string
           store_id?: string
           substitution_adjustment?: number
@@ -1065,6 +1071,9 @@ export type Database = {
           reason: string | null
           requested_qty: number
           requested_weight_kg: number | null
+          reserved_product_id: string | null
+          reserved_qty: number
+          reserved_variant_id: string | null
           responded_at: string | null
           status: string
           substitute_name: string | null
@@ -1073,6 +1082,7 @@ export type Database = {
           substitute_unit_price: number | null
           unit_price: number
           updated_at: string
+          variant_id: string | null
           variant_label: string | null
         }
         Insert: {
@@ -1094,6 +1104,9 @@ export type Database = {
           reason?: string | null
           requested_qty?: number
           requested_weight_kg?: number | null
+          reserved_product_id?: string | null
+          reserved_qty?: number
+          reserved_variant_id?: string | null
           responded_at?: string | null
           status?: string
           substitute_name?: string | null
@@ -1102,6 +1115,7 @@ export type Database = {
           substitute_unit_price?: number | null
           unit_price?: number
           updated_at?: string
+          variant_id?: string | null
           variant_label?: string | null
         }
         Update: {
@@ -1123,6 +1137,9 @@ export type Database = {
           reason?: string | null
           requested_qty?: number
           requested_weight_kg?: number | null
+          reserved_product_id?: string | null
+          reserved_qty?: number
+          reserved_variant_id?: string | null
           responded_at?: string | null
           status?: string
           substitute_name?: string | null
@@ -1131,6 +1148,7 @@ export type Database = {
           substitute_unit_price?: number | null
           unit_price?: number
           updated_at?: string
+          variant_id?: string | null
           variant_label?: string | null
         }
         Relationships: [
@@ -1309,6 +1327,7 @@ export type Database = {
       grocery_stores: {
         Row: {
           advance_percent: number | null
+          auto_accept_orders: boolean
           banner_theme: string | null
           category: string
           city_id: string | null
@@ -1340,6 +1359,7 @@ export type Database = {
         }
         Insert: {
           advance_percent?: number | null
+          auto_accept_orders?: boolean
           banner_theme?: string | null
           category?: string
           city_id?: string | null
@@ -1371,6 +1391,7 @@ export type Database = {
         }
         Update: {
           advance_percent?: number | null
+          auto_accept_orders?: boolean
           banner_theme?: string | null
           category?: string
           city_id?: string | null
@@ -4599,6 +4620,10 @@ export type Database = {
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
+      adjust_shop_stock: {
+        Args: { _delta: number; _product: string; _variant: string }
+        Returns: undefined
+      }
       admin_create_own_business: {
         Args: {
           _address: string
@@ -5220,6 +5245,7 @@ export type Database = {
         Args: { _category_id: string; _items: Json }
         Returns: undefined
       }
+      shop_mark_order_ready: { Args: { _order_id: string }; Returns: undefined }
       shop_public_reviews: {
         Args: { _limit?: number; _store_id: string }
         Returns: Json
