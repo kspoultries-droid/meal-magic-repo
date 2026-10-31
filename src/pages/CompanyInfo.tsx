@@ -1,0 +1,12 @@
+import { useParams,Link } from "react-router-dom";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import Navbar from "@/components/Navbar";
+import BottomTabBar from "@/components/BottomTabBar";
+export default function CompanyInfo(){
+ const {page}=useParams();const {data,isLoading,error}=useCompanySettings();const {lang,dir}=useLanguage();const L=(en:string,ur:string)=>lang==="ur"?ur:en;
+ const pages:Record<string,[string,string,"company_about"|"legal_terms"|"legal_privacy"|"legal_cookies"]>={about:["About EasyLife","ایزی لائف کا تعارف","company_about"],terms:["Terms & conditions","شرائط و ضوابط","legal_terms"],privacy:["Privacy policy","رازداری کی پالیسی","legal_privacy"],cookies:["Cookie policy","کوکی پالیسی","legal_cookies"]};
+ const item=pages[page||""];const contact=page==="contact";
+ return <div className="min-h-screen bg-background pb-24" dir={dir}><Navbar/><main className="max-w-3xl mx-auto p-5 space-y-5"><h1 className="text-2xl font-bold">{contact?L("Contact EasyLife","ایزی لائف سے رابطہ"):item?L(item[0],item[1]):L("Page not found","صفحہ موجود نہیں")}</h1>{isLoading?<p>{L("Loading…","لوڈ ہو رہا ہے…")}</p>:error?<p role="alert">{L("Information could not load","معلومات نہیں کھل سکیں")}</p>:contact?<section className="space-y-3">{data?.company_address&&<p className="whitespace-pre-wrap">{data.company_address}</p>}{data?.helpline_phone&&<Button asChild variant="outline"><a href={`tel:${data.helpline_phone.replace(/[^+0-9]/g,"")}`}>{L("Call","فون کریں")} {data.helpline_phone}</a></Button>}{data?.whatsapp_number&&<Button asChild><a href={`https://wa.me/${data.whatsapp_number.replace(/\D/g,"")}`} target="_blank" rel="noopener noreferrer">WhatsApp</a></Button>}{data?.contact_email&&<Button asChild variant="outline"><a href={`mailto:${encodeURIComponent(data.contact_email)}`}>{data.contact_email}</a></Button>}<Button asChild variant="outline"><Link to="/profile">{L("Account help centre","اکاؤنٹ مدد مرکز")}</Link></Button></section>:item&&<p className="whitespace-pre-wrap break-words leading-8">{data?.[item[2]]||L("This information has not been published yet.","یہ معلومات ابھی شائع نہیں کی گئیں۔")}</p>}</main><BottomTabBar/></div>;
+}
