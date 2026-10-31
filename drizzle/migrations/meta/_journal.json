@@ -316,6 +316,20 @@
       "when": 1793406139124,
       "tag": "0044_service_contact_and_provider_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1793406514544,
+      "tag": "0045_service_evidence_exact_path_authorization",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1793406757263,
+      "tag": "0046_service_review_aggregate_integrity",
+      "breakpoints": true
     }
   ]
 }
