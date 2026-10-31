@@ -11,14 +11,23 @@ import { parseCsv, productsToCsv, rowsToProducts } from "@/lib/inventoryImport";
 import { Download, FileUp, Plus, Save, Search } from "lucide-react";
 import { toast } from "sonner";
 
-type Props = { storeId: string; products: any[]; categories: string[]; onChanged: () => void };
+type Props = { storeId: string; products: any[]; categories: string[]; onChanged: () => void; mode?: "grocery" | "bazar" };
+
+// Catalog categories that belong to a food/kiryana grocery shop; everything else is Bazar (electronics, shoes, clothes...).
+export const GROCERY_CATALOG_CATEGORIES = new Set([
+  "general", "eggs & meat", "vegetables", "snacks", "atta & rice", "fruits", "dairy", "personal care", "cleaning",
+  "tea", "daal", "biscuits", "rice", "atta", "beverages", "chocolates", "sugar", "salt", "masala", "besan", "noodles", "oil",
+  "bakery", "frozen", "care",
+]);
+export const catalogFitsMode = (category: string | null | undefined, mode: "grocery" | "bazar") =>
+  GROCERY_CATALOG_CATEGORIES.has(String(category || "general").trim().toLowerCase()) === (mode === "grocery");
 type Draft = { price: string; discount: string; available: boolean };
 
-export default function StoreInventoryTools({ storeId, products, categories, onChanged }: Props) {
+export default function StoreInventoryTools({ storeId, products, categories, onChanged, mode = "grocery" }: Props) {
   const [q, setQ] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [saving, setSaving] = useState(false);
-  const [quick, setQuick] = useState({ name: "", price: "", discount: "", unit: "", category: categories[0] || "General" });
+  const [quick, setQuick] = useState({ name: "", price: "", discount: "", unit: "", stock: "", description: "", category: categories[0] || "General" });
 
   const shown = useMemo(() => products.filter((p) => !q || matchesSearch(q, p.name, p.category)).slice(0, 300), [products, q]);
   const dirty = Object.keys(drafts);
@@ -49,10 +58,10 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
     if (!quick.name.trim() || !(price > 0)) { toast.error("نام اور قیمت لکھیں"); return; }
     const disc = quick.discount ? Number(quick.discount) : null;
     const discount = disc && disc > 0 && disc < price ? disc : null;
-    const { error } = await supabase.from("grocery_products").insert({ store_id: storeId, name: quick.name.trim(), price, discount_price: discount, is_special_offer: !!discount, unit: quick.unit.trim() || null, category: quick.category });
+    const { error } = await supabase.from("grocery_products").insert({ store_id: storeId, name: quick.name.trim(), price, discount_price: discount, is_special_offer: !!discount, unit: quick.unit.trim() || null, category: quick.category, description: quick.description.trim() || null, ...(quick.stock !== "" && Number(quick.stock) >= 0 ? { stock_qty: Math.floor(Number(quick.stock)) } : {}) });
     if (error) { toast.error(error.message); return; }
     toast.success("چیز شامل ہو گئی");
-    setQuick((s) => ({ ...s, name: "", price: "", discount: "", unit: "" }));
+    setQuick((s) => ({ ...s, name: "", price: "", discount: "", unit: "", stock: "", description: "" }));
     onChanged();
   };
 
@@ -72,8 +81,13 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
             <div className="grid grid-cols-3 gap-2">
               <Input inputMode="numeric" placeholder="قیمت" value={quick.price} onChange={(e) => setQuick({ ...quick, price: e.target.value })} />
               <Input inputMode="numeric" placeholder="رعایتی قیمت" value={quick.discount} onChange={(e) => setQuick({ ...quick, discount: e.target.value })} />
-              <Input placeholder="یونٹ (kg)" value={quick.unit} onChange={(e) => setQuick({ ...quick, unit: e.target.value })} />
+              <Input placeholder="سائز/یونٹ (1kg)" value={quick.unit} onChange={(e) => setQuick({ ...quick, unit: e.target.value })} />
             </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Input inputMode="numeric" placeholder="اسٹاک تعداد" value={quick.stock} onChange={(e) => setQuick({ ...quick, stock: e.target.value })} />
+              <Input className="col-span-2" placeholder="مختصر تفصیل (اختیاری)" value={quick.description} onChange={(e) => setQuick({ ...quick, description: e.target.value })} />
+            </div>
+            <p className="text-[10px] text-muted-foreground">تصویر اور مکمل تفصیل کے لیے اوپر «پروڈکٹ شامل» استعمال کریں۔</p>
             <div className="flex gap-2">
               <select className="flex-1 h-10 rounded-md border bg-background px-2 text-sm" value={quick.category} onChange={(e) => setQuick({ ...quick, category: e.target.value })}>
                 {categories.map((c) => <option key={c}>{c}</option>)}
@@ -118,60 +132,101 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
           )}
         </TabsContent>
 
-        <TabsContent value="catalog"><CatalogPicker storeId={storeId} existing={products} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="catalog"><CatalogPicker storeId={storeId} existing={products} onChanged={onChanged} mode={mode} /></TabsContent>
         <TabsContent value="excel"><ExcelImport storeId={storeId} products={products} onChanged={onChanged} /></TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function CatalogPicker({ storeId, existing, onChanged }: { storeId: string; existing: any[]; onChanged: () => void }) {
+type Pick = { price: string; discount: string; stock: string; unit: string; usePhoto: boolean };
+
+function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string; existing: any[]; onChanged: () => void; mode: "grocery" | "bazar" }) {
   const [items, setItems] = useState<any[]>([]);
   const [q, setQ] = useState("");
-  const [prices, setPrices] = useState<Record<string, string>>({});
+  const [cat, setCat] = useState("all");
+  const [picks, setPicks] = useState<Record<string, Pick>>({});
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    (supabase as any).from("catalog_items").select("*").order("category").order("name").limit(5000).then(({ data }: any) => setItems(data || []));
-  }, []);
+    (supabase as any).from("catalog_items").select("*").order("category").order("name").limit(5000)
+      .then(({ data }: any) => setItems((data || []).filter((i: any) => catalogFitsMode(i.category, mode))));
+  }, [mode]);
 
   const have = useMemo(() => new Set(existing.map((p) => `${p.name}`.toLowerCase())), [existing]);
-  const shown = useMemo(() => items.filter((i) => !have.has(i.name.toLowerCase()) && (!q || matchesSearch(q, i.name, i.category))).slice(0, 200), [items, q, have]);
-  const picked = Object.entries(prices).filter(([, v]) => Number(v) > 0);
+  const cats = useMemo(() => Array.from(new Set(items.map((i) => i.category))).sort(), [items]);
+  const shown = useMemo(() => items.filter((i) => !have.has(i.name.toLowerCase()) && (cat === "all" || i.category === cat) && (!q || matchesSearch(q, i.name, i.category, i.brand))).slice(0, 200), [items, q, have, cat]);
+  const picked = Object.entries(picks).filter(([, v]) => Number(v.price) > 0);
+  const pickOf = (i: any): Pick => picks[i.id] || { price: "", discount: "", stock: "", unit: i.unit || "", usePhoto: !!i.image_url };
+  const setPick = (i: any, patch: Partial<Pick>) => setPicks((p) => ({ ...p, [i.id]: { ...pickOf(i), ...patch } }));
 
   const addPicked = async () => {
     setBusy(true);
-    const rows = picked.map(([id, price]) => {
+    const rows = picked.map(([id, v]) => {
       const i = items.find((x) => x.id === id);
-      return { store_id: storeId, name: i.name, price: Number(price), unit: i.unit, category: i.category, brand: i.brand, description: i.description, image_url: i.image_url, ...(i.weight_kg ? { weight_kg: i.weight_kg } : {}) };
+      const price = Number(v.price);
+      const disc = Number(v.discount);
+      const discount = disc > 0 && disc < price ? disc : null;
+      return {
+        store_id: storeId, name: i.name, price, discount_price: discount, is_special_offer: !!discount,
+        unit: v.unit.trim() || i.unit, category: i.category, brand: i.brand, description: i.description,
+        image_url: v.usePhoto ? i.image_url : null,
+        ...(v.stock !== "" && Number(v.stock) >= 0 ? { stock_qty: Math.floor(Number(v.stock)) } : {}),
+        ...(i.weight_kg ? { weight_kg: i.weight_kg } : {}),
+      };
     });
     const { error } = await supabase.from("grocery_products").insert(rows);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success(`${rows.length} چیزیں آپ کی دکان میں شامل ہو گئیں`);
-    setPrices({});
+    setPicks({});
     onChanged();
   };
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">تصویر اور نام پہلے سے موجود ہیں۔ جو چیز آپ بیچتے ہیں اس کے سامنے اپنی قیمت لکھیں، پھر نیچے بٹن دبائیں۔</p>
+      <p className="text-xs text-muted-foreground">صرف {mode === "bazar" ? "بازار" : "گروسری"} کی چیزیں دکھائی گئی ہیں۔ قیمت لکھیں تو رعایت، اسٹاک اور سائز کے خانے کھل جائیں گے۔ تصویر اصل جیسی نہ ہو تو «تصویر» بند کر دیں اور بعد میں اپنی تصویر لگائیں۔</p>
       <div className="relative">
         <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input className="pr-9" placeholder={`${items.length} چیزوں کی فہرست میں تلاش`} value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
+      {cats.length > 1 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {["all", ...cats].map((c) => (
+            <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full border px-3 py-1 text-xs ${cat === c ? "border-primary bg-primary text-primary-foreground" : "bg-card"}`}>{c === "all" ? "سب" : c}</button>
+          ))}
+        </div>
+      )}
       <div className="divide-y rounded-xl border bg-card">
-        {shown.length === 0 && <p className="p-4 text-center text-sm text-muted-foreground">فہرست میں کوئی نئی چیز نہیں</p>}
-        {shown.map((i) => (
-          <div key={i.id} className="flex items-center gap-2 p-2">
-            {i.image_url ? <img src={img(i.image_url, 80)} alt="" loading="lazy" className="h-10 w-10 rounded-md object-cover" /> : <div className="h-10 w-10 rounded-md bg-muted" />}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold">{i.name}</p>
-              <p className="text-[10px] text-muted-foreground">{i.category}{i.unit ? ` · ${i.unit}` : ""}</p>
+        {shown.length === 0 && <p className="p-4 text-center text-sm text-muted-foreground">اس قسم کی فہرست میں ابھی کوئی چیز نہیں — «قیمتیں» میں خود شامل کریں یا Excel استعمال کریں</p>}
+        {shown.map((i) => {
+          const v = pickOf(i);
+          const active = Number(v.price) > 0;
+          return (
+            <div key={i.id} className={`p-2 space-y-2 ${active ? "bg-primary/5" : ""}`}>
+              <div className="flex items-center gap-2">
+                {i.image_url && v.usePhoto ? <img src={img(i.image_url, 80)} alt="" loading="lazy" className="h-10 w-10 rounded-md object-cover" /> : <div className="h-10 w-10 rounded-md bg-muted" />}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold">{i.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{i.category}{i.unit ? ` · ${i.unit}` : ""}</p>
+                </div>
+                <Input inputMode="numeric" placeholder="قیمت" className="h-8 w-20 px-2 text-xs" value={v.price} onChange={(e) => setPick(i, { price: e.target.value })} />
+              </div>
+              {active && (
+                <div className="grid grid-cols-3 gap-1.5 items-center">
+                  <Input inputMode="numeric" placeholder="رعایتی قیمت" className="h-8 px-2 text-xs" value={v.discount} onChange={(e) => setPick(i, { discount: e.target.value })} />
+                  <Input inputMode="numeric" placeholder="اسٹاک" className="h-8 px-2 text-xs" value={v.stock} onChange={(e) => setPick(i, { stock: e.target.value })} />
+                  <Input placeholder="سائز" className="h-8 px-2 text-xs" value={v.unit} onChange={(e) => setPick(i, { unit: e.target.value })} />
+                  {i.image_url && (
+                    <label className="col-span-3 flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <Switch checked={v.usePhoto} onCheckedChange={(c) => setPick(i, { usePhoto: c })} /> فہرست والی تصویر استعمال کریں
+                    </label>
+                  )}
+                </div>
+              )}
             </div>
-            <Input inputMode="numeric" placeholder="قیمت" className="h-8 w-20 px-2 text-xs" value={prices[i.id] || ""} onChange={(e) => setPrices((p) => ({ ...p, [i.id]: e.target.value }))} />
-          </div>
-        ))}
+          );
+        })}
       </div>
       {picked.length > 0 && (
         <div className="sticky bottom-20 z-20">

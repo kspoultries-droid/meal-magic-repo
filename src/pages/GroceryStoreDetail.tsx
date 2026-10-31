@@ -33,6 +33,11 @@ const GROCERY_CATEGORIES = [
   "Beverages", "Snacks", "Bakery", "Frozen", "Cleaning", "Personal Care",
 ];
 
+const BAZAR_CATEGORIES = [
+  "General", "Electronics", "Mobile Accessories", "Electric", "Hardware", "Tools", "Shoes",
+  "Ladies Clothes", "Children Clothes", "Cosmetics", "Crockery", "Stationery", "Toys", "Gift Boxes",
+];
+
 const GroceryStoreDetail = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -445,7 +450,7 @@ const GroceryStoreDetail = () => {
           )}
           {isOwner && (
             <TabsContent value="stock">
-              <StoreInventoryTools storeId={store.id} products={products} categories={GROCERY_CATEGORIES} onChanged={fetchData} />
+              <StoreInventoryTools storeId={store.id} products={products} categories={isBazar ? BAZAR_CATEGORIES : GROCERY_CATEGORIES} onChanged={fetchData} mode={isBazar ? "bazar" : "grocery"} />
             </TabsContent>
           )}
           {isOwner && <TabsContent value="questions"><ShopQuestions storeId={store.id} /></TabsContent>}
