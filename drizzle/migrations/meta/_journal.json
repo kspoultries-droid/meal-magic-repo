@@ -379,6 +379,13 @@
       "when": 1793411164968,
       "tag": "0053_admin_business_registered_city_validation",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1793411209854,
+      "tag": "0054_public_company_settings_scope",
+      "breakpoints": true
     }
   ]
 }
