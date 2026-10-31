@@ -344,6 +344,13 @@
       "when": 1793407016717,
       "tag": "0048_service_assignment_candidate_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1793407394174,
+      "tag": "0049_service_supervisor_assignment_integrity",
+      "breakpoints": true
     }
   ]
 }
