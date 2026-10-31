@@ -20,6 +20,10 @@ import ProductPhotoUploader, { PreparedPhoto } from "@/components/media/ProductP
 import { uploadGroceryProductPhoto } from "@/lib/groceryProductImages";
 import { storePath, mergeProductPhotos } from "@/lib/storePresentation";
 import StoreInventoryTools from "@/components/grocery/StoreInventoryTools";
+import ShopQuestions from "@/components/grocery/ShopQuestions";
+import ShopOrderSettings from "@/components/grocery/ShopOrderSettings";
+import VendorReviewsPanel from "@/components/reviews/VendorReviewsPanel";
+import { availableShopQuantity } from "@/lib/shopOrders";
 
 import BottomTabBar from "@/components/BottomTabBar";
 import { toast } from "sonner";
@@ -31,7 +35,8 @@ const GROCERY_CATEGORIES = [
 
 const GroceryStoreDetail = () => {
   const { id } = useParams();
-  const isBazar = useLocation().pathname.startsWith("/bazar");
+  const location = useLocation();
+  const isBazar = location.pathname.startsWith("/bazar");
   const navigate = useNavigate();
   const { user } = useAuth();
   const { items: cartItems, addItem, updateQuantity } = useCart();
@@ -89,6 +94,8 @@ const GroceryStoreDetail = () => {
     cartItems.find((item) => item.menu_item_id === productId && (item.variant_id || null) === (variantId || null));
 
   const handleAdd = (product: any) => {
+    const stock = availableShopQuantity(product);
+    if (stock !== null && (getCartLine(product.id)?.quantity || 0) >= stock) { toast.error("مزید مقدار دستیاب نہیں"); return; }
     const effectivePrice = product.wholesale_price || product.discount_price || product.price;
     const variants = getVariants(product);
     if (variants.length > 0) {
@@ -254,14 +261,17 @@ const GroceryStoreDetail = () => {
 
       {/* Tabs: Products & Orders */}
       <div className="container mx-auto px-4 pb-6">
-        <Tabs defaultValue="products" className="w-full">
-          <TabsList className="w-full mb-3">
+        <Tabs defaultValue={new URLSearchParams(location.search).get("tab") || "products"} className="w-full">
+          <TabsList className="w-full mb-3 justify-start overflow-x-auto">
             <TabsTrigger value="products" className="flex-1">🛒 پروڈکٹس</TabsTrigger>
             {(!isBazar || isOwner) && (
               <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
             )}
             {isOwner && <TabsTrigger value="stock" className="flex-1">📦 اسٹاک</TabsTrigger>}
             {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 ریلز</TabsTrigger>}
+            {isOwner && <TabsTrigger value="questions">سوالات</TabsTrigger>}
+            {isOwner && <TabsTrigger value="reviews">رائے</TabsTrigger>}
+            {isOwner && <TabsTrigger value="settings">ترتیبات</TabsTrigger>}
           </TabsList>
 
 
@@ -302,7 +312,6 @@ const GroceryStoreDetail = () => {
                           ) : (
                             <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
                           )}
-                          {!isOwner && product.rating > 0 && <span className="absolute bottom-1 left-1 rounded-md bg-foreground/70 px-1.5 py-0.5 text-[9px] font-bold text-background">★ {Number(product.rating).toFixed(1)}</span>}
                          {isOwner && (
                           <div className="absolute bottom-1 right-1 flex gap-1">
                             <ProductPhotoUploader compact multiple onDone={async (photos) => { await uploadProductImage(product.id, photos); }} />
@@ -315,6 +324,7 @@ const GroceryStoreDetail = () => {
                            <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
                            {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
                          </button>
+                        {availableShopQuantity(product) !== null && <p className="mt-1 text-[11px] text-muted-foreground">دستیاب / Available: {availableShopQuantity(product)}</p>}
 
                         {!isOwner && productVariants.length > 0 && (
                           <button type="button" onClick={() => navigate(`/product/${product.id}`)} className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-bold text-accent-foreground">
@@ -438,6 +448,9 @@ const GroceryStoreDetail = () => {
               <StoreInventoryTools storeId={store.id} products={products} categories={GROCERY_CATEGORIES} onChanged={fetchData} />
             </TabsContent>
           )}
+          {isOwner && <TabsContent value="questions"><ShopQuestions storeId={store.id} /></TabsContent>}
+          {isOwner && <TabsContent value="reviews"><VendorReviewsPanel kind="grocery" /></TabsContent>}
+          {isOwner && <TabsContent value="settings"><ShopOrderSettings store={store} onChanged={fetchData} /></TabsContent>}
         </Tabs>
 
       </div>
