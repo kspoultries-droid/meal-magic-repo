@@ -386,6 +386,13 @@
       "when": 1793411209854,
       "tag": "0054_public_company_settings_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1793411393157,
+      "tag": "0055_wallet_receipt_initialize_missing_wallet",
+      "breakpoints": true
     }
   ]
 }
