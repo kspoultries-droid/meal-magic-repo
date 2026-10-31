@@ -351,6 +351,13 @@
       "when": 1793407394174,
       "tag": "0049_service_supervisor_assignment_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1793407685015,
+      "tag": "0050_service_candidate_internal_role_validation",
+      "breakpoints": true
     }
   ]
 }

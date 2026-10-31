@@ -5153,6 +5153,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      service_provider_is_approved: {
+        Args: { _provider_id: string }
+        Returns: boolean
+      }
       set_service_availability: {
         Args: { _available: boolean }
         Returns: undefined
