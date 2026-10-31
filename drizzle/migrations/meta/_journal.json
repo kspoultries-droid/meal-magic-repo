@@ -407,6 +407,34 @@
       "when": 1793411594357,
       "tag": "0057_company_public_read_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1793449114728,
+      "tag": "0058_shop_questions_verified_reviews",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1793449169675,
+      "tag": "0059_shop_stock_reservations",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1793449275522,
+      "tag": "0060_shop_delivery_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1793449321187,
+      "tag": "0061_shop_atomic_checkout_and_inventory_guards",
+      "breakpoints": true
     }
   ]
 }

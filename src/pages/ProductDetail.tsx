@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductQuestions from "@/components/product/ProductQuestions";
 import RelatedProducts, { type RelatedItem } from "@/components/product/RelatedProducts";
+import { availableShopQuantity } from "@/lib/shopOrders";
+import { toast } from "sonner";
 
 
 
@@ -24,7 +26,8 @@ const ProductDetail = () => {
    const [related, setRelated] = useState<RelatedItem[]>([]);
    const [reviews, setReviews] = useState<any[]>([]);
    const [loading, setLoading] = useState(true);
-   const [activeTab, setActiveTab] = useState("overview");
+   const [activeTab, setActiveTab] = useState(new URLSearchParams(window.location.search).get("tab") || "overview");
+   const [reviewSummary, setReviewSummary] = useState({ rating: 0, count: 0 });
    const [liked, setLiked] = useState(false);
    const [selectedVariantId, setSelectedVariantId] = useState<string>("");
 
@@ -42,13 +45,15 @@ const ProductDetail = () => {
        const [{ data: storeData }, { data: relatedData }, { data: reviewData }] = await Promise.all([
          supabase.from("grocery_stores").select("*").eq("id", productData.store_id).maybeSingle(),
          supabase.from("grocery_products").select("id,name,price,discount_price,wholesale_price,image_url").eq("store_id", productData.store_id).neq("id", id).eq("is_available", true).limit(6),
-         (supabase.from("grocery_reviews_public" as any).select("id,rating,comment,photo_urls,video_url,created_at").eq("store_id", productData.store_id).order("created_at", { ascending: false }).limit(20) as any),
+         supabase.rpc("shop_public_reviews", { _store_id: productData.store_id, _limit: 20 }),
        ]);
        recordRecent(productData, user?.id);
        setProduct(productData);
        setStore(storeData);
        setRelated(relatedData || []);
-       setReviews(reviewData || []);
+       const summary = reviewData as any;
+       setReviews(summary?.reviews || []);
+       setReviewSummary({ rating: Number(summary?.rating || 0), count: Number(summary?.count || 0) });
        setLoading(false);
     };
     load();
@@ -71,6 +76,7 @@ const ProductDetail = () => {
   const discount = hasDiscount ? Math.round(((product.price - effectivePrice) / product.price) * 100) : 0;
   const cartLine = items.find((item) => item.menu_item_id === id && item.sourceId === product?.store_id && (item.variant_id || null) === selectedVariantCartId);
   const quantity = cartLine?.quantity || 0;
+  const availableQuantity = availableShopQuantity(product || {}, selectedVariant);
 
   useEffect(() => {
     setSelectedVariantId(variants[0] ? String(variants[0].id || variants[0].label) : "");
@@ -78,6 +84,7 @@ const ProductDetail = () => {
 
   const addToCart = (): boolean => {
     if (!product || !store) return false;
+    if (availableQuantity !== null && quantity >= availableQuantity) { toast.error("منتخب مقدار دستیاب نہیں"); return false; }
     const variantLabel = selectedVariant?.label || selectedVariant?.name;
       return addItem({
         id: product.id,
@@ -125,13 +132,14 @@ const ProductDetail = () => {
 
       <main className="mx-auto max-w-5xl">
         <section className="overflow-hidden bg-card border-b border-border/60 sm:mt-4 sm:rounded-3xl sm:border">
-          <ProductGallery images={images} name={product.name} rating={Number(product.rating || store.rating || 0)} soldCount={Number(product.sold_count || 0)} />
+          <ProductGallery images={images} name={product.name} rating={0} soldCount={Number(product.sold_count || 0)} />
           <div className="p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   {hasDiscount && <span className="rounded-md bg-destructive px-2 py-1 text-[10px] font-extrabold text-destructive-foreground">-{discount}% آفر</span>}
-                  {product.is_available && <span className="flex items-center gap-1 text-[10px] font-bold text-success"><Check className="h-3 w-3" /> دستیاب ہے</span>}
+                  {availableQuantity !== 0 && product.is_available && <span className="flex items-center gap-1 text-[10px] font-bold text-success"><Check className="h-3 w-3" /> {availableQuantity === null ? "دستیاب ہے" : `دستیاب: ${availableQuantity}`}</span>}
+                  {availableQuantity === 0 && <span className="text-xs font-bold text-destructive">اسٹاک ختم</span>}
                 </div>
                 <h1 className="text-xl font-extrabold leading-tight text-foreground sm:text-2xl">{product.name}</h1>
                 <p className="mt-1 text-xs text-muted-foreground">{product.brand || product.category || "معیاری پروڈکٹ"}{product.unit ? ` · فی ${product.unit}` : ""}{product.weight ? ` · ${product.weight}` : ""}</p>
@@ -184,9 +192,8 @@ const ProductDetail = () => {
               <>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <InfoTile icon={<Truck className="h-4 w-4" />} label="ڈیلیوری" value={product.delivery_days || "1–3 دن"} />
-                  <InfoTile icon={<Clock3 className="h-4 w-4" />} label="تیاری" value="فوری روانگی" />
-                  <InfoTile icon={<BadgeCheck className="h-4 w-4" />} label="معیار" value="تصدیق شدہ" />
-                  <InfoTile icon={<MapPin className="h-4 w-4" />} label="شہر" value="Rahim Yar Khan" />
+                  <InfoTile icon={<Clock3 className="h-4 w-4" />} label="تیاری" value={store.delivery_time || "دکان کے مطابق"} />
+                  <InfoTile icon={<ShoppingBag className="h-4 w-4" />} label="فروخت" value={String(product.sold_count || 0)} />
                 </div>
                 <div className="rounded-2xl border border-border bg-card p-4">
                   <h2 className="text-sm font-extrabold text-foreground">اس پروڈکٹ کے بارے میں</h2>
@@ -206,7 +213,7 @@ const ProductDetail = () => {
               </>
             )}
              {activeTab === "details" && <DetailsBlock specs={product.specs} sku={product.sku} brand={product.brand} weight={product.weight} unit={product.unit} />}
-             {activeTab === "reviews" && <ReviewList reviews={reviews} store={store} />}
+             {activeTab === "reviews" && <ReviewList reviews={reviews} store={{ ...store, rating: reviewSummary.rating, review_count: reviewSummary.count }} />}
              {activeTab === "questions" && <ProductQuestions productId={product.id} storeId={store.id} storeOwnerId={store.owner_id} />}
            </section>
         )}
@@ -267,9 +274,9 @@ const InfoTile = ({ icon, label, value }: { icon: ReactNode; label: string; valu
  };
 
  const ReviewList = ({ reviews, store }: { reviews: any[]; store: any }) => {
-   const average = reviews.length ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length : Number(store?.rating || 0);
+   const average = Number(store?.rating || 0);
    return <div className="space-y-3">
-     <div className="rounded-2xl border border-border bg-card p-4"><div className="flex items-center gap-3"><div><p className="text-3xl font-black text-primary">{average ? average.toFixed(1) : "نئی"}</p><div className="flex text-primary">{[1, 2, 3, 4, 5].map((star) => <Star key={star} className={`size-3.5 ${star <= Math.round(average) ? "fill-primary" : "text-muted"}`} />)}</div></div><div className="text-xs text-muted-foreground"><p className="font-bold text-foreground">{store?.name}</p><p>{reviews.length} customer reviews · shop ranking</p></div></div></div>
+     <div className="rounded-2xl border border-border bg-card p-4"><div className="flex items-center gap-3"><div><p className="text-3xl font-black text-primary">{average ? average.toFixed(1) : "نئی"}</p><div className="flex text-primary">{[1, 2, 3, 4, 5].map((star) => <Star key={star} className={`size-3.5 ${star <= Math.round(average) ? "fill-primary" : "text-muted"}`} />)}</div></div><div className="text-xs text-muted-foreground"><p className="font-bold text-foreground">{store?.name}</p><p>{store.review_count} آرا · دکان کی ریٹنگ</p></div></div></div>
      {reviews.length === 0 ? <div className="rounded-2xl border border-border bg-card p-8 text-center"><Heart className="mx-auto h-8 w-8 text-muted-foreground/40" /><p className="mt-2 text-sm font-bold text-foreground">ابھی کوئی ریٹنگ نہیں</p><p className="mt-1 text-xs text-muted-foreground">خریداری کے بعد اپنی رائے ضرور دیں۔</p></div> : reviews.map((review) => <article key={review.id} className="rounded-2xl border border-border bg-card p-4"><div className="flex items-center gap-2"><div className="flex text-primary">{[1, 2, 3, 4, 5].map((star) => <Star key={star} className={`size-3 ${star <= Number(review.rating) ? "fill-primary" : "text-muted"}`} />)}</div><span className="text-[10px] text-muted-foreground">{new Date(review.created_at).toLocaleDateString()}</span></div>{review.comment && <p className="mt-2 text-sm leading-6 text-muted-foreground">{review.comment}</p>}{Array.isArray(review.photo_urls) && review.photo_urls.length > 0 && <div className="mt-3 grid grid-cols-3 gap-2">{review.photo_urls.map((url: string) => <img key={url} src={url} alt="customer review" className="aspect-square rounded-lg object-cover" loading="lazy" />)}</div>}{review.video_url && <video controls preload="metadata" className="mt-3 max-h-64 w-full rounded-lg"><source src={review.video_url} /></video>}</article>)}
    </div>;
  };
