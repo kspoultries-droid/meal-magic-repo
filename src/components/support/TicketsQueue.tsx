@@ -8,27 +8,29 @@ import { toast } from "sonner";
 
 const SLA_MIN = 30;
 
-export default function TicketsQueue() {
+export default function TicketsQueue({ serviceOnly = false }: { serviceOnly?: boolean }) {
   const { user } = useAuth();
   const [tickets, setTickets] = useState<any[]>([]);
   const [filter, setFilter] = useState<"open" | "resolved">("open");
   const [replies, setReplies] = useState<Record<string, string>>({});
 
   const load = async () => {
-    const { data } = await (supabase as any).from("support_tickets").select("*")
-      .eq("status", filter).order("created_at", { ascending: filter === "open" }).limit(100);
+    let query = supabase.from("support_tickets").select("*").eq("status", filter);
+    if (serviceOnly) query = query.eq("order_kind", "service");
+    const { data, error } = await query.order("created_at", { ascending: filter === "open" }).limit(100);
+    if (error) toast.error(error.message);
     setTickets(data || []);
   };
   useEffect(() => {
     load();
     const ch = supabase.channel("tickets").on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, load).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [filter]);
+  }, [filter, serviceOnly]);
 
   const resolve = async (t: any) => {
     const reply = (replies[t.id] || "").trim();
     if (!reply) { toast.error("جواب لکھیں"); return; }
-    const { error } = await (supabase as any).from("support_tickets")
+    const { error } = t.service_booking_id ? await supabase.rpc("resolve_service_issue", { _ticket_id:t.id,_reply:reply }) : await (supabase as any).from("support_tickets")
       .update({ status: "resolved", staff_reply: reply, resolved_by: user?.id, resolved_at: new Date().toISOString() }).eq("id", t.id);
     if (error) { toast.error(error.message); return; }
     toast.success("حل شدہ"); load();
