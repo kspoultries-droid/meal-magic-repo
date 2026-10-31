@@ -330,6 +330,34 @@
       "when": 1793406757263,
       "tag": "0046_service_review_aggregate_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793406941780,
+      "tag": "0047_service_supervision_and_checklists",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1793407016717,
+      "tag": "0048_service_assignment_candidate_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1793407394174,
+      "tag": "0049_service_supervisor_assignment_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1793407685015,
+      "tag": "0050_service_candidate_internal_role_validation",
+      "breakpoints": true
     }
   ]
 }

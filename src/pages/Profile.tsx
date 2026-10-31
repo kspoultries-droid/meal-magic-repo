@@ -274,7 +274,7 @@ const Profile = () => {
     ...(roles.includes("rider") ? [{name:t("dash.rider"),path:"/rider-dashboard",icon:Bike}] : []),
     ...(roles.includes("support") ? [{name:t("dash.support"),path:"/support-dashboard",icon:Headphones}] : []),
     ...(roles.includes("mechanic") || partnerAssets.serviceProvider ? [{name:t("dash.mechanic"),path:"/mechanic-dashboard",icon:Wrench}] : []),
-    ...(roles.includes("service_manager") ? [{name:L("Service management","سروس انتظام"),path:"/service-manager-dashboard",icon:Wrench}] : []),
+    ...(roles.includes("service_manager") ? [{name:L("Service management","سروس انتظام"),path:"/service-manager",icon:Wrench}] : []),
     ...partnerAssets.stores.map(store=>({name:store.name,path:`/grocery/${store.id}`,icon:Store})),
   ];
   if (!user || !profile) return <div className="min-h-screen bg-background p-4 space-y-4"><div className="h-36 bg-muted animate-pulse rounded-lg"/><div className="h-28 bg-muted animate-pulse rounded-lg"/></div>;

@@ -1,0 +1,13 @@
+import {useEffect,useState} from 'react';
+import {supabase} from '@/integrations/supabase/client';
+import {useLanguage} from '@/contexts/LanguageContext';
+import {Button} from '@/components/ui/button';
+import {Textarea} from '@/components/ui/textarea';
+import {canReplaceService} from '@/lib/serviceChecklists';
+import {toast} from 'sonner';
+export default function ServiceSupervisionPanel({booking,onChanged}:{booking:any;onChanged:()=>void}){
+ const {lang}=useLanguage();const L=(en:string,ur:string)=>lang==='ur'?ur:en;const [candidates,setCandidates]=useState<any[]>([]);const [history,setHistory]=useState<any[]>([]);const [target,setTarget]=useState('');const [reason,setReason]=useState('');const [busy,setBusy]=useState(false);
+ const load=async()=>{const [{data,error},{data:h}]=await Promise.all([supabase.rpc('service_assignment_candidates',{_booking_id:booking.id}),supabase.from('service_assignment_history').select('*').eq('booking_id',booking.id).order('created_at',{ascending:false})]);if(error)toast.error(error.message);setCandidates(data||[]);setHistory(h||[]);};useEffect(()=>{void load();},[booking.id,booking.provider_id]);
+ const assign=async()=>{setBusy(true);const {error}=await supabase.rpc('assign_service_provider',{_booking_id:booking.id,_provider_id:target,_reason:reason});setBusy(false);if(error)toast.error(error.message);else{toast.success(L('Provider assigned; new acceptance required','کاریگر مقرر؛ دوبارہ قبولیت درکار'));setReason('');setTarget('');await load();onChanged();}};
+ return <section className="border-t pt-4 space-y-3"><h3 className="font-bold">{L('Supervisor assignment','سپروائزر کی تفویض')}</h3>{canReplaceService(booking.status,!!booking.advance_paid)&&<><select aria-label={L('Replacement provider','متبادل کاریگر')} value={target} onChange={e=>setTarget(e.target.value)} className="w-full border rounded-md p-2 bg-background"><option value="">{L('Select available provider','دستیاب کاریگر منتخب کریں')}</option>{candidates.map(p=><option key={p.id} value={p.id}>{p.name} · {p.rating}/5</option>)}</select><Textarea aria-label={L('Replacement reason','تبدیلی کی وجہ')} value={reason} onChange={e=>setReason(e.target.value)}/><Button disabled={busy||!target||reason.trim().length<5} onClick={()=>void assign()}>{L('Assign provider','کاریگر مقرر کریں')}</Button></>}{booking.advance_paid&&<p className="text-warning text-sm">{L('Paid advance: finance review required','ادا شدہ ایڈوانس: پہلے مالی جائزہ درکار')}</p>}{history.map(h=><p key={h.id} className="text-xs border-b pb-2 text-muted-foreground">{new Date(h.created_at).toLocaleString('en-GB')} · {h.reason}</p>)}</section>;
+}

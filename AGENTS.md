@@ -26,3 +26,4 @@
 - Shop item bulk tools (quick edit, shared catalog_items picker, CSV/XLSX import) write only the owner's own grocery_products rows; the catalog stores names/photos without prices because each shop sets its own price.
 - Service jobs use authorized RPCs for claims, quotations, customer decisions, completion and reviews; provider IDs on services/bookings reference provider rows while quotation provider_id retains the legacy auth-user identity. This prevents assignment races and identity mismatches.
 - Service evidence stays private and is signed on demand; canonical account tracking includes service bookings. Customer quotation approval never marks money as paid.
+- Service supervisors reuse service_manager plus category mappings; assignment is serialized, logged, invalidates prior quotations and requires the replacement provider's acceptance. Paid advances require finance review, and booking checklists are immutable snapshots enforced before completion.

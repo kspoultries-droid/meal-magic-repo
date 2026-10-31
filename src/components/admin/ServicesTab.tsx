@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ServiceJobPanel from "@/components/services/ServiceJobPanel";
 import TicketsQueue from "@/components/support/TicketsQueue";
+import { Link } from "react-router-dom";
 
 const ICON_OPTIONS = [
   "Wrench", "Zap", "Droplets", "Paintbrush", "Hammer", "HardHat",
@@ -41,10 +42,10 @@ const ServicesTab = () => {
         <TabsTrigger value="settings" className="text-xs px-1">⚙️ سیٹنگز</TabsTrigger>
       </TabsList>
       <TabsContent value="bookings"><BookingsSection /></TabsContent>
-      <TabsContent value="complaints"><TicketsQueue /></TabsContent>
+      <TabsContent value="complaints"><TicketsQueue serviceOnly /></TabsContent>
       <TabsContent value="services"><ServicesSection /></TabsContent>
       <TabsContent value="categories"><CategoriesSection /></TabsContent>
-      <TabsContent value="settings"><SettingsSection /></TabsContent>
+      <TabsContent value="settings"><Button asChild variant="outline" className="mb-4"><Link to="/service-manager">شعبہ وار نگرانی اور چیک لسٹس</Link></Button><SettingsSection /></TabsContent>
     </Tabs>
   );
 };
