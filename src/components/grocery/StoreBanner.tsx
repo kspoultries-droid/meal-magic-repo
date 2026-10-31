@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import PhotoTips from "@/components/media/PhotoTips";
+import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 
 
 // Grocery collage images per category
@@ -375,6 +376,16 @@ const StoreBanner = ({
                 </div>
               </DialogContent>
             </Dialog>
+
+            <AiSetupAssistant kind="grocery" onSave={async (items) => {
+              let added = 0;
+              for (const item of items) {
+                const { error } = await supabase.from("grocery_products").insert({ store_id: storeId, name: item.name.trim(), price: Number(item.price) || 0, unit: item.unit || "piece", category: item.category || "General", description: item.description || null });
+                if (!error) added++;
+              }
+              toast.success(`${added} اشیا شامل ہو گئیں / Items added`);
+              onRefresh();
+            }} />
           </div>
         )}
       </div>
