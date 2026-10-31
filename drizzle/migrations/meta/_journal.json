@@ -302,6 +302,13 @@
       "when": 1793387160034,
       "tag": "0042_partner_kyc_and_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793406051578,
+      "tag": "0043_service_provider_workflow_phase_two",
+      "breakpoints": true
     }
   ]
 }
