@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import LocationSheet from "@/components/location/LocationSheet";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { shopStatusStep } from "@/lib/shopOrders";
 
 const OrderConfirmation = () => {
   const { type, id } = useParams<{ type: string; id: string }>();
@@ -16,7 +17,7 @@ const OrderConfirmation = () => {
   const [locOpen, setLocOpen] = useState(false);
 
   const isGrocery = type === "grocery";
-  const trackingPath = `/order-tracking/${id}`;
+  const trackingPath = `/order-tracking/${id}${isGrocery ? "?type=grocery" : ""}`;
 
   useEffect(() => {
     const fetch = async () => {
@@ -82,17 +83,17 @@ const OrderConfirmation = () => {
             )}
 
             <div className="space-y-1 text-xs">
-              <div className="flex justify-between"><span className="text-muted-foreground">{t("common.total")}</span><span className="font-extrabold text-primary text-base">Rs {order.total_amount}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t("common.total")}</span><span className="font-extrabold text-primary text-base">Rs {order.final_amount ?? order.total_amount}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">{t("conf.payment")}</span><span className="font-semibold uppercase">{order.payment_method || "COD"}</span></div>
               <div className="flex items-start gap-1.5 pt-1">
                 <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
                 <span className="min-w-0 flex-1 text-muted-foreground">{order.delivery_address || t("conf.noAddress")}</span>
-                <button
+                {!isGrocery && <button
                   onClick={() => setLocOpen(true)}
                   className="shrink-0 rounded-full bg-secondary px-2 py-1 text-[10px] font-bold text-primary active:scale-95 transition-transform"
                 >
                   {t("checkout.change")}
-                </button>
+                </button>}
               </div>
               <LocationSheet
                 open={locOpen}
@@ -114,7 +115,7 @@ const OrderConfirmation = () => {
 
         <div className="flex items-center gap-2 rounded-xl border bg-card p-3 text-xs shadow-card animate-slide-up">
           <Package className="h-5 w-5 shrink-0 text-primary" />
-          <p className="font-semibold">{isGrocery ? order?.status === "confirmed" ? "دکان نے آرڈر قبول کر لیا؛ پیک ہونے کے بعد روانگی ہوگی۔" : "آرڈر دکان کو مل گیا؛ اشیا کی دستیابی کی تصدیق کا انتظار ہے۔" : t("conf.nextStep")}</p>
+          <p className="font-semibold">{isGrocery ? ["cancelled", "returned_to_store"].includes(order?.status) ? "یہ آرڈر بند ہو چکا ہے۔" : ["آرڈر دکان کو مل گیا؛ اشیا کی دستیابی کی تصدیق کا انتظار ہے۔", "دکان نے آرڈر قبول کر لیا؛ پیک ہونے کے بعد روانگی ہوگی۔", "آرڈر پیکنگ یا روانگی کے لیے تیار ہے۔", "آپ کی ڈیلیوری جاری ہے۔", "آپ کا آرڈر پہنچا دیا گیا ہے۔"][shopStatusStep(order?.status, order?.delivery_stage)] : t("conf.nextStep")}</p>
         </div>
       </div>
 

@@ -33,3 +33,6 @@
 - Shared store details and account/admin links derive marketplace mode from persisted store_type, not a caller's URL; uploaded replacement photos become the cover while retaining the gallery.
 
 - Authentication emails use the managed auth-email-hook and versioned email-js handler; never add queue infrastructure because this project uses managed delivery.
+- Shop checkout atomically validates and reserves stock through create_shop_order; known-stock local COD orders may auto-accept, packing uses one readiness RPC, and financial/location snapshots remain server-authoritative.
+- Shop questions notify the owner and customer; public shop ratings derive from delivered-order reviews, and sold counts are idempotent completion records rather than item ratings.
+- Shop delivery policies snapshot the customer/vendor payer at checkout; settlement resolves the persisted grocery/wholesale commission identity so vendor-funded delivery remains balanced.
