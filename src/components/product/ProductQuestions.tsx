@@ -34,7 +34,11 @@ const ProductQuestions = ({ productId, storeId, storeOwnerId }: Props) => {
     setQuestions((data || []) as Question[]);
   };
 
-  useEffect(() => { loadQuestions(); }, [productId]);
+  useEffect(() => {
+    void loadQuestions();
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") void loadQuestions(); }, 20000);
+    return () => clearInterval(timer);
+  }, [productId]);
 
   const askQuestion = async () => {
     if (!user) { toast.error("سوال پوچھنے کے لیے پہلے لاگ اِن کریں"); return; }
