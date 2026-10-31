@@ -4775,6 +4775,22 @@ export type Database = {
         }
         Returns: string
       }
+      create_shop_order: {
+        Args: {
+          _city_id: string
+          _delivery_address: string
+          _delivery_lat: number
+          _delivery_lng: number
+          _is_gift?: boolean
+          _items: Json
+          _notes: string
+          _receiver_name?: string
+          _receiver_phone?: string
+          _store_id: string
+          _voucher_code?: string
+        }
+        Returns: string
+      }
       credit_wallet: {
         Args: { _amount: number; _note: string; _ref?: string; _user: string }
         Returns: undefined
@@ -5286,6 +5302,14 @@ export type Database = {
         Returns: Json
       }
       shop_mark_order_ready: { Args: { _order_id: string }; Returns: undefined }
+      shop_order_action: {
+        Args: { _action: string; _order_id: string; _reason?: string }
+        Returns: undefined
+      }
+      shop_order_is_open: {
+        Args: { _closes: string; _opens: string }
+        Returns: boolean
+      }
       shop_public_reviews: {
         Args: { _limit?: number; _store_id: string }
         Returns: Json
