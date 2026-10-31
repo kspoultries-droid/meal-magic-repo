@@ -5074,6 +5074,7 @@ export type Database = {
         }
         Returns: string
       }
+      service_booking_contact: { Args: { _booking_id: string }; Returns: Json }
       service_job_action: {
         Args: {
           _action: string
@@ -5081,6 +5082,10 @@ export type Database = {
           _booking_id: string
           _note?: string
         }
+        Returns: undefined
+      }
+      set_service_availability: {
+        Args: { _available: boolean }
         Returns: undefined
       }
       staff_add: {

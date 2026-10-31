@@ -309,6 +309,13 @@
       "when": 1793406051578,
       "tag": "0043_service_provider_workflow_phase_two",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1793406139124,
+      "tag": "0044_service_contact_and_provider_guards",
+      "breakpoints": true
     }
   ]
 }
