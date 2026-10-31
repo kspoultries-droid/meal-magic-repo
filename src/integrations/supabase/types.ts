@@ -3473,8 +3473,11 @@ export type Database = {
           advance_fee: number | null
           advance_paid: boolean | null
           city_id: string | null
+          completed_at: string | null
+          completion_notes: string | null
           created_at: string | null
           customer_id: string
+          final_bill_path: string | null
           id: string
           notes: string | null
           payment_method: string | null
@@ -3485,14 +3488,18 @@ export type Database = {
           status: string | null
           total_amount: number
           updated_at: string | null
+          work_stage: string
         }
         Insert: {
           address: string
           advance_fee?: number | null
           advance_paid?: boolean | null
           city_id?: string | null
+          completed_at?: string | null
+          completion_notes?: string | null
           created_at?: string | null
           customer_id: string
+          final_bill_path?: string | null
           id?: string
           notes?: string | null
           payment_method?: string | null
@@ -3503,14 +3510,18 @@ export type Database = {
           status?: string | null
           total_amount: number
           updated_at?: string | null
+          work_stage?: string
         }
         Update: {
           address?: string
           advance_fee?: number | null
           advance_paid?: boolean | null
           city_id?: string | null
+          completed_at?: string | null
+          completion_notes?: string | null
           created_at?: string | null
           customer_id?: string
+          final_bill_path?: string | null
           id?: string
           notes?: string | null
           payment_method?: string | null
@@ -3521,6 +3532,7 @@ export type Database = {
           status?: string | null
           total_amount?: number
           updated_at?: string | null
+          work_stage?: string
         }
         Relationships: [
           {
@@ -3585,6 +3597,41 @@ export type Database = {
           sort_order?: number | null
         }
         Relationships: []
+      }
+      service_job_events: {
+        Row: {
+          action: string
+          actor_id: string
+          booking_id: string
+          created_at: string
+          id: string
+          note: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_job_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "service_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_manager_categories: {
         Row: {
@@ -3838,6 +3885,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           price: number
+          provider_id: string | null
           rating: number | null
           sort_order: number | null
         }
@@ -3852,6 +3900,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           price: number
+          provider_id?: string | null
           rating?: number | null
           sort_order?: number | null
         }
@@ -3866,6 +3915,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           price?: number
+          provider_id?: string | null
           rating?: number | null
           sort_order?: number | null
         }
@@ -3882,6 +3932,20 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers_public"
             referencedColumns: ["id"]
           },
         ]
@@ -3953,6 +4017,8 @@ export type Database = {
           photo_url: string | null
           resolved_at: string | null
           resolved_by: string | null
+          service_booking_id: string | null
+          service_provider_id: string | null
           staff_reply: string | null
           status: string
           user_id: string
@@ -3967,6 +4033,8 @@ export type Database = {
           photo_url?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          service_booking_id?: string | null
+          service_provider_id?: string | null
           staff_reply?: string | null
           status?: string
           user_id: string
@@ -3981,11 +4049,35 @@ export type Database = {
           photo_url?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          service_booking_id?: string | null
+          service_provider_id?: string | null
           staff_reply?: string | null
           status?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_service_booking_id_fkey"
+            columns: ["service_booking_id"]
+            isOneToOne: false
+            referencedRelation: "service_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_addresses: {
         Row: {
@@ -4546,6 +4638,10 @@ export type Database = {
         Args: { _approve: boolean; _id: string; _note: string }
         Returns: undefined
       }
+      decide_service_quote: {
+        Args: { _approve: boolean; _quotation_id: string }
+        Returns: undefined
+      }
       decline_delivery_offer: {
         Args: { _offer_id: string; _reason?: string }
         Returns: undefined
@@ -4785,6 +4881,16 @@ export type Database = {
         }
         Returns: string
       }
+      propose_service_quote: {
+        Args: {
+          _booking_id: string
+          _labour: number
+          _notes: string
+          _other: number
+          _parts: number
+        }
+        Returns: string
+      }
       publish_rider_location: {
         Args: { _accuracy: number; _lat: number; _lng: number }
         Returns: string
@@ -4830,6 +4936,10 @@ export type Database = {
       reply_to_review: {
         Args: { _kind: string; _reply: string; _review_id: string }
         Returns: undefined
+      }
+      report_service_issue: {
+        Args: { _booking_id: string; _category: string; _description: string }
+        Returns: string
       }
       request_approval: {
         Args: {
@@ -4951,6 +5061,33 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: string[]
       }
+      save_provider_service: {
+        Args: {
+          _active: boolean
+          _category_id: string
+          _description: string
+          _duration: string
+          _id: string
+          _image_url: string
+          _name: string
+          _price: number
+        }
+        Returns: string
+      }
+      service_booking_contact: { Args: { _booking_id: string }; Returns: Json }
+      service_job_action: {
+        Args: {
+          _action: string
+          _bill_path?: string
+          _booking_id: string
+          _note?: string
+        }
+        Returns: undefined
+      }
+      set_service_availability: {
+        Args: { _available: boolean }
+        Returns: undefined
+      }
       staff_add: {
         Args: {
           _city_ids?: string[]
@@ -4964,6 +5101,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: undefined
+      }
+      submit_service_review: {
+        Args: { _booking_id: string; _comment: string; _rating: number }
         Returns: undefined
       }
       sync_shop_open_state: { Args: never; Returns: number }

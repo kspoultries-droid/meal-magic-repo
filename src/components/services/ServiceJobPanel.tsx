@@ -1,0 +1,62 @@
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import FeedbackDialog from "./FeedbackDialog";
+import { serviceActions, serviceStageLabels, validQuote } from "@/lib/serviceWorkflow";
+import { CheckCircle, FileText, MapPin, Phone, Star, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+
+type Props = { booking: any; mode: "customer" | "provider" | "staff"; onChanged: () => void };
+export default function ServiceJobPanel({ booking, mode, onChanged }: Props) {
+ const { user } = useAuth(); const { lang } = useLanguage(); const L = (en: string, ur: string) => lang === "ur" ? ur : en;
+ const [quotes, setQuotes] = useState<any[]>([]); const [events, setEvents] = useState<any[]>([]); const [tickets, setTickets] = useState<any[]>([]);
+ const [review, setReview] = useState<any>(null); const [feedback, setFeedback] = useState(false); const [busy, setBusy] = useState(false);
+ const [note, setNote] = useState(""); const [labour, setLabour] = useState(""); const [parts, setParts] = useState("0"); const [other, setOther] = useState("0");
+ const [file, setFile] = useState<File | null>(null); const [billUrl, setBillUrl] = useState(""); const [category, setCategory] = useState("quality"); const [complaint, setComplaint] = useState(""); const [contact, setContact] = useState<any>(null);
+ const load = useCallback(async () => {
+  const results = await Promise.all([
+   supabase.from("service_quotations").select("*").eq("booking_id", booking.id).order("created_at", { ascending: false }),
+   supabase.from("service_job_events").select("*").eq("booking_id", booking.id).order("created_at").limit(100),
+   supabase.from("service_reviews").select("*").eq("booking_id", booking.id).maybeSingle(),
+   mode === "provider" ? Promise.resolve({ data: [], error: null }) : supabase.from("support_tickets").select("*").eq("service_booking_id", booking.id).order("created_at", { ascending: false }).limit(20)
+  ]);
+  if (results.some(r => r.error)) toast.error(L("Some details could not load", "کچھ تفصیل نہیں کھل سکی"));
+  setQuotes(results[0].data || []); setEvents(results[1].data || []); setReview(results[2].data); setTickets(results[3].data || []);
+  if (booking.final_bill_path) { const { data, error } = await supabase.storage.from("service-evidence").createSignedUrl(booking.final_bill_path, 300); if (!error) setBillUrl(data?.signedUrl || ""); }
+  const { data } = await supabase.rpc("service_booking_contact", { _booking_id: booking.id }); setContact(data);
+ }, [booking.id, booking.final_bill_path, mode]);
+ useEffect(() => { void load(); const timer = setInterval(() => { if (document.visibilityState === "visible") { void load(); onChanged(); } }, 20000); return () => clearInterval(timer); }, [load]);
+ const perform = async (task: () => PromiseLike<{ error: any }>) => { setBusy(true); try { const { error } = await task(); if (error) throw error; toast.success(L("Saved", "محفوظ ہو گیا")); await load(); onChanged(); } catch (e: any) { toast.error(e.message || L("Could not save", "محفوظ نہیں ہوا")); } finally { setBusy(false); } };
+ const action = (a: string) => perform(async () => {
+  let path: string | null = null;
+  if (a === "complete") {
+   if (!file || !user || note.trim().length < 5) throw new Error(L("Attach final bill and completion notes", "حتمی بل اور کام کی تفصیل شامل کریں"));
+   if (file.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(file.type)) throw new Error(L("JPG, PNG, WebP or PDF, up to 5 MB", "JPG، PNG، WebP یا PDF؛ زیادہ سے زیادہ 5 MB"));
+   path = `${user.id}/${booking.id}/${crypto.randomUUID()}.${file.type === "application/pdf" ? "pdf" : file.type.split("/")[1]}`;
+   const { error } = await supabase.storage.from("service-evidence").upload(path, file); if (error) throw error;
+  }
+  return supabase.rpc("service_job_action", { _booking_id: booking.id, _action: a, _note: note || null, _bill_path: path });
+ });
+ const approved = quotes.some(q => q.status === "approved"); const stage = booking.work_stage || booking.status;
+ const actions = mode === "provider" ? serviceActions(booking.status, stage, approved, booking.services?.provider_id != null) : [];
+ const actionLabels: Record<string, [string, string]> = { accept: ["Accept booking", "بکنگ قبول کریں"], reject: ["Reject booking", "بکنگ مسترد کریں"], en_route: ["On the way", "راستے میں ہوں"], inspect: ["Inspect job", "معائنہ کریں"], start: ["Start work", "کام شروع کریں"], complete: ["Complete with bill", "بل کے ساتھ مکمل کریں"] };
+ return <div className="space-y-5 text-sm">
+  <div className="flex justify-between gap-2"><Badge variant="secondary">{serviceStageLabels[stage]?.[lang === "ur" ? 1 : 0] || stage}</Badge><Button variant="ghost" size="icon" aria-label={L("Refresh", "تازہ کریں")} onClick={() => { void load(); onChanged(); }}><RefreshCw className="h-4 w-4" /></Button></div>
+  <div className="space-y-1"><h2 className="font-bold text-lg">{booking.services?.name}</h2><p className="text-muted-foreground">#{booking.id.slice(0, 8)} · {booking.scheduled_date} · {booking.scheduled_time}</p><p className="flex gap-2"><MapPin className="h-4 w-4 shrink-0"/>{booking.address}</p>{booking.notes && <p>{booking.notes}</p>}<p className="font-bold text-primary">Rs {booking.total_amount}</p><p className="text-xs text-muted-foreground">{L("Recorded advance", "درج شدہ ایڈوانس")}: Rs {booking.advance_fee || 0} · {booking.advance_paid ? L("Paid", "ادا شدہ") : L("Not paid", "ادا نہیں ہوا")}</p></div>
+  {contact?.phone && <Button variant="outline" asChild><a href={`tel:${contact.phone}`}><Phone className="h-4 w-4 me-2"/>{contact.name} · {L("Call", "کال کریں")}</a></Button>}
+  {quotes.length > 0 && <section className="border-t pt-4 space-y-3"><h3 className="font-bold flex gap-2"><FileText className="h-4 w-4"/>{L("Quotations", "کوٹیشن")}</h3>{quotes.map(q => <div key={q.id} className="border-b pb-3 space-y-2"><Badge variant="outline">{({proposed:L("Awaiting approval","منظوری کا انتظار"),approved:L("Approved","منظور"),rejected:L("Rejected","مسترد"),superseded:L("Replaced","پرانا") } as Record<string,string>)[q.status] || q.status}</Badge><div className="grid grid-cols-3 gap-2 text-xs"><span>{L("Labour","مزدوری")}<b className="block">Rs {q.labour_amount}</b></span><span>{L("Parts","سامان")}<b className="block">Rs {q.parts_amount}</b></span><span>{L("Other","دیگر")}<b className="block">Rs {q.other_amount}</b></span></div><p>{q.notes}</p><p className="font-bold">{L("Total","کل")}: Rs {q.total_amount}</p>{mode === "customer" && q.status === "proposed" && booking.status === "confirmed" && <div className="flex gap-2"><Button disabled={busy} onClick={() => perform(() => supabase.rpc("decide_service_quote", { _quotation_id:q.id,_approve:true }))}>{L("Approve quote","کوٹیشن منظور کریں")}</Button><Button disabled={busy} variant="outline" onClick={() => perform(() => supabase.rpc("decide_service_quote", { _quotation_id:q.id,_approve:false }))}>{L("Reject","مسترد کریں")}</Button></div>}</div>)}</section>}
+  {mode === "provider" && booking.status === "confirmed" && !approved && <section className="border-t pt-4 space-y-3"><h3 className="font-bold">{L("Create quotation","کوٹیشن بنائیں")}</h3><div className="grid grid-cols-3 gap-2">{[[labour,setLabour,L("Labour","مزدوری")],[parts,setParts,L("Parts","سامان")],[other,setOther,L("Other","دیگر")]].map(([v,set,label]: any) => <label key={label} className="text-xs">{label}<Input type="number" min="0" value={v} onChange={e => set(e.target.value)}/></label>)}</div><Textarea aria-label={L("Quote description","کوٹیشن کی تفصیل")} placeholder={L("Work, materials and scope","کام، سامان اور مکمل تفصیل")} value={note} onChange={e => setNote(e.target.value)}/><p className="font-bold">Rs {Number(labour)+Number(parts)+Number(other)}</p><Button disabled={busy || !validQuote(Number(labour),Number(parts),Number(other)) || note.trim().length < 5} onClick={() => perform(() => supabase.rpc("propose_service_quote", { _booking_id:booking.id,_labour:Number(labour),_parts:Number(parts),_other:Number(other),_notes:note }))}>{L("Send to customer","گاہک کو بھیجیں")}</Button></section>}
+  {mode !== "customer" && !["completed","cancelled"].includes(booking.status) && <section className="border-t pt-4 space-y-3"><Textarea aria-label={L("Job notes","کام کی تفصیل")} value={note} onChange={e => setNote(e.target.value)} placeholder={L("Completion details / cancellation reason","مکمل کام کی تفصیل / منسوخی کی وجہ")}/>{booking.status === "in_progress" && <label className="block">{L("Final bill (image or PDF)","حتمی بل (تصویر یا PDF)")}<Input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e => setFile(e.target.files?.[0] || null)}/></label>}<div className="flex flex-wrap gap-2">{actions.map(a => <Button key={a} disabled={busy || (a === "complete" && !file)} variant={a === "reject" ? "destructive" : "default"} onClick={() => action(a)}><CheckCircle className="h-4 w-4 me-1"/>{actionLabels[a]?.[lang === "ur" ? 1 : 0]}</Button>)}<Button variant="outline" disabled={busy || note.trim().length<5} onClick={() => action("cancel")}>{L("Cancel with reason","وجہ کے ساتھ منسوخ کریں")}</Button></div></section>}
+  {booking.final_bill_path && <section className="border-t pt-4 space-y-2"><h3 className="font-bold">{L("Final bill","حتمی بل")}</h3><p>{booking.completion_notes}</p>{billUrl && <Button variant="outline" asChild><a href={billUrl} target="_blank" rel="noreferrer"><FileText className="h-4 w-4 me-2"/>{L("Open attached bill","منسلک بل دیکھیں")}</a></Button>}</section>}
+  {review && <p className="flex gap-2"><Star className="h-4 w-4 text-warning"/>{review.rating}/5 · {review.comment}</p>}
+  {mode === "customer" && <section className="border-t pt-4 space-y-3">{booking.status === "completed" && !review && <Button onClick={() => setFeedback(true)}><Star className="h-4 w-4 me-2"/>{L("Rate service","سروس کی ریٹنگ دیں")}</Button>}{["pending","confirmed"].includes(booking.status) && <><Textarea placeholder={L("Cancellation reason","منسوخی کی وجہ")} value={note} onChange={e => setNote(e.target.value)}/><Button variant="outline" disabled={busy || note.trim().length<5} onClick={() => action("cancel")}>{L("Cancel booking","بکنگ منسوخ کریں")}</Button></>}<h3 className="font-bold">{L("Report a problem","شکایت درج کریں")}</h3><select aria-label={L("Issue category","شکایت کی قسم")} className="w-full border rounded-md p-2 bg-background" value={category} onChange={e => setCategory(e.target.value)}>{[["behaviour","Behaviour","بدتمیزی"],["late","Late arrival","تاخیر"],["incomplete","Incomplete work","ادھورا کام"],["quality","Work quality","کام کا معیار"],["payment","Payment","ادائیگی"],["other","Other","دیگر"]].map(([v,en,ur]) => <option key={v} value={v}>{L(en,ur)}</option>)}</select><Textarea aria-label={L("Complaint details","شکایت کی تفصیل")} value={complaint} onChange={e => setComplaint(e.target.value)} maxLength={1000}/><Button disabled={busy || complaint.trim().length<5} variant="outline" onClick={() => perform(() => supabase.rpc("report_service_issue", { _booking_id:booking.id,_category:category,_description:complaint }))}>{L("Send complaint","شکایت بھیجیں")}</Button></section>}
+  {tickets.map(t => <div key={t.id} className="border-t pt-3"><Badge variant="outline">{t.status}</Badge><p>{t.description}</p>{t.staff_reply && <p className="mt-2 text-primary">{L("Support reply","سپورٹ کا جواب")}: {t.staff_reply}</p>}</div>)}
+  {events.length>0 && <section className="border-t pt-4"><h3 className="font-bold mb-2">{L("Job history","کام کی تاریخ")}</h3>{events.map(e => <p key={e.id} className="text-xs py-2 border-b text-muted-foreground">{serviceStageLabels[e.action]?.[lang === "ur" ? 1 : 0] || actionLabels[e.action]?.[lang === "ur" ? 1 : 0] || e.action} · {new Date(e.created_at).toLocaleString("en-GB")}{e.note && <span className="block text-foreground">{e.note}</span>}</p>)}</section>}
+  <FeedbackDialog open={feedback} onOpenChange={setFeedback} booking={booking} onSuccess={() => { void load(); onChanged(); }}/>
+ </div>;
+}

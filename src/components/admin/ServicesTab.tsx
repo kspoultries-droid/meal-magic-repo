@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { Plus, Trash2, RefreshCw, Eye, EyeOff, Calendar, Pencil, Check, X, ArrowUp, ArrowDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ServiceJobPanel from "@/components/services/ServiceJobPanel";
+import TicketsQueue from "@/components/support/TicketsQueue";
 
 const ICON_OPTIONS = [
   "Wrench", "Zap", "Droplets", "Paintbrush", "Hammer", "HardHat",
@@ -31,13 +33,15 @@ const COLOR_OPTIONS = [
 const ServicesTab = () => {
   return (
     <Tabs defaultValue="bookings">
-      <TabsList className="mb-4 grid w-full grid-cols-4">
+      <TabsList className="mb-4 grid w-full grid-cols-5">
         <TabsTrigger value="bookings" className="text-xs px-1"><Calendar className="h-3 w-3 mr-0.5" /> بکنگز</TabsTrigger>
+        <TabsTrigger value="complaints" className="text-xs px-1">شکایات</TabsTrigger>
         <TabsTrigger value="services" className="text-xs px-1">سروسز</TabsTrigger>
         <TabsTrigger value="categories" className="text-xs px-1">کیٹیگریز</TabsTrigger>
         <TabsTrigger value="settings" className="text-xs px-1">⚙️ سیٹنگز</TabsTrigger>
       </TabsList>
       <TabsContent value="bookings"><BookingsSection /></TabsContent>
+      <TabsContent value="complaints"><TicketsQueue /></TabsContent>
       <TabsContent value="services"><ServicesSection /></TabsContent>
       <TabsContent value="categories"><CategoriesSection /></TabsContent>
       <TabsContent value="settings"><SettingsSection /></TabsContent>
@@ -49,12 +53,13 @@ const ServicesTab = () => {
 const BookingsSection = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetch = async () => {
     setLoading(true);
     const [{ data: b }, { data: s }] = await Promise.all([
-      supabase.from("service_bookings").select("*").order("created_at", { ascending: false }).limit(50),
+      supabase.from("service_bookings").select("*,services(name,provider_id)").order("created_at", { ascending: false }).limit(50),
       supabase.from("services").select("id, name"),
     ]);
     setBookings(b || []);
@@ -67,7 +72,8 @@ const BookingsSection = () => {
   const getServiceName = (id: string) => services.find(s => s.id === id)?.name || "—";
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("service_bookings").update({ status }).eq("id", id);
+    const { error } = await supabase.rpc("service_job_action", { _booking_id: id, _action: status === "completed" ? "complete" : status === "in_progress" ? "start" : "cancel", _note: "منتظم کی درخواست" });
+    if (error) { toast.error(error.message); return; }
     toast.success("سٹیٹس اپڈیٹ ہو گئی / Status updated");
     fetch();
   };
@@ -98,19 +104,14 @@ const BookingsSection = () => {
                 </div>
                 <p className="truncate text-[11px] text-muted-foreground">📍 {b.address} · 💳 {b.payment_method}{b.notes ? ` · 📝 ${b.notes}` : ""}</p>
                 <div className="flex gap-1 flex-wrap">
-                  {["confirmed", "in_progress", "completed", "cancelled"].map((s) =>
-                    s !== b.status ? (
-                      <Button key={s} size="sm" variant="ghost" className="text-[11px] h-6 px-2" onClick={() => updateStatus(b.id, s)}>
-                        {s}
-                      </Button>
-                    ) : null
-                  )}
+                  <Button size="sm" variant="outline" onClick={() => setSelected(b.id)}>تفصیل، مراحل اور بل</Button>
                 </div>
               </div>
             ))}
           </div>
         )}
 
+        <Dialog open={!!selected} onOpenChange={v => { if (!v) setSelected(null); }}><DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>بکنگ کی تفصیل</DialogTitle></DialogHeader>{bookings.find(b => b.id === selected) && <ServiceJobPanel booking={bookings.find(b => b.id === selected)} mode="staff" onChanged={fetch}/>}</DialogContent></Dialog>
       </CardContent>
     </Card>
   );
