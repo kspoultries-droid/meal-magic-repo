@@ -463,6 +463,13 @@
       "when": 1793450235564,
       "tag": "0065_shop_pickup_pin_authority",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1793450419176,
+      "tag": "0066_shop_ledger_commission_identity",
+      "breakpoints": true
     }
   ]
 }
