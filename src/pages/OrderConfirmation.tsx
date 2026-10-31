@@ -114,7 +114,7 @@ const OrderConfirmation = () => {
 
         <div className="flex items-center gap-2 rounded-xl border bg-card p-3 text-xs shadow-card animate-slide-up">
           <Package className="h-5 w-5 shrink-0 text-primary" />
-          <p className="font-semibold">{t("conf.nextStep")}</p>
+          <p className="font-semibold">{isGrocery ? order?.status === "confirmed" ? "دکان نے آرڈر قبول کر لیا؛ پیک ہونے کے بعد روانگی ہوگی۔" : "آرڈر دکان کو مل گیا؛ اشیا کی دستیابی کی تصدیق کا انتظار ہے۔" : t("conf.nextStep")}</p>
         </div>
       </div>
 

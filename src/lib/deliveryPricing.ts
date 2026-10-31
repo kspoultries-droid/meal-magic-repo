@@ -8,6 +8,9 @@ export interface DeliveryQuote {
   vehicle_name: string | null;
   vehicle_type_id: string | null;
   fee: number;
+  customer_fee?: number;
+  shipping_cost?: number;
+  fee_payer?: string;
   needs_quote: boolean;
   breakdown: {
     base: number;

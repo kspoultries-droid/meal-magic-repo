@@ -29,6 +29,7 @@ const Checkout = () => {
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [locating, setLocating] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -114,29 +115,32 @@ const Checkout = () => {
     let cancelled = false;
     const totalWeight = calculateCartWeight(items);
     setQuoteLoading(true);
-    (supabase.rpc as any)("quote_delivery", {
-      _store_kind: isFood ? "food" : "grocery",
+    setQuoteError("");
+    (supabase.rpc as any)(isFood ? "quote_delivery" : "shop_delivery_quote", {
+      ...(isFood ? { _store_kind: "food" } : {}),
       _store_id: sourceId,
       _city_id: selectedCity,
       _lat: coords?.lat ?? null,
       _lng: coords?.lng ?? null,
       _weight_kg: totalWeight,
-      _subtotal: totalPrice,
+      _subtotal: Math.max(0, totalPrice - (voucher?.discount || 0)),
     }).then(({ data, error }: { data: DeliveryQuote | null; error: any }) => {
       if (cancelled) return;
       const city = cities.find((value) => value.id === selectedCity);
       if (error || !data) {
         const fallback = city?.delivery_fee || 0;
         setDeliveryQuote(null);
-        setDeliveryFee(restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : fallback);
+        setDeliveryFee(isFood && (restaurantDeliveryMode === "self" || vendorPaysDelivery) ? 0 : isFood ? fallback : 0);
+        if (isGrocery) setQuoteError(error?.message || "ڈیلیوری کی فیس نہیں مل سکی");
       } else {
         setDeliveryQuote(data);
-        setDeliveryFee(restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : Number(data.fee || 0));
+        setDeliveryFee(isFood ? restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : Number(data.fee || 0) : Number(data.customer_fee ?? data.fee ?? 0));
+        if (isGrocery) setVendorPaysDelivery(data.fee_payer === "vendor");
       }
       setQuoteLoading(false);
     });
     return () => { cancelled = true; };
-  }, [items, selectedCity, coords, cities, totalPrice, restaurantDeliveryMode, vendorPaysDelivery]);
+  }, [items, selectedCity, coords, cities, totalPrice, restaurantDeliveryMode, voucher?.discount]);
 
   // Detect restaurant delivery mode
   useEffect(() => {
@@ -153,6 +157,7 @@ const Checkout = () => {
     const sourceId = items[0]?.sourceId;
     if (!sourceId || items.length === 0) { setVendorPaysDelivery(false); return; }
     const isRest = items.every((i) => (i.source || "restaurant") === "restaurant");
+    if (!isRest) return;
     const q = isRest
       ? supabase.from("restaurants").select("pays_delivery_fee").eq("id", sourceId).maybeSingle()
       : supabase.from("grocery_stores").select("pays_delivery_fee").eq("id", sourceId).maybeSingle();
@@ -242,6 +247,7 @@ const Checkout = () => {
     if (!address.trim()) { toast.error("ڈلیوری ایڈریس درکار ہے"); return; }
     if (!selectedCity) { toast.error("ڈلیوری علاقہ دستیاب نہیں — تھوڑی دیر بعد کوشش کریں"); return; }
     if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
+    if (isGroceryOrder && (quoteLoading || quoteError || !deliveryQuote || deliveryQuote.needs_quote)) { toast.error(quoteError || "ڈیلیوری کی تصدیق درکار ہے"); return; }
     setSubmitting(true);
 
     if (saveThisAddress && user) {
@@ -266,22 +272,21 @@ const Checkout = () => {
           variant_label: item.variant_label || null,
         }));
 
-        const { data: newId, error } = await supabase.rpc("create_grocery_cart_order", {
+        const { data: newId, error } = await supabase.rpc("create_shop_order", {
           _store_id: storeId,
           _city_id: selectedCity,
           _delivery_address: address,
           _notes: notes || null,
-          _payment_method: paymentMethod,
           _items: orderItems,
           _receiver_name: isGift ? receiverName : null,
           _receiver_phone: isGift ? receiverPhone : null,
           _is_gift: isGift,
           _delivery_lat: coords?.lat || null,
           _delivery_lng: coords?.lng || null,
+          _voucher_code: voucher?.code || null,
         });
 
         if (error) throw error;
-        await redeemVoucherOnOrder("grocery", newId);
         toast.success(storeType === "wholesale" ? "بازار آرڈر کامیابی سے دیا گیا! 🎉" : "گروسری آرڈر کامیابی سے دیا گیا! 🛒🎉");
         clearCart();
         navigate(`/order-confirmation/grocery/${newId}`);
@@ -396,6 +401,7 @@ const Checkout = () => {
                 <span className="text-muted-foreground">{t("checkout.deliveryFee")}</span>
                 <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : deliveryFee === 0 && (vendorPaysDelivery || restaurantDeliveryMode === "self") ? "مفت ڈیلیوری / Free" : `Rs ${deliveryFee}`}</span>
               </div>
+              {quoteError && <p role="alert" className="text-xs font-bold text-destructive">{quoteError}</p>}
               {deliveryQuote && !isRestaurantOrder && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-foreground">
@@ -577,7 +583,7 @@ const Checkout = () => {
             <p className="text-[10px] text-muted-foreground">{t("checkout.payable")}</p>
             <p className="text-lg font-extrabold text-primary leading-tight">Rs {grandTotal}</p>
           </div>
-          <Button className="flex-[2] h-12 text-base font-extrabold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" disabled={submitting} onClick={placeOrder}>
+          <Button className="flex-[2] h-12 text-base font-extrabold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" disabled={submitting || (isGroceryOrder && (quoteLoading || !!quoteError || !deliveryQuote || deliveryQuote.needs_quote))} onClick={placeOrder}>
             {submitting ? t("checkout.placing") : `${t("checkout.placeOrder")} ✓`}
           </Button>
         </div>
