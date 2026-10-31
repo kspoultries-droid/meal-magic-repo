@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import LocationSheet from "@/components/location/LocationSheet";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { shopStatusStep } from "@/lib/shopOrders";
 
 const OrderConfirmation = () => {
   const { type, id } = useParams<{ type: string; id: string }>();
@@ -114,7 +115,7 @@ const OrderConfirmation = () => {
 
         <div className="flex items-center gap-2 rounded-xl border bg-card p-3 text-xs shadow-card animate-slide-up">
           <Package className="h-5 w-5 shrink-0 text-primary" />
-          <p className="font-semibold">{isGrocery ? order?.status === "confirmed" ? "دکان نے آرڈر قبول کر لیا؛ پیک ہونے کے بعد روانگی ہوگی۔" : "آرڈر دکان کو مل گیا؛ اشیا کی دستیابی کی تصدیق کا انتظار ہے۔" : t("conf.nextStep")}</p>
+          <p className="font-semibold">{isGrocery ? ["cancelled", "returned_to_store"].includes(order?.status) ? "یہ آرڈر بند ہو چکا ہے۔" : ["آرڈر دکان کو مل گیا؛ اشیا کی دستیابی کی تصدیق کا انتظار ہے۔", "دکان نے آرڈر قبول کر لیا؛ پیک ہونے کے بعد روانگی ہوگی۔", "آرڈر پیکنگ یا روانگی کے لیے تیار ہے۔", "آپ کی ڈیلیوری جاری ہے۔", "آپ کا آرڈر پہنچا دیا گیا ہے۔"][shopStatusStep(order?.status, order?.delivery_stage)] : t("conf.nextStep")}</p>
         </div>
       </div>
 
