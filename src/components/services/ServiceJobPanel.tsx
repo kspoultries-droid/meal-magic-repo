@@ -16,7 +16,7 @@ export default function ServiceJobPanel({ booking, mode, onChanged }: Props) {
  const { user } = useAuth(); const { lang } = useLanguage(); const L = (en: string, ur: string) => lang === "ur" ? ur : en;
  const [quotes, setQuotes] = useState<any[]>([]); const [events, setEvents] = useState<any[]>([]); const [tickets, setTickets] = useState<any[]>([]);
  const [review, setReview] = useState<any>(null); const [feedback, setFeedback] = useState(false); const [busy, setBusy] = useState(false);
- const [note, setNote] = useState(""); const [labour, setLabour] = useState(""); const [parts, setParts] = useState("0"); const [other, setOther] = useState("0");
+ const [note, setNote] = useState(""); const [quoteNote, setQuoteNote] = useState(""); const [labour, setLabour] = useState(""); const [parts, setParts] = useState("0"); const [other, setOther] = useState("0");
  const [file, setFile] = useState<File | null>(null); const [billUrl, setBillUrl] = useState(""); const [category, setCategory] = useState("quality"); const [complaint, setComplaint] = useState(""); const [contact, setContact] = useState<any>(null);
  const load = useCallback(async () => {
   const results = await Promise.all([
@@ -29,7 +29,7 @@ export default function ServiceJobPanel({ booking, mode, onChanged }: Props) {
   setQuotes(results[0].data || []); setEvents(results[1].data || []); setReview(results[2].data); setTickets(results[3].data || []);
   if (booking.final_bill_path) { const { data, error } = await supabase.storage.from("service-evidence").createSignedUrl(booking.final_bill_path, 300); if (!error) setBillUrl(data?.signedUrl || ""); }
   const { data } = await supabase.rpc("service_booking_contact", { _booking_id: booking.id }); setContact(data);
- }, [booking.id, booking.final_bill_path, mode]);
+ }, [booking.id, booking.final_bill_path, booking.status, mode]);
  useEffect(() => { void load(); const timer = setInterval(() => { if (document.visibilityState === "visible") { void load(); onChanged(); } }, 20000); return () => clearInterval(timer); }, [load]);
  const perform = async (task: () => PromiseLike<{ error: any }>) => { setBusy(true); try { const { error } = await task(); if (error) throw error; toast.success(L("Saved", "محفوظ ہو گیا")); await load(); onChanged(); } catch (e: any) { toast.error(e.message || L("Could not save", "محفوظ نہیں ہوا")); } finally { setBusy(false); } };
  const action = (a: string) => perform(async () => {
