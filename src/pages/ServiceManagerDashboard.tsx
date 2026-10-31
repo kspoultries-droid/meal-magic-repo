@@ -12,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { ClipboardList, Users, Star, DollarSign, Phone, MapPin, Clock, CheckCircle, AlertCircle, User } from "lucide-react";
 
+import ServiceJobPanel from "@/components/services/ServiceJobPanel";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 interface CategoryInfo {
   id: string;
   name: string;
@@ -82,6 +85,7 @@ const ServiceManagerDashboard = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [selectedBooking, setSelectedBooking] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && (!user || !isServiceManager)) {
@@ -96,10 +100,11 @@ const ServiceManagerDashboard = () => {
   }, [user, isServiceManager]);
 
   const fetchMyCategories = async () => {
+    if (!user) return;
     const { data } = await supabase
       .from("service_manager_categories")
       .select("category_id, service_categories(id, name)")
-      .eq("user_id", user!.id);
+      .eq("user_id", user.id);
 
     if (data) {
       const cats = data.map((d: any) => ({
@@ -182,20 +187,6 @@ const ServiceManagerDashboard = () => {
       .in("category_id", categoryIds);
 
     if (providerData) setProviders(providerData);
-  };
-
-  const updateBookingStatus = async (id: string, status: string) => {
-    const { error } = await supabase
-      .from("service_bookings")
-      .update({ status })
-      .eq("id", id);
-
-    if (error) {
-      toast.error("اسٹیٹس اپ ڈیٹ نہیں ہوا");
-    } else {
-      toast.success("اسٹیٹس اپ ڈیٹ ہو گیا");
-      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
-    }
   };
 
   const updateServicePrice = async (id: string, price: number) => {
@@ -341,28 +332,7 @@ const ServiceManagerDashboard = () => {
                       </a>
                     )}
                     {b.notes && <p className="text-xs bg-secondary p-2 rounded">{b.notes}</p>}
-                    {b.status !== "completed" && b.status !== "cancelled" && (
-                      <div className="flex gap-2 pt-1">
-                        {b.status === "pending" && (
-                          <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => updateBookingStatus(b.id, "confirmed")}>
-                            <CheckCircle className="w-3 h-3 mr-1" /> تصدیق
-                          </Button>
-                        )}
-                        {(b.status === "confirmed" || b.status === "pending") && (
-                          <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => updateBookingStatus(b.id, "in_progress")}>
-                            جاری کریں
-                          </Button>
-                        )}
-                        {b.status === "in_progress" && (
-                          <Button size="sm" className="text-xs h-7 bg-green-600 hover:bg-green-700" onClick={() => updateBookingStatus(b.id, "completed")}>
-                            مکمل
-                          </Button>
-                        )}
-                        <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => updateBookingStatus(b.id, "cancelled")}>
-                          منسوخ
-                        </Button>
-                      </div>
-                    )}
+                    <Button size="sm" variant="outline" onClick={() => setSelectedBooking(b.id)}>تفصیل، کوٹیشن اور بل</Button>
                   </CardContent>
                 </Card>
               ))
@@ -476,6 +446,7 @@ const ServiceManagerDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <Dialog open={!!selectedBooking} onOpenChange={v => { if (!v) setSelectedBooking(null); }}><DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>بکنگ کی تفصیل</DialogTitle></DialogHeader>{bookings.find(b => b.id === selectedBooking) && <ServiceJobPanel booking={bookings.find(b => b.id === selectedBooking)} mode="staff" onChanged={() => void fetchAllData(categories.map(c => c.id))}/>}</DialogContent></Dialog>
     </div>
   );
 };
