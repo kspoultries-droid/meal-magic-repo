@@ -340,6 +340,7 @@ const GroceryStoreDetail = () => {
                               <span className="text-[10px] text-muted-foreground">تفصیل / Details:</span>
                               <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="پروڈکٹ کی تفصیل لکھیں..." rows={3} className="mt-1 text-xs" />
                             </div>
+                            <ProductPhotoUploader multiple label="تصویر تبدیل کریں" onDone={(photos) => uploadProductImage(product.id, photos)} />
                             <div className="flex gap-1">
                               <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
                                 <Check className="w-3 h-3 mr-0.5" /> محفوظ / Save
