@@ -7,6 +7,7 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 const DAILY_LIMIT = 10;
+const PRODUCT_DAILY_LIMIT = 40;
 const MODEL = "google/gemini-3.1-flash-lite";
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
@@ -74,8 +75,9 @@ Deno.serve(async (req) => {
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const { count } = await admin.from("ai_setup_usage").select("id", { count: "exact", head: true })
-      .eq("user_id", user.id).gte("created_at", since);
-    if ((count ?? 0) >= DAILY_LIMIT) return json({ error: `آج کی حد (${DAILY_LIMIT} بار) پوری ہو گئی، کل دوبارہ کوشش کریں` }, 429);
+      .eq("user_id", user.id).gte("created_at", since)[isProduct ? "eq" : "neq"]("kind", "product");
+    const limit = isProduct ? PRODUCT_DAILY_LIMIT : DAILY_LIMIT;
+    if ((count ?? 0) >= limit) return json({ error: `آج کی حد (${limit} بار) پوری ہو گئی، کل دوبارہ کوشش کریں` }, 429);
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ error: "AI سروس دستیاب نہیں" }, 500);
@@ -106,7 +108,7 @@ Deno.serve(async (req) => {
     const parsed = JSON.parse(typeof raw === "string" ? raw : JSON.stringify(raw));
     if (isProduct) {
       if (allowed.length && !allowed.includes(parsed.category)) parsed.category = allowed.includes("General") ? "General" : allowed[0];
-      return json({ product: parsed, remaining: DAILY_LIMIT - (count ?? 0) - 1 });
+      return json({ product: parsed, remaining: limit - (count ?? 0) - 1 });
     }
     return json({ items: parsed.items ?? [], summary: parsed.summary ?? "", remaining: DAILY_LIMIT - (count ?? 0) - 1 });
   } catch (e) {
