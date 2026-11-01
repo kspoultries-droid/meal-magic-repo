@@ -15,7 +15,8 @@ export function RoleStartRedirect() {
     if (!user) return;
     done.current = true;
     if (location.pathname !== "/") return;
-    const target = startPath(getSavedMode(), { isRider, isRestaurantOwner, isServiceManager, isStaff, isAdmin });
+    const saved = getSavedMode();
+    const target = saved === "customer" || isAdmin ? null : isStaff ? "/admin" : isServiceManager ? "/service-manager-dashboard" : startPath(saved, { isRider, isRestaurantOwner });
     if (target) navigate(target, { replace: true });
   }, [loading, user, isRider, isRestaurantOwner, isServiceManager, isStaff, isAdmin, location.pathname, navigate]);
 
