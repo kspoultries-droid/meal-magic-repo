@@ -238,7 +238,7 @@ const PayoutsTab = () => {
                 <select value={fromAcc[r.vendorId] || accounts[0]?.id || ""} onChange={(e) => setFromAcc({ ...fromAcc, [r.vendorId]: e.target.value })}
                   className="h-9 rounded-md border bg-background px-2 text-xs">
                   {accounts.length === 0 && <option value="">کوئی EasyLife اکاؤنٹ نہیں</option>}
-                  {accounts.map((a) => <option key={a.id} value={a.id}>{a.label} (Rs {Math.round(Number(a.balance || 0))})</option>)}
+                  {accounts.map((a) => <option key={a.id} value={a.id}>{a.label}{isAdmin ? ` (Rs ${Math.round(Number(a.balance || 0))})` : ""}</option>)}
                 </select>
                 <select value={toAcc[r.vendorId] || ""} onChange={(e) => setToAcc({ ...toAcc, [r.vendorId]: e.target.value })}
                   className="h-9 rounded-md border bg-background px-2 text-xs">

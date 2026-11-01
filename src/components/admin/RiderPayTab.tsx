@@ -212,7 +212,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                     >
                       <option value="">— اکاؤنٹ منتخب کریں —</option>
                       {accounts.map((a) => (
-                        <option key={a.id} value={a.id}>{a.label} (Rs {Math.round(Number(a.balance || 0))})</option>
+                        <option key={a.id} value={a.id}>{a.label}{isAdmin ? ` (Rs ${Math.round(Number(a.balance || 0))})` : ""}</option>
                       ))}
                     </select>
                   </div>
