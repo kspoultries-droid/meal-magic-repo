@@ -1,0 +1,124 @@
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { img } from "@/lib/imageUrl";
+import { matchesSearch } from "@/lib/searchMatch";
+import { specTemplateFor } from "@/lib/catalogSpecs";
+import { BadgeCheck, ImagePlus, Plus, Search, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+type Item = { id?: string; name: string; name_ur: string | null; brand: string | null; category: string; unit: string | null; barcode: string | null; description: string | null; image_url: string | null; image_verified: boolean; specs: Record<string, string>; weight_kg: number | null };
+const blank: Item = { name: "", name_ur: "", brand: "", category: "General", unit: "", barcode: "", description: "", image_url: null, image_verified: false, specs: {}, weight_kg: null };
+
+export default function CatalogManagerTab() {
+  const [items, setItems] = useState<Item[]>([]);
+  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<"all" | "unverified" | "nophoto">("all");
+  const [edit, setEdit] = useState<Item | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = () => (supabase as any).from("catalog_items").select("*").order("category").order("name").limit(5000).then(({ data }: any) => setItems(data || []));
+  useEffect(() => { load(); }, []);
+
+  const shown = useMemo(() => items.filter((i) =>
+    (filter === "all" || (filter === "unverified" ? !i.image_verified : !i.image_url)) &&
+    (!q || matchesSearch(q, i.name, i.name_ur, i.brand, i.category, i.barcode))).slice(0, 300), [items, q, filter]);
+  const verified = items.filter((i) => i.image_verified && i.image_url).length;
+
+  const upload = async (file: File) => {
+    if (!edit) return;
+    setBusy(true);
+    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const path = `catalog/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { contentType: file.type, upsert: false });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    setEdit({ ...edit, image_url: supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl, image_verified: false });
+  };
+
+  const save = async () => {
+    if (!edit || !edit.name.trim()) return toast.error("نام لازمی ہے");
+    if (edit.image_verified && !edit.image_url) return toast.error("تصدیق کے لیے تصویر لازمی ہے");
+    setBusy(true);
+    const { id, ...row } = edit;
+    const payload = { ...row, name: row.name.trim(), barcode: row.barcode?.trim() || null, updated_at: new Date().toISOString() };
+    const { error } = id ? await (supabase as any).from("catalog_items").update(payload).eq("id", id) : await (supabase as any).from("catalog_items").insert(payload);
+    setBusy(false);
+    if (error) return toast.error(error.message.includes("barcode") ? "یہ بارکوڈ پہلے سے موجود ہے" : error.message);
+    toast.success("محفوظ ہو گیا");
+    setEdit(null); load();
+  };
+
+  const remove = async () => {
+    if (!edit?.id || !confirm("یہ چیز فہرست سے حذف کریں؟ دکانوں میں پہلے سے لگی چیزیں نہیں ہٹیں گی۔")) return;
+    const { error } = await (supabase as any).from("catalog_items").delete().eq("id", edit.id);
+    if (error) return toast.error(error.message);
+    setEdit(null); load();
+  };
+
+  const fields = specTemplateFor(edit?.category);
+
+  return (
+    <div className="space-y-3" dir="rtl">
+      <div className="rounded-xl border bg-card p-3 text-xs text-muted-foreground">
+        معیاری فہرست: {items.length} چیزیں · {verified} کی اصل تصویر تصدیق شدہ۔ دکانداروں کو صرف تصدیق شدہ تصویر دکھتی ہے؛ باقی کی وہ اپنی تصویر لگاتے ہیں۔
+        اصل تصویر کے لیے دکان میں اصل پیکنگ کی سامنے سے صاف تصویر کھینچیں یا برانڈ کی اپنی سرکاری تصویر استعمال کریں۔
+      </div>
+      <div className="flex gap-2">
+        <div className="relative flex-1"><Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pr-9" placeholder="نام، برانڈ، بارکوڈ" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+        <Button onClick={() => setEdit({ ...blank })}><Plus className="h-4 w-4" /> نئی چیز</Button>
+      </div>
+      <div className="flex gap-1.5">
+        {([["all", "سب"], ["unverified", "تصدیق باقی"], ["nophoto", "بغیر تصویر"]] as const).map(([k, l]) => (
+          <button key={k} onClick={() => setFilter(k)} className={`rounded-full border px-3 py-1 text-xs ${filter === k ? "border-primary bg-primary text-primary-foreground" : "bg-card"}`}>{l}</button>
+        ))}
+      </div>
+      <div className="divide-y rounded-xl border bg-card">
+        {shown.map((i) => (
+          <button key={i.id} onClick={() => setEdit({ ...blank, ...i, specs: i.specs || {} })} className="flex w-full items-center gap-2 p-2 text-right">
+            {i.image_url ? <img src={img(i.image_url, 80)} alt="" loading="lazy" className="h-10 w-10 rounded-md object-cover" /> : <div className="h-10 w-10 rounded-md bg-muted" />}
+            <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{i.name}{i.name_ur ? ` · ${i.name_ur}` : ""}</p><p className="text-[10px] text-muted-foreground">{i.brand ? `${i.brand} · ` : ""}{i.category}{i.unit ? ` · ${i.unit}` : ""}</p></div>
+            {i.image_verified && i.image_url ? <BadgeCheck className="h-4 w-4 text-primary" /> : <span className="text-[10px] text-muted-foreground">تصدیق باقی</span>}
+          </button>
+        ))}
+      </div>
+
+      <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader><DialogTitle>{edit?.id ? "معیاری چیز میں تبدیلی" : "نئی معیاری چیز"}</DialogTitle></DialogHeader>
+          {edit && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                {edit.image_url ? <img src={img(edit.image_url, 160)} alt="" className="h-20 w-20 rounded-lg object-contain bg-muted" /> : <div className="h-20 w-20 rounded-lg bg-muted" />}
+                <label className="flex cursor-pointer items-center gap-1 rounded-lg border px-3 py-2 text-xs"><ImagePlus className="h-4 w-4" /> اصل تصویر لگائیں
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} /></label>
+              </div>
+              <label className="flex items-center gap-2 text-xs"><Switch checked={edit.image_verified} onCheckedChange={(c) => setEdit({ ...edit, image_verified: c })} /> میں نے دیکھا ہے: تصویر پاکستان میں بکنے والی اصل پیکنگ ہے</label>
+              <Input placeholder="نام (English) مثلاً Pepsi 1.5L" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} />
+              <Input placeholder="اردو نام مثلاً پیپسی 1.5 لیٹر" value={edit.name_ur || ""} onChange={(e) => setEdit({ ...edit, name_ur: e.target.value })} />
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="برانڈ" value={edit.brand || ""} onChange={(e) => setEdit({ ...edit, brand: e.target.value })} />
+                <Input placeholder="قسم (Category)" value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value })} />
+                <Input placeholder="سائز / یونٹ" value={edit.unit || ""} onChange={(e) => setEdit({ ...edit, unit: e.target.value })} />
+                <Input placeholder="بارکوڈ (اختیاری)" inputMode="numeric" value={edit.barcode || ""} onChange={(e) => setEdit({ ...edit, barcode: e.target.value })} />
+              </div>
+              <Textarea placeholder="مختصر تفصیل" value={edit.description || ""} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
+              <p className="pt-1 text-xs font-semibold">معیاری خصوصیات</p>
+              <div className="grid grid-cols-2 gap-2">
+                {fields.map((f) => <Input key={f.key} placeholder={f.label} value={edit.specs?.[f.key] || ""} onChange={(e) => setEdit({ ...edit, specs: { ...edit.specs, [f.key]: e.target.value } })} />)}
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button className="flex-1" disabled={busy} onClick={save}>محفوظ کریں</Button>
+                {edit.id && <Button variant="outline" onClick={remove}><Trash2 className="h-4 w-4" /></Button>}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

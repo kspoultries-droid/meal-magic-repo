@@ -36,3 +36,4 @@
 - Shop checkout atomically validates and reserves stock through create_shop_order; known-stock local COD orders may auto-accept, packing uses one readiness RPC, and financial/location snapshots remain server-authoritative.
 - Shop questions notify the owner and customer; public shop ratings derive from delivered-order reviews, and sold counts are idempotent completion records rather than item ratings.
 - Shop delivery policies snapshot the customer/vendor payer at checkout; settlement resolves the persisted grocery/wholesale commission identity so vendor-funded delivery remains balanced.
+- The shared catalog (catalog_items) is admin-curated: catalog photos reach shops only when image_verified is true, picked items copy standard specs into the shop's own editable row with catalog_item_id; vendors keep full override rights.
