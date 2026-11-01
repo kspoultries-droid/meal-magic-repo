@@ -15,7 +15,7 @@ describe("team work stays within assigned permissions", () => {
   });
   it("finance cannot change global rates or manage partners", () => {
     const work = staffWorkspace(["orders", "finance", "approve"]);
-    expect(work.finance).toEqual(["revenue", "banks", "payouts", "rider-remit", "rider-pay"]);
+    expect(work.finance).toEqual(["revenue", "payouts", "rider-remit", "rider-pay"]);
     expect(work.partners).toEqual([]);
     expect(approvalKinds(["finance", "approve"])).toEqual(["payout", "other"]);
   });
