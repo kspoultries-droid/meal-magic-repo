@@ -5430,6 +5430,10 @@ export type Database = {
         Returns: string
       }
       staff_application_allowed: { Args: { _id: string }; Returns: boolean }
+      staff_cancel_order: {
+        Args: { _kind: string; _note: string; _order_id: string }
+        Returns: undefined
+      }
       staff_city_allowed: { Args: { _city: string }; Returns: boolean }
       staff_order_allowed: {
         Args: { _id: string; _kind: string; _perm: string }

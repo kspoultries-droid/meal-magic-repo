@@ -498,6 +498,13 @@
       "when": 1793518278563,
       "tag": "0070_staff_city_scoped_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1793518382064,
+      "tag": "0071_staff_safe_action_permissions",
+      "breakpoints": true
     }
   ]
 }

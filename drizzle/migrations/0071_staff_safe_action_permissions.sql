@@ -1,0 +1,32 @@
+DO $$ DECLARE f record; d text; gate text; BEGIN
+ FOR f IN SELECT p.oid,p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN ('admin_force_assign_rider','admin_offer_order_to_rider','retry_order_dispatch','resolve_rider_return','admin_set_rider_state','review_rider_remittance','review_rider_earning','pay_rider','admin_pay_vendor','approve_partner_application','reject_partner_application','admin_overview','admin_daily_trend') LOOP
+ d:=pg_get_functiondef(f.oid); gate:=NULL;
+ IF f.proname IN ('admin_force_assign_rider','admin_offer_order_to_rider','retry_order_dispatch','resolve_rider_return') THEN gate:='IF NOT public.staff_order_allowed(''dispatch'',_kind,_order_id) THEN RAISE EXCEPTION ''Dispatch permission or city denied''; END IF;';
+ ELSIF f.proname='admin_set_rider_state' THEN gate:='IF NOT public.staff_rider_allowed(''riders'',_rider_id) THEN RAISE EXCEPTION ''Rider permission or city denied''; END IF; IF _action=''remove_role'' AND NOT public.has_role(auth.uid(),''admin'') THEN RAISE EXCEPTION ''Only admin removes roles''; END IF;';
+ ELSIF f.proname='review_rider_remittance' THEN gate:='IF NOT EXISTS(SELECT 1 FROM public.rider_remittances r WHERE r.id=_id AND public.staff_rider_allowed(''finance'',r.rider_id)) THEN RAISE EXCEPTION ''Finance permission or city denied''; END IF;';
+ ELSIF f.proname='review_rider_earning' THEN gate:='IF NOT EXISTS(SELECT 1 FROM public.rider_earnings r WHERE r.id=_earning_id AND public.staff_rider_allowed(''finance'',r.rider_id)) THEN RAISE EXCEPTION ''Finance permission or city denied''; END IF;';
+ ELSIF f.proname='pay_rider' THEN gate:='IF NOT public.staff_rider_allowed(''finance'',_rider) THEN RAISE EXCEPTION ''Finance permission or city denied''; END IF;'; d:=replace(d,'public.has_role(auth.uid(),''admin'')','public.has_permission(auth.uid(),''finance'')');
+ ELSIF f.proname='admin_pay_vendor' THEN gate:='IF NOT public.staff_vendor_allowed(_vendor_id) THEN RAISE EXCEPTION ''Finance permission or vendor city denied''; END IF;';
+ ELSIF f.proname IN ('approve_partner_application','reject_partner_application') THEN
+  gate:='IF NOT public.staff_application_allowed(_application_id) THEN RAISE EXCEPTION ''Application permission or city denied''; END IF;'; d:=replace(d,'public.has_role(auth.uid(), ''admin'')','public.staff_application_allowed(_application_id)');
+  IF f.proname='approve_partner_application' THEN d:=replace(d,'SELECT * INTO _app FROM public.partner_applications WHERE id = _application_id;','SELECT * INTO _app FROM public.partner_applications WHERE id = _application_id FOR UPDATE;'); d:=replace(d,'IF _app.status = ''approved'' THEN RAISE EXCEPTION ''Already approved''; END IF;','IF _app.status <> ''pending'' THEN RAISE EXCEPTION ''Application not pending''; END IF;');
+  ELSE gate:=gate||' IF NOT EXISTS(SELECT 1 FROM public.partner_applications WHERE id=_application_id AND status=''pending'') THEN RAISE EXCEPTION ''Application not pending''; END IF; IF length(trim(coalesce(_reason,'''')))<3 THEN RAISE EXCEPTION ''Reason required''; END IF;'; END IF;
+ ELSIF f.proname IN ('admin_overview','admin_daily_trend') THEN gate:='IF NOT public.has_role(auth.uid(),''admin'') THEN RAISE EXCEPTION ''Admin analytics only''; END IF;'; END IF;
+ IF gate IS NOT NULL THEN d:=regexp_replace(d,'\mBEGIN\M','BEGIN'||chr(10)||gate); EXECUTE d; END IF;
+ END LOOP; END $$;
+ALTER FUNCTION public.admin_set_rider_state(uuid,text,text) SECURITY DEFINER;
+DO $$ DECLARE d text; BEGIN SELECT pg_get_functiondef('public.validate_partner_application()'::regprocedure) INTO d; d:=replace(d,'TG_OP = ''UPDATE'' AND public.has_role(auth.uid(),''admin'')','TG_OP = ''UPDATE'' AND (public.has_role(auth.uid(),''admin'') OR public.staff_application_allowed(OLD.id))'); EXECUTE d; SELECT pg_get_functiondef('public.protect_food_order_financials()'::regprocedure) INTO d; d:=replace(d,'OR public.has_role(auth.uid(), ''support'')',''); EXECUTE d; END $$;
+CREATE OR REPLACE FUNCTION public.staff_cancel_order(_kind text,_order_id uuid,_note text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE tbl text; o record; previous text; BEGIN
+ IF NOT public.staff_order_allowed('support',_kind,_order_id) THEN RAISE EXCEPTION 'Cancellation permission or city denied'; END IF;
+ IF length(trim(coalesce(_note,'')))<3 THEN RAISE EXCEPTION 'Cancellation reason required'; END IF;
+ tbl:=CASE _kind WHEN 'food' THEN 'orders' WHEN 'grocery_cart' THEN 'grocery_cart_orders' WHEN 'grocery_list' THEN 'grocery_list_orders' ELSE NULL END;
+ IF tbl IS NULL THEN RAISE EXCEPTION 'Invalid order kind'; END IF;
+ EXECUTE format('SELECT * FROM public.%I WHERE id=$1 FOR UPDATE',tbl) INTO o USING _order_id;
+ IF o.id IS NULL OR o.status IN ('delivered','completed','cancelled','returned_to_store','delivering','failed_delivery') OR o.picked_up_at IS NOT NULL OR o.return_requested_at IS NOT NULL THEN RAISE EXCEPTION 'Picked-up or closed order needs supervised resolution'; END IF;
+ previous:=coalesce(current_setting('app.bypass_order_guard',true),''); PERFORM set_config('app.bypass_order_guard','on',true);
+ EXECUTE format('UPDATE public.%I SET status=''cancelled'',cancelled_at=now() WHERE id=$1',tbl) USING _order_id;
+ PERFORM set_config('app.bypass_order_guard',previous,true);
+ INSERT INTO public.staff_audit_log(actor_id,action,entity_type,entity_id,details) VALUES(auth.uid(),'cancel',tbl,_order_id::text,jsonb_build_object('reason',trim(_note))); END $$;
+REVOKE ALL ON FUNCTION public.staff_cancel_order(text,uuid,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.staff_cancel_order(text,uuid,text) TO authenticated,service_role;
+CREATE OR REPLACE FUNCTION public.can_supervise_service(_booking_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT auth.uid() IS NOT NULL AND EXISTS(SELECT 1 FROM public.service_bookings b JOIN public.services s ON s.id=b.service_id WHERE b.id=_booking_id AND (public.has_role(auth.uid(),'admin') OR (public.has_permission(auth.uid(),'support') AND public.staff_city_allowed(b.city_id)) OR (public.has_role(auth.uid(),'service_manager') AND public.manages_category(auth.uid(),s.category_id)))) $$;
