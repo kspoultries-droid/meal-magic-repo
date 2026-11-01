@@ -5879,6 +5879,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      staff_request_exact_refund: {
+        Args: {
+          _amount: number
+          _kind: string
+          _note: string
+          _order: string
+          _type: string
+        }
+        Returns: string
+      }
       staff_rider_allowed: {
         Args: { _id: string; _perm: string }
         Returns: boolean
