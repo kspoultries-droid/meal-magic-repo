@@ -4369,6 +4369,30 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_private_access: {
+        Row: {
+          actor_id: string
+          city_id: string | null
+          created_at: string
+          entity_id: string
+          id: string
+        }
+        Insert: {
+          actor_id: string
+          city_id?: string | null
+          created_at?: string
+          entity_id: string
+          id?: string
+        }
+        Update: {
+          actor_id?: string
+          city_id?: string | null
+          created_at?: string
+          entity_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       staff_quality_reviews: {
         Row: {
           case_id: string
@@ -5753,6 +5777,10 @@ export type Database = {
         Returns: string
       }
       staff_audit_redact: { Args: { _details: Json }; Returns: Json }
+      staff_authorize_private_document: {
+        Args: { _path: string }
+        Returns: boolean
+      }
       staff_cancel_order: {
         Args: { _kind: string; _note: string; _order_id: string }
         Returns: undefined
