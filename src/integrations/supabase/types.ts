@@ -117,6 +117,7 @@ export type Database = {
           decided_at: string | null
           decided_by: string | null
           decision_note: string | null
+          expires_at: string
           id: string
           kind: string
           note: string | null
@@ -132,6 +133,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           decision_note?: string | null
+          expires_at?: string
           id?: string
           kind: string
           note?: string | null
@@ -147,6 +149,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           decision_note?: string | null
+          expires_at?: string
           id?: string
           kind?: string
           note?: string | null
@@ -5468,6 +5471,16 @@ export type Database = {
         }
         Returns: string
       }
+      request_secure_approval: {
+        Args: {
+          _amount: number
+          _kind: string
+          _note: string
+          _payload: Json
+          _reference_id: string
+        }
+        Returns: string
+      }
       request_wallet_topup: {
         Args: { _amount: number; _payment_method: string }
         Returns: string
@@ -5740,6 +5753,10 @@ export type Database = {
       staff_city_allowed: { Args: { _city: string }; Returns: boolean }
       staff_enabled: { Args: { _uid: string }; Returns: boolean }
       staff_escalate_cases: { Args: never; Returns: number }
+      staff_financial_payload: {
+        Args: { _j: Json; _table: string }
+        Returns: Json
+      }
       staff_list_services: { Args: never; Returns: boolean }
       staff_manage_controls: {
         Args: {

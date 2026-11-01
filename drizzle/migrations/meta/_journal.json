@@ -554,6 +554,13 @@
       "when": 1793536677736,
       "tag": "0078_staff_shared_cases_and_quality",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1793536738802,
+      "tag": "0079_staff_exact_financial_approvals",
+      "breakpoints": true
     }
   ]
 }
