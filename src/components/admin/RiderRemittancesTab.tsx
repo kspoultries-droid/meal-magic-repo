@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ const STATUS_TABS = [
 ];
 
 const RiderRemittancesTab = () => {
+  const { isAdmin } = useAuth();
   const [tab, setTab] = useState("pending");
   const [rows, setRows] = useState<any[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
@@ -121,8 +123,8 @@ const RiderRemittancesTab = () => {
         <div className="rounded-xl border p-3 space-y-2 bg-muted/30">
           <p className="text-xs font-bold">رائیڈر کیش حد</p>
           <div className="flex gap-2">
-            <Input value={cashLimit} onChange={(e) => setCashLimit(e.target.value)} inputMode="numeric" className="h-9 text-xs" placeholder="20000" />
-            <Button size="sm" className="h-9 text-xs font-bold" disabled={savingLimit} onClick={saveLimit}>محفوظ</Button>
+            <Input disabled={!isAdmin} value={cashLimit} onChange={(e) => setCashLimit(e.target.value)} inputMode="numeric" className="h-9 text-xs" placeholder="20000" />
+            {isAdmin && <Button size="sm" className="h-9 text-xs font-bold" disabled={savingLimit} onClick={saveLimit}>محفوظ</Button>}
           </div>
           <p className="text-[10px] text-muted-foreground">حد سے زیادہ نقدی رکھنے والے رائیڈر کو نیا کیش آرڈر آفر نہیں ہوگا۔</p>
           {outstanding.length > 0 && (

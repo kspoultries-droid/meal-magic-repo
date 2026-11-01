@@ -26,11 +26,13 @@ const ORDER_STATUS: Record<string, { key: string; color: string }> = {
 };
 
 const SupportDashboard = () => {
-  const { user, loading, isSupport, isAdmin } = useAuth();
+  const { user, loading, isSupport, isAdmin, permissions } = useAuth();
+  const canSupport = isAdmin || permissions.includes("support");
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [orders, setOrders] = useState<any[]>([]);
   const [groceryOrders, setGroceryOrders] = useState<any[]>([]);
+  const [shopOrders, setShopOrders] = useState<any[]>([]);
   const [serviceBookings, setServiceBookings] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [selectedType, setSelectedType] = useState<string>("");
@@ -39,28 +41,30 @@ const SupportDashboard = () => {
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
-    if (!loading && !isSupport && !isAdmin) {
+    if (!loading && !canSupport) {
       navigate("/");
       toast.error(t("sup.noAccess"));
     }
-  }, [loading, isSupport, isAdmin]);
+  }, [loading, canSupport]);
 
   const fetchAll = async () => {
     setLoadingData(true);
-    const [{ data: o }, { data: g }, { data: s }] = await Promise.all([
+    const [{ data: o }, { data: g }, { data: s }, { data: shops }] = await Promise.all([
       supabase.from("orders").select("*, restaurants(name)").order("created_at", { ascending: false }).limit(100),
       supabase.from("grocery_list_orders").select("*, grocery_stores(name)").order("created_at", { ascending: false }).limit(100),
       supabase.from("service_bookings").select("*, services(name)").order("created_at", { ascending: false }).limit(100),
+      supabase.from("grocery_cart_orders").select("*, grocery_stores(name)").order("created_at", { ascending: false }).limit(100),
     ]);
     setOrders(o || []);
     setGroceryOrders(g || []);
+    setShopOrders(shops || []);
     setServiceBookings(s || []);
     setLoadingData(false);
   };
 
   useEffect(() => {
-    if (user && (isSupport || isAdmin)) fetchAll();
-  }, [user, isSupport, isAdmin]);
+    if (user && canSupport) fetchAll();
+  }, [user, canSupport]);
 
   const fetchCustomer = async (customerId: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("id", customerId).single();
@@ -68,8 +72,8 @@ const SupportDashboard = () => {
   };
 
   const updateOrderStatus = async (id: string, status: string, type: string) => {
-    const table = type === "food" ? "orders" : type === "grocery" ? "grocery_list_orders" : "service_bookings";
-    const { error } = await supabase.from(table).update({ status }).eq("id", id);
+    if (status !== "cancelled" || type === "service") return;
+    const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: type === "food" ? "food" : type === "shop" ? "grocery_cart" : "grocery_list", _order_id: id, _note: "سپورٹ کی ہنگامی منسوخی" });
     if (error) toast.error(error.message);
     else { toast.success(t("sup.statusUpdated")); setSelectedOrder(null); fetchAll(); }
   };
@@ -92,11 +96,11 @@ const SupportDashboard = () => {
   };
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><RefreshCw className="w-8 h-8 animate-spin text-primary" /></div>;
-  if (!isSupport && !isAdmin) return null;
+  if (!canSupport) return null;
 
   const stats = {
     foodPending: orders.filter(o => o.status === "pending").length,
-    groceryPending: groceryOrders.filter(o => o.status === "pending").length,
+    groceryPending: [...groceryOrders, ...shopOrders].filter(o => o.status === "pending").length,
     servicePending: serviceBookings.filter(o => o.status === "pending").length,
   };
 
@@ -181,13 +185,13 @@ const SupportDashboard = () => {
           <TabsContent value="grocery">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between py-3">
-                <CardTitle className="text-sm flex items-center gap-1"><FileImage className="w-4 h-4" /> {t("sup.groceryOrders")} ({groceryOrders.length})</CardTitle>
+                <CardTitle className="text-sm flex items-center gap-1"><FileImage className="w-4 h-4" /> {t("sup.groceryOrders")} ({groceryOrders.length + shopOrders.length})</CardTitle>
                 <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="h-3 w-3" /></Button>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
                 {loadingData ? <p className="text-center text-muted-foreground py-4">{t("common.loading")}</p> :
-                  filterBySearch(groceryOrders, ["delivery_address", "grocery_stores.name"]).map(order => (
-                    <div key={order.id} onClick={() => openOrder(order, "grocery")}
+                  filterBySearch([...shopOrders.map(order => ({ ...order, supportKind: "shop" })), ...groceryOrders], ["delivery_address", "grocery_stores.name"]).map(order => (
+                    <div key={order.id} onClick={() => openOrder(order, order.supportKind || "grocery")}
                       className="flex items-center gap-3 p-3 border rounded-xl hover:bg-accent/50 cursor-pointer transition-colors">
                       {order.image_url && <img src={order.image_url} alt="List" className="w-12 h-12 rounded-lg object-cover border flex-shrink-0" />}
                       <div className="flex-1 min-w-0">
@@ -270,18 +274,7 @@ const SupportDashboard = () => {
                 <img src={selectedOrder.image_url} alt="List" className="w-full rounded-xl border max-h-48 object-contain bg-secondary" />
               )}
 
-              {/* Status update buttons */}
-              <div>
-                <p className="text-xs font-bold mb-2">{t("sup.changeStatus")}</p>
-                <div className="flex gap-2 flex-wrap">
-                  {Object.entries(ORDER_STATUS).filter(([s]) => s !== selectedOrder.status).map(([s, info]) => (
-                    <Button key={s} size="sm" variant="outline" className="text-xs h-7"
-                      onClick={() => updateOrderStatus(selectedOrder.id, s, selectedType)}>
-                      {t(info.key as any)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              {selectedType !== "service" && !["delivered", "completed", "cancelled", "delivering", "returned_to_store"].includes(selectedOrder.status) && <Button variant="destructive" size="sm" onClick={() => updateOrderStatus(selectedOrder.id, "cancelled", selectedType)}>ہنگامی منسوخی</Button>}
             </div>
           )}
         </DialogContent>

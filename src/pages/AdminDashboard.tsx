@@ -1,3 +1,5 @@
+import TicketsQueue from "@/components/support/TicketsQueue";
+import { staffWorkspace, staffLanding } from "@/lib/staffAccess";
 import CompanySettingsTab from "@/components/admin/CompanySettingsTab";
 import MyBusinessesTab from "@/components/admin/MyBusinessesTab";
 import CatalogManagerTab from "@/components/admin/CatalogManagerTab";
@@ -53,6 +55,7 @@ import NewOrderBanner from "@/components/NewOrderBanner";
 const AdminDashboard = () => {
   const { user, isAdmin, isStaff, permissions, loading, signOut } = useAuth();
   const can = (p: string) => isAdmin || permissions.includes(p);
+  const work = staffWorkspace(permissions, isAdmin);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [recordQuery, setRecordQuery] = useState("");
@@ -98,10 +101,12 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (loading || isAdmin || !isStaff) return;
-    const first = can("orders") ? "operations" : (can("partners") || can("riders")) ? "partners" : can("finance") ? "finance" : "team";
-    setTab(first);
-    if (!can("partners") && can("riders")) setPartnersTab("riders");
-    if (!can("team")) setTeamTab("approvals");
+    const first = staffLanding(permissions, isAdmin);
+    setTab(first.section);
+    if (first.section === "operations") setOpsTab(first.sub);
+    if (first.section === "partners") setPartnersTab(first.sub);
+    if (first.section === "finance") setFinanceTab(first.sub);
+    if (first.section === "team") setTeamTab(first.sub);
   }, [loading, isAdmin, isStaff, permissions.join()]);
 
   useEffect(() => {
@@ -113,14 +118,14 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <StuckDispatchAlarm onOpen={() => goto("operations", "orders")} />
+      {can("dispatch") && <StuckDispatchAlarm onOpen={() => goto("operations", "orders")} />}
       <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur px-3 py-2 sm:px-5 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-base font-bold text-primary">{t("dash.admin")}</h1>
         <div className="flex flex-wrap items-center gap-1.5">
           {isAdmin && <AdminSearch onNavigate={goto} />}
           <NotificationBell />
           <LanguageSwitcher />
-          <Button variant="default" size="sm" onClick={() => navigate("/operations")}>🎛️ Operations</Button>
+          {can("orders") && <Button variant="default" size="sm" onClick={() => navigate("/operations")}>آپریشنز</Button>}{can("support") && <Button variant="outline" size="sm" onClick={() => navigate("/support-dashboard")}>شکایات</Button>}
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠 {t("common.home")}</Button>
           <span className="hidden text-xs text-muted-foreground lg:inline">{user?.email}</span>
           <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
@@ -133,48 +138,49 @@ const AdminDashboard = () => {
         <Tabs value={tab} onValueChange={value => { setRecordQuery(""); setTab(value); }}>
           <TabsList className="mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar rounded-lg border bg-card p-1">
             {isAdmin && <TabsTrigger value="overview" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutDashboard className="h-3.5 w-3.5" /> {t("admin.commandCenter")}</TabsTrigger>}
-            {can("orders") && <TabsTrigger value="operations" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShoppingBag className="h-3.5 w-3.5" /> {t("admin.operations")}</TabsTrigger>}
+            {work.operations.length > 0 && <TabsTrigger value="operations" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShoppingBag className="h-3.5 w-3.5" /> {t("admin.operations")}</TabsTrigger>}
             {(can("partners") || can("riders")) && <TabsTrigger value="partners" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Store className="h-3.5 w-3.5" /> {t("admin.partners")}</TabsTrigger>}
             {isAdmin && <TabsTrigger value="people" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users className="h-3.5 w-3.5" /> {t("admin.people")}</TabsTrigger>}
             {can("finance") && <TabsTrigger value="finance" className="relative h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Ticket className="h-3.5 w-3.5" /> {t("admin.finance")}{pendingRemittances > 0 && <Badge className="h-4 min-w-4 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>}
             {can("content") && <TabsTrigger value="content" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Megaphone className="h-3.5 w-3.5" /> {t("admin.content")}</TabsTrigger>}
             {can("settings") && <TabsTrigger value="settings" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><MapPin className="h-3.5 w-3.5" /> {t("common.settings")}</TabsTrigger>}
-            {(can("team") || can("approve") || can("audit") || isStaff) && <TabsTrigger value="team" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Shield className="h-3.5 w-3.5" /> ٹیم</TabsTrigger>}
+            {work.team.length > 0 && <TabsTrigger value="team" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Shield className="h-3.5 w-3.5" /> ٹیم</TabsTrigger>}
           </TabsList>
 
-          <TabsContent value="overview" className="admin-compact space-y-3"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>
+          {isAdmin && <TabsContent value="overview" className="admin-compact space-y-3"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>}
 
-          <TabsContent value="operations" className="admin-compact">
+          {work.operations.length > 0 && <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={value => { setRecordQuery(""); setOpsTab(value); }}>
-              <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="orders">{t("common.orders")}</TabsTrigger><TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger><TabsTrigger value="rider-supervision">رائیڈر نگرانی</TabsTrigger><TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger><TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger></TabsList>
-              <TabsContent value="orders"><OrdersTab initialQuery={recordQuery} /></TabsContent><TabsContent value="grocery-dispatch"><GroceryDispatchTab initialQuery={recordQuery} /></TabsContent><TabsContent value="rider-supervision"><RiderOperationsPanel /></TabsContent><TabsContent value="photo-orders"><PhotoOrdersTab initialQuery={recordQuery} /></TabsContent><TabsContent value="audit"><AuditLogTab /></TabsContent>
+              <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.operations.includes("orders") && <TabsTrigger value="orders">{t("common.orders")}</TabsTrigger>}{work.operations.includes("grocery-dispatch") && <TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger>}{work.operations.includes("rider-supervision") && <TabsTrigger value="rider-supervision">رائیڈر نگرانی</TabsTrigger>}{work.operations.includes("photo-orders") && <TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger>}{work.operations.includes("audit") && <TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger>}{can("support") && <TabsTrigger value="support">شکایات</TabsTrigger>}</TabsList>
+              {work.operations.includes("orders") && <TabsContent value="orders"><OrdersTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("grocery-dispatch") && <TabsContent value="grocery-dispatch"><GroceryDispatchTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("rider-supervision") && <TabsContent value="rider-supervision"><RiderOperationsPanel /></TabsContent>}{work.operations.includes("photo-orders") && <TabsContent value="photo-orders"><PhotoOrdersTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("audit") && <TabsContent value="audit"><AuditLogTab /></TabsContent>}
+              {can("support") && <TabsContent value="support"><TicketsQueue /></TabsContent>}
             </Tabs>
-          </TabsContent>
+          </TabsContent>}
 
-          <TabsContent value="partners" className="admin-compact">
+          {work.partners.length > 0 && <TabsContent value="partners" className="admin-compact">
             <Tabs value={partnersTab} onValueChange={value => { setRecordQuery(""); setPartnersTab(value); }}>
-              <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="applications">{t("admin.applications")}</TabsTrigger><TabsTrigger value="restaurants">{t("admin.restaurants")}</TabsTrigger><TabsTrigger value="riders">{t("admin.riders")}</TabsTrigger><TabsTrigger value="grocery">{t("admin.grocery")}</TabsTrigger><TabsTrigger value="services">{t("admin.services")}</TabsTrigger><TabsTrigger value="wholesale-cats">{t("admin.bazarCats")}</TabsTrigger></TabsList>
-              <TabsContent value="applications"><ApplicationsTab /></TabsContent><TabsContent value="restaurants"><RestaurantsTab initialQuery={recordQuery} /></TabsContent><TabsContent value="riders"><RidersTab onPay={id => goto("finance", "rider-pay", id)} /></TabsContent><TabsContent value="grocery"><GroceryTab initialQuery={recordQuery} /></TabsContent><TabsContent value="services"><ServicesTab /></TabsContent><TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>
+              <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.partners.includes("applications") && <TabsTrigger value="applications">{t("admin.applications")}</TabsTrigger>}{work.partners.includes("restaurants") && <TabsTrigger value="restaurants">{t("admin.restaurants")}</TabsTrigger>}{work.partners.includes("riders") && <TabsTrigger value="riders">{t("admin.riders")}</TabsTrigger>}{work.partners.includes("grocery") && <TabsTrigger value="grocery">{t("admin.grocery")}</TabsTrigger>}{work.partners.includes("services") && <TabsTrigger value="services">{t("admin.services")}</TabsTrigger>}{work.partners.includes("wholesale-cats") && <TabsTrigger value="wholesale-cats">{t("admin.bazarCats")}</TabsTrigger>}</TabsList>
+              {work.partners.includes("applications") && <TabsContent value="applications"><ApplicationsTab /></TabsContent>}{work.partners.includes("restaurants") && <TabsContent value="restaurants"><RestaurantsTab initialQuery={recordQuery} /></TabsContent>}{work.partners.includes("riders") && <TabsContent value="riders"><RidersTab onPay={id => goto("finance", "rider-pay", id)} /></TabsContent>}{work.partners.includes("grocery") && <TabsContent value="grocery"><GroceryTab initialQuery={recordQuery} /></TabsContent>}{work.partners.includes("services") && <TabsContent value="services"><ServicesTab /></TabsContent>}{work.partners.includes("wholesale-cats") && <TabsContent value="wholesale-cats"><WholesaleCategoriesTab /></TabsContent>}
             </Tabs>
-          </TabsContent>
+          </TabsContent>}
 
-          <TabsContent value="people" className="admin-compact"><UsersTab initialQuery={recordQuery} /></TabsContent>
+          {isAdmin && <TabsContent value="people" className="admin-compact"><UsersTab initialQuery={recordQuery} /></TabsContent>}
 
-          <TabsContent value="finance" className="admin-compact">
-            <Tabs value={financeTab} onValueChange={value => { setRecordQuery(""); setFinanceTab(value); }}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="revenue">{t("admin.revenue")}</TabsTrigger><TabsTrigger value="banks">{t("admin.banks")}</TabsTrigger>{isAdmin && <TabsTrigger value="wallet-topups">والیٹ درخواستیں</TabsTrigger>}<TabsTrigger value="payouts">{t("admin.payouts")}</TabsTrigger><TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger><TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger><TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger></TabsList><TabsContent value="revenue"><RevenueTab /></TabsContent><TabsContent value="banks"><BankAccountsTab /></TabsContent>{isAdmin && <TabsContent value="wallet-topups"><WalletTopupsTab /></TabsContent>}<TabsContent value="payouts"><PayoutsTab /></TabsContent><TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent><TabsContent value="rider-pay"><RiderPayTab initialQuery={recordQuery} /></TabsContent><TabsContent value="rates"><CommissionRulesTab /></TabsContent></Tabs>
-          </TabsContent>
+          {can("finance") && <TabsContent value="finance" className="admin-compact">
+            <Tabs value={financeTab} onValueChange={value => { setRecordQuery(""); setFinanceTab(value); }}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.finance.includes("revenue") && <TabsTrigger value="revenue">{t("admin.revenue")}</TabsTrigger>}{work.finance.includes("banks") && <TabsTrigger value="banks">{t("admin.banks")}</TabsTrigger>}{isAdmin && {work.finance.includes("wallet-topups") && <TabsTrigger value="wallet-topups">والیٹ درخواستیں</TabsTrigger>}}{work.finance.includes("payouts") && <TabsTrigger value="payouts">{t("admin.payouts")}</TabsTrigger>}{work.finance.includes("rider-remit") && <TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>}{work.finance.includes("rider-pay") && <TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger>}{work.finance.includes("rates") && <TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger>}</TabsList>{work.finance.includes("revenue") && <TabsContent value="revenue"><RevenueTab /></TabsContent>}{work.finance.includes("banks") && <TabsContent value="banks"><BankAccountsTab /></TabsContent>}{isAdmin && {work.finance.includes("wallet-topups") && <TabsContent value="wallet-topups"><WalletTopupsTab /></TabsContent>}}{work.finance.includes("payouts") && <TabsContent value="payouts"><PayoutsTab /></TabsContent>}{work.finance.includes("rider-remit") && <TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent>}{work.finance.includes("rider-pay") && <TabsContent value="rider-pay"><RiderPayTab initialQuery={recordQuery} /></TabsContent>}{work.finance.includes("rates") && <TabsContent value="rates"><CommissionRulesTab /></TabsContent>}</Tabs>
+          </TabsContent>}
 
-          <TabsContent value="content" className="admin-compact">
+          {can("content") && <TabsContent value="content" className="admin-compact">
             <Tabs value={contentTab} onValueChange={setContentTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="ads">ایڈز</TabsTrigger><TabsTrigger value="vouchers">واؤچرز</TabsTrigger><TabsTrigger value="reels">ریلز</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
+          </TabsContent>}
+
+          {work.team.length > 0 && <TabsContent value="team" className="admin-compact">
+            <Tabs value={teamTab} onValueChange={setTeamTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{can("team") && {work.team.includes("team") && <TabsTrigger value="team">عملہ</TabsTrigger>}}{work.team.includes("approvals") && <TabsTrigger value="approvals">منظوریاں</TabsTrigger>}{(can("audit") || can("team")) && {work.team.includes("activity") && <TabsTrigger value="activity">کارکردگی و ریکارڈ</TabsTrigger>}}</TabsList>{can("team") && {work.team.includes("team") && <TabsContent value="team"><TeamTab /></TabsContent>}}{work.team.includes("approvals") && <TabsContent value="approvals"><ApprovalsTab /></TabsContent>}{(can("audit") || can("team")) && {work.team.includes("activity") && <TabsContent value="activity"><TeamActivityTab /></TabsContent>}}</Tabs>
           </TabsContent>
 
-          <TabsContent value="team" className="admin-compact">
-            <Tabs value={teamTab} onValueChange={setTeamTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{can("team") && <TabsTrigger value="team">عملہ</TabsTrigger>}<TabsTrigger value="approvals">منظوریاں</TabsTrigger>{(can("audit") || can("team")) && <TabsTrigger value="activity">کارکردگی و ریکارڈ</TabsTrigger>}</TabsList>{can("team") && <TabsContent value="team"><TeamTab /></TabsContent>}<TabsContent value="approvals"><ApprovalsTab /></TabsContent>{(can("audit") || can("team")) && <TabsContent value="activity"><TeamActivityTab /></TabsContent>}</Tabs>
-          </TabsContent>
-
-          <TabsContent value="settings" className="admin-compact">
+          {can("settings") && <TabsContent value="settings" className="admin-compact">
             <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{isAdmin && <TabsTrigger value="my-businesses">میرے کاروبار</TabsTrigger>}{isAdmin && <TabsTrigger value="company">کمپنی معلومات</TabsTrigger>}{isAdmin && <TabsTrigger value="catalog">معیاری فہرست</TabsTrigger>}<TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList>{isAdmin && <TabsContent value="my-businesses"><MyBusinessesTab /></TabsContent>}{isAdmin && <TabsContent value="company"><CompanySettingsTab /></TabsContent>}{isAdmin && <TabsContent value="catalog"><CatalogManagerTab /></TabsContent>}<TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
-          </TabsContent>
+          </TabsContent>}}
         </Tabs>
       </div>
     </div>
@@ -455,6 +461,9 @@ const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => 
 
 // ─── Orders ─────────────────────────────────────
 const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
+  const { isAdmin, permissions } = useAuth();
+  const canDispatch = isAdmin || permissions.includes("dispatch");
+  const canCancel = isAdmin || permissions.includes("support");
   const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(1);
   useEffect(() => { setQuery(initialQuery); setPage(1); }, [initialQuery]);
@@ -545,7 +554,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       toast.error("ایڈمن صرف rider assign یا emergency cancel کرے گا؛ status ریسٹورنٹ/رائیڈر چلائیں گے");
       return;
     }
-    const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
+    const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: "food", _order_id: order.id, _note: "ہنگامی منسوخی" });
     if (error) { toast.error(error.message); return; }
     toast.success("سٹیٹس اپڈیٹ ہو گئی");
     fetchOrders();
@@ -643,14 +652,14 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                     <span className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
                     <span className="font-bold text-xs">Rs {o.total_amount}</span>
                     <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status === "confirmed" ? "قبول شدہ" : o.status}</Badge>
-                    {needsRider && (dispatch.active
+                    {canDispatch && needsRider && (dispatch.active
                       ? <Badge className="h-5 bg-warning px-1.5 text-[10px] text-warning-foreground">آفر بھیجی ({dispatch.tries}/3) — {getRiderName(dispatch.active.rider_id)}</Badge>
                       : <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">{dispatch.tries >= 3 || o.dispatch_state === "stuck" ? "رائیڈر درکار (خود تفویض کریں)" : "رائیڈر تلاش جاری"}</Badge>)}
                     <span className="text-[10px] font-bold">{cust.name}{cust.phone ? ` · ${cust.phone}` : ""}</span>
                     {o.rider_id && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{getRiderName(o.rider_id)}</Badge>}
                     {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
                      <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
-                    {needsRider && (
+                    {canDispatch && needsRider && (
                       <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => setExpandedOrder(o.id)}>دستی تفویض</Button>
                     )}
                     <button className="ms-auto text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
@@ -681,7 +690,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         {o.rider_id && <p>🏍️ {getRiderName(o.rider_id)}{getRiderPhone(o.rider_id) && ` · 📞 ${getRiderPhone(o.rider_id)}`}</p>}
                       </div>
 
-                      {needsRider && (
+                      {canDispatch && needsRider && (
                         <div className="rounded-md bg-secondary/20 p-2 space-y-1">
                           <p className="text-[11px] font-bold">🏍️ دستی تفویض (20/40/40 کا انتظار ضروری نہیں):</p>
                           {(nearestRiders.length > 0 ? nearestRiders : riders.filter((r: any) => !r.is_suspended)).map((r: any) => (
@@ -704,10 +713,10 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       )}
 
                       <div className="flex flex-wrap items-center gap-1.5">
-                        {!o.rider_id && o.dispatch_state === "stuck" && (
+                        {canDispatch && !o.rider_id && o.dispatch_state === "stuck" && (
                           <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => retryDispatch(o.id)}>دوبارہ ڈسپیچ</Button>
                         )}
-                        {!isClosed && o.status !== "delivering" && (
+                        {canCancel && !isClosed && o.status !== "delivering" && (
                           <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>Emergency cancel</Button>
                         )}
                       </div>
@@ -727,6 +736,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
 // ─── Restaurants ────────────────────────────────
 const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
+  const { isAdmin } = useAuth();
   const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(1);
   useEffect(() => { setQuery(initialQuery); setPage(1); }, [initialQuery]);
@@ -846,7 +856,7 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setEditingOwner(null)}><X className="h-3 w-3" /></Button>
                       </div>
                     ) : (
-                      <span className="cursor-pointer hover:text-primary text-xs" onClick={() => { setEditingOwner(r.id); setOwnerInput(r.owner_id); }}>
+                      <span className="cursor-pointer hover:text-primary text-xs" onClick={() => { if (isAdmin) { setEditingOwner(r.id); setOwnerInput(r.owner_id); } }}>
                         {getOwnerName(r.owner_id)} <Pencil className="inline h-3 w-3 ml-1 text-muted-foreground" />
                       </span>
                     )}
@@ -869,9 +879,9 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       </>
                     )}
                     {r.busy_until && new Date(r.busy_until) > new Date() && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => restoreRestaurant(r.id)}>ابھی کھولیں</Button>}
-                    <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
+                    {isAdmin && <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
                       <Trash2 className="h-3 w-3" />
-                    </Button>
+                    </Button>}
                   </TableCell>
                 </TableRow>
               ))}

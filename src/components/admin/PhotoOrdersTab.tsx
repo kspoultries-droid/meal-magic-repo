@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,8 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 };
 
 const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
+  const { isAdmin, permissions } = useAuth();
+  const canCancel = isAdmin || permissions.includes("support");
   const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(1);
   useEffect(() => { setQuery(initialQuery); setPage(1); }, [initialQuery]);
@@ -65,7 +68,8 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   };
 
   const updateStatus = async (orderId: string, status: string) => {
-    const { error } = await supabase.from("grocery_list_orders").update({ status }).eq("id", orderId);
+    if (!canCancel || status !== "cancelled") return;
+    const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: "grocery_list", _order_id: orderId, _note: "سپورٹ کی ہنگامی منسوخی" });
     if (error) toast.error(error.message);
     else { toast.success("اپڈیٹ ہو گیا"); setSelectedOrder(null); fetchData(); }
   };
@@ -168,7 +172,7 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
               {selectedOrder.shopkeeper_notes && <p className="text-sm bg-primary/10 p-2 rounded-lg"><strong>دکاندار نوٹ:</strong> {selectedOrder.shopkeeper_notes}</p>}
 
               <div className="flex gap-2 flex-wrap">
-                {["ready_for_pickup", "cancelled"].filter(s => s !== selectedOrder.status && !["delivered", "completed", "cancelled", "returned_to_store"].includes(selectedOrder.status) && (s !== "ready_for_pickup" || selectedOrder.status === "confirmed")).map(s => (
+                {(canCancel ? ["cancelled"] : []).filter(s => s !== selectedOrder.status && !["delivered", "completed", "cancelled", "returned_to_store"].includes(selectedOrder.status) && (s !== "ready_for_pickup" || selectedOrder.status === "confirmed")).map(s => (
                   <Button key={s} size="sm" variant="outline" className="text-xs h-7" onClick={() => updateStatus(selectedOrder.id, s)}>
                     {STATUS_MAP[s]?.label || s}
                   </Button>
