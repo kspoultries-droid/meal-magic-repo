@@ -11,7 +11,7 @@
 - Delivery routes use an authenticated order-scoped context and server-side openrouteservice gateway; infer the target from persisted delivery stage, never client-submitted endpoints, and retain marker-only fallback for missing pins/GPS.
 - Food eligibility is checked by one server predicate in quoting, order inserts/transitions and offers; reject invalid/missing pins instead of erasing them, and never substitute a fallback fee for an invalid delivery area.
 
-- Shared UI tokens and primitives govern typography and surfaces; navigation remains brand-isolated.
+- Shared UI tokens govern surfaces; navigation stays brand-isolated.
 - Editable Bazar and Services headers wait for their settings read before rendering themed content; use a neutral placeholder to prevent default-color flashes on every page mount.
 
 - Firebase web push config (apiKey, appId, projectId, VAPID) is hardcoded as fallback in src/lib/webPush.ts — connector VITE vars did not sync to builds, and these values are public by design.
@@ -43,4 +43,5 @@
 - Activity uses RLS-invoker reads and Karachi days; exclude GPS-only noise without deleting history; counts mean actions, not unique entities.
 - Staff cases use source uniqueness and row-locked claims; quality, obstacles and appeals are separate from activity counts or guilt.
 - Financial approvals bind immutable exact payloads, recipient-account versions and expiry; transactional single use and reasoned owner exceptions are audited.
-- Staff partner-document reads use an authenticated audited 5-minute signing endpoint; direct storage reads are uploader-only.
+- Staff evidence uses audited exact-record 5-minute signing; storage reads are participant-only and report exports audited.
+- Supervision logs success/failure and deduplicates risks; flags require independent review, never automatic punishment.
