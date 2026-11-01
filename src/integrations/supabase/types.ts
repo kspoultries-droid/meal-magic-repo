@@ -4170,6 +4170,44 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_bank_reconciliation: {
+        Row: {
+          confirmed_amount: number
+          id: string
+          ledger_id: string
+          reviewed_at: string
+          reviewed_by: string
+          statement_date: string
+          statement_reference: string
+        }
+        Insert: {
+          confirmed_amount: number
+          id?: string
+          ledger_id: string
+          reviewed_at?: string
+          reviewed_by: string
+          statement_date: string
+          statement_reference: string
+        }
+        Update: {
+          confirmed_amount?: number
+          id?: string
+          ledger_id?: string
+          reviewed_at?: string
+          reviewed_by?: string
+          statement_date?: string
+          statement_reference?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_bank_reconciliation_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: true
+            referencedRelation: "bank_ledger"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_case_events: {
         Row: {
           action: string
@@ -5741,6 +5779,13 @@ export type Database = {
         Args: { _city: string; _dept: string; _uid: string }
         Returns: boolean
       }
+      staff_case_members: {
+        Args: never
+        Returns: {
+          full_name: string
+          user_id: string
+        }[]
+      }
       staff_case_review: {
         Args: {
           _case: string
@@ -5751,6 +5796,15 @@ export type Database = {
         Returns: undefined
       }
       staff_city_allowed: { Args: { _city: string }; Returns: boolean }
+      staff_confirm_bank_entry: {
+        Args: {
+          _amount: number
+          _date: string
+          _ledger: string
+          _reference: string
+        }
+        Returns: undefined
+      }
       staff_enabled: { Args: { _uid: string }; Returns: boolean }
       staff_escalate_cases: { Args: never; Returns: number }
       staff_financial_payload: {
@@ -5800,6 +5854,10 @@ export type Database = {
       staff_rider_allowed: {
         Args: { _id: string; _perm: string }
         Returns: boolean
+      }
+      staff_rider_payment_preview: {
+        Args: { _from: string; _rider: string; _to: string }
+        Returns: number
       }
       staff_set_case_rule: {
         Args: { _department: string; _minutes: number }
