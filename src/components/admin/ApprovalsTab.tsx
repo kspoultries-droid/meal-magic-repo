@@ -42,10 +42,14 @@ const ApprovalsTab = () => {
   }, [page, query]);
 
   const decide = async (id: string, approve: boolean) => {
+    if (busy) return;
     const n = approve ? "" : window.prompt("مسترد کرنے کی وجہ") || "";
+    setBusy(true);
     const { error } = await db.rpc("decide_approval", { _id: id, _approve: approve, _note: n });
+    setBusy(false);
     if (error) return toast.error(error.message.includes("own") ? "اپنی درخواست خود منظور نہیں کر سکتے" : error.message);
     toast.success(approve ? "منظور کر دیا" : "مسترد کر دیا");
+    await load();
   };
 
   const [count, setCount] = useState(0);

@@ -17,6 +17,7 @@ const date = (v: string | null) => v ? new Date(v).toLocaleString("en-PK") : "م
 export default function StaffCasesTab({ onNavigate }: { onNavigate?: (section: string, sub?: string, query?: string) => void }) {
   const { user, isAdmin, permissions } = useAuth();
   const manager = isAdmin || permissions.includes("audit") || permissions.includes("team");
+  const [health, setHealth] = useState<{ status?: string; finished_at?: string; error_code?: string }>({});
   const [rows, setRows] = useState<Case[]>([]);
   const [metrics, setMetrics] = useState<Tables<"staff_case_metrics">[]>([]);
   const [cities, setCities] = useState<Record<string, string>>({});
@@ -50,8 +51,9 @@ export default function StaffCasesTab({ onNavigate }: { onNavigate?: (section: s
     if (error) toast.error(error.message); else { setRows(data || []); setCount(total || 0); }
     const summary = await supabase.from("staff_case_metrics").select("*");
     setMetrics(summary.data || []);
+    if (isAdmin) { const { data } = await supabase.rpc("staff_monitor_health"); if (data && typeof data === "object" && !Array.isArray(data)) setHealth(data); }
     setLoading(false);
-  }, [mode, query, page, user?.id]);
+  }, [mode, query, page, user?.id, isAdmin]);
   useEffect(() => { void load(); const timer = setInterval(() => void load(), 60000); return () => clearInterval(timer); }, [load]);
   useEffect(() => {
     void supabase.from("cities").select("id,name").then(({ data }) => setCities(Object.fromEntries((data || []).map(c => [c.id, c.name]))));
@@ -93,6 +95,7 @@ export default function StaffCasesTab({ onNavigate }: { onNavigate?: (section: s
   };
   return <section dir="rtl" className="space-y-4">
     <div className="flex items-center justify-between border-b pb-3"><h2 className="font-bold">آج کا کام اور نگرانی</h2><Button size="icon" variant="outline" aria-label="کام تازہ کریں" onClick={() => void load()}><RefreshCw className="size-4" /></Button></div>
+    {isAdmin && <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-3 text-xs"><span>خودکار نگرانی: {health.status === "ok" ? "کامیاب" : health.status === "failed" ? "نامکمل؛ دوبارہ جانچ درکار" : "ابھی جانچ نہیں ہوئی"} · {date(health.finished_at || null)}</span><Button size="sm" variant="outline" disabled={busy} onClick={async () => { setBusy(true); const { error } = await supabase.rpc("staff_run_monitor_now"); setBusy(false); if (error) toast.error(error.message); await load(); }}>نگرانی دوبارہ چلائیں</Button></div>}
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[["کھلے کیس", sum("open_cases")], ["تاخیر", sum("overdue_cases")], ["حل شدہ", sum("resolved_cases")], ["دوبارہ کھلے", sum("reopened_cases")]].map(([label, value]) => <div className="border-s-2 border-primary ps-3" key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="text-xl font-bold">{value}</p></div>)}</div>
     <Tabs value={mode} onValueChange={v => { setMode(v); setPage(1); }}><TabsList className="flex h-auto flex-wrap justify-start"><TabsTrigger value="open">تمام کھلے</TabsTrigger><TabsTrigger value="mine">میرے کام</TabsTrigger><TabsTrigger value="overdue">تاخیر</TabsTrigger><TabsTrigger value="resolved">حل شدہ</TabsTrigger></TabsList></Tabs>
     <AdminListTools query={query} count={count} onQuery={v => { setQuery(v); setPage(1); }} />

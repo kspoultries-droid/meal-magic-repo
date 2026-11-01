@@ -57,7 +57,9 @@ const TeamActivityTab = () => {
   };
   useEffect(() => { load(); }, [days, page]);
 
-  const exportCsv = () => {
+  const exportCsv = async () => {
+    const { error } = await supabase.rpc("staff_log_report_access", { _report: "team", _count: perf.length });
+    if (error) return toast.error(error.message);
     const blob = new Blob(["\ufeff" + toCsv(perf.map((r) => ({ staff: r.full_name || r.email, total_actions: r.total_actions, order_actions: r.order_actions, rider_actions: r.rider_actions, finance_actions: r.finance_actions, approvals: r.approvals, last: r.last_action_at })))], { type: "text/csv" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `team-performance-${days}d.csv`; a.click();
   };
