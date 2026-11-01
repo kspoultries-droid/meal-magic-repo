@@ -1,5 +1,6 @@
 import CompanySettingsTab from "@/components/admin/CompanySettingsTab";
 import MyBusinessesTab from "@/components/admin/MyBusinessesTab";
+import CatalogManagerTab from "@/components/admin/CatalogManagerTab";
 import WalletTopupsTab from "@/components/admin/WalletTopupsTab";
 import { useCallback, useEffect, useState } from "react";
 import AdminSearch from "@/components/admin/AdminSearch";
@@ -172,7 +173,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="admin-compact">
-            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{isAdmin && <TabsTrigger value="my-businesses">میرے کاروبار</TabsTrigger>}{isAdmin && <TabsTrigger value="company">کمپنی معلومات</TabsTrigger>}<TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList>{isAdmin && <TabsContent value="my-businesses"><MyBusinessesTab /></TabsContent>}{isAdmin && <TabsContent value="company"><CompanySettingsTab /></TabsContent>}<TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
+            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{isAdmin && <TabsTrigger value="my-businesses">میرے کاروبار</TabsTrigger>}{isAdmin && <TabsTrigger value="company">کمپنی معلومات</TabsTrigger>}{isAdmin && <TabsTrigger value="catalog">معیاری فہرست</TabsTrigger>}<TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList>{isAdmin && <TabsContent value="my-businesses"><MyBusinessesTab /></TabsContent>}{isAdmin && <TabsContent value="company"><CompanySettingsTab /></TabsContent>}{isAdmin && <TabsContent value="catalog"><CatalogManagerTab /></TabsContent>}<TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
           </TabsContent>
         </Tabs>
       </div>

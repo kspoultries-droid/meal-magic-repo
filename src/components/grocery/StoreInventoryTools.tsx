@@ -10,6 +10,8 @@ import { matchesSearch } from "@/lib/searchMatch";
 import { parseCsv, productsToCsv, rowsToProducts } from "@/lib/inventoryImport";
 import { Download, FileUp, Plus, Save, Search } from "lucide-react";
 import { toast } from "sonner";
+import { specsToText } from "@/lib/catalogSpecs";
+const hasRealPhoto = (i: any) => !!(i.image_url && i.image_verified);
 
 type Props = { storeId: string; products: any[]; categories: string[]; onChanged: () => void; mode?: "grocery" | "bazar" };
 
@@ -155,9 +157,9 @@ function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string
 
   const have = useMemo(() => new Set(existing.map((p) => `${p.name}`.toLowerCase())), [existing]);
   const cats = useMemo(() => Array.from(new Set(items.map((i) => i.category))).sort(), [items]);
-  const shown = useMemo(() => items.filter((i) => !have.has(i.name.toLowerCase()) && (cat === "all" || i.category === cat) && (!q || matchesSearch(q, i.name, i.category, i.brand))).slice(0, 200), [items, q, have, cat]);
+  const shown = useMemo(() => items.filter((i) => !have.has(i.name.toLowerCase()) && (cat === "all" || i.category === cat) && (!q || matchesSearch(q, i.name, i.name_ur, i.category, i.brand, i.barcode))).slice(0, 200), [items, q, have, cat]);
   const picked = Object.entries(picks).filter(([, v]) => Number(v.price) > 0);
-  const pickOf = (i: any): Pick => picks[i.id] || { price: "", discount: "", stock: "", unit: i.unit || "", usePhoto: !!i.image_url };
+  const pickOf = (i: any): Pick => picks[i.id] || { price: "", discount: "", stock: "", unit: i.unit || "", usePhoto: hasRealPhoto(i) };
   const setPick = (i: any, patch: Partial<Pick>) => setPicks((p) => ({ ...p, [i.id]: { ...pickOf(i), ...patch } }));
 
   const addPicked = async () => {
@@ -169,8 +171,8 @@ function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string
       const discount = disc > 0 && disc < price ? disc : null;
       return {
         store_id: storeId, name: i.name, price, discount_price: discount, is_special_offer: !!discount,
-        unit: v.unit.trim() || i.unit, category: i.category, brand: i.brand, description: i.description,
-        image_url: v.usePhoto ? i.image_url : null,
+        unit: v.unit.trim() || i.unit, category: i.category, brand: i.brand, description: specsToText(i.category, i.specs, i.description) || null, catalog_item_id: i.id,
+        image_url: v.usePhoto && hasRealPhoto(i) ? i.image_url : null,
         ...(v.stock !== "" && Number(v.stock) >= 0 ? { stock_qty: Math.floor(Number(v.stock)) } : {}),
         ...(i.weight_kg ? { weight_kg: i.weight_kg } : {}),
       };
@@ -185,7 +187,7 @@ function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">صرف {mode === "bazar" ? "بازار" : "گروسری"} کی چیزیں دکھائی گئی ہیں۔ قیمت لکھیں تو رعایت، اسٹاک اور سائز کے خانے کھل جائیں گے۔ تصویر اصل جیسی نہ ہو تو «تصویر» بند کر دیں اور بعد میں اپنی تصویر لگائیں۔</p>
+      <p className="text-xs text-muted-foreground">صرف {mode === "bazar" ? "بازار" : "گروسری"} کی چیزیں دکھائی گئی ہیں۔ قیمت لکھیں تو رعایت، اسٹاک اور سائز کے خانے کھل جائیں گے۔ صرف تصدیق شدہ اصل تصویر ساتھ آتی ہے؛ باقی میں بعد میں اپنی دکان کی اصل تصویر لگائیں۔ نام، تفصیل اور تصویر بعد میں بدل سکتے ہیں۔</p>
       <div className="relative">
         <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input className="pr-9" placeholder={`${items.length} چیزوں کی فہرست میں تلاش`} value={q} onChange={(e) => setQ(e.target.value)} />
@@ -205,9 +207,9 @@ function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string
           return (
             <div key={i.id} className={`p-2 space-y-2 ${active ? "bg-primary/5" : ""}`}>
               <div className="flex items-center gap-2">
-                {i.image_url && v.usePhoto ? <img src={img(i.image_url, 80)} alt="" loading="lazy" className="h-10 w-10 rounded-md object-cover" /> : <div className="h-10 w-10 rounded-md bg-muted" />}
+                {hasRealPhoto(i) && v.usePhoto ? <img src={img(i.image_url, 80)} alt="" loading="lazy" className="h-10 w-10 rounded-md object-cover" /> : <div className="h-10 w-10 rounded-md bg-muted" />}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold">{i.name}</p>
+                  <p className="truncate text-xs font-semibold">{i.name}{i.name_ur ? ` · ${i.name_ur}` : ""}</p>
                   <p className="text-[10px] text-muted-foreground">{i.category}{i.unit ? ` · ${i.unit}` : ""}</p>
                 </div>
                 <Input inputMode="numeric" placeholder="قیمت" className="h-8 w-20 px-2 text-xs" value={v.price} onChange={(e) => setPick(i, { price: e.target.value })} />
@@ -217,7 +219,7 @@ function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string
                   <Input inputMode="numeric" placeholder="رعایتی قیمت" className="h-8 px-2 text-xs" value={v.discount} onChange={(e) => setPick(i, { discount: e.target.value })} />
                   <Input inputMode="numeric" placeholder="اسٹاک" className="h-8 px-2 text-xs" value={v.stock} onChange={(e) => setPick(i, { stock: e.target.value })} />
                   <Input placeholder="سائز" className="h-8 px-2 text-xs" value={v.unit} onChange={(e) => setPick(i, { unit: e.target.value })} />
-                  {i.image_url && (
+                  {hasRealPhoto(i) && (
                     <label className="col-span-3 flex items-center gap-2 text-[11px] text-muted-foreground">
                       <Switch checked={v.usePhoto} onCheckedChange={(c) => setPick(i, { usePhoto: c })} /> فہرست والی تصویر استعمال کریں
                     </label>
