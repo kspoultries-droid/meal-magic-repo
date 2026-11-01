@@ -128,6 +128,19 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     load();
   };
 
+  const requestPayment = async (rid: string) => {
+    const f = form[`pay_${rid}`] || {};
+    const from = f.from || monthStart(); const to = f.to || today();
+    const { data: earnings, error: previewError } = await supabase.rpc("staff_rider_payment_preview", { _rider: rid, _from: from, _to: to });
+    if (previewError) return toast.error(previewError.message);
+    const salary = Number(f.salary ?? planFor(rid)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0);
+    const bonus = Number(f.bonus || 0); const deduction = Number(f.deduction || 0);
+    const total = salary + Number(earnings || 0) + bonus - deduction;
+    const { error } = await supabase.rpc("request_secure_approval", { _kind: "other", _reference_id: rid, _amount: total, _note: f.note || "رائیڈر ادائیگی کا آزاد جائزہ", _payload: { operation: "rider_pay", rider_id: rid, total, salary_amount: salary, bonus, deduction, order_earnings: Number(earnings || 0), period_start: from, period_end: to, from_account_id: f.account || null, reference_no: f.ref || null } });
+    if (error) return toast.error(error.message);
+    toast.success("عین ادائیگی کی منظوری بھیج دی گئی");
+  };
+
   const planFields = (key: string, existing: Plan | null) => {
     const f = form[key] || {};
     const v = (k: keyof Plan) => (f[k] ?? existing?.[k] ?? (k === "pay_type" ? "per_order" : 0)) as any;
@@ -216,6 +229,8 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       ))}
                     </select>
                   </div>
+                  <Input aria-label="رائیڈر ادائیگی کی وجہ" placeholder="ادائیگی / مالک کے استثنا کی وجہ" value={f.note || ""} onChange={e => set(`pay_${r.id}`, "note", e.target.value)} />
+                  {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r.id)}>عین ادائیگی کی منظوری مانگیں</Button>}
                   <Button size="sm" className="h-8 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={() => setConfirmPay(true)}>
                     {busy === `pay_${r.id}` ? "ادائیگی ہو رہی ہے…" : `ادائیگی کریں (کمائی Rs ${Math.round(pending[r.id] || 0)} + تنخواہ)`}
                   </Button>

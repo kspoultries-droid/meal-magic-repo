@@ -547,6 +547,34 @@
       "when": 1793531151479,
       "tag": "0077_staff_explicit_scope_and_revocation",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1793536677736,
+      "tag": "0078_staff_shared_cases_and_quality",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1793536738802,
+      "tag": "0079_staff_exact_financial_approvals",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1793536845550,
+      "tag": "0080_staff_case_members_and_finance_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1793536927418,
+      "tag": "0081_staff_private_evidence_access_audit",
+      "breakpoints": true
     }
   ]
 }

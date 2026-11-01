@@ -117,6 +117,7 @@ export type Database = {
           decided_at: string | null
           decided_by: string | null
           decision_note: string | null
+          expires_at: string
           id: string
           kind: string
           note: string | null
@@ -132,6 +133,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           decision_note?: string | null
+          expires_at?: string
           id?: string
           kind: string
           note?: string | null
@@ -147,6 +149,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           decision_note?: string | null
+          expires_at?: string
           id?: string
           kind?: string
           note?: string | null
@@ -4167,6 +4170,172 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_bank_reconciliation: {
+        Row: {
+          confirmed_amount: number
+          id: string
+          ledger_id: string
+          reviewed_at: string
+          reviewed_by: string
+          statement_date: string
+          statement_reference: string
+        }
+        Insert: {
+          confirmed_amount: number
+          id?: string
+          ledger_id: string
+          reviewed_at?: string
+          reviewed_by: string
+          statement_date: string
+          statement_reference: string
+        }
+        Update: {
+          confirmed_amount?: number
+          id?: string
+          ledger_id?: string
+          reviewed_at?: string
+          reviewed_by?: string
+          statement_date?: string
+          statement_reference?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_bank_reconciliation_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: true
+            referencedRelation: "bank_ledger"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_case_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          case_id: string
+          created_at: string
+          id: string
+          note: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          case_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          case_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_case_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "staff_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_case_rules: {
+        Row: {
+          department: string
+          sla_minutes: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          department: string
+          sla_minutes?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          department?: string
+          sla_minutes?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      staff_cases: {
+        Row: {
+          assignee_id: string | null
+          backup_id: string | null
+          blocked_reason: string | null
+          city_id: string | null
+          created_at: string
+          department: string
+          due_at: string | null
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          next_action: string | null
+          reopen_count: number
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source_id: string
+          source_kind: string
+          status: string
+          supervisor_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          backup_id?: string | null
+          blocked_reason?: string | null
+          city_id?: string | null
+          created_at?: string
+          department: string
+          due_at?: string | null
+          escalation_level?: number
+          id?: string
+          last_escalated_at?: string | null
+          next_action?: string | null
+          reopen_count?: number
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source_id: string
+          source_kind: string
+          status?: string
+          supervisor_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          backup_id?: string | null
+          blocked_reason?: string | null
+          city_id?: string | null
+          created_at?: string
+          department?: string
+          due_at?: string | null
+          escalation_level?: number
+          id?: string
+          last_escalated_at?: string | null
+          next_action?: string | null
+          reopen_count?: number
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source_id?: string
+          source_kind?: string
+          status?: string
+          supervisor_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       staff_controls: {
         Row: {
           nationwide: boolean
@@ -4199,6 +4368,71 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      staff_private_access: {
+        Row: {
+          actor_id: string
+          city_id: string | null
+          created_at: string
+          entity_id: string
+          id: string
+        }
+        Insert: {
+          actor_id: string
+          city_id?: string | null
+          created_at?: string
+          entity_id: string
+          id?: string
+        }
+        Update: {
+          actor_id?: string
+          city_id?: string | null
+          created_at?: string
+          entity_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      staff_quality_reviews: {
+        Row: {
+          case_id: string
+          created_at: string | null
+          id: string
+          improvement_due: string | null
+          member_id: string
+          note: string
+          outcome: string
+          reviewer_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string | null
+          id?: string
+          improvement_due?: string | null
+          member_id: string
+          note: string
+          outcome: string
+          reviewer_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string | null
+          id?: string
+          improvement_due?: string | null
+          member_id?: string
+          note?: string
+          outcome?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_quality_reviews_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "staff_cases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff_scopes: {
         Row: {
@@ -4799,6 +5033,21 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_case_metrics: {
+        Row: {
+          assignee_id: string | null
+          blocked_cases: number | null
+          city_id: string | null
+          department: string | null
+          oldest_open: string | null
+          on_time_resolved: number | null
+          open_cases: number | null
+          overdue_cases: number | null
+          reopened_cases: number | null
+          resolved_cases: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
@@ -5284,6 +5533,16 @@ export type Database = {
         }
         Returns: string
       }
+      request_secure_approval: {
+        Args: {
+          _amount: number
+          _kind: string
+          _note: string
+          _payload: Json
+          _reference_id: string
+        }
+        Returns: string
+      }
       request_wallet_topup: {
         Args: { _amount: number; _payment_method: string }
         Returns: string
@@ -5518,12 +5777,68 @@ export type Database = {
         Returns: string
       }
       staff_audit_redact: { Args: { _details: Json }; Returns: Json }
+      staff_authorize_private_document: {
+        Args: { _path: string }
+        Returns: boolean
+      }
       staff_cancel_order: {
         Args: { _kind: string; _note: string; _order_id: string }
         Returns: undefined
       }
+      staff_case_action: {
+        Args: {
+          _action: string
+          _id: string
+          _member?: string
+          _next?: string
+          _note?: string
+        }
+        Returns: undefined
+      }
+      staff_case_allowed: {
+        Args: { _city: string; _dept: string }
+        Returns: boolean
+      }
+      staff_case_deadline: {
+        Args: { _at: string; _dept: string }
+        Returns: string
+      }
+      staff_case_member_allowed: {
+        Args: { _city: string; _dept: string; _uid: string }
+        Returns: boolean
+      }
+      staff_case_members: {
+        Args: never
+        Returns: {
+          full_name: string
+          user_id: string
+        }[]
+      }
+      staff_case_review: {
+        Args: {
+          _case: string
+          _improvement_due?: string
+          _note: string
+          _outcome: string
+        }
+        Returns: undefined
+      }
       staff_city_allowed: { Args: { _city: string }; Returns: boolean }
+      staff_confirm_bank_entry: {
+        Args: {
+          _amount: number
+          _date: string
+          _ledger: string
+          _reference: string
+        }
+        Returns: undefined
+      }
       staff_enabled: { Args: { _uid: string }; Returns: boolean }
+      staff_escalate_cases: { Args: never; Returns: number }
+      staff_financial_payload: {
+        Args: { _j: Json; _table: string }
+        Returns: Json
+      }
       staff_list_services: { Args: never; Returns: boolean }
       staff_manage_controls: {
         Args: {
@@ -5567,6 +5882,14 @@ export type Database = {
       staff_rider_allowed: {
         Args: { _id: string; _perm: string }
         Returns: boolean
+      }
+      staff_rider_payment_preview: {
+        Args: { _from: string; _rider: string; _to: string }
+        Returns: number
+      }
+      staff_set_case_rule: {
+        Args: { _department: string; _minutes: number }
+        Returns: undefined
       }
       staff_set_cities: {
         Args: { _city_ids: string[]; _user_id: string }

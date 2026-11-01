@@ -158,6 +158,12 @@ const PayoutsTab = () => {
 
   const dueRows = rows.filter((r) => r.pending > 0 && dueInfo(r.vendorId).overdue);
 
+  const requestPayment = async (row: VendorRow) => {
+    const amount = Number(amounts[row.vendorId] || row.pending);
+    const { error } = await supabase.rpc("request_secure_approval", { _kind: "payout", _reference_id: row.vendorId, _amount: amount, _note: `${row.shopNames.join(", ")} — وینڈر ادائیگی`, _payload: { vendor_id: row.vendorId, amount, from_account_id: fromAcc[row.vendorId] || accounts[0]?.id || null, vendor_account_id: toAcc[row.vendorId] || null, period_start: from.toISOString().slice(0,10), period_end: new Date().toISOString().slice(0,10), reference_no: refs[row.vendorId]?.trim() || null } });
+    if (error) toast.error(error.message); else toast.success("عین ادائیگی کی منظوری بھیج دی گئی");
+  };
+
   const copyPayLine = (r: VendorRow) => {
     const accs = vendorAccounts[r.vendorId] || [];
     const acc = accs.find((a: any) => a.id === toAcc[r.vendorId]) || accs.find((a: any) => a.is_default) || accs[0];
@@ -262,6 +268,7 @@ const PayoutsTab = () => {
                 {receipts[r.vendorId]?.name || "بینک رسید منسلک کریں (تصویر یا PDF)"}
                 <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setReceipts({ ...receipts, [r.vendorId]: e.target.files?.[0] })} />
               </label>
+              {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r)}>عین ادائیگی کی منظوری مانگیں</Button>}
               <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => pay(r)}>
                 {busy === r.vendorId ? "درج ہو رہا ہے…" : "ادائیگی درج کریں (بینک سے ادا کرنے کے بعد)"}
               </Button>

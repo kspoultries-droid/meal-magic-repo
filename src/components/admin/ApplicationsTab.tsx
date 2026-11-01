@@ -18,7 +18,7 @@ const openWA = (phone: string, message: string) => {
 };
 
 const signedDocUrl = async (path: string) => {
-  const { data } = await supabase.storage.from("partner-documents").createSignedUrl(path, 3600);
+  const { data } = await supabase.functions.invoke("staff-private-document", { body: { path } });
   return data?.signedUrl || null;
 };
 

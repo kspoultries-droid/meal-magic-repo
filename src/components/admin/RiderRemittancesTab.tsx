@@ -13,7 +13,7 @@ const openReceipt = async (stored: string) => {
   const m = stored.match(/\/partner-documents\/([^?]+)/);
   const path = m ? decodeURIComponent(m[1]) : stored;
   const win = window.open("", "_blank", "noopener");
-  const { data, error } = await supabase.storage.from("partner-documents").createSignedUrl(path, 300);
+  const { data, error } = await supabase.functions.invoke("staff-private-document", { body: { path } });
   if (error || !data?.signedUrl) { win?.close(); toast.error("رسید نہیں کھل سکی"); return; }
   if (win) win.location.href = data.signedUrl; else window.open(data.signedUrl, "_blank", "noopener,noreferrer");
 };

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { approvalKinds } from "@/lib/staffAccess";
 import { eligibleApprovals } from "@/lib/adminApproval";
 import { AdminListTools, AdminPagination } from "./AdminListTools";
+import { approvalUsable } from "@/lib/staffCases";
 
 const KIND: Record<string, string> = { refund: "ریفنڈ", payout: "وینڈر ادائیگی", other: "دیگر" };
 const STATUS: Record<string, string> = { pending: "زیر التوا", approved: "منظور", rejected: "مسترد" };
@@ -29,14 +30,18 @@ const ApprovalsTab = () => {
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    const { data } = await db.from("approval_requests").select("*").order("created_at", { ascending: false }).limit(100);
+    let q = db.from("approval_requests").select("*", { count: "exact" }).order("created_at", { ascending: false }).order("id");
+    const safe = query.replace(/[%,()]/g, " ").trim();
+    if (safe) q = q.or(`reference_id.ilike.%${safe}%,note.ilike.%${safe}%`);
+    const { data, count } = await q.range((page - 1) * 20, page * 20 - 1);
+    setCount(count || 0);
     setRows(data || []);
   };
   useEffect(() => {
     load();
     const ch = supabase.channel("approvals").on("postgres_changes", { event: "*", schema: "public", table: "approval_requests" }, load).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [page, query]);
 
   const submit = async () => {
     const amt = Number(amount);
@@ -54,11 +59,12 @@ const ApprovalsTab = () => {
     toast.success(approve ? "منظور کر دیا" : "مسترد کر دیا");
   };
 
-  const filtered = rows.filter(r => `${r.reference_id || ""} ${r.note || ""} ${r.id}`.toLowerCase().includes(query.trim().toLowerCase()));
-  const eligible = eligibleApprovals(filtered, filtered.map(r => r.id), user?.id, canApprove);
+  const [count, setCount] = useState(0);
+  const filtered = rows;
+  const eligible = eligibleApprovals(filtered.filter(r => approvalUsable(r)), filtered.map(r => r.id), user?.id, canApprove);
   const bulkApprove = async () => {
     if (busy) return;
-    const targets = eligibleApprovals(rows, selected, user?.id, canApprove);
+    const targets = eligibleApprovals(rows.filter(r => approvalUsable(r)), selected, user?.id, canApprove);
     if (!targets.length || !window.confirm(`${targets.length} درخواستوں کی منظوری کی تصدیق کریں؟`)) return;
     setBusy(true);
     let approved = 0;
@@ -75,7 +81,7 @@ const ApprovalsTab = () => {
 
   return (
     <div className="space-y-4" dir="rtl">
-      {allowedKinds.length > 0 && <Card>
+      {false && allowedKinds.length > 0 && <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">نئی منظوری کی درخواست</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           <p className="text-xs text-muted-foreground">Rs 2,000 سے زیادہ ریفنڈ اور ہر وینڈر ادائیگی سے پہلے یہاں درخواست دیں۔ کوئی دوسرا (فنانس/مالک) منظور کرے گا۔</p>
@@ -96,10 +102,10 @@ const ApprovalsTab = () => {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">درخواستیں</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); setSelected([]); }} count={filtered.length} />
+          <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); setSelected([]); }} count={count} />
           {eligible.length > 0 && <div className="flex gap-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => setSelected(selected.length ? [] : eligible.map(r => r.id))}>{selected.length ? "غیر منتخب" : "سب منتخب"}</Button><Button size="sm" disabled={busy || selected.length === 0} onClick={() => void bulkApprove()}>{busy ? "منظوری جاری…" : `${selected.length} منظور کریں`}</Button></div>}
           {rows.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">کوئی درخواست نہیں</p>}
-          {filtered.slice((page - 1) * 20, page * 20).map((r) => (
+          {filtered.map((r) => (
             <div key={r.id} className="rounded-xl border p-3">
               <div className="flex items-center justify-between">
                 {eligible.some(row => row.id === r.id) && <input type="checkbox" aria-label={`منتخب ${r.id}`} disabled={busy} checked={selected.includes(r.id)} onChange={e => setSelected(current => e.target.checked ? [...current, r.id] : current.filter(id => id !== r.id))} />}
@@ -107,9 +113,11 @@ const ApprovalsTab = () => {
                 <Badge variant={r.status === "pending" ? "default" : r.status === "approved" ? "secondary" : "destructive"}>{STATUS[r.status]}</Badge>
               </div>
               <p className="text-xs text-muted-foreground">{r.note}{r.reference_id ? ` · #${r.reference_id}` : ""}</p>
+              <p className="text-xs">میعاد: {new Date(r.expires_at).toLocaleString("en-PK")}{r.used_at ? " · استعمال شدہ" : new Date(r.expires_at).getTime() <= Date.now() ? " · ختم" : ""}</p>
+              <details className="text-xs"><summary className="cursor-pointer">عین منظور کی جانے والی تفصیل</summary><pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-muted p-2" dir="ltr">{JSON.stringify(r.payload, null, 2)}</pre></details>
               <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString("ur-PK")}{r.requested_by === user?.id ? " · آپ کی درخواست" : ""}</p>
               {r.decision_note && <p className="text-xs">نوٹ: {r.decision_note}</p>}
-              {r.status === "pending" && canApprove && r.requested_by !== user?.id && (
+              {approvalUsable(r) && canApprove && r.requested_by !== user?.id && (
                 <div className="mt-2 flex gap-2">
                   <Button size="sm" className="flex-1" onClick={() => decide(r.id, true)}>منظور</Button>
                   <Button size="sm" variant="destructive" className="flex-1" onClick={() => decide(r.id, false)}>مسترد</Button>
@@ -117,7 +125,7 @@ const ApprovalsTab = () => {
               )}
             </div>
           ))}
-          <AdminPagination page={page} count={filtered.length} onPage={setPage} />
+          <AdminPagination page={page} count={count} onPage={setPage} />
         </CardContent>
       </Card>
     </div>
