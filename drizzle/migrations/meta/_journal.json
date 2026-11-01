@@ -526,6 +526,13 @@
       "when": 1793518670151,
       "tag": "0074_staff_private_documents_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1793520705833,
+      "tag": "0075_staff_audit_ignore_gps_noise",
+      "breakpoints": true
     }
   ]
 }

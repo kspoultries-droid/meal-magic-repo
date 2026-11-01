@@ -4733,6 +4733,36 @@ export type Database = {
           },
         ]
       }
+      staff_business_activity: {
+        Row: {
+          action: string | null
+          actor_id: string | null
+          created_at: string | null
+          details: Json | null
+          entity_id: string | null
+          entity_type: string | null
+          id: number | null
+        }
+        Insert: {
+          action?: string | null
+          actor_id?: string | null
+          created_at?: string | null
+          details?: never
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: number | null
+        }
+        Update: {
+          action?: string | null
+          actor_id?: string | null
+          created_at?: string | null
+          details?: never
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_delivery_offer: { Args: { _offer_id: string }; Returns: undefined }
@@ -5433,6 +5463,10 @@ export type Database = {
       staff_approval_allowed: {
         Args: { _kind: string; _ref: string }
         Returns: boolean
+      }
+      staff_audit_business_details: {
+        Args: { _action: string; _details: Json; _entity: string }
+        Returns: Json
       }
       staff_cancel_order: {
         Args: { _kind: string; _note: string; _order_id: string }
