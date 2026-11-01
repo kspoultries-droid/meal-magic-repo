@@ -219,36 +219,51 @@ export type Database = {
       }
       catalog_items: {
         Row: {
+          barcode: string | null
           brand: string | null
           category: string
           created_at: string
           description: string | null
           id: string
           image_url: string | null
+          image_verified: boolean
           name: string
+          name_ur: string | null
+          specs: Json
           unit: string | null
+          updated_at: string
           weight_kg: number | null
         }
         Insert: {
+          barcode?: string | null
           brand?: string | null
           category?: string
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          image_verified?: boolean
           name: string
+          name_ur?: string | null
+          specs?: Json
           unit?: string | null
+          updated_at?: string
           weight_kg?: number | null
         }
         Update: {
+          barcode?: string | null
           brand?: string | null
           category?: string
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          image_verified?: boolean
           name?: string
+          name_ur?: string | null
+          specs?: Json
           unit?: string | null
+          updated_at?: string
           weight_kg?: number | null
         }
         Relationships: []
@@ -1175,6 +1190,7 @@ export type Database = {
           brand: string | null
           bulk_tier_price: number | null
           bulk_tier_qty: number | null
+          catalog_item_id: string | null
           category: string | null
           created_at: string | null
           delivery_days: string | null
@@ -1208,6 +1224,7 @@ export type Database = {
           brand?: string | null
           bulk_tier_price?: number | null
           bulk_tier_qty?: number | null
+          catalog_item_id?: string | null
           category?: string | null
           created_at?: string | null
           delivery_days?: string | null
@@ -1241,6 +1258,7 @@ export type Database = {
           brand?: string | null
           bulk_tier_price?: number | null
           bulk_tier_qty?: number | null
+          catalog_item_id?: string | null
           category?: string | null
           created_at?: string | null
           delivery_days?: string | null
