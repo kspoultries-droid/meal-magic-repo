@@ -5834,6 +5834,13 @@ export type Database = {
         Args: { _city: string; _dept: string }
         Returns: boolean
       }
+      staff_case_candidates: {
+        Args: { _case: string }
+        Returns: {
+          full_name: string
+          user_id: string
+        }[]
+      }
       staff_case_deadline: {
         Args: { _at: string; _dept: string }
         Returns: string
@@ -5948,6 +5955,19 @@ export type Database = {
         Returns: undefined
       }
       staff_vendor_allowed: { Args: { _id: string }; Returns: boolean }
+      staff_weekly_trends: {
+        Args: never
+        Returns: {
+          blocked: number
+          city_id: string
+          department: string
+          on_time: number
+          region: string
+          reopened: number
+          resolved: number
+          week_start: string
+        }[]
+      }
       submit_service_review: {
         Args: { _booking_id: string; _comment: string; _rating: number }
         Returns: undefined
