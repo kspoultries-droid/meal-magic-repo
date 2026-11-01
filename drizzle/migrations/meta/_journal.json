@@ -540,6 +540,13 @@
       "when": 1793530802736,
       "tag": "0076_food_local_delivery_validation",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1793531151479,
+      "tag": "0077_staff_explicit_scope_and_revocation",
+      "breakpoints": true
     }
   ]
 }

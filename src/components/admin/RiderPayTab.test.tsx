@@ -14,6 +14,7 @@ vi.mock("@/integrations/supabase/client", () => ({ supabase: {
     return chain;
   },
 } }));
+vi.mock("@/hooks/useAuth", () => ({ useAuth: () => ({ isAdmin: true }) }));
 afterEach(() => { cleanup(); rpc.mockClear(); });
 it("submits the displayed default salary only after final confirmation", async () => {
   render(<RiderPayTab />);

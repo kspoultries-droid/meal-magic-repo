@@ -31,16 +31,19 @@ const TeamActivityTab = () => {
   const [perf, setPerf] = useState<any[]>([]);
   const [log, setLog] = useState<any[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
+  const [page, setPage] = useState(1);
+  const [count, setCount] = useState(0);
 
   const load = async () => {
     const tasks: Promise<any>[] = [
-      db.from("staff_business_activity").select("*").gte("created_at", staffActivityStart(days)).order("created_at", { ascending: false }).limit(150),
+      db.from("staff_business_activity").select("*", { count: "exact" }).gte("created_at", staffActivityStart(days)).order("created_at", { ascending: false }).order("id").range((page - 1) * 30,page * 30 - 1),
     ];
     if (permissions.includes("team")) tasks.push(db.rpc("team_performance", { _days: days }));
     const [l, p] = await Promise.all(tasks);
     if (l.error) toast.error(l.error.message);
     if (p?.error) toast.error(p.error.message);
     setLog(l.data || []);
+    setCount(l.count || 0);
     const pd = p?.data || [];
     setPerf(pd);
     const m: Record<string, string> = {};
@@ -52,7 +55,7 @@ const TeamActivityTab = () => {
     }
     setNames(m);
   };
-  useEffect(() => { load(); }, [days]);
+  useEffect(() => { load(); }, [days, page]);
 
   const exportCsv = () => {
     const blob = new Blob(["\ufeff" + toCsv(perf.map((r) => ({ staff: r.full_name || r.email, total_actions: r.total_actions, order_actions: r.order_actions, rider_actions: r.rider_actions, finance_actions: r.finance_actions, approvals: r.approvals, last: r.last_action_at })))], { type: "text/csv" });
@@ -67,7 +70,7 @@ const TeamActivityTab = () => {
             <CardTitle className="text-base">ٹیم کی کارروائیاں</CardTitle>
             <div className="flex items-center gap-1">
               {[1, 7, 30].map((d) => (
-                <Button key={d} size="sm" variant={days === d ? "default" : "outline"} onClick={() => setDays(d)} className="h-7 px-2.5 text-xs">{d === 1 ? "آج" : `${d} دن`}</Button>
+                <Button key={d} size="sm" variant={days === d ? "default" : "outline"} onClick={() => { setPage(1); setDays(d); }} className="h-7 px-2.5 text-xs">{d === 1 ? "آج" : `${d} دن`}</Button>
               ))}
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={exportCsv}><Download className="h-4 w-4" /></Button>
             </div>
@@ -108,6 +111,7 @@ const TeamActivityTab = () => {
               <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap text-[10px] text-muted-foreground" dir="ltr">{JSON.stringify(r.details, null, 1)}</pre>
             </details>
           ))}
+          <div className="flex justify-between items-center pt-2"><Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>پچھلا</Button><span className="text-xs">{count} کارروائیاں — صفحہ {page}</span><Button variant="outline" size="sm" disabled={page * 30 >= count} onClick={() => setPage(p => p + 1)}>اگلا</Button></div>
         </CardContent>
       </Card>
     </div>

@@ -4138,6 +4138,7 @@ export type Database = {
         Row: {
           action: string
           actor_id: string | null
+          city_id: string | null
           created_at: string
           details: Json
           entity_id: string | null
@@ -4147,6 +4148,7 @@ export type Database = {
         Insert: {
           action: string
           actor_id?: string | null
+          city_id?: string | null
           created_at?: string
           details?: Json
           entity_id?: string | null
@@ -4156,11 +4158,45 @@ export type Database = {
         Update: {
           action?: string
           actor_id?: string | null
+          city_id?: string | null
           created_at?: string
           details?: Json
           entity_id?: string | null
           entity_type?: string
           id?: number
+        }
+        Relationships: []
+      }
+      staff_controls: {
+        Row: {
+          nationwide: boolean
+          reason: string | null
+          region: string | null
+          supervisor_id: string | null
+          suspended: boolean
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          nationwide?: boolean
+          reason?: string | null
+          region?: string | null
+          supervisor_id?: string | null
+          suspended?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          nationwide?: boolean
+          reason?: string | null
+          region?: string | null
+          supervisor_id?: string | null
+          suspended?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -5477,12 +5513,30 @@ export type Database = {
         Args: { _action: string; _details: Json; _entity: string }
         Returns: Json
       }
+      staff_audit_city: {
+        Args: { _entity: string; _id: string }
+        Returns: string
+      }
+      staff_audit_redact: { Args: { _details: Json }; Returns: Json }
       staff_cancel_order: {
         Args: { _kind: string; _note: string; _order_id: string }
         Returns: undefined
       }
       staff_city_allowed: { Args: { _city: string }; Returns: boolean }
+      staff_enabled: { Args: { _uid: string }; Returns: boolean }
       staff_list_services: { Args: never; Returns: boolean }
+      staff_manage_controls: {
+        Args: {
+          _nationwide: boolean
+          _reason: string
+          _region?: string
+          _supervisor_id?: string
+          _suspended: boolean
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      staff_nationwide: { Args: never; Returns: boolean }
       staff_order_allowed: {
         Args: { _id: string; _kind: string; _perm: string }
         Returns: boolean
@@ -5494,6 +5548,14 @@ export type Database = {
       staff_partner_document_allowed: {
         Args: { _path: string }
         Returns: boolean
+      }
+      staff_payment_accounts: {
+        Args: never
+        Returns: {
+          id: string
+          is_active: boolean
+          label: string
+        }[]
       }
       staff_remove: {
         Args: {
