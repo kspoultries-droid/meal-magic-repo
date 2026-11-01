@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { approvalKinds } from "@/lib/staffAccess";
 import { eligibleApprovals } from "@/lib/adminApproval";
 import { AdminListTools, AdminPagination } from "./AdminListTools";
 
@@ -15,9 +16,10 @@ const STATUS: Record<string, string> = { pending: "زیر التوا", approved:
 const ApprovalsTab = () => {
   const db = supabase as any;
   const { user, permissions } = useAuth();
+  const allowedKinds = approvalKinds(permissions);
   const canApprove = permissions.includes("approve");
   const [rows, setRows] = useState<any[]>([]);
-  const [kind, setKind] = useState("refund");
+  const [kind, setKind] = useState(allowedKinds[0] || "");
   const [amount, setAmount] = useState("");
   const [ref, setRef] = useState("");
   const [note, setNote] = useState("");
@@ -73,12 +75,12 @@ const ApprovalsTab = () => {
 
   return (
     <div className="space-y-4" dir="rtl">
-      <Card>
+      {allowedKinds.length > 0 && <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">نئی منظوری کی درخواست</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           <p className="text-xs text-muted-foreground">Rs 2,000 سے زیادہ ریفنڈ اور ہر وینڈر ادائیگی سے پہلے یہاں درخواست دیں۔ کوئی دوسرا (فنانس/مالک) منظور کرے گا۔</p>
           <div className="flex gap-1.5">
-            {Object.entries(KIND).map(([k, v]) => (
+            {Object.entries(KIND).filter(([k]) => allowedKinds.includes(k)).map(([k, v]) => (
               <button key={k} onClick={() => setKind(k)} className={`rounded-full border px-3 py-1 text-xs ${kind === k ? "border-primary bg-primary text-primary-foreground" : ""}`}>{v}</button>
             ))}
           </div>
@@ -89,7 +91,7 @@ const ApprovalsTab = () => {
           <Input placeholder="وجہ" value={note} onChange={(e) => setNote(e.target.value)} />
           <Button className="w-full" onClick={submit}>درخواست بھیجیں</Button>
         </CardContent>
-      </Card>
+      </Card>}
 
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">درخواستیں</CardTitle></CardHeader>

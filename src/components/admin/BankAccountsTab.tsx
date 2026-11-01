@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ const METHODS = [
 const emptyForm = { label: "", method: "bank", bank_name: "", account_title: "", account_number: "" };
 
 const BankAccountsTab = () => {
+  const { isAdmin } = useAuth();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [ledger, setLedger] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>("all");
@@ -66,7 +68,7 @@ const BankAccountsTab = () => {
           <CardTitle className="flex items-center gap-2 text-base"><Landmark className="h-4 w-4" /> EasyLife بینک اکاؤنٹس</CardTitle>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
-            <Button size="sm" onClick={() => setShowForm((s) => !s)}><Plus className="h-3.5 w-3.5" /></Button>
+            {isAdmin && <Button size="sm" onClick={() => setShowForm((s) => !s)}><Plus className="h-3.5 w-3.5" /></Button>}
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -75,7 +77,7 @@ const BankAccountsTab = () => {
             <span className="text-lg font-extrabold text-primary">Rs {Math.round(total)}</span>
           </div>
 
-          {showForm && (
+          {isAdmin && showForm && (
             <div className="rounded-xl border p-3 space-y-2">
               <Input placeholder="اکاؤنٹ کا نام (مثلاً میزان مین اکاؤنٹ)" value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} className="h-9 text-sm" />
               <div className="grid grid-cols-2 gap-2">
@@ -100,9 +102,9 @@ const BankAccountsTab = () => {
               </div>
               <div className="text-right shrink-0">
                 <p className="font-extrabold text-primary">Rs {Math.round(Number(a.balance || 0))}</p>
-                <button onClick={() => toggle(a)} className="text-[11px] font-bold text-muted-foreground underline">
+                {isAdmin && <Button variant="link" size="sm" onClick={() => toggle(a)} className="text-[11px] font-bold text-muted-foreground underline">
                   {a.is_active ? "غیر فعال کریں" : "فعال کریں"}
-                </button>
+                </Button>}
               </div>
             </div>
           ))}

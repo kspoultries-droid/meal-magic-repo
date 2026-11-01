@@ -5429,6 +5429,29 @@ export type Database = {
         }
         Returns: string
       }
+      staff_application_allowed: { Args: { _id: string }; Returns: boolean }
+      staff_approval_allowed: {
+        Args: { _kind: string; _ref: string }
+        Returns: boolean
+      }
+      staff_cancel_order: {
+        Args: { _kind: string; _note: string; _order_id: string }
+        Returns: undefined
+      }
+      staff_city_allowed: { Args: { _city: string }; Returns: boolean }
+      staff_list_services: { Args: never; Returns: boolean }
+      staff_order_allowed: {
+        Args: { _id: string; _kind: string; _perm: string }
+        Returns: boolean
+      }
+      staff_order_city: {
+        Args: { _id: string; _kind: string }
+        Returns: string
+      }
+      staff_partner_document_allowed: {
+        Args: { _path: string }
+        Returns: boolean
+      }
       staff_remove: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -5436,6 +5459,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      staff_rider_allowed: {
+        Args: { _id: string; _perm: string }
+        Returns: boolean
+      }
+      staff_set_cities: {
+        Args: { _city_ids: string[]; _user_id: string }
+        Returns: undefined
+      }
+      staff_vendor_allowed: { Args: { _id: string }; Returns: boolean }
       submit_service_review: {
         Args: { _booking_id: string; _comment: string; _rating: number }
         Returns: undefined

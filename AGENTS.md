@@ -37,3 +37,5 @@
 - Shop questions notify the owner and customer; public shop ratings derive from delivered-order reviews, and sold counts are idempotent completion records rather than item ratings.
 - Shop delivery policies snapshot the customer/vendor payer at checkout; settlement resolves the persisted grocery/wholesale commission identity so vendor-funded delivery remains balanced.
 - The shared catalog (catalog_items) is admin-curated: photos reach shops only when image_verified; vendor own-photo products enter catalog_suggestions and only the admin review_catalog_suggestion RPC promotes them; picked items copy specs into the shop's editable row with catalog_item_id.
+
+- Staff workspace tabs use staffAccess for presentation; server permissions and persisted city scopes independently gate reads and action RPCs, while global settings and identity changes remain admin-only.
