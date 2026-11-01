@@ -17,6 +17,19 @@ const PROMPTS: Record<string, string> = {
   service: "A Pakistani worker (mechanic, plumber, electrician, AC technician, labourer) describes his work in Urdu. Produce a professional list of the services he offers, each with a fair typical Rahim Yar Khan visit price in PKR (0 if unknown), category, and a short English description. Give name in English and Urdu. Also summary = a 2 sentence professional profile in Urdu.",
 };
 
+const PRODUCT_PROMPT = "You look at ONE photo of a product sold in Pakistan and prepare a professional marketplace listing. Read only what is visible on the pack/label or clearly identifiable: brand, product name, variant/flavour, pack size. NEVER invent specifications you cannot see or reliably know for that exact model; leave a spec empty rather than guess. Choose category ONLY from the allowed list. For mobiles give RAM, storage, battery, screen, camera if printed or certain for that exact model; for electronics give model, power, voltage, in-box items; for clothes/shoes material, sizes, colours; for packed food pack weight, ingredients highlights, origin. description: 2 short factual English sentences, no hype words like best/100%/guaranteed. name_ur: Urdu script. barcode: digits if a barcode number is printed and readable, else empty. photo_ok=false if the photo is blurry, dark, a screenshot, a poster/advert, shows several different products, or not a real product; photo_issue explains in simple Urdu.";
+
+const productSchema = {
+  type: "object", additionalProperties: false,
+  required: ["name", "name_ur", "brand", "category", "unit", "description", "barcode", "specs", "photo_ok", "photo_issue"],
+  properties: {
+    name: { type: "string" }, name_ur: { type: "string" }, brand: { type: "string" }, category: { type: "string" },
+    unit: { type: "string" }, description: { type: "string" }, barcode: { type: "string" },
+    specs: { type: "array", items: { type: "object", additionalProperties: false, required: ["label", "value"], properties: { label: { type: "string" }, value: { type: "string" } } } },
+    photo_ok: { type: "boolean" }, photo_issue: { type: "string" },
+  },
+};
+
 const schema = {
   type: "object",
   additionalProperties: false,
@@ -48,8 +61,11 @@ Deno.serve(async (req) => {
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) return json({ error: "پہلے لاگ اِن کریں" }, 401);
 
-    const { kind, imageDataUrl, text } = await req.json();
-    if (!PROMPTS[kind]) return json({ error: "غلط درخواست" }, 400);
+    const { kind, imageDataUrl, text, categories } = await req.json();
+    const isProduct = kind === "product";
+    if (!PROMPTS[kind] && !isProduct) return json({ error: "غلط درخواست" }, 400);
+    if (isProduct && !(typeof imageDataUrl === "string" && imageDataUrl.startsWith("data:image/"))) return json({ error: "پروڈکٹ کی تصویر دیں" }, 400);
+    const allowed = Array.isArray(categories) ? categories.filter((c: unknown) => typeof c === "string").slice(0, 60).map((c: string) => c.slice(0, 40)) : [];
     const hasImage = typeof imageDataUrl === "string" && imageDataUrl.startsWith("data:image/");
     const cleanText = typeof text === "string" ? text.trim().slice(0, 2000) : "";
     if (!hasImage && cleanText.length < 3) return json({ error: "تصویر دیں یا کچھ لکھیں / بولیں" }, 400);
@@ -64,7 +80,7 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ error: "AI سروس دستیاب نہیں" }, 500);
 
-    const content: unknown[] = [{ type: "text", text: cleanText || "Extract all items from this image." }];
+    const content: unknown[] = [{ type: "text", text: cleanText || (isProduct ? "Prepare the listing for this product." : "Extract all items from this image.") }];
     if (hasImage) content.push({ type: "image_url", image_url: { url: imageDataUrl } });
 
     await admin.from("ai_setup_usage").insert({ user_id: user.id, kind });
@@ -73,11 +89,12 @@ Deno.serve(async (req) => {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}`, "X-Lovable-AIG-SDK": "fetch" },
       body: JSON.stringify({
         model: MODEL,
-        messages: [
-          { role: "system", content: PROMPTS[kind] + " Return at most 60 items. If nothing usable, return empty items." },
-          { role: "user", content },
-        ],
-        response_format: { type: "json_schema", json_schema: { name: "items", strict: true, schema } },
+        messages: isProduct
+          ? [{ role: "system", content: PRODUCT_PROMPT + (allowed.length ? ` Allowed categories: ${allowed.join(", ")}.` : "") }, { role: "user", content }]
+          : [{ role: "system", content: PROMPTS[kind] + " Return at most 60 items. If nothing usable, return empty items." }, { role: "user", content }],
+        response_format: isProduct
+          ? { type: "json_schema", json_schema: { name: "product", strict: true, schema: productSchema } }
+          : { type: "json_schema", json_schema: { name: "items", strict: true, schema } },
       }),
     });
     if (!res.ok) {
@@ -87,6 +104,10 @@ Deno.serve(async (req) => {
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content ?? "{}";
     const parsed = JSON.parse(typeof raw === "string" ? raw : JSON.stringify(raw));
+    if (isProduct) {
+      if (allowed.length && !allowed.includes(parsed.category)) parsed.category = allowed.includes("General") ? "General" : allowed[0];
+      return json({ product: parsed, remaining: DAILY_LIMIT - (count ?? 0) - 1 });
+    }
     return json({ items: parsed.items ?? [], summary: parsed.summary ?? "", remaining: DAILY_LIMIT - (count ?? 0) - 1 });
   } catch (e) {
     console.error(e);
