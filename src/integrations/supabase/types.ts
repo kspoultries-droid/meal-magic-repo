@@ -5429,6 +5429,16 @@ export type Database = {
         }
         Returns: string
       }
+      staff_application_allowed: { Args: { _id: string }; Returns: boolean }
+      staff_city_allowed: { Args: { _city: string }; Returns: boolean }
+      staff_order_allowed: {
+        Args: { _id: string; _kind: string; _perm: string }
+        Returns: boolean
+      }
+      staff_order_city: {
+        Args: { _id: string; _kind: string }
+        Returns: string
+      }
       staff_remove: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -5436,6 +5446,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      staff_rider_allowed: {
+        Args: { _id: string; _perm: string }
+        Returns: boolean
+      }
+      staff_vendor_allowed: { Args: { _id: string }; Returns: boolean }
       submit_service_review: {
         Args: { _booking_id: string; _comment: string; _rating: number }
         Returns: undefined
