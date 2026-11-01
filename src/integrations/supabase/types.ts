@@ -227,8 +227,10 @@ export type Database = {
           id: string
           image_url: string | null
           image_verified: boolean
+          images: string[]
           name: string
           name_ur: string | null
+          source: string
           specs: Json
           unit: string | null
           updated_at: string
@@ -243,8 +245,10 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_verified?: boolean
+          images?: string[]
           name: string
           name_ur?: string | null
+          source?: string
           specs?: Json
           unit?: string | null
           updated_at?: string
@@ -259,14 +263,87 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_verified?: boolean
+          images?: string[]
           name?: string
           name_ur?: string | null
+          source?: string
           specs?: Json
           unit?: string | null
           updated_at?: string
           weight_kg?: number | null
         }
         Relationships: []
+      }
+      catalog_suggestions: {
+        Row: {
+          barcode: string | null
+          brand: string | null
+          catalog_item_id: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          images: string[]
+          name: string
+          name_ur: string | null
+          product_id: string
+          review_note: string | null
+          reviewed_at: string | null
+          specs: Json
+          status: string
+          store_id: string
+          submitted_by: string
+          unit: string | null
+        }
+        Insert: {
+          barcode?: string | null
+          brand?: string | null
+          catalog_item_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[]
+          name: string
+          name_ur?: string | null
+          product_id: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          specs?: Json
+          status?: string
+          store_id: string
+          submitted_by?: string
+          unit?: string | null
+        }
+        Update: {
+          barcode?: string | null
+          brand?: string | null
+          catalog_item_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[]
+          name?: string
+          name_ur?: string | null
+          product_id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          specs?: Json
+          status?: string
+          store_id?: string
+          submitted_by?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_suggestions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "grocery_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cities: {
         Row: {
@@ -1187,6 +1264,7 @@ export type Database = {
       }
       grocery_products: {
         Row: {
+          barcode: string | null
           brand: string | null
           bulk_tier_price: number | null
           bulk_tier_qty: number | null
@@ -1221,6 +1299,7 @@ export type Database = {
           wholesale_price: number | null
         }
         Insert: {
+          barcode?: string | null
           brand?: string | null
           bulk_tier_price?: number | null
           bulk_tier_qty?: number | null
@@ -1255,6 +1334,7 @@ export type Database = {
           wholesale_price?: number | null
         }
         Update: {
+          barcode?: string | null
           brand?: string | null
           bulk_tier_price?: number | null
           bulk_tier_qty?: number | null
@@ -5173,6 +5253,15 @@ export type Database = {
       }
       retry_order_dispatch: {
         Args: { _kind: string; _order_id: string }
+        Returns: string
+      }
+      review_catalog_suggestion: {
+        Args: {
+          _approve: boolean
+          _id: string
+          _note?: string
+          _verify_photo?: boolean
+        }
         Returns: string
       }
       review_rider_earning: {
