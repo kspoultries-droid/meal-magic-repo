@@ -1,4 +1,5 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, useRef, createContext, useContext } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -35,6 +36,8 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = useQueryClient();
+  const previousPermissions = useRef<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -72,7 +75,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsSupport(!!supportRes.data);
       setIsMechanic(!!mechanicRes.data);
       setIsServiceManager(!!smRes.data);
-      setPermissions(Array.isArray(permRes?.data) ? permRes.data : []);
+      const nextPermissions: string[] = Array.isArray(permRes?.data) ? permRes.data : [];
+      if (previousPermissions.current.some(permission => !nextPermissions.includes(permission))) queryClient.clear();
+      previousPermissions.current = nextPermissions;
+      setPermissions(nextPermissions);
     } catch (error) {
       console.error("Error checking roles:", error);
       clearRoles();
@@ -80,6 +86,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const clearRoles = () => {
+    if (previousPermissions.current.length) queryClient.clear();
+    previousPermissions.current = [];
     setIsAdmin(false);
     setIsRestaurantOwner(false);
     setIsRider(false);
@@ -134,7 +142,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const refresh = () => { if (document.visibilityState === "visible") void checkRoles(user.id); };
     const timer = window.setInterval(refresh, 30000);
     document.addEventListener("visibilitychange", refresh);
-    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+    window.addEventListener("focus", refresh);
+    window.addEventListener("online", refresh);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", refresh); window.removeEventListener("focus", refresh); window.removeEventListener("online", refresh); };
   }, [user?.id]);
 
   const signOut = async () => {
