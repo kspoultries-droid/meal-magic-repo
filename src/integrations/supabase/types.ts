@@ -5439,6 +5439,7 @@ export type Database = {
         Returns: undefined
       }
       staff_city_allowed: { Args: { _city: string }; Returns: boolean }
+      staff_list_services: { Args: never; Returns: boolean }
       staff_order_allowed: {
         Args: { _id: string; _kind: string; _perm: string }
         Returns: boolean
@@ -5446,6 +5447,10 @@ export type Database = {
       staff_order_city: {
         Args: { _id: string; _kind: string }
         Returns: string
+      }
+      staff_partner_document_allowed: {
+        Args: { _path: string }
+        Returns: boolean
       }
       staff_remove: {
         Args: {

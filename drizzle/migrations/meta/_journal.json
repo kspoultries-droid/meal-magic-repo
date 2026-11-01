@@ -519,6 +519,13 @@
       "when": 1793518596305,
       "tag": "0073_staff_contact_scope_and_supervisor_team",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1793518670151,
+      "tag": "0074_staff_private_documents_scope",
+      "breakpoints": true
     }
   ]
 }
