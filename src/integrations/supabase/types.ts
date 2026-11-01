@@ -4944,6 +4944,15 @@ export type Database = {
         Returns: string
       }
       escalate_stale_offers: { Args: never; Returns: number }
+      food_delivery_block_reason: {
+        Args: {
+          _city_id: string
+          _lat: number
+          _lng: number
+          _restaurant_id: string
+        }
+        Returns: string
+      }
       get_city_services: {
         Args: never
         Returns: {
