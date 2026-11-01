@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Landmark, RefreshCw, Plus, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { AdminPagination } from "./AdminListTools";
 
 const METHODS = [
   { value: "cash", label: "نقد (آفس)" },
@@ -25,17 +26,31 @@ const BankAccountsTab = () => {
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [page, setPage] = useState(1);
+  const [count, setCount] = useState(0);
+  const [confirmed, setConfirmed] = useState<string[]>([]);
 
   const load = async () => {
     const { data: accs } = await supabase.from("payment_accounts").select("*").order("sort_order").order("created_at");
     setAccounts(accs || []);
-    let q = supabase.from("bank_ledger").select("*").order("created_at", { ascending: false }).limit(150);
+    let q = supabase.from("bank_ledger").select("*", { count: "exact" }).order("created_at", { ascending: false }).order("id").range((page - 1) * 20, page * 20 - 1);
     if (filter !== "all") q = q.eq("account_id", filter);
-    const { data: led } = await q;
+    const { data: led, count: total } = await q;
+    setCount(total || 0);
     setLedger(led || []);
+    if (led?.length) { const { data } = await supabase.from("staff_bank_reconciliation").select("ledger_id").in("ledger_id", led.map(l => l.id)); setConfirmed((data || []).map(r => r.ledger_id)); }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [filter]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [filter, page]);
+
+  const reconcile = async (entry: any) => {
+    const reference = window.prompt("اصل بینک اسٹیٹمنٹ کا حوالہ نمبر"); if (!reference) return;
+    const amount = window.prompt("بینک میں اصل رقم Rs", String(entry.amount)); if (amount === null) return;
+    const date = window.prompt("بینک اسٹیٹمنٹ کی تاریخ YYYY-MM-DD", new Date().toISOString().slice(0,10)); if (!date) return;
+    const { error } = await supabase.rpc("staff_confirm_bank_entry", { _ledger: entry.id, _reference: reference, _amount: Number(amount), _date: date });
+    if (error) return toast.error(error.message);
+    toast.success(Number(amount) === Number(entry.amount) ? "آزاد بینک تصدیق محفوظ ہوئی" : "فرق کا تحقیقی کیس کھل گیا"); await load();
+  };
 
   const save = async () => {
     if (!form.label.trim()) { toast.error("اکاؤنٹ کا نام درج کریں"); return; }
@@ -114,7 +129,7 @@ const BankAccountsTab = () => {
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-base">EasyLife بینک اسٹیٹمنٹ</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          <select value={filter} onChange={(e) => setFilter(e.target.value)} className="h-9 w-full rounded-md border bg-background px-2 text-sm">
+          <select value={filter} onChange={(e) => { setFilter(e.target.value); setPage(1); }} className="h-9 w-full rounded-md border bg-background px-2 text-sm">
             <option value="all">تمام اکاؤنٹس</option>
             {accounts.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
           </select>
@@ -131,8 +146,9 @@ const BankAccountsTab = () => {
                   {l.counterparty_label} {l.destination_account ? `→ ${l.destination_account}` : ""}
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  {new Date(l.created_at).toLocaleString("ur-PK")} {l.reference_no ? `• ${l.reference_no}` : ""}
+                  {new Date(l.created_at).toLocaleString("en-PK")} {l.reference_no ? `• ${l.reference_no}` : ""}
                 </p>
+                {confirmed.includes(l.id) ? <Badge variant="secondary">بینک سے آزاد تصدیق</Badge> : <Button size="sm" variant="outline" onClick={() => void reconcile(l)}>بینک سے ملائیں</Button>}
               </div>
               <div className="text-right shrink-0">
                 <p className={`font-extrabold ${l.direction === "in" ? "text-success" : "text-destructive"}`}>
@@ -142,6 +158,7 @@ const BankAccountsTab = () => {
               </div>
             </div>
           ))}
+          <AdminPagination page={page} count={count} onPage={setPage} />
         </CardContent>
       </Card>
     </div>
