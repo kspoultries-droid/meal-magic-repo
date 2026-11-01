@@ -11,8 +11,8 @@ import { specTemplateFor } from "@/lib/catalogSpecs";
 import { BadgeCheck, ImagePlus, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-type Item = { id?: string; name: string; name_ur: string | null; brand: string | null; category: string; unit: string | null; barcode: string | null; description: string | null; image_url: string | null; image_verified: boolean; specs: Record<string, string>; weight_kg: number | null };
-const blank: Item = { name: "", name_ur: "", brand: "", category: "General", unit: "", barcode: "", description: "", image_url: null, image_verified: false, specs: {}, weight_kg: null };
+type Item = { id?: string; name: string; name_ur: string | null; brand: string | null; category: string; unit: string | null; barcode: string | null; description: string | null; image_url: string | null; images: string[]; image_verified: boolean; specs: Record<string, string>; weight_kg: number | null };
+const blank: Item = { name: "", name_ur: "", brand: "", category: "General", unit: "", barcode: "", description: "", image_url: null, images: [], image_verified: false, specs: {}, weight_kg: null };
 
 export default function CatalogManagerTab() {
   const [items, setItems] = useState<Item[]>([]);
@@ -37,7 +37,9 @@ export default function CatalogManagerTab() {
     const { error } = await supabase.storage.from("product-images").upload(path, file, { contentType: file.type, upsert: false });
     setBusy(false);
     if (error) return toast.error(error.message);
-    setEdit({ ...edit, image_url: supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl, image_verified: false });
+    const url = supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+    const images = [...(edit.images?.length ? edit.images : edit.image_url ? [edit.image_url] : []), url].slice(0, 8);
+    setEdit({ ...edit, images, image_url: images[0], image_verified: false });
   };
 
   const save = async () => {
@@ -45,7 +47,8 @@ export default function CatalogManagerTab() {
     if (edit.image_verified && !edit.image_url) return toast.error("تصدیق کے لیے تصویر لازمی ہے");
     setBusy(true);
     const { id, ...row } = edit;
-    const payload = { ...row, name: row.name.trim(), barcode: row.barcode?.trim() || null, updated_at: new Date().toISOString() };
+    const images = row.images?.length ? row.images : row.image_url ? [row.image_url] : [];
+    const payload = { ...row, images, image_url: images[0] || null, name: row.name.trim(), barcode: row.barcode?.trim() || null, updated_at: new Date().toISOString() };
     const { error } = id ? await (supabase as any).from("catalog_items").update(payload).eq("id", id) : await (supabase as any).from("catalog_items").insert(payload);
     setBusy(false);
     if (error) return toast.error(error.message.includes("barcode") ? "یہ بارکوڈ پہلے سے موجود ہے" : error.message);
@@ -60,6 +63,17 @@ export default function CatalogManagerTab() {
     setEdit(null); load();
   };
 
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const loadSuggestions = () => (supabase as any).from("catalog_suggestions").select("*").eq("status", "pending").order("created_at").limit(100).then(({ data }: any) => setSuggestions(data || []));
+  useEffect(() => { loadSuggestions(); }, []);
+  const review = async (s: any, approve: boolean, verify: boolean) => {
+    const note = approve ? null : prompt("مسترد کرنے کی وجہ (اختیاری)") || null;
+    const { error } = await (supabase as any).rpc("review_catalog_suggestion", { _id: s.id, _approve: approve, _verify_photo: verify, _note: note });
+    if (error) return toast.error(error.message);
+    toast.success(approve ? "فہرست میں شامل ہو گیا" : "مسترد");
+    loadSuggestions(); load();
+  };
+
   const fields = specTemplateFor(edit?.category);
 
   return (
@@ -68,6 +82,24 @@ export default function CatalogManagerTab() {
         معیاری فہرست: {items.length} چیزیں · {verified} کی اصل تصویر تصدیق شدہ۔ دکانداروں کو صرف تصدیق شدہ تصویر دکھتی ہے؛ باقی کی وہ اپنی تصویر لگاتے ہیں۔
         اصل تصویر کے لیے دکان میں اصل پیکنگ کی سامنے سے صاف تصویر کھینچیں یا برانڈ کی اپنی سرکاری تصویر استعمال کریں۔
       </div>
+      {suggestions.length > 0 && (
+        <div className="space-y-2 rounded-xl border border-primary/40 bg-primary/5 p-2">
+          <p className="text-xs font-bold">دکانداروں کی بھیجی ہوئی چیزیں ({suggestions.length})</p>
+          {suggestions.map((s) => (
+            <div key={s.id} className="rounded-lg border bg-card p-2 space-y-1.5">
+              <div className="flex gap-1.5 overflow-x-auto">{(s.images || []).map((u: string) => <img key={u} src={img(u, 160)} alt="" className="h-16 w-16 shrink-0 rounded-md object-contain bg-muted" />)}</div>
+              <p className="text-xs font-semibold">{s.name}{s.brand ? ` · ${s.brand}` : ""}</p>
+              <p className="text-[10px] text-muted-foreground">{s.category}{s.unit ? ` · ${s.unit}` : ""}{s.barcode ? ` · ${s.barcode}` : ""}</p>
+              {s.description && <p className="line-clamp-2 text-[10px] text-muted-foreground">{s.description}</p>}
+              <div className="grid grid-cols-3 gap-1.5">
+                <Button size="sm" className="h-8 text-[11px]" onClick={() => review(s, true, true)}>اصل تصویر · منظور</Button>
+                <Button size="sm" variant="secondary" className="h-8 text-[11px]" onClick={() => review(s, true, false)}>صرف تفصیل منظور</Button>
+                <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => review(s, false, false)}>مسترد</Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="flex gap-2">
         <div className="relative flex-1"><Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pr-9" placeholder="نام، برانڈ، بارکوڈ" value={q} onChange={(e) => setQ(e.target.value)} /></div>
         <Button onClick={() => setEdit({ ...blank })}><Plus className="h-4 w-4" /> نئی چیز</Button>
@@ -79,7 +111,7 @@ export default function CatalogManagerTab() {
       </div>
       <div className="divide-y rounded-xl border bg-card">
         {shown.map((i) => (
-          <button key={i.id} onClick={() => setEdit({ ...blank, ...i, specs: i.specs || {} })} className="flex w-full items-center gap-2 p-2 text-right">
+          <button key={i.id} onClick={() => setEdit({ ...blank, ...i, specs: i.specs || {}, images: i.images || [] })} className="flex w-full items-center gap-2 p-2 text-right">
             {i.image_url ? <img src={img(i.image_url, 80)} alt="" loading="lazy" className="h-10 w-10 rounded-md object-cover" /> : <div className="h-10 w-10 rounded-md bg-muted" />}
             <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{i.name}{i.name_ur ? ` · ${i.name_ur}` : ""}</p><p className="text-[10px] text-muted-foreground">{i.brand ? `${i.brand} · ` : ""}{i.category}{i.unit ? ` · ${i.unit}` : ""}</p></div>
             {i.image_verified && i.image_url ? <BadgeCheck className="h-4 w-4 text-primary" /> : <span className="text-[10px] text-muted-foreground">تصدیق باقی</span>}
@@ -93,9 +125,13 @@ export default function CatalogManagerTab() {
           {edit && (
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                {edit.image_url ? <img src={img(edit.image_url, 160)} alt="" className="h-20 w-20 rounded-lg object-contain bg-muted" /> : <div className="h-20 w-20 rounded-lg bg-muted" />}
-                <label className="flex cursor-pointer items-center gap-1 rounded-lg border px-3 py-2 text-xs"><ImagePlus className="h-4 w-4" /> اصل تصویر لگائیں
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} /></label>
+                <div className="flex gap-1.5 overflow-x-auto">{(edit.images?.length ? edit.images : edit.image_url ? [edit.image_url] : []).map((u, n) => (
+                  <div key={u} className="relative shrink-0"><img src={img(u, 160)} alt="" className="h-20 w-20 rounded-lg object-contain bg-muted" />
+                    <button type="button" className="absolute -top-1 -left-1 rounded-full bg-destructive px-1.5 text-[10px] text-destructive-foreground" onClick={() => { const images = (edit.images?.length ? edit.images : [edit.image_url!]).filter((_, k) => k !== n); setEdit({ ...edit, images, image_url: images[0] || null, image_verified: images.length ? edit.image_verified : false }); }}>×</button>
+                    {n === 0 && <span className="absolute bottom-0 right-0 rounded bg-primary px-1 text-[9px] text-primary-foreground">مرکزی</span>}</div>))}
+                  {!edit.images?.length && !edit.image_url && <div className="h-20 w-20 rounded-lg bg-muted" />}</div>
+                <label className="flex cursor-pointer items-center gap-1 rounded-lg border px-3 py-2 text-xs"><ImagePlus className="h-4 w-4" /> اصل تصویر شامل کریں (8 تک)
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { e.target.files?.[0] && upload(e.target.files[0]); e.target.value = ""; }} /></label>
               </div>
               <label className="flex items-center gap-2 text-xs"><Switch checked={edit.image_verified} onCheckedChange={(c) => setEdit({ ...edit, image_verified: c })} /> میں نے دیکھا ہے: تصویر پاکستان میں بکنے والی اصل پیکنگ ہے</label>
               <Input placeholder="نام (English) مثلاً Pepsi 1.5L" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} />
