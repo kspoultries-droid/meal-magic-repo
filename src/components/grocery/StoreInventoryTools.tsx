@@ -178,7 +178,7 @@ function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string
         ...(i.weight_kg ? { weight_kg: i.weight_kg } : {}),
       };
     });
-    const { error } = await supabase.from("grocery_products").insert(rows);
+    const { error } = await supabase.from("grocery_products").insert(rows, { defaultToNull: false });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success(`${rows.length} چیزیں آپ کی دکان میں شامل ہو گئیں`);
