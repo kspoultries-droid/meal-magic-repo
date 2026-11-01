@@ -1,0 +1,7 @@
+-- Execute with authorized accounts; no money is transferred.
+SELECT public.staff_case_deadline('orders','2026-11-01T12:00:00Z')='2026-11-01T12:10:00Z'::timestamptz AS original_order_deadline;
+SELECT public.staff_case_deadline('support','2026-11-01T12:00:00Z')='2026-11-01T12:30:00Z'::timestamptz AS original_support_deadline;
+SELECT public.staff_financial_payload('rider_salary_payouts', '{"rider_id":"d81c353b-076d-49c8-931a-21fb3a4bbf63","total":100,"salary_amount":100,"bonus":0,"deduction":0,"order_earnings":0,"period_start":"2026-11-01","period_end":"2026-11-01","from_account_id":"9251b538-a3d1-4b2f-ade5-07ea309e1b46"}'::jsonb)
+ IS DISTINCT FROM public.staff_financial_payload('rider_salary_payouts', '{"rider_id":"d81c353b-076d-49c8-931a-21fb3a4bbf63","total":101,"salary_amount":101,"bonus":0,"deduction":0,"order_earnings":0,"period_start":"2026-11-01","period_end":"2026-11-01","from_account_id":"9251b538-a3d1-4b2f-ade5-07ea309e1b46"}'::jsonb) AS changed_amount_requires_new_approval;
+SELECT public.staff_financial_payload('rider_salary_payouts', '{"rider_id":"d81c353b-076d-49c8-931a-21fb3a4bbf63","total":100}'::jsonb)
+ IS DISTINCT FROM public.staff_financial_payload('rider_salary_payouts', '{"rider_id":"9251b538-a3d1-4b2f-ade5-07ea309e1b46","total":100}'::jsonb) AS changed_recipient_requires_new_approval;
