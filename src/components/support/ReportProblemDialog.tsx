@@ -9,6 +9,7 @@ import { toast } from "sonner";
 const CATEGORIES = [
   { key: "missing", label: "کوئی چیز کم آئی" },
   { key: "wrong", label: "غلط چیز آئی" },
+  { key: "not_as_described", label: "تصویر یا تفصیل جیسی چیز نہیں" },
   { key: "late", label: "بہت دیر ہوئی" },
   { key: "quality", label: "خراب / ٹھنڈا کھانا" },
   { key: "rider", label: "رائیڈر کا رویہ" },

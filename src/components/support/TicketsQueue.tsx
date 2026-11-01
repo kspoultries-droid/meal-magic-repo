@@ -8,6 +8,8 @@ import { toast } from "sonner";
 
 const SLA_MIN = 30;
 
+const CATEGORY_LABELS: Record<string, string> = { missing: "چیز کم آئی", wrong: "غلط چیز", not_as_described: "تصویر جیسی نہیں", late: "دیر", quality: "معیار", rider: "رائیڈر", payment: "ادائیگی", other: "دیگر" };
+
 export default function TicketsQueue({ serviceOnly = false }: { serviceOnly?: boolean }) {
   const { user } = useAuth();
   const [tickets, setTickets] = useState<any[]>([]);
@@ -49,7 +51,7 @@ export default function TicketsQueue({ serviceOnly = false }: { serviceOnly?: bo
         return (
           <div key={t.id} className={`rounded-lg border p-3 text-xs space-y-1.5 ${late ? "border-destructive" : ""}`}>
             <div className="flex justify-between gap-2">
-              <Badge variant="outline">{t.category}</Badge>
+              <Badge variant={t.category === "not_as_described" ? "destructive" : "outline"}>{CATEGORY_LABELS[t.category] || t.category}</Badge>
               <span className={late ? "text-destructive font-bold" : "text-muted-foreground"}>{age} منٹ پہلے{late ? " — وقت سے زیادہ" : ""}</span>
             </div>
             {t.order_id && <p>آرڈر #{String(t.order_id).slice(0, 6).toUpperCase()} ({t.order_kind})</p>}

@@ -173,11 +173,12 @@ function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string
         store_id: storeId, name: i.name, price, discount_price: discount, is_special_offer: !!discount,
         unit: v.unit.trim() || i.unit, category: i.category, brand: i.brand, description: specsToText(i.category, i.specs, i.description) || null, catalog_item_id: i.id,
         image_url: v.usePhoto && hasRealPhoto(i) ? i.image_url : null,
+        ...(v.usePhoto && hasRealPhoto(i) ? { images: i.images?.length ? i.images : [i.image_url] } : {}), ...(i.barcode ? { barcode: i.barcode } : {}),
         ...(v.stock !== "" && Number(v.stock) >= 0 ? { stock_qty: Math.floor(Number(v.stock)) } : {}),
         ...(i.weight_kg ? { weight_kg: i.weight_kg } : {}),
       };
     });
-    const { error } = await supabase.from("grocery_products").insert(rows);
+    const { error } = await supabase.from("grocery_products").insert(rows, { defaultToNull: false });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success(`${rows.length} چیزیں آپ کی دکان میں شامل ہو گئیں`);
