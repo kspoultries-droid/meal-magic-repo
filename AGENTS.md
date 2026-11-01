@@ -39,3 +39,4 @@
 - The shared catalog (catalog_items) is admin-curated: photos reach shops only when image_verified; vendor own-photo products enter catalog_suggestions and only the admin review_catalog_suggestion RPC promotes them; picked items copy specs into the shop's editable row with catalog_item_id.
 
 - Staff workspace tabs use staffAccess for presentation; server permissions and persisted city scopes independently gate reads and action RPCs, while global settings and identity changes remain admin-only.
+- Staff activity reporting uses the RLS-invoker business activity view and Karachi calendar periods; exclude GPS-only telemetry in both new audit writes and historical reporting without deleting the original audit trail, and label event counts as actions rather than unique orders or riders.
