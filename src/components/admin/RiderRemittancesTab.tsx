@@ -68,7 +68,7 @@ const RiderRemittancesTab = () => {
     void loadCash();
     const [{ data }, { data: accs }] = await Promise.all([
       supabase.from("rider_remittances").select("*").eq("status", tab).order("created_at", { ascending: false }).limit(100),
-      supabase.from("payment_accounts").select("id, label"),
+      isAdmin ? supabase.from("payment_accounts").select("id, label") : supabase.rpc("staff_payment_accounts"),
     ]);
     const accMap: Record<string, string> = {};
     (accs || []).forEach((a: any) => { accMap[a.id] = a.label; });
