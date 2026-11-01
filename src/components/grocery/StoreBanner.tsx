@@ -10,6 +10,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import PhotoTips from "@/components/media/PhotoTips";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
+import ProductQuickFill from "@/components/grocery/ProductQuickFill";
 
 
 // Grocery collage images per category
@@ -365,6 +366,15 @@ const StoreBanner = ({
                 <DialogHeader><DialogTitle>نئی پروڈکٹ / Add product</DialogTitle></DialogHeader>
                 <div className="space-y-3">
                   <p className="rounded-lg bg-primary/5 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">یہ فارم <b>ایک</b> چیز کے لیے ہے۔ سینکڑوں اشیا ایک ساتھ ڈالنے کے لیے <b>اسٹاک</b> ٹیب سے Excel/CSV امپورٹ یا <b>AI مددگار</b> استعمال کریں۔</p>
+                  <ProductQuickFill categories={productCategories} onFill={(patch) => setNewProduct((prev: any) => {
+                    const { imageFiles, extraSpecs, ...rest } = patch;
+                    const clean = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined && v !== ""));
+                    return { ...prev, ...clean, catalog_item_id: patch.catalog_item_id === undefined ? prev.catalog_item_id : patch.catalog_item_id,
+                      catalogImages: patch.catalogImages ?? (patch.catalog_item_id === null ? [] : prev.catalogImages),
+                      extraSpecs: extraSpecs ?? prev.extraSpecs, imageFiles: imageFiles?.length ? [...(prev.imageFiles || []), ...imageFiles].slice(0, 8) : prev.imageFiles };
+                  })} />
+                  {newProduct.catalogImages?.length > 0 && <div className="flex gap-1.5 overflow-x-auto">{newProduct.catalogImages.map((u: string) => <img key={u} src={u} alt="" className="h-14 w-14 shrink-0 rounded-md border object-contain bg-muted" />)}<p className="self-center text-[10px] text-muted-foreground">تصدیق شدہ اصل تصاویر لگ جائیں گی</p></div>}
+                  {newProduct.extraSpecs && Object.keys(newProduct.extraSpecs).length > 0 && <div className="rounded-lg border bg-card p-2 text-[11px]">{Object.entries(newProduct.extraSpecs).map(([k, v]) => <div key={k} className="flex items-center gap-1"><span className="w-24 shrink-0 text-muted-foreground">{k}</span><input className="flex-1 rounded border bg-background px-1 py-0.5" value={String(v)} onChange={(e) => setNewProduct((prev: any) => ({ ...prev, extraSpecs: { ...prev.extraSpecs, [k]: e.target.value } }))} /></div>)}</div>}
                   <div className="grid gap-2 sm:grid-cols-2">
                     <Input placeholder="نام / Product name *" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
                     <Input placeholder="قیمت / Price (Rs) *" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />

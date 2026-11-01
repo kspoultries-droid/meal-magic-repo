@@ -60,6 +60,7 @@ const GroceryStoreDetail = () => {
    const [newProduct, setNewProduct] = useState({
      name: "", price: "", category: "General", unit: "piece", discount_price: "", description: "", image_url: "", imageFiles: [] as File[],
      brand: "", sku: "", weight: "", weight_kg: "", shipping_class: "standard", dimensions: "", material: "", voltage: "", screen_size: "", ram: "", storage: "", stock_qty: "", tags: "", colors: "", sizes: "",
+     barcode: "", catalog_item_id: null as string | null, catalogImages: [] as string[], extraSpecs: {} as Record<string, string>, suggestToCatalog: true,
    });
 
   const fetchData = async () => {
@@ -193,7 +194,7 @@ const GroceryStoreDetail = () => {
      const sizes = newProduct.sizes.split(",").map((value) => value.trim()).filter(Boolean);
      const colors = newProduct.colors.split(",").map((value) => value.trim()).filter(Boolean);
      const variants = [...sizes, ...colors].map((label, index) => ({ id: `${index + 1}`, label, size: sizes.includes(label) ? label : undefined, color: colors.includes(label) ? label : undefined }));
-     const specs = Object.fromEntries(Object.entries({ برانڈ: newProduct.brand, SKU: newProduct.sku, وزن: newProduct.weight, پیمائش: newProduct.dimensions, مواد: newProduct.material, وولٹیج: newProduct.voltage, "اسکرین سائز": newProduct.screen_size, RAM: newProduct.ram, اسٹوریج: newProduct.storage }).filter(([, value]) => value.trim()));
+     const specs = Object.fromEntries(Object.entries({ برانڈ: newProduct.brand, SKU: newProduct.sku, وزن: newProduct.weight, پیمائش: newProduct.dimensions, مواد: newProduct.material, وولٹیج: newProduct.voltage, "اسکرین سائز": newProduct.screen_size, RAM: newProduct.ram, اسٹوریج: newProduct.storage, ...(newProduct.extraSpecs || {}) }).filter(([, value]) => String(value || "").trim()));
       const { data: createdProduct, error } = await supabase.from("grocery_products").insert({
         store_id: id, name: newProduct.name.trim(), price: Number(newProduct.price), category: newProduct.category, unit: newProduct.unit || null,
         discount_price: newProduct.discount_price ? Number(newProduct.discount_price) : null, is_special_offer: !!newProduct.discount_price,
@@ -201,6 +202,8 @@ const GroceryStoreDetail = () => {
         sku: newProduct.sku.trim() || null, weight: newProduct.weight.trim() || null, weight_kg: newProduct.weight_kg ? Number(newProduct.weight_kg) : null,
         shipping_class: newProduct.shipping_class || "standard", stock_qty: newProduct.stock_qty ? Number(newProduct.stock_qty) : null,
         tags: newProduct.tags.split(",").map((value) => value.trim()).filter(Boolean), variants, specs,
+        barcode: newProduct.barcode?.trim() || null, catalog_item_id: newProduct.catalog_item_id || null,
+        ...(newProduct.catalogImages?.length ? { image_url: newProduct.image_url || newProduct.catalogImages[0], images: newProduct.catalogImages } : {}),
       }).select("id").single();
      if (error || !createdProduct) { toast.error(error?.message || "پروڈکٹ شامل نہیں ہو سکی"); return; }
      const imageUrls = await Promise.all((newProduct.imageFiles || []).map(async (file) => {
@@ -208,9 +211,15 @@ const GroceryStoreDetail = () => {
        catch (error) { toast.error("پروڈکٹ شامل ہو گئی، مگر تصویر محفوظ نہیں ہوئی: " + (error instanceof Error ? error.message : "دوبارہ کوشش کریں")); return null; }
      }));
      const validImages = imageUrls.filter((url): url is string => Boolean(url));
-     if (validImages.length > 0) { const { error: imageError } = await supabase.from("grocery_products").update({ image_url: newProduct.image_url || validImages[0], images: validImages }).eq("id", createdProduct.id); if (imageError) toast.error(imageError.message); }
+     const allImages = [...(newProduct.catalogImages || []), ...validImages].slice(0, 8);
+     if (validImages.length > 0) { const { error: imageError } = await supabase.from("grocery_products").update({ image_url: newProduct.image_url || allImages[0], images: allImages }).eq("id", createdProduct.id); if (imageError) toast.error(imageError.message); }
+     // Own photo + not from the catalog: send to admin so the standard catalog grows from real shop photos.
+     if (!newProduct.catalog_item_id && validImages.length > 0 && newProduct.suggestToCatalog) {
+       await (supabase as any).from("catalog_suggestions").insert({ product_id: createdProduct.id, store_id: id, name: newProduct.name.trim(), brand: newProduct.brand.trim() || null,
+         category: newProduct.category, unit: newProduct.unit || null, barcode: newProduct.barcode?.trim() || null, description: newProduct.description?.trim() || null, specs, images: validImages });
+     }
      toast.success("پروڈکٹ شامل / Product added");
-     setNewProduct({ name: "", price: "", category: "General", unit: "piece", discount_price: "", description: "", image_url: "", imageFiles: [], brand: "", sku: "", weight: "", weight_kg: "", shipping_class: "standard", dimensions: "", material: "", voltage: "", screen_size: "", ram: "", storage: "", stock_qty: "", tags: "", colors: "", sizes: "" });
+     setNewProduct({ name: "", price: "", category: "General", unit: "piece", discount_price: "", description: "", image_url: "", imageFiles: [], brand: "", sku: "", weight: "", weight_kg: "", shipping_class: "standard", dimensions: "", material: "", voltage: "", screen_size: "", ram: "", storage: "", stock_qty: "", tags: "", colors: "", sizes: "", barcode: "", catalog_item_id: null, catalogImages: [], extraSpecs: {}, suggestToCatalog: true });
      setShowAddProduct(false); fetchData();
    };
 
