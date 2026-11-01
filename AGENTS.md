@@ -11,7 +11,7 @@
 - Delivery routes use an authenticated order-scoped context and server-side openrouteservice gateway; infer the target from persisted delivery stage, never client-submitted endpoints, and retain marker-only fallback for missing pins/GPS.
 - Food eligibility is checked by one server predicate in quoting, order inserts/transitions and offers; reject invalid/missing pins instead of erasing them, and never substitute a fallback fee for an invalid delivery area.
 
-- Shared typography, control surfaces, radii and elevation live in global tokens and UI primitives; keep navigation brand-isolated so page themes cannot weaken its contrast.
+- Shared UI tokens and primitives govern typography and surfaces; navigation remains brand-isolated.
 - Editable Bazar and Services headers wait for their settings read before rendering themed content; use a neutral placeholder to prevent default-color flashes on every page mount.
 
 - Firebase web push config (apiKey, appId, projectId, VAPID) is hardcoded as fallback in src/lib/webPush.ts — connector VITE vars did not sync to builds, and these values are public by design.
@@ -39,6 +39,8 @@
 - Shop delivery policies snapshot the customer/vendor payer at checkout; settlement resolves the persisted grocery/wholesale commission identity so vendor-funded delivery remains balanced.
 - The shared catalog (catalog_items) is admin-curated: photos reach shops only when image_verified; vendor own-photo products enter catalog_suggestions and only the admin review_catalog_suggestion RPC promotes them; picked items copy specs into the shop's editable row with catalog_item_id.
 
-- Staff workspace tabs use staffAccess for presentation; server permissions and persisted city scopes independently gate reads and action RPCs, while global settings and identity changes remain admin-only.
-- Staff access is deny-by-default without assigned cities; explicit nationwide and suspension controls are owner-managed and enforced by shared server role/permission helpers, while finance and operational staff roles remain separated.
-- Staff activity reporting uses the RLS-invoker business activity view and Karachi calendar periods; exclude GPS-only telemetry in both new audit writes and historical reporting without deleting the original audit trail, and label event counts as actions rather than unique orders or riders.
+- Staff UI uses staffAccess; server permissions/cities deny unscoped or suspended staff. Owner manages nationwide access; finance and operational roles remain separate.
+- Activity uses RLS-invoker reads and Karachi days; exclude GPS-only noise without deleting history; counts mean actions, not unique entities.
+- Staff cases use source uniqueness and row-locked claims; quality, obstacles and appeals are separate from activity counts or guilt.
+- Financial approvals bind immutable exact payloads, recipient-account versions and expiry; transactional single use and reasoned owner exceptions are audited.
+- Staff partner-document reads use an authenticated audited 5-minute signing endpoint; direct storage reads are uploader-only.
