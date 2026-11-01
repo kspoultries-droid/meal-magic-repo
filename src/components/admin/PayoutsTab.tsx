@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Wallet, RefreshCw, Copy, Paperclip, ReceiptText } from "lucide-react";
 import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "@/components/vendor/vendorEarnings";
+import { useAuth } from "@/hooks/useAuth";
 
 const PERIODS: { key: Period; label: string }[] = [
   { key: "week", label: "ہفتہ وار (7 دن)" },
@@ -18,6 +19,7 @@ const SCHEDULE_DAYS: Record<string, number> = { daily: 1, weekly: 7, fortnightly
 const SCHEDULE_LABEL: Record<string, string> = { daily: "روزانہ", weekly: "ہفتہ وار", fortnightly: "15 دن", biweekly: "15 دن", monthly: "ماہانہ" };
 
 const PayoutsTab = () => {
+  const { isAdmin } = useAuth();
   const [period, setPeriod] = useState<Period>("week");
   const [rows, setRows] = useState<VendorRow[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
@@ -83,7 +85,7 @@ const PayoutsTab = () => {
       });
     }
     const [{ data: accs }, { data: hist }] = await Promise.all([
-      supabase.from("payment_accounts").select("*").eq("is_active", true).order("sort_order"),
+      isAdmin ? supabase.from("payment_accounts").select("*").eq("is_active", true).order("sort_order") : supabase.rpc("staff_payment_accounts"),
       supabase.from("payouts").select("*").order("created_at", { ascending: false }).limit(25),
     ]);
     setAccounts(accs || []);

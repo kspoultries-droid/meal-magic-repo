@@ -129,6 +129,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [authReady, user?.id]);
 
+  useEffect(() => {
+    if (!user) return;
+    const refresh = () => { if (document.visibilityState === "visible") void checkRoles(user.id); };
+    const timer = window.setInterval(refresh, 30000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+  }, [user?.id]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };

@@ -51,7 +51,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     const [planResult, riderResult, accountResult, earningResult] = await Promise.all([
       supabase.from("rider_pay_plans").select("*"),
       supabase.from("riders").select("id, city_id, wallet_balance, total_earnings").limit(200),
-      supabase.from("payment_accounts").select("id, label, balance, is_active").eq("is_active", true),
+      isAdmin ? supabase.from("payment_accounts").select("id, label, balance, is_active").eq("is_active", true) : supabase.rpc("staff_payment_accounts"),
       supabase.from("rider_earnings").select("rider_id, amount").eq("status", "pending").limit(5000),
     ]);
     if ([planResult, riderResult, accountResult, earningResult].some(result => result.error)) {
