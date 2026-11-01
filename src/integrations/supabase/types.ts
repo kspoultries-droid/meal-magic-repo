@@ -4369,6 +4369,33 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_monitor_runs: {
+        Row: {
+          created_cases: number | null
+          error_code: string | null
+          finished_at: string | null
+          id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          created_cases?: number | null
+          error_code?: string | null
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          created_cases?: number | null
+          error_code?: string | null
+          finished_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       staff_private_access: {
         Row: {
           actor_id: string
@@ -5781,6 +5808,10 @@ export type Database = {
         Returns: string
       }
       staff_audit_redact: { Args: { _details: Json }; Returns: Json }
+      staff_authorize_evidence: {
+        Args: { _bucket: string; _path: string }
+        Returns: boolean
+      }
       staff_authorize_private_document: {
         Args: { _path: string }
         Returns: boolean
@@ -5844,6 +5875,10 @@ export type Database = {
         Returns: Json
       }
       staff_list_services: { Args: never; Returns: boolean }
+      staff_log_report_access: {
+        Args: { _count: number; _report: string }
+        Returns: undefined
+      }
       staff_manage_controls: {
         Args: {
           _nationwide: boolean
@@ -5855,6 +5890,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      staff_monitor_health: { Args: never; Returns: Json }
       staff_nationwide: { Args: never; Returns: boolean }
       staff_order_allowed: {
         Args: { _id: string; _kind: string; _perm: string }
@@ -5901,6 +5937,8 @@ export type Database = {
         Args: { _from: string; _rider: string; _to: string }
         Returns: number
       }
+      staff_run_monitor_now: { Args: never; Returns: number }
+      staff_run_supervision: { Args: never; Returns: number }
       staff_set_case_rule: {
         Args: { _department: string; _minutes: number }
         Returns: undefined
