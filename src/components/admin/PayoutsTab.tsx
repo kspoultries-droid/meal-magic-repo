@@ -158,6 +158,12 @@ const PayoutsTab = () => {
 
   const dueRows = rows.filter((r) => r.pending > 0 && dueInfo(r.vendorId).overdue);
 
+  const requestPayment = async (row: VendorRow) => {
+    const amount = Number(amounts[row.vendorId] || row.pending);
+    const { error } = await supabase.rpc("request_secure_approval", { _kind: "payout", _reference_id: row.vendorId, _amount: amount, _note: `${row.shopNames.join(", ")} — وینڈر ادائیگی`, _payload: { vendor_id: row.vendorId, amount, from_account_id: fromAcc[row.vendorId] || accounts[0]?.id || null, vendor_account_id: toAcc[row.vendorId] || null, period_start: from.toISOString().slice(0,10), period_end: new Date().toISOString().slice(0,10), reference_no: refs[row.vendorId]?.trim() || null } });
+    if (error) toast.error(error.message); else toast.success("عین ادائیگی کی منظوری بھیج دی گئی");
+  };
+
   const copyPayLine = (r: VendorRow) => {
     const accs = vendorAccounts[r.vendorId] || [];
     const acc = accs.find((a: any) => a.id === toAcc[r.vendorId]) || accs.find((a: any) => a.is_default) || accs[0];

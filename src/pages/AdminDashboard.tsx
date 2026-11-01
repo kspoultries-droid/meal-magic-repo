@@ -48,6 +48,7 @@ import StuckDispatchAlarm from "@/components/admin/StuckDispatchAlarm";
 import TeamTab from "@/components/admin/TeamTab";
 import ApprovalsTab from "@/components/admin/ApprovalsTab";
 import TeamActivityTab from "@/components/admin/TeamActivityTab";
+import StaffCasesTab from "@/components/admin/StaffCasesTab";
 import NotificationBell from "@/components/common/NotificationBell";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
@@ -137,6 +138,7 @@ const AdminDashboard = () => {
       <div className="mx-auto max-w-7xl p-3 sm:p-4">
         <Tabs value={tab} onValueChange={value => { setRecordQuery(""); setTab(value); }}>
           <TabsList className="mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar rounded-lg border bg-card p-1">
+            <TabsTrigger value="work" className="h-8 shrink-0 gap-1.5 px-3 text-xs"><Clock3 className="size-3.5" />آج کا کام</TabsTrigger>
             {isAdmin && <TabsTrigger value="overview" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutDashboard className="h-3.5 w-3.5" /> {t("admin.commandCenter")}</TabsTrigger>}
             {work.operations.length > 0 && <TabsTrigger value="operations" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShoppingBag className="h-3.5 w-3.5" /> {t("admin.operations")}</TabsTrigger>}
             {(can("partners") || can("riders")) && <TabsTrigger value="partners" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Store className="h-3.5 w-3.5" /> {t("admin.partners")}</TabsTrigger>}
@@ -148,6 +150,7 @@ const AdminDashboard = () => {
           </TabsList>
 
           {isAdmin && <TabsContent value="overview" className="admin-compact space-y-3"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>}
+          <TabsContent value="work" className="admin-compact"><StaffCasesTab onNavigate={goto} /></TabsContent>
 
           {work.operations.length > 0 && <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={value => { setRecordQuery(""); setOpsTab(value); }}>

@@ -11,6 +11,7 @@ export function staffWorkspace(permissions: readonly string[], isAdmin = false) 
 
 export function staffLanding(permissions: readonly string[], isAdmin: boolean) {
   if (isAdmin) return { section: "overview", sub: "" };
+  if (permissions.length > 0) return { section: "work", sub: "" };
   const areas = staffWorkspace(permissions);
   for (const section of ["operations", "partners", "finance", "team"] as const) {
     const sub = areas[section][0];
