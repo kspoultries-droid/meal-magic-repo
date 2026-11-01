@@ -9,6 +9,7 @@
 - Pilot timings and offer outcomes are reported by service; batching and incentive expansion require real supervised pilot evidence, not simulated results.
 - Rider GPS has one app-level publisher writing only riders coordinates and GPS timestamps; Android uses the background watcher and native HTTP instead of browser GPS, with Legacy Bridge enabled for background callbacks; customer tracking uses an active-order-authorized RPC, never broad rider-table reads or saved delivery addresses.
 - Delivery routes use an authenticated order-scoped context and server-side openrouteservice gateway; infer the target from persisted delivery stage, never client-submitted endpoints, and retain marker-only fallback for missing pins/GPS.
+- Food eligibility is checked by one server predicate in quoting, order inserts/transitions and offers; reject invalid/missing pins instead of erasing them, and never substitute a fallback fee for an invalid delivery area.
 
 - Shared typography, control surfaces, radii and elevation live in global tokens and UI primitives; keep navigation brand-isolated so page themes cannot weaken its contrast.
 - Editable Bazar and Services headers wait for their settings read before rendering themed content; use a neutral placeholder to prevent default-color flashes on every page mount.

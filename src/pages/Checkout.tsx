@@ -75,8 +75,8 @@ const Checkout = () => {
         } catch { /* ignore */ }
         const def = stored || (data || []).find((a: any) => a.is_default) || (data || [])[0];
         if (def) {
-          setAddress((prev) => prev || def.address);
-          if (def.lat && def.lng) setCoords({ lat: def.lat, lng: def.lng });
+          setAddress(def.address || "");
+          setCoords(def.lat != null && def.lng != null ? { lat: def.lat, lng: def.lng } : null);
           if (!stored) setStoredLocation({ label: def.label || "پتہ", address: def.address, lat: def.lat, lng: def.lng });
         }
       });
@@ -98,10 +98,13 @@ const Checkout = () => {
     const q = isRest
       ? supabase.from("restaurants").select("city_id").eq("id", sourceId).maybeSingle()
       : supabase.from("grocery_stores").select("city_id, store_type").eq("id", sourceId).maybeSingle();
+    let cancelled = false;
     q.then(({ data }) => {
-      if ((data as any)?.city_id && (isRest || (data as any)?.store_type !== "wholesale")) setSelectedCity((c) => c || (data as any).city_id);
+      if (cancelled) return;
+      if ((data as any)?.city_id && (isRest || (data as any)?.store_type !== "wholesale")) setSelectedCity((data as any).city_id);
       setStoreType(isRest ? "restaurant" : ((data as any)?.store_type || "grocery"));
     });
+    return () => { cancelled = true; };
   }, [items]);
 
 
@@ -116,6 +119,7 @@ const Checkout = () => {
     const totalWeight = calculateCartWeight(items);
     setQuoteLoading(true);
     setQuoteError("");
+    setDeliveryQuote(null);
     (supabase.rpc as any)(isFood ? "quote_delivery" : "shop_delivery_quote", {
       ...(isFood ? { _store_kind: "food" } : {}),
       _store_id: sourceId,
@@ -126,12 +130,10 @@ const Checkout = () => {
       _subtotal: Math.max(0, totalPrice - (voucher?.discount || 0)),
     }).then(({ data, error }: { data: DeliveryQuote | null; error: any }) => {
       if (cancelled) return;
-      const city = cities.find((value) => value.id === selectedCity);
       if (error || !data) {
-        const fallback = city?.delivery_fee || 0;
         setDeliveryQuote(null);
-        setDeliveryFee(isFood && (restaurantDeliveryMode === "self" || vendorPaysDelivery) ? 0 : isFood ? fallback : 0);
-        if (isGrocery) setQuoteError(error?.message || "ڈیلیوری کی فیس نہیں مل سکی");
+        setDeliveryFee(0);
+        setQuoteError(error?.message || "ڈیلیوری کی فیس نہیں مل سکی");
       } else {
         setDeliveryQuote(data);
         setDeliveryFee(isFood ? restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : Number(data.fee || 0) : Number(data.customer_fee ?? data.fee ?? 0));
@@ -140,7 +142,7 @@ const Checkout = () => {
       setQuoteLoading(false);
     });
     return () => { cancelled = true; };
-  }, [items, selectedCity, coords, cities, totalPrice, restaurantDeliveryMode, voucher?.discount]);
+  }, [items, selectedCity, coords, cities, totalPrice, restaurantDeliveryMode, vendorPaysDelivery, voucher?.discount]);
 
   // Detect restaurant delivery mode
   useEffect(() => {
@@ -247,7 +249,7 @@ const Checkout = () => {
     if (!address.trim()) { toast.error("ڈلیوری ایڈریس درکار ہے"); return; }
     if (!selectedCity) { toast.error("ڈلیوری علاقہ دستیاب نہیں — تھوڑی دیر بعد کوشش کریں"); return; }
     if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
-    if (isGroceryOrder && (quoteLoading || quoteError || !deliveryQuote || deliveryQuote.needs_quote)) { toast.error(quoteError || "ڈیلیوری کی تصدیق درکار ہے"); return; }
+    if ((isGroceryOrder || isRestaurantOrder) && (quoteLoading || quoteError || !deliveryQuote || deliveryQuote.needs_quote)) { toast.error(quoteError || "ڈیلیوری کی تصدیق درکار ہے"); return; }
     setSubmitting(true);
 
     if (saveThisAddress && user) {
@@ -281,8 +283,8 @@ const Checkout = () => {
           _receiver_name: isGift ? receiverName : null,
           _receiver_phone: isGift ? receiverPhone : null,
           _is_gift: isGift,
-          _delivery_lat: coords?.lat || null,
-          _delivery_lng: coords?.lng || null,
+          _delivery_lat: coords?.lat ?? null,
+          _delivery_lng: coords?.lng ?? null,
           _voucher_code: voucher?.code || null,
         });
 
@@ -319,8 +321,8 @@ const Checkout = () => {
           _receiver_name: isGift ? receiverName : null,
           _receiver_phone: isGift ? receiverPhone : null,
           _is_gift: isGift,
-          _delivery_lat: coords?.lat || null,
-          _delivery_lng: coords?.lng || null,
+          _delivery_lat: coords?.lat ?? null,
+          _delivery_lng: coords?.lng ?? null,
         });
 
         if (orderError) throw orderError;
@@ -399,7 +401,7 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">{t("checkout.deliveryFee")}</span>
-                <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : deliveryFee === 0 && (vendorPaysDelivery || restaurantDeliveryMode === "self") ? "مفت ڈیلیوری / Free" : `Rs ${deliveryFee}`}</span>
+                <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : quoteError ? "—" : deliveryFee === 0 && (vendorPaysDelivery || restaurantDeliveryMode === "self") ? "مفت ڈیلیوری / Free" : `Rs ${deliveryFee}`}</span>
               </div>
               {quoteError && <p role="alert" className="text-xs font-bold text-destructive">{quoteError}</p>}
               {deliveryQuote && !isRestaurantOrder && (
@@ -520,7 +522,7 @@ const Checkout = () => {
               onOpenChange={setLocSheetOpen}
               onSelected={(loc) => {
                 setAddress(loc.address);
-                if (loc.lat && loc.lng) setCoords({ lat: loc.lat, lng: loc.lng });
+                setCoords(loc.lat != null && loc.lng != null ? { lat: loc.lat, lng: loc.lng } : null);
                 setSaveThisAddress(false);
               }}
             />
@@ -583,7 +585,7 @@ const Checkout = () => {
             <p className="text-[10px] text-muted-foreground">{t("checkout.payable")}</p>
             <p className="text-lg font-extrabold text-primary leading-tight">Rs {grandTotal}</p>
           </div>
-          <Button className="flex-[2] h-12 text-base font-extrabold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" disabled={submitting || (isGroceryOrder && (quoteLoading || !!quoteError || !deliveryQuote || deliveryQuote.needs_quote))} onClick={placeOrder}>
+          <Button className="flex-[2] h-12 text-base font-extrabold bg-gradient-primary shadow-glow hover:shadow-elegant hover:scale-[1.02] transition-all" disabled={submitting || ((isGroceryOrder || isRestaurantOrder) && (quoteLoading || !!quoteError || !deliveryQuote || deliveryQuote.needs_quote))} onClick={placeOrder}>
             {submitting ? t("checkout.placing") : `${t("checkout.placeOrder")} ✓`}
           </Button>
         </div>
