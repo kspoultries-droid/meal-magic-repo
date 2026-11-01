@@ -1,16 +1,19 @@
 # Roadmap
 
 ## موجودہ تکمیل (2026-11-01، 17:59 UTC)
-- [ ] مالی منظوری، دوبارہ استعمال اور میعاد کے محفوظ آزمائشی سلسلے؛ اصل رقم تبدیل کیے بغیر
-- [ ] رازداری کے باقی راستے، فوری اجازت منسوخی، خطرے کے کیس اور نگرانی کی قابلِ جانچ بہتری
-- [ ] نئی تبدیلیوں کی عملی جانچ اور پچھلی فہرست کی درست تکمیل؛ حقیقی فون/بحالی کے بیرونی تقاضے الگ
+- [x] عین رائیڈر ادائیگی: خود منظوری/بدلی رقم/دوبارہ استعمال/معطل اختیار/نامکمل اجزا/ختم میعاد کی ممانعت؛ 100 کی آزمائشی ادائیگی، 900 باقی اور 1 لیجر اندراج؛ تمام تبدیلیاں واپس، اصل رقم محفوظ
+- [x] 6 کرداروں کا claim → next → resolve، نجی ثبوت کا محفوظ لنک HTTP 200، نامعلوم ثبوت denied؛ عارضی درخواست/تصویر/اجازتیں صاف؛ 15 متعلقہ ٹیسٹ اور build OK
+- [x] نجی خدمات/رسیدوں کے عام staff reads بند، محفوظ audited signing؛ ٹیم/آمدنی exports audit؛ foreground/online پر اجازت تازہ اور کمی پر cached reports صاف؛ 30 سیکنڈ refresh برقرار
+- [x] مسلسل refunds/cancellations/نجی رسائی کے غیرالزامی کیس، دوبارہ چلنے پر duplication ممنوع، hourly success/failure history اور owner retry، علاقائی 12 ہفتے رجحان، شعبہ وار replacement candidates؛ refund detector اور owner UI چلانے کی جانچ کامیاب
+- [ ] بند فون پر اطلاع، بڑے پیمانے کا load/backup restore، حقیقی بینک/provider منتقلی اور cross-session مالی concurrency — اصل فون، الگ محفوظ آزمائشی ماحول اور بینک رابطہ درکار؛ انہیں مکمل ثابت نہیں کیا گیا
+- [ ] تمام حساس business reads کی جامع auditing، مکمل linked appeal disposition، server-managed session-token termination — موجودہ signed links اپنی 5 منٹ مدت تک رہ سکتے ہیں؛ اس دور میں یہ وسیع حصے مکمل نہیں ہوئے
 
 ## باقی ٹیم کام کی تکمیل (2026-11-01)
 - [x] مشترکہ کیس/واحد claim، اگلا قدم، حوالگی/متبادل، اصل مدتیں، حل کا ثبوت، مستقل تاریخ، معیار/تربیت/نظرثانی؛ ایڈمن claim → resolve → readback → reopen کامیاب
 - [x] عین مالی payload/رقم/اکاؤنٹ version/24 گھنٹے میعاد/واحد استعمال، رائیڈر و وینڈر serialization، مالک استثنا کا audit؛ بینک آزاد مطابقت/نقد فرق کے کیس؛ نجی ثبوت audited 5-minute endpoint اور زائد رسائی جائزہ
 - [x] شہر/شعبہ/فرد خلاصہ؛ hourly escalation (24/day)، الگ ڈسپیچر میں دوسرے شہر denied، معطلی سے permissions/reads/actions denied، nationwide allowed؛ 18 متعلقہ ٹیسٹ اور build OK؛ عارضی کیس و اجازتیں صاف
-- [ ] مالی منظوری سے execution تک expired/replay/concurrent ادائیگی کی مکمل عملی آزمائش، 6 کرداروں کی نئی case workflow جانچ، نجی اصل ثبوت کی کامیاب signing اور بند فون پر اطلاع — عارضی مالی fixture، متعلقہ اصل نجی ثبوت اور حقیقی فون درکار؛ رقم نہیں بدلی
-- [ ] بڑے پیمانے کا load/backup restore، session-wide revocation، تمام حساس reads/exports کی audit، متعدد چھوٹے refunds/cancellation تعلقات کے risk detectors، SLA retry/failure reporting اور علاقائی ہفتہ وار رجحان — یہ advanced حصے ابھی نافذ نہیں؛ بیرونی بحالی/حقیقی workload کی معلومات بھی درکار
+- [x] مالی execution/replay/expired کی rollback آزمائش، 6 کرداروں کی نئی case workflow اور بے شناخت نجی ثبوت signing؛ اصل مالی حساب نہیں بدلا
+- باقی حقیقی فون، concurrency، بحالی، مکمل read audit اور linked appeals کی حدود اوپر درج ہیں؛ سابقہ مکمل نہ ہونے والے advanced کام میں risk detectors، monitor failure/retry اور علاقائی رجحان اب شامل ہیں
 
 ## موجودہ درخواست: فوڈ کی شہری حد اور مکمل ٹیم نظام (2026-11-01)
 - [x] رحیم یار خان کے فوڈ کا 501.9 کلومیٹر فاصلہ Rs 400 cap سے قبول؛ پرانا trigger مقام مٹاتا تھا۔ شہر/درست pin/موجودہ 30 کلومیٹر حد، quote، insert، status/assignment اور offers پر ممانعت؛ اصل اکاؤنٹ میں 7 checks اور فون چیک آؤٹ، 23 متعلقہ ٹیسٹ کامیاب؛ تصویر کا اصل آرڈر pending، بغیر rider، پرانا حساب محفوظ
