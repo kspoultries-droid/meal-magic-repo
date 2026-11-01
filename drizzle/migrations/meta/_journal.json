@@ -512,6 +512,13 @@
       "when": 1793518415171,
       "tag": "0072_staff_records_approvals_and_scope_controls",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1793518596305,
+      "tag": "0073_staff_contact_scope_and_supervisor_team",
+      "breakpoints": true
     }
   ]
 }
