@@ -5430,6 +5430,10 @@ export type Database = {
         Returns: string
       }
       staff_application_allowed: { Args: { _id: string }; Returns: boolean }
+      staff_approval_allowed: {
+        Args: { _kind: string; _ref: string }
+        Returns: boolean
+      }
       staff_cancel_order: {
         Args: { _kind: string; _note: string; _order_id: string }
         Returns: undefined
@@ -5453,6 +5457,10 @@ export type Database = {
       staff_rider_allowed: {
         Args: { _id: string; _perm: string }
         Returns: boolean
+      }
+      staff_set_cities: {
+        Args: { _city_ids: string[]; _user_id: string }
+        Returns: undefined
       }
       staff_vendor_allowed: { Args: { _id: string }; Returns: boolean }
       submit_service_review: {

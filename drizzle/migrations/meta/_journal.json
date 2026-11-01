@@ -505,6 +505,13 @@
       "when": 1793518382064,
       "tag": "0071_staff_safe_action_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1793518415171,
+      "tag": "0072_staff_records_approvals_and_scope_controls",
+      "breakpoints": true
     }
   ]
 }
