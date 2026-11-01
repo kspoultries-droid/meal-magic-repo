@@ -20,6 +20,7 @@ const SCHEDULE_LABEL: Record<string, string> = { daily: "روزانہ", weekly: 
 
 const PayoutsTab = () => {
   const { isAdmin } = useAuth();
+  const [drafts, setDrafts] = useState<Record<string, { amount: number; from_account_id: string; vendor_account_id: string; period_start: string; period_end: string; reference_no: string | null }>>({});
   const [period, setPeriod] = useState<Period>("week");
   const [rows, setRows] = useState<VendorRow[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
@@ -97,9 +98,11 @@ const PayoutsTab = () => {
 
 
   const pay = async (row: VendorRow, silent = false) => {
-    const amount = Number(amounts[row.vendorId] || row.pending);
-    const source = fromAcc[row.vendorId] || accounts[0]?.id;
-    const dest = toAcc[row.vendorId];
+    const draft = drafts[row.vendorId];
+    if (!isAdmin && !draft) { toast.error("پہلے عین ادائیگی کی منظوری مانگیں"); return false; }
+    const amount = draft?.amount ?? Number(amounts[row.vendorId] || row.pending);
+    const source = draft?.from_account_id || fromAcc[row.vendorId] || accounts[0]?.id;
+    const dest = draft?.vendor_account_id || toAcc[row.vendorId];
     if (!amount || amount <= 0) { if (!silent) toast.error("رقم درست نہیں"); return false; }
     if (!source) { if (!silent) toast.error("EasyLife اکاؤنٹ منتخب کریں"); return false; }
     if (!dest) { if (!silent) toast.error("اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا"); return false; }
@@ -128,9 +131,9 @@ const PayoutsTab = () => {
       _amount: amount,
       _from_account_id: source,
       _vendor_account_id: dest,
-      _period_start: from.toISOString().slice(0, 10),
-      _period_end: new Date().toISOString().slice(0, 10),
-      _reference_no: refs[row.vendorId]?.trim() || null,
+      _period_start: draft?.period_start || from.toISOString().slice(0, 10),
+      _period_end: draft?.period_end || new Date().toISOString().slice(0, 10),
+      _reference_no: draft?.reference_no || refs[row.vendorId]?.trim() || null,
       _notes: `${row.shopNames.join(", ")} — کمیشن ${row.commissionRate}%`,
     });
     if (error && receiptPath) {
@@ -141,13 +144,13 @@ const PayoutsTab = () => {
       if (receiptError) {
         await supabase.storage.from("payout-receipts").remove([receiptPath]);
         if (!silent) { setBusy(null); toast.error("ادائیگی درج ہوئی مگر رسید منسلک نہیں ہوئی"); }
-        return false;
       }
     }
     if (!silent) setBusy(null);
     if (error) { if (!silent) toast.error(error.message); return false; }
     if (!silent) {
       toast.success("ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓");
+      setDrafts(current => { const next = { ...current }; delete next[row.vendorId]; return next; });
       setAmounts({ ...amounts, [row.vendorId]: "" });
       setRefs({ ...refs, [row.vendorId]: "" });
       setReceipts({ ...receipts, [row.vendorId]: undefined });
@@ -159,9 +162,9 @@ const PayoutsTab = () => {
   const dueRows = rows.filter((r) => r.pending > 0 && dueInfo(r.vendorId).overdue);
 
   const requestPayment = async (row: VendorRow) => {
-    const amount = Number(amounts[row.vendorId] || row.pending);
-    const { error } = await supabase.rpc("request_secure_approval", { _kind: "payout", _reference_id: row.vendorId, _amount: amount, _note: `${row.shopNames.join(", ")} — وینڈر ادائیگی`, _payload: { vendor_id: row.vendorId, amount, from_account_id: fromAcc[row.vendorId] || accounts[0]?.id || null, vendor_account_id: toAcc[row.vendorId] || null, period_start: from.toISOString().slice(0,10), period_end: new Date().toISOString().slice(0,10), reference_no: refs[row.vendorId]?.trim() || null } });
-    if (error) toast.error(error.message); else toast.success("عین ادائیگی کی منظوری بھیج دی گئی");
+    const draft = { amount: Number(amounts[row.vendorId] || row.pending), from_account_id: fromAcc[row.vendorId] || accounts[0]?.id || "", vendor_account_id: toAcc[row.vendorId] || "", period_start: from.toISOString().slice(0,10), period_end: new Date().toISOString().slice(0,10), reference_no: refs[row.vendorId]?.trim() || null };
+    const { error } = await supabase.rpc("request_secure_approval", { _kind: "payout", _reference_id: row.vendorId, _amount: draft.amount, _note: `${row.shopNames.join(", ")} — وینڈر ادائیگی`, _payload: { vendor_id: row.vendorId, ...draft } });
+    if (error) toast.error(error.message); else { setDrafts(current => ({ ...current, [row.vendorId]: draft })); toast.success("عین ادائیگی کی منظوری بھیج دی گئی"); }
   };
 
   const copyPayLine = (r: VendorRow) => {
@@ -269,7 +272,7 @@ const PayoutsTab = () => {
                 <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setReceipts({ ...receipts, [r.vendorId]: e.target.files?.[0] })} />
               </label>
               {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r)}>عین ادائیگی کی منظوری مانگیں</Button>}
-              <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => pay(r)}>
+              <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => { if (window.confirm(`Rs ${drafts[r.vendorId]?.amount ?? (amounts[r.vendorId] || r.pending)} کی ادائیگی درج کریں؟`)) void pay(r); }}>
                 {busy === r.vendorId ? "درج ہو رہا ہے…" : "ادائیگی درج کریں (بینک سے ادا کرنے کے بعد)"}
               </Button>
 

@@ -42,10 +42,14 @@ const ApprovalsTab = () => {
   }, [page, query]);
 
   const decide = async (id: string, approve: boolean) => {
+    if (busy) return;
     const n = approve ? "" : window.prompt("مسترد کرنے کی وجہ") || "";
+    setBusy(true);
     const { error } = await db.rpc("decide_approval", { _id: id, _approve: approve, _note: n });
+    setBusy(false);
     if (error) return toast.error(error.message.includes("own") ? "اپنی درخواست خود منظور نہیں کر سکتے" : error.message);
     toast.success(approve ? "منظور کر دیا" : "مسترد کر دیا");
+    await load();
   };
 
   const [count, setCount] = useState(0);
@@ -70,7 +74,7 @@ const ApprovalsTab = () => {
 
   return (
     <div className="space-y-4" dir="rtl">
-      {permissions.includes("support") && <section className="space-y-2 border-b pb-4"><h2 className="text-sm font-bold">عین رقم واپسی کی درخواست</h2><div className="grid grid-cols-2 gap-2"><select aria-label="آرڈر کی قسم" className="rounded-md border bg-background p-2 text-sm" value={refundKind} onChange={e => setRefundKind(e.target.value)}><option value="food">فوڈ</option><option value="grocery_cart">دکان</option><option value="grocery_list">فہرست</option><option value="service">خدمت</option></select><Input aria-label="ریفنڈ رقم" type="number" placeholder="رقم Rs" value={refundAmount} onChange={e => setRefundAmount(e.target.value)} /></div><Input aria-label="ریفنڈ آرڈر" placeholder="آرڈر کی مکمل آئی ڈی" value={refundOrder} onChange={e => setRefundOrder(e.target.value)} /><Input aria-label="ریفنڈ وجہ" placeholder="رقم واپسی کی وجہ" value={refundNote} onChange={e => setRefundNote(e.target.value)} /><Button onClick={async () => { const { error } = await supabase.rpc("staff_request_exact_refund", { _kind: refundKind, _order: refundOrder, _amount: Number(refundAmount), _type: "wallet", _note: refundNote }); if (error) toast.error(error.message); else { toast.success("عین رقم واپسی کی درخواست محفوظ ہوئی"); await load(); } }}>والیٹ ریفنڈ کی منظوری مانگیں</Button></section>}
+      {permissions.includes("support") && <section className="space-y-2 border-b pb-4"><h2 className="text-sm font-bold">عین رقم واپسی کی درخواست</h2><div className="grid grid-cols-2 gap-2"><select aria-label="آرڈر کی قسم" className="rounded-md border bg-background p-2 text-sm" value={refundKind} onChange={e => setRefundKind(e.target.value)}><option value="food">فوڈ</option><option value="grocery_cart">دکان</option><option value="grocery_list">فہرست</option><option value="service">خدمت</option></select><Input aria-label="ریفنڈ رقم" type="number" placeholder="رقم Rs" value={refundAmount} onChange={e => setRefundAmount(e.target.value)} /></div><Input aria-label="ریفنڈ آرڈر" placeholder="آرڈر کی مکمل آئی ڈی" value={refundOrder} onChange={e => setRefundOrder(e.target.value)} /><Input aria-label="ریفنڈ وجہ" placeholder="رقم واپسی کی وجہ" value={refundNote} onChange={e => setRefundNote(e.target.value)} /><Button onClick={async () => { const { error } = await supabase.rpc("staff_request_exact_refund", { _kind: refundKind, _order: refundOrder, _amount: Number(refundAmount), _type: "partial", _note: refundNote }); if (error) toast.error(error.message); else { toast.success("عین رقم واپسی کی درخواست محفوظ ہوئی"); await load(); } }}>جزوی رقم واپسی کی منظوری مانگیں</Button></section>}
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">درخواستیں</CardTitle></CardHeader>
         <CardContent className="space-y-2">

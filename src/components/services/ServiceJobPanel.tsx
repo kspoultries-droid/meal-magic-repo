@@ -29,7 +29,7 @@ export default function ServiceJobPanel({ booking, mode, onChanged }: Props) {
   ]);
   if (results.some(r => r.error)) toast.error(L("Some details could not load", "کچھ تفصیل نہیں کھل سکی"));
   setQuotes(results[0].data || []); setEvents(results[1].data || []); setReview(results[2].data); setTickets(results[3].data || []);
-  if (booking.final_bill_path) { const { data, error } = await supabase.storage.from("service-evidence").createSignedUrl(booking.final_bill_path, 300); if (!error) setBillUrl(data?.signedUrl || ""); }
+  if (booking.final_bill_path) { const { data, error } = await (mode === "staff" ? supabase.functions.invoke("staff-private-document", { body: { bucket: "service-evidence", path: booking.final_bill_path } }) : supabase.storage.from("service-evidence").createSignedUrl(booking.final_bill_path, 300)); if (!error) setBillUrl(data?.signedUrl || ""); }
   const { data } = await supabase.rpc("service_booking_contact", { _booking_id: booking.id }); setContact(data);
  }, [booking.id, booking.final_bill_path, booking.status, mode]);
  useEffect(() => { void load(); const timer = setInterval(() => { if (document.visibilityState === "visible") { void load(); onChanged(); } }, 20000); return () => clearInterval(timer); }, [load]);

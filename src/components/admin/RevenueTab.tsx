@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, RefreshCw, Download } from "lucide-react";
+import { toast } from "sonner";
 
 type Range = "today" | "week" | "month";
 
@@ -130,7 +131,9 @@ const RevenueTab = () => {
     if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
     return `"${t.replace(/"/g, '""')}"`;
   };
-  const exportCsv = () => {
+  const exportCsv = async () => {
+    const { error } = await supabase.rpc("staff_log_report_access", { _report: "revenue", _count: rows.length });
+    if (error) return toast.error(error.message);
     const header = ["date", "sector", "order_id", "vendor", "city", "gross", "rate", "commission", "delivery_fee", "net_payable", "channel"];
     const lines = rows.map((r) => [
       new Date(r.created_at).toISOString().slice(0, 10),
