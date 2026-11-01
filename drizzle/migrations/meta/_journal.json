@@ -547,6 +547,13 @@
       "when": 1793531151479,
       "tag": "0077_staff_explicit_scope_and_revocation",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1793536677736,
+      "tag": "0078_staff_shared_cases_and_quality",
+      "breakpoints": true
     }
   ]
 }
