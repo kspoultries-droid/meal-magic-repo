@@ -141,7 +141,6 @@ const PayoutsTab = () => {
       if (receiptError) {
         await supabase.storage.from("payout-receipts").remove([receiptPath]);
         if (!silent) { setBusy(null); toast.error("ادائیگی درج ہوئی مگر رسید منسلک نہیں ہوئی"); }
-        return false;
       }
     }
     if (!silent) setBusy(null);

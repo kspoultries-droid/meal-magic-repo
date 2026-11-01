@@ -33,6 +33,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<{ id: string; mode: "plan" | "pay" } | null>(null);
   const [confirmPay, setConfirmPay] = useState(false);
+  const [preview, setPreview] = useState<number | null>(null);
   useEffect(() => { setQuery(initialQuery); setPage(1); }, [initialQuery]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [riders, setRiders] = useState<any[]>([]);
@@ -109,6 +110,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const payRider = async (rid: string) => {
     const f = form[`pay_${rid}`] || {};
     if (busy) return;
+    if (!f.account || String(f.note || "").trim().length < 3) return toast.error("اکاؤنٹ اور ادائیگی کی وجہ درج کریں");
     setBusy(`pay_${rid}`);
     const { error } = await supabase.rpc("pay_rider", {
       _rider: rid,
@@ -119,7 +121,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       _deduction: Number(f.deduction || 0) || 0,
       _from_account_id: f.account || null,
       _reference_no: f.ref || null,
-      _note: f.note || null,
+      _note: String(f.note).trim(),
     });
     setBusy(null);
     if (error) { toast.error(error.message); return; }
@@ -130,13 +132,14 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
   const requestPayment = async (rid: string) => {
     const f = form[`pay_${rid}`] || {};
+    if (!f.account || String(f.note || "").trim().length < 3) return toast.error("اکاؤنٹ اور ادائیگی کی وجہ درج کریں");
     const from = f.from || monthStart(); const to = f.to || today();
     const { data: earnings, error: previewError } = await supabase.rpc("staff_rider_payment_preview", { _rider: rid, _from: from, _to: to });
     if (previewError) return toast.error(previewError.message);
     const salary = Number(f.salary ?? planFor(rid)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0);
     const bonus = Number(f.bonus || 0); const deduction = Number(f.deduction || 0);
     const total = salary + Number(earnings || 0) + bonus - deduction;
-    const { error } = await supabase.rpc("request_secure_approval", { _kind: "other", _reference_id: rid, _amount: total, _note: f.note || "رائیڈر ادائیگی کا آزاد جائزہ", _payload: { operation: "rider_pay", rider_id: rid, total, salary_amount: salary, bonus, deduction, order_earnings: Number(earnings || 0), period_start: from, period_end: to, from_account_id: f.account || null, reference_no: f.ref || null } });
+    const { error } = await supabase.rpc("request_secure_approval", { _kind: "other", _reference_id: rid, _amount: total, _note: String(f.note).trim(), _payload: { operation: "rider_pay", rider_id: rid, total, salary_amount: salary, bonus, deduction, order_earnings: Number(earnings || 0), period_start: from, period_end: to, from_account_id: f.account || null, reference_no: f.ref || null } });
     if (error) return toast.error(error.message);
     toast.success("عین ادائیگی کی منظوری بھیج دی گئی");
   };
@@ -231,8 +234,8 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                   </div>
                   <Input aria-label="رائیڈر ادائیگی کی وجہ" placeholder="ادائیگی / مالک کے استثنا کی وجہ" value={f.note || ""} onChange={e => set(`pay_${r.id}`, "note", e.target.value)} />
                   {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r.id)}>عین ادائیگی کی منظوری مانگیں</Button>}
-                  <Button size="sm" className="h-8 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={() => setConfirmPay(true)}>
-                    {busy === `pay_${r.id}` ? "ادائیگی ہو رہی ہے…" : `ادائیگی کریں (کمائی Rs ${Math.round(pending[r.id] || 0)} + تنخواہ)`}
+                  <Button size="sm" className="h-8 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={async () => { if (!f.account || String(f.note || "").trim().length < 3) return toast.error("اکاؤنٹ اور ادائیگی کی وجہ درج کریں"); setBusy(`pay_${r.id}`); const { data, error } = await supabase.rpc("staff_rider_payment_preview", { _rider: r.id, _from: f.from || monthStart(), _to: f.to || today() }); setBusy(null); if (error) return toast.error(error.message); setPreview(Number(data || 0)); setConfirmPay(true); }}>
+                    {busy === `pay_${r.id}` ? "ادائیگی ہو رہی ہے…" : "ادائیگی کریں"}
                   </Button>
                 </div>
 );
@@ -244,7 +247,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     <AdminPagination page={page} count={filtered.length} onPage={setPage} />
     <Dialog open={selected !== null} onOpenChange={open => { if (!open && !busy) { setSelected(null); setConfirmPay(false); } }}><DialogContent aria-describedby={undefined} className="max-h-[85dvh] max-w-xl overflow-y-auto" dir="rtl"><DialogHeader><DialogTitle>{selected?.mode === "plan" ? "پے پلان" : "رائیڈر کی ادائیگی"} — {selected?.id === "global" ? "ڈیفالٹ" : names[selected?.id || ""]}</DialogTitle></DialogHeader>
       {isAdmin && selected?.mode === "plan" && planFields(selected.id, selected.id === "global" ? globalPlan : planFor(selected.id))}
-      {selected?.mode === "pay" && selectedRider && (!confirmPay ? paymentFields(selectedRider) : <div className="space-y-3"><p className="text-sm font-bold">ادائیگی کی حتمی تصدیق</p><p className="text-xs">واجب الادا کمائی: Rs {Math.round(pending[selectedRider.id] || 0)} · تنخواہ: Rs {Number(form[`pay_${selectedRider.id}`]?.salary ?? planFor(selectedRider.id)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)}</p><p className="text-xs text-muted-foreground">بونس: Rs {Number(form[`pay_${selectedRider.id}`]?.bonus || 0)} · کٹوتی: Rs {Number(form[`pay_${selectedRider.id}`]?.deduction || 0)}</p><div className="flex gap-2"><Button disabled={busy !== null} onClick={() => void payRider(selectedRider.id)}>{busy ? "ادائیگی ہو رہی ہے…" : "تصدیق اور ادائیگی"}</Button><Button variant="outline" disabled={busy !== null} onClick={() => setConfirmPay(false)}>واپس</Button></div></div>)}
+      {selected?.mode === "pay" && selectedRider && (!confirmPay ? paymentFields(selectedRider) : <div className="space-y-3"><p className="text-sm font-bold">ادائیگی کی حتمی تصدیق</p><p className="text-xs">واجب الادا کمائی: Rs {Math.round(preview || 0)} · تنخواہ: Rs {Number(form[`pay_${selectedRider.id}`]?.salary ?? planFor(selectedRider.id)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)}</p><p className="text-xs text-muted-foreground">بونس: Rs {Number(form[`pay_${selectedRider.id}`]?.bonus || 0)} · کٹوتی: Rs {Number(form[`pay_${selectedRider.id}`]?.deduction || 0)}</p><div className="flex gap-2"><Button disabled={busy !== null} onClick={() => void payRider(selectedRider.id)}>{busy ? "ادائیگی ہو رہی ہے…" : "تصدیق اور ادائیگی"}</Button><Button variant="outline" disabled={busy !== null} onClick={() => setConfirmPay(false)}>واپس</Button></div></div>)}
     </DialogContent></Dialog>
   </section>;
 };

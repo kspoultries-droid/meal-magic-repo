@@ -31,11 +31,13 @@ const BankAccountsTab = () => {
   const [confirmed, setConfirmed] = useState<string[]>([]);
 
   const load = async () => {
-    const { data: accs } = await supabase.from("payment_accounts").select("*").order("sort_order").order("created_at");
+    const { data: accs, error: accountError } = isAdmin ? await supabase.from("payment_accounts").select("*").order("sort_order").order("created_at") : await supabase.rpc("staff_payment_accounts");
+    if (accountError) toast.error(accountError.message);
     setAccounts(accs || []);
     let q = supabase.from("bank_ledger").select("*", { count: "exact" }).order("created_at", { ascending: false }).order("id").range((page - 1) * 20, page * 20 - 1);
     if (filter !== "all") q = q.eq("account_id", filter);
-    const { data: led, count: total } = await q;
+    const { data: led, count: total, error } = await q;
+    if (error) toast.error(error.message);
     setCount(total || 0);
     setLedger(led || []);
     if (led?.length) { const { data } = await supabase.from("staff_bank_reconciliation").select("ledger_id").in("ledger_id", led.map(l => l.id)); setConfirmed((data || []).map(r => r.ledger_id)); }
@@ -87,10 +89,10 @@ const BankAccountsTab = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="rounded-xl bg-primary/10 px-3 py-2 flex items-center justify-between">
+          {isAdmin && <div className="rounded-xl bg-primary/10 px-3 py-2 flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground">کل بیلنس</span>
             <span className="text-lg font-extrabold text-primary">Rs {Math.round(total)}</span>
-          </div>
+          </div>}
 
           {isAdmin && showForm && (
             <div className="rounded-xl border p-3 space-y-2">
@@ -116,7 +118,7 @@ const BankAccountsTab = () => {
                 <p className="text-[11px] text-muted-foreground">{a.account_title}</p>
               </div>
               <div className="text-right shrink-0">
-                <p className="font-extrabold text-primary">Rs {Math.round(Number(a.balance || 0))}</p>
+                {isAdmin && <p className="font-extrabold text-primary">Rs {Math.round(Number(a.balance || 0))}</p>}
                 {isAdmin && <Button variant="link" size="sm" onClick={() => toggle(a)} className="text-[11px] font-bold text-muted-foreground underline">
                   {a.is_active ? "غیر فعال کریں" : "فعال کریں"}
                 </Button>}
