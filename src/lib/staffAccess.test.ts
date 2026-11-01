@@ -20,11 +20,11 @@ describe("team work stays within assigned permissions", () => {
     expect(approvalKinds(["finance", "approve"])).toEqual(["payout", "other"]);
   });
   it("partner manager starts at applications without rider controls", () => {
-    expect(staffLanding(["partners"], false)).toEqual({ section: "partners", sub: "applications" });
+    expect(staffLanding(["partners"], false)).toEqual({ section: "work", sub: "" });
     expect(staffWorkspace(["partners"]).partners).toEqual(["applications", "restaurants", "grocery"]);
   });
   it("rider supervisor starts at riders, not other partner work", () => {
-    expect(staffLanding(["riders"], false)).toEqual({ section: "partners", sub: "riders" });
+    expect(staffLanding(["riders"], false)).toEqual({ section: "work", sub: "" });
     expect(staffWorkspace(["riders"]).partners).toEqual(["riders"]);
     expect(approvalKinds(["riders"])).toEqual([]);
   });

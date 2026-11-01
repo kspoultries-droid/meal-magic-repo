@@ -268,6 +268,7 @@ const PayoutsTab = () => {
                 {receipts[r.vendorId]?.name || "بینک رسید منسلک کریں (تصویر یا PDF)"}
                 <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setReceipts({ ...receipts, [r.vendorId]: e.target.files?.[0] })} />
               </label>
+              {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r)}>عین ادائیگی کی منظوری مانگیں</Button>}
               <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => pay(r)}>
                 {busy === r.vendorId ? "درج ہو رہا ہے…" : "ادائیگی درج کریں (بینک سے ادا کرنے کے بعد)"}
               </Button>
