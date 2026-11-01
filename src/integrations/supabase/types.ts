@@ -5768,6 +5768,10 @@ export type Database = {
         Args: { _kind: string; _ref: string }
         Returns: boolean
       }
+      staff_approver_still_allowed: {
+        Args: { _kind: string; _ref: string; _uid: string }
+        Returns: boolean
+      }
       staff_audit_business_details: {
         Args: { _action: string; _details: Json; _entity: string }
         Returns: Json
