@@ -3,10 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { approvalKinds } from "@/lib/staffAccess";
 import { eligibleApprovals } from "@/lib/adminApproval";
 import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { approvalUsable } from "@/lib/staffCases";
@@ -17,13 +15,8 @@ const STATUS: Record<string, string> = { pending: "زیر التوا", approved:
 const ApprovalsTab = () => {
   const db = supabase as any;
   const { user, permissions } = useAuth();
-  const allowedKinds = approvalKinds(permissions);
   const canApprove = permissions.includes("approve");
   const [rows, setRows] = useState<any[]>([]);
-  const [kind, setKind] = useState(allowedKinds[0] || "");
-  const [amount, setAmount] = useState("");
-  const [ref, setRef] = useState("");
-  const [note, setNote] = useState("");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
@@ -42,15 +35,6 @@ const ApprovalsTab = () => {
     const ch = supabase.channel("approvals").on("postgres_changes", { event: "*", schema: "public", table: "approval_requests" }, load).subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [page, query]);
-
-  const submit = async () => {
-    const amt = Number(amount);
-    if (!amt || amt <= 0) return toast.error("درست رقم لکھیں");
-    if (!note.trim()) return toast.error("وجہ لکھیں");
-    const { error } = await db.rpc("request_approval", { _kind: kind, _amount: amt, _reference_id: ref.trim() || null, _note: note.trim() });
-    if (error) return toast.error(error.message);
-    toast.success("درخواست بھیج دی گئی"); setAmount(""); setRef(""); setNote("");
-  };
 
   const decide = async (id: string, approve: boolean) => {
     const n = approve ? "" : window.prompt("مسترد کرنے کی وجہ") || "";
@@ -81,24 +65,6 @@ const ApprovalsTab = () => {
 
   return (
     <div className="space-y-4" dir="rtl">
-      {false && allowedKinds.length > 0 && <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">نئی منظوری کی درخواست</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-xs text-muted-foreground">Rs 2,000 سے زیادہ ریفنڈ اور ہر وینڈر ادائیگی سے پہلے یہاں درخواست دیں۔ کوئی دوسرا (فنانس/مالک) منظور کرے گا۔</p>
-          <div className="flex gap-1.5">
-            {Object.entries(KIND).filter(([k]) => allowedKinds.includes(k)).map(([k, v]) => (
-              <button key={k} onClick={() => setKind(k)} className={`rounded-full border px-3 py-1 text-xs ${kind === k ? "border-primary bg-primary text-primary-foreground" : ""}`}>{v}</button>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Input type="number" placeholder="رقم Rs" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            <Input placeholder="آرڈر / وینڈر نمبر" value={ref} onChange={(e) => setRef(e.target.value)} />
-          </div>
-          <Input placeholder="وجہ" value={note} onChange={(e) => setNote(e.target.value)} />
-          <Button className="w-full" onClick={submit}>درخواست بھیجیں</Button>
-        </CardContent>
-      </Card>}
-
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">درخواستیں</CardTitle></CardHeader>
         <CardContent className="space-y-2">
@@ -115,7 +81,7 @@ const ApprovalsTab = () => {
               <p className="text-xs text-muted-foreground">{r.note}{r.reference_id ? ` · #${r.reference_id}` : ""}</p>
               <p className="text-xs">میعاد: {new Date(r.expires_at).toLocaleString("en-PK")}{r.used_at ? " · استعمال شدہ" : new Date(r.expires_at).getTime() <= Date.now() ? " · ختم" : ""}</p>
               <details className="text-xs"><summary className="cursor-pointer">عین منظور کی جانے والی تفصیل</summary><pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-muted p-2" dir="ltr">{JSON.stringify(r.payload, null, 2)}</pre></details>
-              <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString("ur-PK")}{r.requested_by === user?.id ? " · آپ کی درخواست" : ""}</p>
+              <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString("en-PK")}{r.requested_by === user?.id ? " · آپ کی درخواست" : ""}</p>
               {r.decision_note && <p className="text-xs">نوٹ: {r.decision_note}</p>}
               {approvalUsable(r) && canApprove && r.requested_by !== user?.id && (
                 <div className="mt-2 flex gap-2">
