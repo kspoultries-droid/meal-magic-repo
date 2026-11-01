@@ -62,6 +62,7 @@ export default function StaffCasesTab({ onNavigate }: { onNavigate?: (section: s
   }, []);
   const history = async (c: Case) => {
     setSelected(c); setNote(""); setMember("");
+    const { data: candidates } = await supabase.rpc("staff_case_candidates", { _case: c.id }); setMembers(candidates || []);
     const [e, r] = await Promise.all([supabase.from("staff_case_events").select("*").eq("case_id", c.id).order("created_at", { ascending: false }).limit(100), supabase.from("staff_quality_reviews").select("*").eq("case_id", c.id).order("created_at", { ascending: false })]);
     setEvents(e.data || []); setReviews(r.data || []);
   };
