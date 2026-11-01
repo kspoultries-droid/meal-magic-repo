@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { UserPlus, X, RefreshCw } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
+import { UserPlus, X, RefreshCw, MapPin, Wrench } from "lucide-react";
 
 export const STAFF_ROLES: Record<string, { label: string; desc: string }> = {
   admin: { label: "ایڈمن", desc: "سب کچھ" },
@@ -15,10 +17,14 @@ export const STAFF_ROLES: Record<string, { label: string; desc: string }> = {
   finance: { label: "فنانس", desc: "ادائیگیاں، کیش وصولی، منظوری" },
   partner_manager: { label: "پارٹنر مینیجر", desc: "دکانیں، مینو، درخواستیں" },
   rider_supervisor: { label: "رائیڈر سپروائزر", desc: "رائیڈر تصدیق، معطلی" },
+  service_manager: { label: "سروس سپروائزر", desc: "مقررہ شعبوں کے کاریگر اور کام" },
 };
 
 const TeamTab = () => {
   const db = supabase as any;
+  const navigate = useNavigate();
+  const [scopeUser, setScopeUser] = useState<string | null>(null);
+  const [scopeCities, setScopeCities] = useState<string[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [email, setEmail] = useState("");
@@ -51,6 +57,15 @@ const TeamTab = () => {
     toast.success("کردار ہٹا دیا گیا"); load();
   };
 
+  const saveScope = async () => {
+    if (!scopeUser || busy) return;
+    setBusy(true);
+    const { error } = await db.rpc("staff_set_cities", { _user_id: scopeUser, _city_ids: scopeCities });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("شہر کی اجازت محفوظ ہو گئی"); setScopeUser(null); await load();
+  };
+
   const cityName = (id: string) => cities.find((c) => c.id === id)?.name || "—";
 
   return (
@@ -62,18 +77,18 @@ const TeamTab = () => {
           <Input placeholder="ای میل" value={email} onChange={(e) => setEmail(e.target.value)} dir="ltr" />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {Object.entries(STAFF_ROLES).map(([k, v]) => (
-              <button key={k} onClick={() => setRole(k)} className={`rounded-xl border p-2 text-start ${role === k ? "border-primary bg-primary/10" : "bg-card"}`}>
+              <Button variant="outline" key={k} onClick={() => setRole(k)} className={`h-auto flex-col items-start whitespace-normal rounded-md border p-2 text-start ${role === k ? "border-primary bg-primary/10" : "bg-card"}`}>
                 <p className="text-sm font-bold">{v.label}</p>
                 <p className="text-[10px] text-muted-foreground">{v.desc}</p>
-              </button>
+              </Button>
             ))}
           </div>
           <div>
             <p className="mb-1 text-xs font-semibold">شہر (خالی = سب شہر)</p>
             <div className="flex flex-wrap gap-1.5">
               {cities.map((c) => (
-                <button key={c.id} onClick={() => setCityIds((p) => p.includes(c.id) ? p.filter((x) => x !== c.id) : [...p, c.id])}
-                  className={`rounded-full border px-3 py-1 text-xs ${cityIds.includes(c.id) ? "border-primary bg-primary text-primary-foreground" : ""}`}>{c.name}</button>
+                <Button variant="outline" size="sm" key={c.id} onClick={() => setCityIds((p) => p.includes(c.id) ? p.filter((x) => x !== c.id) : [...p, c.id])}
+                  className={`rounded-full border px-3 py-1 text-xs ${cityIds.includes(c.id) ? "border-primary bg-primary text-primary-foreground" : ""}`}>{c.name}</Button>
               ))}
             </div>
           </div>
@@ -102,17 +117,20 @@ const TeamTab = () => {
                 {(s.roles || []).map((r: string) => (
                   <Badge key={r} variant="secondary" className="gap-1">
                     {STAFF_ROLES[r]?.label || r}
-                    <button aria-label="ہٹائیں" onClick={() => remove(s.user_id, r)}><X className="h-3 w-3" /></button>
+                    {s.user_id !== "52634431-32e8-4bd7-b171-d92c2add25ff" && <Button variant="ghost" size="icon" className="h-5 w-5" aria-label="ہٹائیں" onClick={() => remove(s.user_id, r)}><X className="h-3 w-3" /></Button>}
                   </Badge>
                 ))}
                 {(s.city_ids || []).length > 0
                   ? s.city_ids.map((c: string) => <Badge key={c} variant="outline">{cityName(c)}</Badge>)
                   : <Badge variant="outline">سب شہر</Badge>}
+                {s.user_id !== "52634431-32e8-4bd7-b171-d92c2add25ff" && <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => { setScopeUser(s.user_id); setScopeCities(s.city_ids || []); }}><MapPin className="size-3" /> شہر کی اجازت</Button>}
+                {(s.roles || []).includes("service_manager") && <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => navigate("/service-manager-dashboard")}><Wrench className="size-3" /> خدمات کی نگرانی</Button>}
               </div>
             </div>
           ))}
         </CardContent>
       </Card>
+      <Dialog open={scopeUser !== null} onOpenChange={open => !open && setScopeUser(null)}><DialogContent dir="rtl"><DialogHeader><DialogTitle>شہر کی اجازت</DialogTitle></DialogHeader><p className="text-xs text-muted-foreground">کوئی شہر منتخب نہ ہو تو سب شہروں کی اجازت ہوگی۔</p><div className="flex flex-wrap gap-2">{cities.map(c => <Button key={c.id} variant={scopeCities.includes(c.id) ? "default" : "outline"} size="sm" onClick={() => setScopeCities(current => current.includes(c.id) ? current.filter(id => id !== c.id) : [...current,c.id])}>{c.name}</Button>)}</div><Button disabled={busy} onClick={saveScope}>محفوظ کریں</Button></DialogContent></Dialog>
     </div>
   );
 };

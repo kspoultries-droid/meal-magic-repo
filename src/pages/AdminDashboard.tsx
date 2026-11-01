@@ -897,6 +897,7 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
 // ─── Riders ─────────────────────────────────────
 const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
+  const { isAdmin, permissions } = useAuth();
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -1008,7 +1009,7 @@ const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
                         {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, r.is_available ? "offline" : "online")}>{r.is_available ? "آف لائن" : "آن لائن"}</Button>}
                         {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px] text-destructive" onClick={() => setRiderState(r.id, "suspend")}>معطل کریں</Button>}
                         {hasRole && r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "restore")}>بحال کریں</Button>}
-                        {hasRole && <Button size="sm" variant="destructive" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "remove_role")}>رول ہٹائیں</Button>}
+                        {isAdmin && hasRole && <Button size="sm" variant="destructive" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "remove_role")}>رول ہٹائیں</Button>}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -1019,7 +1020,7 @@ const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
           </Table>
         )}
         <AdminPagination page={page} count={filteredRiders.length} onPage={setPage} />
-        <RiderDetailsDialog rider={detailRider} name={getProfile(detailId || "")?.full_name || ""} phone={getProfile(detailId || "")?.phone || ""} city={riderCities.find(c => c.id === detailRider?.city_id)?.name || ""} onClose={() => setDetailId(null)} onPay={onPay} />
+        <RiderDetailsDialog rider={detailRider} name={getProfile(detailId || "")?.full_name || ""} phone={getProfile(detailId || "")?.phone || ""} city={riderCities.find(c => c.id === detailRider?.city_id)?.name || ""} onClose={() => setDetailId(null)} onPay={isAdmin || permissions.includes("finance") ? onPay : undefined} />
       </CardContent>
     </Card>
   );
