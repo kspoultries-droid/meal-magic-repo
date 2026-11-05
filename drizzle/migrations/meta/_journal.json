@@ -610,6 +610,13 @@
       "when": 1793562268320,
       "tag": "0086_partner_document_owner_unattached_cleanup",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1793897361620,
+      "tag": "0087_fix_guard_staff_record_fields_rider_owner_id",
+      "breakpoints": true
     }
   ]
 }
