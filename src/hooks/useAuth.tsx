@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setPermissions(nextPermissions);
     } catch (error) {
       console.error("Error checking roles:", error);
-      clearRoles();
+      if (!keepOnFailure) clearRoles();
     }
   };
 
@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!user) return;
-    const refresh = () => { if (document.visibilityState === "visible") void checkRoles(user.id); };
+    const refresh = () => { if (document.visibilityState === "visible") void checkRoles(user.id, true); };
     const timer = window.setInterval(refresh, 30000);
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener("focus", refresh);
