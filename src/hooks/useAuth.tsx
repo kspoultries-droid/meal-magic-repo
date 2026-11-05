@@ -54,7 +54,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loading = !authReady || rolesLoading;
 
-  const checkRoles = async (userId: string) => {
+  // keepOnFailure: on periodic re-checks a transient network blip must not wipe
+  // the last known roles (which would kick admins/staff out of their dashboard).
+  const checkRoles = async (userId: string, keepOnFailure = false) => {
     try {
       const roleChecks = Promise.all([
         supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
@@ -69,6 +71,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         window.setTimeout(() => reject(new Error("Role check timed out")), 8000);
       });
       const [adminRes, ownerRes, riderRes, supportRes, mechanicRes, smRes, permRes] = await Promise.race([roleChecks, timeout]);
+      const results = [adminRes, ownerRes, riderRes, supportRes, mechanicRes, smRes, permRes];
+      if (keepOnFailure && results.some((res) => res?.error)) {
+        console.warn("Role re-check failed; keeping last known roles", results.map((res) => res?.error?.message));
+        return;
+      }
       setIsAdmin(!!adminRes.data);
       setIsRestaurantOwner(!!ownerRes.data);
       setIsRider(!!riderRes.data);
@@ -81,7 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setPermissions(nextPermissions);
     } catch (error) {
       console.error("Error checking roles:", error);
-      clearRoles();
+      if (!keepOnFailure) clearRoles();
     }
   };
 
@@ -139,7 +146,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!user) return;
-    const refresh = () => { if (document.visibilityState === "visible") void checkRoles(user.id); };
+    const refresh = () => { if (document.visibilityState === "visible") void checkRoles(user.id, true); };
     const timer = window.setInterval(refresh, 30000);
     document.addEventListener("visibilitychange", refresh);
     window.addEventListener("focus", refresh);
