@@ -118,7 +118,7 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
                 <button type="button" onClick={() => go(s.to)} className={`relative block ${H} w-full overflow-hidden bg-muted text-start`}>
                   <img src={s.image} alt="" width={1024} height={640} loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
                   <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-foreground/40 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-foreground/80 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-foreground/55 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 max-w-[75%] p-4 pb-6 text-background">
                     <p className="text-xs font-bold opacity-90">{s.eyebrow}</p>
                     <p className="mt-1 font-display text-2xl font-extrabold leading-tight">{s.title}</p>
@@ -131,7 +131,7 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
         </Carousel>
         {total > 1 && <span dir="ltr" className="absolute bottom-3 end-3 z-10 rounded-full bg-foreground/50 px-2 py-0.5 text-[11px] font-bold text-background">{current + 1}/{total}</span>}
       </div>
-      <div className="flex h-9 items-center justify-around bg-foreground/85 px-2 text-[11px] font-semibold text-background">
+      <div className="flex h-9 items-center justify-around bg-primary px-2 text-[11px] font-semibold text-primary-foreground">
         <span className="flex items-center gap-1"><Bike className="size-3.5" /> تیز ڈیلیوری</span>
         <span className="flex items-center gap-1"><Timer className="size-3.5" /> 30 منٹ</span>
         <span className="flex items-center gap-1"><Flame className="size-3.5" /> روزانہ ڈیلز</span>
