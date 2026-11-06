@@ -9,7 +9,7 @@ export const img = (url: string | null | undefined, width = 480, quality = 70): 
     if (url.includes("/storage/v1/object/public/")) {
       const out = url.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
       const sep = out.includes("?") ? "&" : "?";
-      return `${out}${sep}width=${width}&quality=${quality}`;
+      return `${out}${sep}width=${width}&quality=${quality}&resize=contain`;
     }
     if (url.includes("images.unsplash.com")) {
       const u = new URL(url);
