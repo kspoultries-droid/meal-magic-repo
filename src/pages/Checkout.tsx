@@ -424,11 +424,11 @@ const Checkout = () => {
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-foreground">
                     <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5 text-primary" />{formatDeliveryMode(deliveryQuote.mode)}</span>
-                    <span className="flex items-center gap-1"><Scale className="h-3.5 w-3.5 text-primary" />{deliveryQuote.weight_kg.toFixed(1)} کلو</span>
-                    {deliveryQuote.distance_km > 0 && <span className="flex items-center gap-1"><Route className="h-3.5 w-3.5 text-primary" />{deliveryQuote.distance_km.toFixed(1)} کلومیٹر</span>}
+                    <span className="flex items-center gap-1"><Scale className="h-3.5 w-3.5 text-primary" />{deliveryQuote.weight_kg.toFixed(1)} {L("kg", "کلو")}</span>
+                    {deliveryQuote.distance_km > 0 && <span className="flex items-center gap-1"><Route className="h-3.5 w-3.5 text-primary" />{deliveryQuote.distance_km.toFixed(1)} {L("km", "کلومیٹر")}</span>}
                   </div>
-                  <p className="mt-1">{formatFeeBreakdown(deliveryQuote)}{deliveryQuote.vehicle_name ? ` · گاڑی: ${deliveryQuote.vehicle_name}` : ""}</p>
-                  {deliveryQuote.needs_quote && <p className="mt-1 font-bold text-destructive">اس bulk آرڈر کے لیے حتمی کرایہ دکاندار/ایڈمن کی منظوری کے بعد آئے گا۔</p>}
+                  <p className="mt-1">{formatFeeBreakdown(deliveryQuote)}{deliveryQuote.vehicle_name ? ` · ${L("Vehicle", "گاڑی")}: ${deliveryQuote.vehicle_name}` : ""}</p>
+                  {deliveryQuote.needs_quote && <p className="mt-1 font-bold text-destructive">{L("Final freight for this bulk order will be confirmed after vendor/admin approval.", "اس bulk آرڈر کے لیے حتمی کرایہ دکاندار/ایڈمن کی منظوری کے بعد آئے گا۔")}</p>}
                 </div>
               )}
               {voucher && (
@@ -491,7 +491,7 @@ const Checkout = () => {
               <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
                 {cities.map((city) => <option key={city.id} value={city.id}>{city.name}</option>)}
               </select>
-              <p className="mt-1 text-[11px] text-muted-foreground">شہر بدلنے سے intercity یا courier delivery quote خودکار دوبارہ بنے گا۔</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{L("Changing the city will automatically recalculate the intercity or courier delivery quote.", "شہر بدلنے سے intercity یا courier delivery quote خودکار دوبارہ بنے گا۔")}</p>
             </div>
           )}
           <div className="space-y-3">
@@ -553,12 +553,12 @@ const Checkout = () => {
 
         <div className="glass rounded-2xl border border-border/50 shadow-card p-4 space-y-2">
           <label htmlFor="my-phone" className="flex items-center gap-2 text-sm font-extrabold text-foreground">
-            <Phone className="w-4 h-4 text-primary" /> آپ کا موبائل نمبر / Your mobile
+            <Phone className="w-4 h-4 text-primary" /> {L("Your mobile number", "آپ کا موبائل نمبر")}
           </label>
           <Input id="my-phone" type="tel" inputMode="numeric" maxLength={11} placeholder="03001234567"
             value={myPhone} onChange={(e) => setMyPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
             className="h-11 rounded-xl bg-background/80" />
-          <p className="text-[11px] text-muted-foreground">ایک وقت میں زیادہ سے زیادہ 2 آرڈر چل سکتے ہیں۔</p>
+          <p className="text-[11px] text-muted-foreground">{L("You can have at most 2 active orders at a time.", "ایک وقت میں زیادہ سے زیادہ 2 آرڈر چل سکتے ہیں۔")}</p>
         </div>
 
         {/* Gift Delivery - Glass */}
