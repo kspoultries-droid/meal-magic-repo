@@ -228,7 +228,7 @@ const StandaloneStore = () => {
             style={{ backgroundColor: "#25D366" }}
             onClick={() => {
               const storeUrl = `${window.location.origin}/store/${slug}`;
-              const msg = `السلام علیکم! 🛒\nہماری دکان "${store.name}" پر آرڈر کریں:\n${storeUrl}`;
+              const msg = tr(`Hello! 🛒\nOrder from our shop "${store.name}":\n${storeUrl}`, `السلام علیکم! 🛒\nہماری دکان "${store.name}" پر آرڈر کریں:\n${storeUrl}`);
               window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
             }}
           >
