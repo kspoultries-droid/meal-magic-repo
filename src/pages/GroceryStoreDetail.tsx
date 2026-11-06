@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera } from "lucide-react";
 import StoreBanner from "@/components/grocery/StoreBanner";
 import PhotoListOrder from "@/components/grocery/PhotoListOrder";
@@ -44,6 +45,8 @@ const GroceryStoreDetail = () => {
   const isBazar = location.pathname.startsWith("/bazar");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const { items: cartItems, addItem, updateQuantity } = useCart();
   const [store, setStore] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -101,7 +104,7 @@ const GroceryStoreDetail = () => {
 
   const handleAdd = (product: any) => {
     const stock = availableShopQuantity(product);
-    if (stock !== null && (getCartLine(product.id)?.quantity || 0) >= stock) { toast.error("مزید مقدار دستیاب نہیں"); return; }
+    if (stock !== null && (getCartLine(product.id)?.quantity || 0) >= stock) { toast.error(L("No more stock available", "مزید مقدار دستیاب نہیں")); return; }
     const effectivePrice = product.wholesale_price || product.discount_price || product.price;
     const variants = getVariants(product);
     if (variants.length > 0) {
@@ -142,21 +145,21 @@ const GroceryStoreDetail = () => {
     updates.description = editDescription.trim() || null;
     const { error } = await supabase.from("grocery_products").update(updates).eq("id", productId);
     if (error) { toast.error(error.message); return; }
-    toast.success("قیمت اپڈیٹ ہو گئی / Price updated");
+    toast.success(L("Price updated", "قیمت اپڈیٹ ہو گئی"));
     setEditingId(null);
     fetchData();
   };
 
   const toggleAvailable = async (productId: string, current: boolean) => {
     await supabase.from("grocery_products").update({ is_available: !current }).eq("id", productId);
-    toast.success("اپڈیٹ ہو گیا / Updated");
+    toast.success(L("Updated", "اپڈیٹ ہو گیا"));
     fetchData();
   };
 
   const deleteProduct = async (productId: string) => {
-    if (!window.confirm("کیا آپ واقعی حذف کرنا چاہتے ہیں؟\nAre you sure?")) return;
+    if (!window.confirm(L("Are you sure you want to delete this?", "کیا آپ واقعی حذف کرنا چاہتے ہیں؟"))) return;
     await supabase.from("grocery_products").delete().eq("id", productId);
-    toast.success("پروڈکٹ حذف / Product deleted");
+    toast.success(L("Product deleted", "پروڈکٹ حذف"));
     fetchData();
   };
 
