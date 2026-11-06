@@ -223,11 +223,11 @@ const ProductDetail = () => {
 
         <section className="mx-4 mt-3 space-y-3">
           <div className="rounded-2xl border border-primary/20 bg-accent/50 p-4">
-            <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Truck className="h-5 w-5" /></div><div><p className="text-sm font-extrabold text-foreground">ڈیلیوری کا طریقہ</p><p className="text-xs text-muted-foreground">{store.ships_nationwide ? "ملک بھر میں کورئیر دستیاب" : "مقامی رائیڈر کے ذریعے محفوظ ڈیلیوری"}</p></div></div>
-            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-accent-foreground"><span className="rounded-full bg-background px-3 py-1.5">{product.delivery_days || (store.ships_nationwide ? "کورئیر کے مطابق" : "مقامی ڈیلیوری")}</span><span className="rounded-full bg-background px-3 py-1.5">محفوظ پیکنگ</span><span className="rounded-full bg-background px-3 py-1.5">آرڈر ٹریکنگ</span></div>
+            <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Truck className="h-5 w-5" /></div><div><p className="text-sm font-extrabold text-foreground">{L("Delivery method", "ڈیلیوری کا طریقہ")}</p><p className="text-xs text-muted-foreground">{store.ships_nationwide ? L("Courier available nationwide", "ملک بھر میں کورئیر دستیاب") : L("Safe delivery via local rider", "مقامی رائیڈر کے ذریعے محفوظ ڈیلیوری")}</p></div></div>
+            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-accent-foreground"><span className="rounded-full bg-background px-3 py-1.5">{product.delivery_days || (store.ships_nationwide ? L("By courier", "کورئیر کے مطابق") : L("Local delivery", "مقامی ڈیلیوری"))}</span><span className="rounded-full bg-background px-3 py-1.5">{L("Safe packing", "محفوظ پیکنگ")}</span><span className="rounded-full bg-background px-3 py-1.5">{L("Order tracking", "آرڈر ٹریکنگ")}</span></div>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary"><Store className="h-5 w-5" /></div><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-foreground">{store.name}</p><p className="text-xs text-muted-foreground">{store.rating ? `★ ${store.rating}` : "نئی دکان"} · تصدیق شدہ شاپ</p></div><Button variant="outline" size="sm" onClick={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)}>دکان دیکھیں <ChevronRight className="ms-1 h-3 w-3" /></Button></div>
+            <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary"><Store className="h-5 w-5" /></div><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-foreground">{store.name}</p><p className="text-xs text-muted-foreground">{store.rating ? `★ ${store.rating}` : L("New shop", "نئی دکان")} · {L("Verified shop", "تصدیق شدہ شاپ")}</p></div><Button variant="outline" size="sm" onClick={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)}>{L("View shop", "دکان دیکھیں")} <ChevronRight className="ms-1 h-3 w-3" /></Button></div>
           </div>
         </section>
 
@@ -239,27 +239,27 @@ const ProductDetail = () => {
         <div className="mx-auto flex w-full max-w-5xl items-center gap-2 overflow-hidden">
           {quantity > 0 && (
             <div className="flex h-11 shrink-0 items-center gap-1 rounded-xl border border-border bg-card px-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="کم کریں" onClick={() => cartLine && updateQuantity(cartLine.id, quantity - 1)}><Minus className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={L("Decrease", "کم کریں")} onClick={() => cartLine && updateQuantity(cartLine.id, quantity - 1)}><Minus className="h-4 w-4" /></Button>
               <span className="w-5 text-center text-sm font-extrabold">{quantity}</span>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" aria-label="بڑھائیں" onClick={addToCart}><Plus className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" aria-label={L("Increase", "بڑھائیں")} onClick={addToCart}><Plus className="h-4 w-4" /></Button>
             </div>
           )}
           {quantity > 0 ? (<>
             <Button variant="outline" className="h-11 min-w-0 flex-1 rounded-xl border-primary/40 px-2 text-[13px] font-extrabold text-primary shadow-sm" onClick={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)}>
               <Store className="me-1.5 h-4 w-4 shrink-0" />
-              <span className="truncate">مزید اشیاء لیں</span>
+              <span className="truncate">{L("Add more items", "مزید اشیاء لیں")}</span>
             </Button>
             <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={() => navigate("/checkout")}>
-              <span className="truncate">چیک آؤٹ ({items.reduce((n, i) => n + i.quantity, 0)})</span>
+              <span className="truncate">{L("Checkout", "چیک آؤٹ")} ({items.reduce((n, i) => n + i.quantity, 0)})</span>
               <ArrowLeft className="ms-1.5 h-4 w-4 shrink-0" />
             </Button>
           </>) : (<>
           <Button variant="outline" className="h-11 min-w-0 flex-1 rounded-xl border-primary/40 px-2 text-[13px] font-extrabold text-primary shadow-sm" onClick={addToCart}>
             <ShoppingBag className="me-1.5 h-4 w-4 shrink-0" />
-            <span className="truncate">کارٹ میں شامل</span>
+            <span className="truncate">{L("Add to cart", "کارٹ میں شامل")}</span>
           </Button>
           <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={buyNow}>
-            <span className="truncate">ابھی خریدیں</span>
+            <span className="truncate">{L("Buy now", "ابھی خریدیں")}</span>
             <ArrowLeft className="ms-1.5 h-4 w-4 shrink-0" />
           </Button>
           </>)}
