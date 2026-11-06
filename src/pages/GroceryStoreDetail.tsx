@@ -321,11 +321,11 @@ const GroceryStoreDetail = () => {
                         </div>
                       )}
                        <div
-                         className="aspect-square bg-secondary flex items-center justify-center overflow-hidden relative cursor-pointer"
+                         className="aspect-square bg-card flex items-center justify-center overflow-hidden relative cursor-pointer"
                          onClick={() => !isOwner && navigate(`/product/${product.id}`)}
                        >
                           {product.image_url ? (
-                            <img src={img(product.image_url, 360)} onError={(e) => { if (e.currentTarget.src !== product.image_url) e.currentTarget.src = product.image_url; }} alt={product.name} className="w-full h-full object-contain p-2" />
+                            <img src={img(product.image_url, 360)} onError={(e) => { if (e.currentTarget.src !== product.image_url) e.currentTarget.src = product.image_url; }} alt={product.name} className="w-full h-full object-contain p-1" />
                           ) : (
                             <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
                           )}
