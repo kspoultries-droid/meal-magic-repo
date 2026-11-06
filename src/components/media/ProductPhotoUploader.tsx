@@ -40,12 +40,17 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
     setBusy(true);
     try {
       const prepared: Item[] = [];
-      for (const file of files.slice(0, multiple ? 8 : 1)) {
+      for (const picked of files.slice(0, multiple ? 8 : 1)) {
+        // Android WebView camera/gallery files can often be read only once.
+        // Copy the bytes into memory first, then prepare both versions up front.
+        const bytes = await picked.arrayBuffer();
+        const file = new File([bytes], picked.name || "photo.jpg", { type: picked.type || "image/jpeg" });
         const { file: enhanced, url, check } = await enhancePhoto(file, aspect);
+        const original = await prepareOriginalPhoto(file);
         prepared.push({
           id: `${file.name}-${Math.random().toString(36).slice(2)}`,
-          original: file,
-          originalUrl: URL.createObjectURL(file),
+          original,
+          originalUrl: URL.createObjectURL(original),
           enhanced,
           enhancedUrl: url,
           check,
@@ -83,7 +88,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
   const save = async () => {
     setSaving(true);
     try {
-      const photos = await Promise.all(items.map(async i => ({ file: i.useOriginal ? await prepareOriginalPhoto(i.original) : i.enhanced, original: i.original })));
+      const photos = await Promise.all(items.map(async i => ({ file: i.useOriginal ? i.original : i.enhanced, original: i.original })));
       await onDone(photos);
       setItems([]);
     } catch (error) {
@@ -144,12 +149,12 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
               <div key={item.id} className="space-y-2 rounded-xl border border-border/70 bg-card p-3">
                 <div className="grid grid-cols-2 gap-2">
                   <figure className="space-y-1">
-                    <img src={item.originalUrl} alt={tr("Original photo", "اصل تصویر")} className="aspect-square w-full rounded-lg object-cover" />
-                    <figcaption className="text-center text-[10px] font-semibold text-muted-foreground">{tr("Before", "پہلے / Before")}</figcaption>
+                    <img src={item.originalUrl} alt={tr("Original photo", "اصل تصویر")} onClick={() => setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, useOriginal: true } : i)))} className={`aspect-square w-full cursor-pointer rounded-lg object-cover ${item.useOriginal ? "ring-2 ring-primary" : ""}`} />
+                    <figcaption className={`text-center text-[10px] font-semibold ${item.useOriginal ? "text-primary" : "text-muted-foreground"}`}>{tr("Before", "پہلے / Before")}</figcaption>
                   </figure>
                   <figure className="space-y-1">
-                    <img src={item.enhancedUrl} alt={tr("Enhanced photo", "بہتر تصویر")} className="aspect-square w-full rounded-lg object-cover ring-2 ring-primary" />
-                    <figcaption className="text-center text-[10px] font-semibold text-primary">{tr("After", "بعد میں / After")}</figcaption>
+                    <img src={item.enhancedUrl} alt={tr("Enhanced photo", "بہتر تصویر")} onClick={() => setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, useOriginal: false } : i)))} className={`aspect-square w-full cursor-pointer rounded-lg object-cover ${item.useOriginal ? "" : "ring-2 ring-primary"}`} />
+                    <figcaption className={`text-center text-[10px] font-semibold ${item.useOriginal ? "text-muted-foreground" : "text-primary"}`}>{tr("After", "بعد میں / After")}</figcaption>
                   </figure>
                 </div>
 
