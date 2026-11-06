@@ -47,6 +47,8 @@ interface Props {
 export const withBaseVariant = (item: MenuItemLike | null): MenuVariant[] => {
   const raw = ((item?.variants || []) as MenuVariant[]).filter((v) => v && v.label);
   if (!item || raw.length === 0) return [];
+  // A lone generic option at the base price (e.g. AI "portion") adds no choice — hide it.
+  if (raw.length === 1 && Number(raw[0].price) === Number(item.price) && /^(portion|regular|base|single|بنیادی)$/i.test(String(raw[0].label).trim())) return [];
   if (raw.some((v) => v.id === "base" || v.id === "__base")) return raw;
   if (!item.price || item.price <= 0) return raw;
   return [{ id: "__base", label: "بنیادی", price: Number(item.price) }, ...raw];
