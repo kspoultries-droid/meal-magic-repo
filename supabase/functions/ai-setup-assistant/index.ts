@@ -1,6 +1,7 @@
 // Turns a menu/price-list photo or spoken/typed Urdu text into a draft item list.
 // Cheap model, one call per button press, per-user daily limit. Never saves anything itself.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { classifyMenuCategory, MENU_CATEGORIES } from "../_shared/menuCategories.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +14,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
 const PROMPTS: Record<string, string> = {
-  menu: "You read restaurant menus from Pakistan (Urdu/English/Roman Urdu). Extract every dish with price in PKR. Category examples: BBQ, Karahi, Biryani & Rice, Fast Food, Drinks, Desserts, Breakfast. Write a short appetising English description (max 12 words). Give name in English and Urdu.",
+  menu: `You read restaurant menus from Pakistan (Urdu/English/Roman Urdu). Extract every dish with price in PKR. Assign EACH dish its most specific category from: ${MENU_CATEGORIES.join(", ")}. A broad printed heading such as Fast Food does NOT override dish identity: burgers including fish/zinger/grilled burgers -> Burgers, all fries -> Fries, rolls -> Rolls & Wraps, wings/nuggets/chunks -> Wings & Fried Chicken, biryani -> Biryani & Rice. Keep every item; do not merge or omit dishes to fit categories. Only use Fast Food when no more specific category fits. Write a short appetising English description (max 12 words). Give name in English and Urdu.`,
   grocery: "You read grocery/wholesale price lists or bills from Pakistan. Extract each product with price in PKR, unit (e.g. 1kg, 500g, 1L, dozen). Category examples: Atta & Rice, Oil & Ghee, Dal, Spices, Dairy, Beverages, Snacks, Cleaning. Short English description. Give name in English and Urdu.",
   service: "A Pakistani worker (mechanic, plumber, electrician, AC technician, labourer) describes his work in Urdu. Produce a professional list of the services he offers, each with a fair typical Rahim Yar Khan visit price in PKR (0 if unknown), category, and a short English description. Give name in English and Urdu. Also summary = a 2 sentence professional profile in Urdu.",
 };
@@ -100,8 +101,9 @@ Deno.serve(async (req) => {
       }),
     });
     if (!res.ok) {
-      const status = res.status === 402 || res.status === 429 ? res.status : 502;
-      return json({ error: status === 402 ? "AI بیلنس ختم، ایڈمن سے رابطہ کریں" : "AI ابھی مصروف ہے، تھوڑی دیر بعد کوشش کریں" }, status);
+      const failure = await res.json().catch(() => ({}));
+      const message = failure.message || failure.error?.message || (typeof failure.error === "string" ? failure.error : "AI درخواست مکمل نہیں ہو سکی");
+      return json({ error: message }, res.status);
     }
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content ?? "{}";
@@ -110,7 +112,8 @@ Deno.serve(async (req) => {
       if (allowed.length && !allowed.includes(parsed.category)) parsed.category = allowed.includes("General") ? "General" : allowed[0];
       return json({ product: parsed, remaining: limit - (count ?? 0) - 1 });
     }
-    return json({ items: parsed.items ?? [], summary: parsed.summary ?? "", remaining: DAILY_LIMIT - (count ?? 0) - 1 });
+    const items = kind === "menu" ? (parsed.items ?? []).map((item: { name: string; category: string }) => ({ ...item, category: classifyMenuCategory(item.name, item.category) })) : parsed.items ?? [];
+    return json({ items, summary: parsed.summary ?? "", remaining: DAILY_LIMIT - (count ?? 0) - 1 });
   } catch (e) {
     console.error(e);
     return json({ error: "کچھ غلط ہو گیا، دوبارہ کوشش کریں" }, 500);

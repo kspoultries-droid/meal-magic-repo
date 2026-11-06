@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil, Bike, Clapperboard, Wallet } from "lucide-react";
+import { LogOut, Store, UtensilsCrossed, ShoppingBag, Plus, Trash2, RefreshCw, ArrowLeft, Pencil, Bike, Clapperboard, Wallet, Star } from "lucide-react";
 import MyReelsManager from "@/components/reels/MyReelsManager";
 import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import PhotoTips from "@/components/media/PhotoTips";
@@ -29,6 +29,7 @@ import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, t
 import { printOrderReceipt } from "@/lib/receiptPrint";
 import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
+import { useQueryClient } from "@tanstack/react-query";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -411,6 +412,9 @@ const MyRestaurantTab = () => {
 
 const MenuTab = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [featured, setFeatured] = useState<string[]>([]);
+  const [savingFeatured, setSavingFeatured] = useState(false);
   const { t } = useLanguage();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [selectedRest, setSelectedRest] = useState("");
@@ -430,7 +434,8 @@ const MenuTab = () => {
   const [selected, setSelected] = useState<string[]>([]);
 
   useEffect(() => {
-    supabase.from("restaurants").select("id,name").eq("owner_id", user!.id).then(({ data }) => {
+    if (!user) return;
+    supabase.from("restaurants").select("id,name,featured_menu_item_ids").eq("owner_id", user.id).then(({ data }) => {
       setRestaurants(data || []);
       if (data?.length) setSelectedRest(data[0].id);
     });
@@ -447,6 +452,25 @@ const MenuTab = () => {
   };
 
   useEffect(() => { fetchMenu(); }, [selectedRest]);
+
+  useEffect(() => {
+    setFeatured(restaurants.find(r => r.id === selectedRest)?.featured_menu_item_ids || []);
+  }, [selectedRest, restaurants]);
+
+  const toggleFeatured = async (item: any) => {
+    if (savingFeatured) return;
+    if (!featured.includes(item.id) && !item.image_url) { toast.error("مرکزی ڈش کے لیے پہلے اصل تصویر لگائیں"); return; }
+    if (!featured.includes(item.id) && featured.length >= 4) { toast.error("زیادہ سے زیادہ 4 مرکزی ڈشیں منتخب کریں"); return; }
+    const next = featured.includes(item.id) ? featured.filter(id => id !== item.id) : [...featured, item.id];
+    setSavingFeatured(true);
+    const { error } = await supabase.from("restaurants").update({ featured_menu_item_ids: next }).eq("id", selectedRest);
+    setSavingFeatured(false);
+    if (error) { toast.error(error.message); return; }
+    setFeatured(next);
+    setRestaurants(previous => previous.map(r => r.id === selectedRest ? { ...r, featured_menu_item_ids: next } : r));
+    void queryClient.invalidateQueries({ queryKey: ["food-restaurant-detail", selectedRest] });
+    toast.success("مرکزی ڈشیں محفوظ ہو گئیں");
+  };
 
   const uploadImage = async (file: File): Promise<string | null> => {
     if (!selectedRest) { toast.error("پہلے ریسٹورنٹ منتخب کریں"); return null; }
@@ -628,6 +652,7 @@ const MenuTab = () => {
             {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
           <span className="text-[11px] text-muted-foreground">{visibleItems.length} {t("rest.items")}</span>
+          <span className="flex items-center gap-1 text-xs font-semibold text-primary"><Star className="h-3.5 w-3.5" />مرکزی ڈشیں {featured.length}/4</span>
           {selected.length > 0 && (
             <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-2 py-1">
               <span className="text-[11px]">{selected.length} {t("rest.selected")}</span>
@@ -657,7 +682,7 @@ const MenuTab = () => {
                   <TableCell>
                     <input type="checkbox" checked={selected.includes(m.id)} onChange={() => toggleSelect(m.id)} aria-label={m.name} />
                   </TableCell>
-                  <TableCell className="font-medium">{m.name}</TableCell>
+                  <TableCell className="font-medium"><div className="flex items-center gap-2">{m.image_url && <img src={m.image_url} alt={m.name} loading="lazy" className="h-12 w-12 shrink-0 rounded-md object-cover" />}<span>{m.name}</span></div></TableCell>
                   <TableCell>{m.category}</TableCell>
                   <TableCell>Rs {m.price}</TableCell>
                   <TableCell>
@@ -666,6 +691,7 @@ const MenuTab = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="flex gap-1">
+                    <Button size="icon" variant={featured.includes(m.id) ? "default" : "outline"} className="h-7 w-7 shrink-0" disabled={savingFeatured} title="مرکزی ڈش" aria-label={`${m.name} مرکزی ڈش`} aria-pressed={featured.includes(m.id)} onClick={() => void toggleFeatured(m)}><Star className={`h-3.5 w-3.5 ${featured.includes(m.id) ? "fill-current" : ""}`} /></Button>
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openEdit(m)}>
                       <Pencil className="h-3 w-3" />
                     </Button>

@@ -10,6 +10,7 @@ import { ArrowLeft, Star, Clock, Plus, Minus, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MenuItemSheet from "@/components/menu/MenuItemSheet";
 import restaurantFallback from "@/assets/hero-food.jpg";
+import { featuredMenuIds } from "@/lib/featuredMenu";
 
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,7 +37,7 @@ const RestaurantDetail = () => {
   });
   const restaurant = data?.restaurant;
   const menuItems = data?.menuItems || [];
-  const featuredIds = new Set(menuItems.filter(item => item.image_url).slice(0, 4).map(item => item.id));
+  const featuredIds = featuredMenuIds(menuItems, restaurant?.featured_menu_item_ids || []);
 
   if (loading) return (
     <div className="min-h-screen bg-background">
