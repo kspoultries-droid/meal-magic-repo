@@ -140,26 +140,26 @@ const ProductDetail = () => {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                  {hasDiscount && <span className="rounded-md bg-destructive px-2 py-1 text-[10px] font-extrabold text-destructive-foreground">-{discount}% آفر</span>}
-                  {availableQuantity !== 0 && product.is_available && <span className="flex items-center gap-1 text-[10px] font-bold text-success"><Check className="h-3 w-3" /> {availableQuantity === null ? "دستیاب ہے" : `دستیاب: ${availableQuantity}`}</span>}
-                  {availableQuantity === 0 && <span className="text-xs font-bold text-destructive">اسٹاک ختم</span>}
+                  {hasDiscount && <span className="rounded-md bg-destructive px-2 py-1 text-[10px] font-extrabold text-destructive-foreground">-{discount}% {L("off", "آفر")}</span>}
+                  {availableQuantity !== 0 && product.is_available && <span className="flex items-center gap-1 text-[10px] font-bold text-success"><Check className="h-3 w-3" /> {availableQuantity === null ? L("In stock", "دستیاب ہے") : L(`Available: ${availableQuantity}`, `دستیاب: ${availableQuantity}`)}</span>}
+                  {availableQuantity === 0 && <span className="text-xs font-bold text-destructive">{L("Out of stock", "اسٹاک ختم")}</span>}
                 </div>
                 <h1 className="text-xl font-extrabold leading-tight text-foreground sm:text-2xl">{product.name}</h1>
-                <p className="mt-1 text-xs text-muted-foreground">{product.brand || product.category || "معیاری پروڈکٹ"}{product.unit ? ` · فی ${product.unit}` : ""}{product.weight ? ` · ${product.weight}` : ""}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{product.brand || product.category || L("Standard product", "معیاری پروڈکٹ")}{product.unit ? L(` · per ${product.unit}`, ` · فی ${product.unit}`) : ""}{product.weight ? ` · ${product.weight}` : ""}</p>
               </div>
-              <Button variant="outline" size="icon" aria-label="شیئر کریں" onClick={() => navigator.share?.({ title: product.name, url: window.location.href })}><Share2 className="h-4 w-4" /></Button>
+              <Button variant="outline" size="icon" aria-label={L("Share", "شیئر کریں")} onClick={() => navigator.share?.({ title: product.name, url: window.location.href })}><Share2 className="h-4 w-4" /></Button>
             </div>
 
             <div className="mt-4 flex flex-wrap items-baseline gap-2">
               <span className="text-3xl font-black text-primary">Rs. {effectivePrice.toLocaleString()}</span>
               {hasDiscount && <span className="text-sm text-muted-foreground line-through">Rs. {Number(product.price).toLocaleString()}</span>}
             </div>
-            {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">کم از کم آرڈر: {product.min_order_qty} عدد</p>}
+            {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">{L(`Minimum order: ${product.min_order_qty} pcs`, `کم از کم آرڈر: ${product.min_order_qty} عدد`)}</p>}
             {variants.length > 0 && (
               <div className="mt-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-xs font-extrabold text-foreground">سائز / رنگ منتخب کریں</p>
-                  <span className="text-[10px] font-bold text-primary">لازمی</span>
+                  <p className="text-xs font-extrabold text-foreground">{L("Choose size / color", "سائز / رنگ منتخب کریں")}</p>
+                  <span className="text-[10px] font-bold text-primary">{L("Required", "لازمی")}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {variants.map((variant: any, index: number) => {
@@ -181,7 +181,7 @@ const ProductDetail = () => {
 
         <nav className="sticky top-14 z-30 mt-3 border-y border-border/60 bg-background/95 px-4 backdrop-blur-xl sm:rounded-2xl sm:border">
            <div className="flex gap-5 overflow-x-auto scrollbar-hide">
-             {[{ id: "overview", label: "جائزہ" }, { id: "details", label: "تفصیل" }, { id: "reviews", label: "ریٹنگز" }, { id: "questions", label: "سوالات" }, { id: "related", label: "ملتی جلتی اشیاء" }].map((tab) => (
+             {[{ id: "overview", label: L("Overview", "جائزہ") }, { id: "details", label: L("Details", "تفصیل") }, { id: "reviews", label: L("Ratings", "ریٹنگز") }, { id: "questions", label: L("Questions", "سوالات") }, { id: "related", label: L("Similar items", "ملتی جلتی اشیاء") }].map((tab) => (
                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`shrink-0 border-b-2 py-3 text-xs font-bold transition-colors ${activeTab === tab.id ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}>
                  {tab.label}
                </button>
