@@ -182,18 +182,18 @@ const GroceryStoreDetail = () => {
     const urls: string[] = [];
     for (const photo of photos) {
       try { urls.push(await uploadGroceryProductPhoto(productId, photo.file)); }
-      catch (e) { throw new Error("تصویر محفوظ نہیں ہوئی: " + (e instanceof Error ? e.message : "دوبارہ کوشش کریں")); }
+      catch (e) { throw new Error(L("Photo could not be saved: ", "تصویر محفوظ نہیں ہوئی: ") + (e instanceof Error ? e.message : L("try again", "دوبارہ کوشش کریں"))); }
     }
     if (!urls.length) return;
     const { error } = await supabase.from("grocery_products").update(mergeProductPhotos(current || {}, urls)).eq("id", productId).select("id").single();
     if (error) throw new Error(error.message);
-    toast.success(`${urls.length} تصاویر محفوظ / Photos saved`);
+    toast.success(L(`${urls.length} photos saved`, `${urls.length} تصاویر محفوظ`));
     await fetchData();
   };
 
 
    const addProduct = async () => {
-     if (!newProduct.name.trim() || !newProduct.price) { toast.error("نام اور قیمت درکار / Name & price required"); return; }
+     if (!newProduct.name.trim() || !newProduct.price) { toast.error(L("Name & price required", "نام اور قیمت درکار")); return; }
      const sizes = newProduct.sizes.split(",").map((value) => value.trim()).filter(Boolean);
      const colors = newProduct.colors.split(",").map((value) => value.trim()).filter(Boolean);
      const variants = [...sizes, ...colors].map((label, index) => ({ id: `${index + 1}`, label, size: sizes.includes(label) ? label : undefined, color: colors.includes(label) ? label : undefined }));
@@ -208,10 +208,10 @@ const GroceryStoreDetail = () => {
         barcode: newProduct.barcode?.trim() || null, catalog_item_id: newProduct.catalog_item_id || null,
         ...(newProduct.catalogImages?.length ? { image_url: newProduct.image_url || newProduct.catalogImages[0], images: newProduct.catalogImages } : {}),
       }).select("id").single();
-     if (error || !createdProduct) { toast.error(error?.message || "پروڈکٹ شامل نہیں ہو سکی"); return; }
+     if (error || !createdProduct) { toast.error(error?.message || L("Product could not be added", "پروڈکٹ شامل نہیں ہو سکی")); return; }
      const imageUrls = await Promise.all((newProduct.imageFiles || []).map(async (file) => {
        try { return await uploadGroceryProductPhoto(createdProduct.id, file); }
-       catch (error) { toast.error("پروڈکٹ شامل ہو گئی، مگر تصویر محفوظ نہیں ہوئی: " + (error instanceof Error ? error.message : "دوبارہ کوشش کریں")); return null; }
+       catch (error) { toast.error(L("Product added, but the photo was not saved: ", "پروڈکٹ شامل ہو گئی، مگر تصویر محفوظ نہیں ہوئی: ") + (error instanceof Error ? error.message : L("try again", "دوبارہ کوشش کریں"))); return null; }
      }));
      const validImages = imageUrls.filter((url): url is string => Boolean(url));
      const allImages = [...(newProduct.catalogImages || []), ...validImages].slice(0, 8);
@@ -221,7 +221,7 @@ const GroceryStoreDetail = () => {
        await (supabase as any).from("catalog_suggestions").insert({ product_id: createdProduct.id, store_id: id, name: newProduct.name.trim(), brand: newProduct.brand.trim() || null,
          category: newProduct.category, unit: newProduct.unit || null, barcode: newProduct.barcode?.trim() || null, description: newProduct.description?.trim() || null, specs, images: validImages });
      }
-     toast.success("پروڈکٹ شامل / Product added");
+     toast.success(L("Product added", "پروڈکٹ شامل"));
      setNewProduct({ name: "", price: "", category: "General", unit: "piece", discount_price: "", description: "", image_url: "", imageFiles: [], brand: "", sku: "", weight: "", weight_kg: "", shipping_class: "standard", dimensions: "", material: "", voltage: "", screen_size: "", ram: "", storage: "", stock_qty: "", tags: "", colors: "", sizes: "", barcode: "", catalog_item_id: null, catalogImages: [], extraSpecs: {}, suggestToCatalog: true });
      setShowAddProduct(false); fetchData();
    };
