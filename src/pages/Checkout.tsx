@@ -251,7 +251,9 @@ const Checkout = () => {
     if (isMixed) { toast.error(L("Cart has items from different shops — order each shop separately", "کارٹ میں مختلف شاپس کے آئٹمز ہیں — ایک شاپ کا آرڈر الگ سے دیں")); return; }
     if (!address.trim()) { toast.error(L("Delivery address is required", "ڈلیوری ایڈریس درکار ہے")); return; }
     if (!selectedCity) { toast.error(L("Delivery area unavailable — try again shortly", "ڈلیوری علاقہ دستیاب نہیں — تھوڑی دیر بعد کوشش کریں")); return; }
-    const cleanPhone = myPhone.replace(/\D/g, "");
+    let cleanPhone = myPhone.replace(/\D/g, "");
+    if (/^923\d{9}$/.test(cleanPhone)) cleanPhone = "0" + cleanPhone.slice(2);
+    else if (/^3\d{9}$/.test(cleanPhone)) cleanPhone = "0" + cleanPhone;
     if (!/^03\d{9}$/.test(cleanPhone)) { toast.error(L("Enter a valid 11-digit mobile number (e.g. 03001234567)", "درست 11 ہندسوں کا موبائل نمبر لکھیں (مثلاً 03001234567)")); return; }
     if (user) {
       const { error: phoneErr } = await supabase.from("profiles").update({ phone: cleanPhone }).eq("id", user.id);

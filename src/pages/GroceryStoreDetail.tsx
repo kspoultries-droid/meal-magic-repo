@@ -325,7 +325,7 @@ const GroceryStoreDetail = () => {
                          onClick={() => !isOwner && navigate(`/product/${product.id}`)}
                        >
                           {product.image_url ? (
-                            <img src={img(product.image_url, 360)} onError={(e) => { if (e.currentTarget.src !== product.image_url) e.currentTarget.src = product.image_url; }} alt={product.name} className="w-full h-full object-cover" />
+                            <img src={img(product.image_url, 360)} onError={(e) => { if (e.currentTarget.src !== product.image_url) e.currentTarget.src = product.image_url; }} alt={product.name} className="w-full h-full object-contain p-2" />
                           ) : (
                             <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
                           )}
