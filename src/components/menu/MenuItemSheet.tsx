@@ -128,8 +128,8 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
             <img src={img(item.image_url, 640)} alt={item.name} className="w-full h-40 object-cover rounded-t-3xl" />
           )}
           <div className="px-5 pt-3">
-            <SheetTitle className="text-left text-lg font-extrabold">{item.name}</SheetTitle>
-            {item.description && <p className="text-xs text-muted-foreground text-right mt-1">{item.description}</p>}
+            <SheetTitle dir="auto" className="text-start text-lg font-extrabold">{item.name}</SheetTitle>
+            {item.description && <p dir="auto" className="text-xs text-muted-foreground text-start mt-1">{item.description}</p>}
           </div>
         </SheetHeader>
 
