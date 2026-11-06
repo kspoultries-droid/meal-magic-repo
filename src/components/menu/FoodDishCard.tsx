@@ -16,7 +16,7 @@ export default function FoodDishCard({ item, restaurant, onSelect, onRestaurant 
   return (
     <article className="overflow-hidden rounded-lg border border-border bg-card shadow-soft">
       <Button variant="ghost" onClick={onSelect} disabled={!restaurant.isActive} className="block h-auto w-full rounded-none p-0 text-start whitespace-normal hover:bg-card">
-        {item.image_url ? <img src={img(item.image_url, 480)} alt={item.name} loading="lazy" decoding="async" className="aspect-[16/10] w-full object-cover" /> : <div className="flex aspect-[16/10] items-center justify-center bg-muted"><UtensilsCrossed className="h-10 w-10 text-muted-foreground" /></div>}
+        {item.image_url ? <img src={img(item.image_url, 480)} alt={item.name} loading="lazy" decoding="async" className="aspect-[16/10] w-full object-cover" /> : <div className="mx-4 mt-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted"><UtensilsCrossed className="h-5 w-5 text-muted-foreground" /></div>}
         <div className="px-4 pt-3">
           <h3 className="break-words text-base font-bold text-card-foreground">{item.name}</h3>
           {item.description && <p className="mt-1 line-clamp-2 text-xs font-normal text-muted-foreground">{item.description}</p>}
