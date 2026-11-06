@@ -151,9 +151,14 @@ const RestaurantOwnerDashboard = () => {
 const MyRestaurantTab = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { isAdmin } = useAuth();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [cities, setCities] = useState<any[]>([]);
+  const [newForm, setNewForm] = useState({ name: "", city: "", address: "", phone: "" });
+  const [creating, setCreating] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -163,6 +168,31 @@ const MyRestaurantTab = () => {
   };
 
   useEffect(() => { fetchAll(); }, [user]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    supabase.from("cities").select("id,name").order("name").then(({ data }) => setCities(data || []));
+  }, [isAdmin]);
+
+  const createRestaurant = async () => {
+    const name = newForm.name.trim();
+    const address = newForm.address.trim();
+    const phone = newForm.phone.trim();
+    if (name.length < 2 || !newForm.city || address.length < 8 || !/^\+?[0-9]{10,15}$/.test(phone)) {
+      toast.error("نام، شہر، مکمل پتہ اور درست فون نمبر درج کریں");
+      return;
+    }
+    setCreating(true);
+    const { error } = await supabase.rpc("admin_create_own_business", {
+      _kind: "restaurant", _name: name, _city_id: newForm.city, _address: address, _phone: phone,
+    });
+    setCreating(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("نیا ریستورنٹ بن گیا — تفصیل مکمل کرنے تک یہ بند رہے گا");
+    setShowNew(false);
+    setNewForm({ name: "", city: "", address: "", phone: "" });
+    fetchAll();
+  };
 
   const deleteRestaurant = async (id: string) => {
     const { error } = await supabase.from("restaurants").delete().eq("id", id);
@@ -188,7 +218,29 @@ const MyRestaurantTab = () => {
   return (
     <Card>
       <CardHeader className="py-3">
-        <CardTitle className="text-base">{t("rest.myRestaurant")}</CardTitle>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <CardTitle className="text-base">{t("rest.myRestaurant")}</CardTitle>
+          {isAdmin && (
+            <Dialog open={showNew} onOpenChange={setShowNew}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-1"><Plus className="h-4 w-4" /> نیا ریستورنٹ</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>نیا ریستورنٹ بنائیں</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <Input placeholder="ریسٹورنٹ کا نام" maxLength={150} value={newForm.name} onChange={(e) => setNewForm({ ...newForm, name: e.target.value })} />
+                  <select className="w-full rounded-md border bg-background p-2 text-sm" value={newForm.city} onChange={(e) => setNewForm({ ...newForm, city: e.target.value })}>
+                    <option value="">شہر منتخب کریں</option>
+                    {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <Input placeholder="مکمل پتہ" maxLength={500} value={newForm.address} onChange={(e) => setNewForm({ ...newForm, address: e.target.value })} />
+                  <Input placeholder="رابطہ فون (مثلاً 03001234567)" maxLength={16} value={newForm.phone} onChange={(e) => setNewForm({ ...newForm, phone: e.target.value })} />
+                  <Button className="w-full" disabled={creating} onClick={createRestaurant}>{creating ? "بن رہا ہے…" : "ریسٹورنٹ بنائیں"}</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
         <p className="text-[11px] text-muted-foreground">{t("rest.approvalNote")}</p>
       </CardHeader>
       <CardContent>
