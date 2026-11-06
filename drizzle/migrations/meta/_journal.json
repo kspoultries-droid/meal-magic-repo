@@ -624,6 +624,13 @@
       "when": 1793937352339,
       "tag": "0088_restaurant_featured_menu_selection",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1793945558902,
+      "tag": "0089_checkout_phone_and_active_order_limit",
+      "breakpoints": true
     }
   ]
 }
