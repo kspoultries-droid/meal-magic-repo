@@ -645,6 +645,13 @@
       "when": 1793961693476,
       "tag": "0091_anti_spam_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1793971828618,
+      "tag": "0092_tighten_catalog_and_storage_policies",
+      "breakpoints": true
     }
   ]
 }
