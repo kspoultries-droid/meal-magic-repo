@@ -13,7 +13,7 @@
 - [x] Shared components: RestaurantGrid.tsx, RestaurantCard.tsx, LocationBar.tsx, LocationPill.tsx — verified via Playwright: 0 Urdu strings on /grocery and /search in EN mode
 
 ## Phase 3: Dashboards
-- [ ] RestaurantOwnerDashboard, RiderDashboard, AdminDashboard, SupportDashboard, ServiceManagerDashboard, MechanicDashboard, Wallet, RiderPayments, RiderRemit
+- [x] All dashboards + admin/rider/support/services/vendor/media/common components — verified 0 Urdu UI text in EN mode on admin, restaurant, rider, support dashboards
 
 ## Phase 4: Remaining
 - [ ] Partner.tsx, Services.tsx, Reels.tsx, Install.tsx, ResetPassword.tsx, StandaloneStore.tsx, CompanyInfo.tsx

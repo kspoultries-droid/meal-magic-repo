@@ -45,3 +45,5 @@
 - Financial approvals bind immutable exact payloads, recipient-account versions and expiry; transactional single use and reasoned owner exceptions are audited.
 - Staff evidence uses audited exact-record 5-minute signing; storage reads are participant-only and report exports audited.
 - Supervision logs success/failure and deduplicates risks; flags require independent review, never automatic punishment.
+
+- Fixed UI text uses tr(en, ur) from src/lib/i18n/tr; switching language reloads the page so module-level labels refresh.
