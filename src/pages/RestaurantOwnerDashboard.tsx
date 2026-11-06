@@ -28,7 +28,6 @@ import NewOrderBanner from "@/components/NewOrderBanner";
 import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, type VariantRow, type OptionGroupRow } from "@/components/menu/MenuOptionsEditor";
 import { printOrderReceipt } from "@/lib/receiptPrint";
 import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
-import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import { useQueryClient } from "@tanstack/react-query";
 
 const RestaurantOwnerDashboard = () => {
