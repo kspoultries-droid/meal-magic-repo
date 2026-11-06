@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, BadgeCheck, Check, ChevronRight, Clock3, Heart, 
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { recordRecent } from "@/lib/recentlyViewed";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ import { toast } from "sonner";
 const ProductDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const { lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const navigate = useNavigate();
   const { items, addItem, updateQuantity, setIsOpen } = useCart();
   const [product, setProduct] = useState<any>(null);
@@ -84,7 +87,7 @@ const ProductDetail = () => {
 
   const addToCart = (): boolean => {
     if (!product || !store) return false;
-    if (availableQuantity !== null && quantity >= availableQuantity) { toast.error("منتخب مقدار دستیاب نہیں"); return false; }
+    if (availableQuantity !== null && quantity >= availableQuantity) { toast.error(L("Selected quantity not available", "منتخب مقدار دستیاب نہیں")); return false; }
     const variantLabel = selectedVariant?.label || selectedVariant?.name;
       return addItem({
         id: product.id,
@@ -109,7 +112,7 @@ const ProductDetail = () => {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-background px-4 py-5" aria-live="polite" aria-label="پروڈکٹ لوڈ ہو رہی ہے">
+    <div className="min-h-screen bg-background px-4 py-5" aria-live="polite" aria-label={L("Product is loading", "پروڈکٹ لوڈ ہو رہی ہے")}>
       <div className="mx-auto max-w-5xl space-y-4">
         <div className="h-14 rounded-2xl bg-muted animate-pulse" />
         <div className="aspect-square max-h-[430px] rounded-3xl bg-muted animate-pulse" />
@@ -117,16 +120,16 @@ const ProductDetail = () => {
       </div>
     </div>
   );
-  if (!product || !store) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3"><p className="text-muted-foreground">پروڈکٹ نہیں ملی</p><Button onClick={() => navigate(-1)}>واپس جائیں</Button></div>;
+  if (!product || !store) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3"><p className="text-muted-foreground">{L("Product not found", "پروڈکٹ نہیں ملی")}</p><Button onClick={() => navigate(-1)}>{L("Go back", "واپس جائیں")}</Button></div>;
 
   return (
     <div className="min-h-screen bg-secondary/40 pb-28">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-4">
-          <Button variant="ghost" size="icon" aria-label="واپس" onClick={() => navigate(-1)}><ArrowRight className="h-5 w-5" /></Button>
-          <div className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">پروڈکٹ تلاش کریں</div>
-          <Button variant="ghost" size="icon" aria-label="پسندیدہ" onClick={() => setLiked((value) => !value)}><Heart className={`h-5 w-5 ${liked ? "fill-destructive text-destructive" : ""}`} /></Button>
-          <Button variant="ghost" size="icon" aria-label="کارٹ" onClick={() => setIsOpen(true)}><ShoppingBag className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" aria-label={L("Back", "واپس")} onClick={() => navigate(-1)}><ArrowRight className="h-5 w-5" /></Button>
+          <div className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">{L("Search products", "پروڈکٹ تلاش کریں")}</div>
+          <Button variant="ghost" size="icon" aria-label={L("Favourite", "پسندیدہ")} onClick={() => setLiked((value) => !value)}><Heart className={`h-5 w-5 ${liked ? "fill-destructive text-destructive" : ""}`} /></Button>
+          <Button variant="ghost" size="icon" aria-label={L("Cart", "کارٹ")} onClick={() => setIsOpen(true)}><ShoppingBag className="h-5 w-5" /></Button>
         </div>
       </header>
 
