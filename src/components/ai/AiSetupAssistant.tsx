@@ -12,9 +12,9 @@ export type AiItem = { name: string; name_ur: string; price: number; unit: strin
 type Kind = "menu" | "grocery" | "service";
 
 const LABELS: Record<Kind, { title: string; hint: string }> = {
-  menu: { title: "AI سے مینو بنائیں", hint: "مثلاً: چکن بریانی 350 روپے، چکن کڑاہی آدھی 900 پوری 1700" },
-  grocery: { title: "AI سے سامان شامل کریں", hint: "مثلاً: چینی 1 کلو 160، آٹا 10 کلو 1200" },
-  service: { title: "AI سے سروسز بنائیں", hint: "مثلاً: میں AC ٹھیک کرتا ہوں، گیس بھرتا ہوں، 15 سال تجربہ" },
+  menu: { title: "اسمارٹ مینو اسکینر", hint: "مثلاً: چکن بریانی 350 روپے، چکن کڑاہی آدھی 900 پوری 1700" },
+  grocery: { title: "اسمارٹ آئٹم اسکینر", hint: "مثلاً: چینی 1 کلو 160، آٹا 10 کلو 1200" },
+  service: { title: "اسمارٹ سروس اسکینر", hint: "مثلاً: میں AC ٹھیک کرتا ہوں، گیس بھرتا ہوں، 15 سال تجربہ" },
 };
 
 const toDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
@@ -47,7 +47,7 @@ export default function AiSetupAssistant({ kind, onSave }: { kind: Kind; onSave:
     if (error || data?.error) {
       let msg = data?.error;
       try { msg = msg || (await (error as any)?.context?.json())?.error; } catch { /* ignore */ }
-      toast.error(msg || "AI جواب نہیں دے سکا");
+      toast.error(msg || "اسکینر جواب نہیں دے سکا");
       return;
     }
     if (!data.items?.length) { toast.error("کوئی چیز نہیں ملی، صاف تصویر یا تفصیل دیں"); return; }
@@ -86,9 +86,9 @@ export default function AiSetupAssistant({ kind, onSave }: { kind: Kind; onSave:
             </div>
             <Textarea rows={4} placeholder={label.hint} value={text} onChange={e => setText(e.target.value)} />
             <Button className="w-full h-11" onClick={run} disabled={busy || (!image && text.trim().length < 3)}>
-              {busy ? "AI تیار کر رہا ہے…" : "تیار کریں"}
+              {busy ? "تیار ہو رہا ہے…" : "تیار کریں"}
             </Button>
-            <p className="text-[11px] text-muted-foreground text-center">روزانہ 10 بار استعمال کر سکتے ہیں — مفت</p>
+            <p className="text-[11px] text-muted-foreground text-center">روزانہ 3 بار استعمال کر سکتے ہیں</p>
           </div>
         ) : (
           <div className="space-y-2">
