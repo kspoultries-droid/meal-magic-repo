@@ -2,9 +2,12 @@ import { useState } from "react";
 import { ChevronDown, MapPin } from "lucide-react";
 import LocationSheet from "./LocationSheet";
 import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const LocationBar = ({ className = "" }: { className?: string }) => {
   const { location } = useDeliveryLocation();
+  const { lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const [open, setOpen] = useState(false);
 
   return (
@@ -17,13 +20,13 @@ const LocationBar = ({ className = "" }: { className?: string }) => {
           <MapPin className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-bold text-muted-foreground">ڈیلیوری یہاں</span>
+          <span className="block text-[10px] font-bold text-muted-foreground">{L("Deliver to", "ڈیلیوری یہاں")}</span>
           <span className="block truncate text-xs font-extrabold text-foreground">
-            {location?.address || "لوکیشن شامل کریں"}
+            {location?.address || L("Add location", "لوکیشن شامل کریں")}
           </span>
         </span>
         <span className="shrink-0 rounded-full bg-secondary px-2 py-1 text-[10px] font-bold text-primary">
-          {location ? "تبدیل کریں" : "شامل کریں"}
+          {location ? L("Change", "تبدیل کریں") : L("Add", "شامل کریں")}
         </span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       </button>
