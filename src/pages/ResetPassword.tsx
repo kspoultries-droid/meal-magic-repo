@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,18 +47,18 @@ const ResetPassword = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error("پاسورڈ کم از کم 6 حروف کا ہو / Minimum 6 characters");
+      toast.error(tr("Password must be at least 6 characters", "پاسورڈ کم از کم 6 حروف کا ہو / Minimum 6 characters"));
       return;
     }
     if (password !== confirmPassword) {
-      toast.error("دونوں پاسورڈ ایک جیسے نہیں / Passwords do not match");
+      toast.error(tr("Passwords do not match", "دونوں پاسورڈ ایک جیسے نہیں / Passwords do not match"));
       return;
     }
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast.success("پاسورڈ بدل گیا! اب نئے پاسورڈ سے لاگ ان کریں۔");
+      toast.success(tr("Password changed! Log in with your new password now.", "پاسورڈ بدل گیا! اب نئے پاسورڈ سے لاگ ان کریں۔"));
       await supabase.auth.signOut();
       navigate("/auth", { replace: true });
     } catch (error: any) {
@@ -72,25 +73,25 @@ const ResetPassword = () => {
       <Card className="w-full max-w-md bg-card border-border shadow-elegant animate-scale-in relative">
         <CardHeader className="text-center relative">
           <Button variant="ghost" size="sm" className="absolute left-4 top-4" onClick={() => navigate("/auth")}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> واپس
+            <ArrowLeft className="h-4 w-4 mr-1" /> {tr("Back", "واپس")}
           </Button>
           <div className="w-16 h-16 mx-auto mb-2 rounded-lg bg-primary flex items-center justify-center shadow-soft">
             <span className="text-primary-foreground font-extrabold text-2xl">EL</span>
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground">نیا پاسورڈ</CardTitle>
-          <CardDescription>نیا پاسورڈ لکھ کر محفوظ کریں</CardDescription>
+          <CardTitle className="text-2xl font-bold text-foreground">{tr("New Password", "نیا پاسورڈ")}</CardTitle>
+          <CardDescription>{tr("Enter and save your new password", "نیا پاسورڈ لکھ کر محفوظ کریں")}</CardDescription>
         </CardHeader>
         <CardContent>
           {checking ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">جانچ ہو رہی ہے…</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{tr("Verifying…", "جانچ ہو رہی ہے…")}</p>
           ) : !hasSession ? (
             <div className="py-4 space-y-4 text-center">
               <MailCheck className="w-12 h-12 text-primary mx-auto" />
               <p className="text-sm text-muted-foreground">
-                پاسورڈ بدلنے کا لنک پہلے ای میل پر آتا ہے۔ اگر لنک پرانا ہو گیا ہے تو دوبارہ منگوائیں۔
+                {tr("The password reset link was sent to your email. If the link has expired, please request a new one.", "پاسورڈ بدلنے کا لنک پہلے ای میل پر آتا ہے۔ اگر لنک پرانا ہو گیا ہے تو دوبارہ منگوائیں۔")}
               </p>
               <Button className="w-full" onClick={() => navigate("/auth")}>
-                لاگ ان صفحے پر جائیں
+                {tr("Go to Login Page", "لاگ ان صفحے پر جائیں")}
               </Button>
             </div>
           ) : (
@@ -99,7 +100,7 @@ const ResetPassword = () => {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="نیا پاسورڈ"
+                  placeholder={tr("New Password", "نیا پاسورڈ")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
@@ -108,7 +109,7 @@ const ResetPassword = () => {
                 />
                 <button
                   type="button"
-                  aria-label="پاسورڈ دیکھیں"
+                  aria-label={tr("Show Password", "پاسورڈ دیکھیں")}
                   className="absolute right-3 top-3 text-muted-foreground"
                   onClick={() => setShowPassword(!showPassword)}
                 >
@@ -119,7 +120,7 @@ const ResetPassword = () => {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="نیا پاسورڈ دوبارہ لکھیں"
+                  placeholder={tr("Re-enter New Password", "نیا پاسورڈ دوبارہ لکھیں")}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pl-10"
@@ -128,7 +129,7 @@ const ResetPassword = () => {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "محفوظ ہو رہا ہے…" : "پاسورڈ محفوظ کریں"}
+                {loading ? tr("Saving…", "محفوظ ہو رہا ہے…") : tr("Save Password", "پاسورڈ محفوظ کریں")}
               </Button>
             </form>
           )}

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,21 +104,21 @@ const StandaloneStore = () => {
     updates.is_special_offer = !!editDiscount;
     const { error } = await supabase.from("grocery_products").update(updates).eq("id", productId);
     if (error) { toast.error(error.message); return; }
-    toast.success("قیمت اپڈیٹ ہو گئی");
+    toast.success(tr("Price updated", "قیمت اپڈیٹ ہو گئی"));
     setEditingId(null);
     fetchData();
   };
 
   const toggleAvailable = async (productId: string, current: boolean) => {
     await supabase.from("grocery_products").update({ is_available: !current }).eq("id", productId);
-    toast.success("اپڈیٹ ہو گیا");
+    toast.success(tr("Updated", "اپڈیٹ ہو گیا"));
     fetchData();
   };
 
   const deleteProduct = async (productId: string) => {
-    if (!window.confirm("کیا آپ واقعی حذف کرنا چاہتے ہیں؟")) return;
+    if (!window.confirm(tr("Are you sure you want to delete?", "کیا آپ واقعی حذف کرنا چاہتے ہیں؟"))) return;
     await supabase.from("grocery_products").delete().eq("id", productId);
-    toast.success("پروڈکٹ حذف ہو گئی");
+    toast.success(tr("Product deleted", "پروڈکٹ حذف ہو گئی"));
     fetchData();
   };
 
@@ -139,13 +140,13 @@ const StandaloneStore = () => {
     const imageUrl = await uploadGroceryProductPhoto(productId, photo.file);
     const { error } = await supabase.from("grocery_products").update({ image_url: imageUrl }).eq("id", productId).select("id").single();
     if (error) throw new Error(error.message);
-    toast.success("تصویر اپڈیٹ ہو گئی");
+    toast.success(tr("Image updated", "تصویر اپڈیٹ ہو گئی"));
     fetchData();
   };
 
 
   const addProduct = async () => {
-    if (!newProduct.name.trim() || !newProduct.price) { toast.error("نام اور قیمت درکار ہے"); return; }
+    if (!newProduct.name.trim() || !newProduct.price) { toast.error(tr("Name and price required", "نام اور قیمت درکار ہے")); return; }
     const { error } = await supabase.from("grocery_products").insert({
       store_id: store.id,
       name: newProduct.name,
@@ -157,18 +158,18 @@ const StandaloneStore = () => {
       image_url: newProduct.image_url || null,
     });
     if (error) { toast.error(error.message); return; }
-    toast.success("پروڈکٹ شامل ہو گئی");
+    toast.success(tr("Product added", "پروڈکٹ شامل ہو گئی"));
     setNewProduct({ name: "", price: "", category: "General", unit: "kg", discount_price: "", image_url: "" });
     setShowAddProduct(false);
     fetchData();
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</div>;
   if (!store) return <div className="min-h-screen flex items-center justify-center text-muted-foreground text-center px-4">
     <div>
       <ShoppingBasket className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-      <p className="text-lg font-bold">اسٹور نہیں ملا</p>
-      <p className="text-sm mt-1">یہ لنک غلط ہے یا اسٹور ابھی فعال نہیں ہے</p>
+      <p className="text-lg font-bold">{tr("Store not found", "اسٹور نہیں ملا")}</p>
+      <p className="text-sm mt-1">{tr("This link is invalid or the store is not active yet", "یہ لنک غلط ہے یا اسٹور ابھی فعال نہیں ہے")}</p>
     </div>
   </div>;
 
@@ -178,8 +179,8 @@ const StandaloneStore = () => {
       <div className="min-h-screen flex items-center justify-center text-center px-4">
         <div>
           <PauseCircle className="w-16 h-16 mx-auto text-muted-foreground/40 mb-4" />
-          <p className="text-lg font-bold text-foreground">یہ اسٹور عارضی طور پر بند ہے</p>
-          <p className="text-sm text-muted-foreground mt-2">براہ کرم بعد میں دوبارہ کوشش کریں</p>
+          <p className="text-lg font-bold text-foreground">{tr("This store is temporarily closed", "یہ اسٹور عارضی طور پر بند ہے")}</p>
+          <p className="text-sm text-muted-foreground mt-2">{tr("Please try again later", "براہ کرم بعد میں دوبارہ کوشش کریں")}</p>
         </div>
       </div>
     );
@@ -210,7 +211,7 @@ const StandaloneStore = () => {
           <AlertTriangle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${store.subscription_status === 'paused' ? 'text-destructive' : 'text-yellow-600'}`} />
           <div>
             <p className={`text-sm font-bold ${store.subscription_status === 'paused' ? 'text-destructive' : 'text-yellow-700 dark:text-yellow-400'}`}>
-              {store.subscription_status === 'paused' ? '⏸️ آپ کا اسٹور معطل ہے — کسٹمرز کو نظر نہیں آ رہا' : '⚠️ وارننگ'}
+              {store.subscription_status === 'paused' ? tr("⏸️ Your store is suspended — not visible to customers", "⏸️ آپ کا اسٹور معطل ہے — کسٹمرز کو نظر نہیں آ رہا") : tr("⚠️ Warning", "⚠️ وارننگ")}
             </p>
             {store.warning_message && (
               <p className="text-xs text-muted-foreground mt-1">{store.warning_message}</p>
@@ -232,7 +233,7 @@ const StandaloneStore = () => {
             }}
           >
             <Share2 className="w-4 h-4" />
-            واٹس ایپ پر لنک شیئر کریں / Share on WhatsApp
+            {tr("Share link on WhatsApp / Share on WhatsApp", "واٹس ایپ پر لنک شیئر کریں / Share on WhatsApp")}
           </Button>
         </div>
       )}
@@ -258,13 +259,13 @@ const StandaloneStore = () => {
       <div className="container mx-auto px-4 pb-6">
         <Tabs defaultValue="products" className="w-full">
           <TabsList className="w-full mb-3">
-            <TabsTrigger value="products" className="flex-1">🛒 پروڈکٹس</TabsTrigger>
-            <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
+            <TabsTrigger value="products" className="flex-1">{tr("🛒 Products", "🛒 پروڈکٹس")}</TabsTrigger>
+            <TabsTrigger value="orders" className="flex-1">{tr("📋 Orders", "📋 آرڈرز")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products">
             {filtered.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">اس کیٹیگری میں کوئی پروڈکٹ نہیں</p>
+              <p className="text-center text-muted-foreground py-8">{tr("No products in this category", "اس کیٹیگری میں کوئی پروڈکٹ نہیں")}</p>
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {filtered.map((product) => {
@@ -275,12 +276,12 @@ const StandaloneStore = () => {
                     <div key={product.id} className={`bg-card rounded-2xl border overflow-hidden relative ${!product.is_available && isOwner ? 'opacity-60' : ''}`}>
                       {product.is_special_offer && product.discount_price && product.price > product.discount_price && (
                         <div className="absolute top-2 left-2 z-10 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                          <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}% آفر
+                          <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}{tr("% Offer", "% آفر")}
                         </div>
                       )}
                       {isOwner && !product.is_available && (
                         <div className="absolute top-2 right-2 z-10 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          غیر فعال
+                          {tr("Inactive", "غیر فعال")}
                         </div>
                       )}
                         <div
@@ -309,16 +310,16 @@ const StandaloneStore = () => {
                         {isEditing ? (
                           <div className="mt-2 space-y-1.5">
                             <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-muted-foreground w-12">قیمت:</span>
+                              <span className="text-[10px] text-muted-foreground w-12">{tr("Price:", "قیمت:")}</span>
                               <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="h-7 text-xs" />
                             </div>
                             <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-muted-foreground w-12">ڈسکاؤنٹ:</span>
-                              <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder="خالی = بغیر ڈسکاؤنٹ" className="h-7 text-xs" />
+                              <span className="text-[10px] text-muted-foreground w-12">{tr("Discount:", "ڈسکاؤنٹ:")}</span>
+                              <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder={tr("Empty = No discount", "خالی = بغیر ڈسکاؤنٹ")} className="h-7 text-xs" />
                             </div>
                             <div className="flex gap-1">
                               <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
-                                <Check className="w-3 h-3 mr-0.5" /> محفوظ
+                                <Check className="w-3 h-3 mr-0.5" /> {tr("Saved", "محفوظ")}
                               </Button>
                               <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setEditingId(null)}>
                                 <X className="w-3 h-3" />

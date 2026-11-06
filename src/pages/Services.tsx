@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { img } from "@/lib/imageUrl";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -35,12 +36,12 @@ const CAR_MODELS = [
   "Toyota Corolla", "Toyota Yaris", "Toyota Vitz", "Honda Civic", "Honda City",
   "Honda Vezel", "Suzuki Alto", "Suzuki Cultus", "Suzuki WagonR", "Suzuki Swift",
   "Suzuki Mehran", "Hyundai Tucson", "Hyundai Elantra", "KIA Sportage", "KIA Picanto",
-  "Changan Alsvin", "MG HS", "MG ZS", "Other / دوسری"
+  "Changan Alsvin", "MG HS", "MG ZS", tr("Other", "Other / دوسری")
 ];
 
 const OIL_COMPANIES = [
   "Shell Helix", "Castrol", "Mobil 1", "Total Quartz", "ZIC",
-  "Havoline", "Toyota Genuine", "Honda Genuine", "Other / دوسری"
+  "Havoline", "Toyota Genuine", "Honda Genuine", tr("Other", "Other / دوسری")
 ];
 
 const Services = () => {
@@ -148,11 +149,11 @@ const Services = () => {
       }, (payload) => {
         const newStatus = payload.new?.status;
         if (newStatus === 'confirmed') {
-          toast.success("✅ آپ کی بکنگ تصدیق شدہ ہے! / Your booking is confirmed!");
+          toast.success(tr("✅ Your booking is confirmed!", "✅ آپ کی بکنگ تصدیق شدہ ہے! / Your booking is confirmed!"));
         } else if (newStatus === 'completed') {
-          toast.success("🎉 سروس مکمل ہو گئی! / Service completed!");
+          toast.success(tr("🎉 Service completed!", "🎉 سروس مکمل ہو گئی! / Service completed!"));
         } else if (newStatus === 'cancelled') {
-          toast.error("❌ بکنگ منسوخ ہو گئی / Booking cancelled");
+          toast.error(tr("❌ Booking cancelled", "❌ بکنگ منسوخ ہو گئی / Booking cancelled"));
         }
         fetchAllBookings();
         fetchMyBookings();
@@ -234,7 +235,7 @@ const Services = () => {
 
   const advanceFee = selectedService ? Math.round(selectedService.price * 0.15) : 0;
 
-  const isOilChange = selectedService?.name?.toLowerCase().includes("oil change") || selectedService?.name?.includes("آئل چینج");
+  const isOilChange = selectedService?.name?.toLowerCase().includes("oil change") || selectedService?.name?.includes(tr("Oil Change", "آئل چینج"));
   const isCarService = categories.find(c => c.id === selectedService?.category_id)?.name?.toLowerCase().includes("car");
 
   const handleBook = async () => {
@@ -266,7 +267,7 @@ const Services = () => {
       toast.error(error.message || t("services.bookingFailed"));
       console.error(error);
     } else {
-      toast.success("بکنگ محفوظ ہو گئی / Booking saved");
+      toast.success(tr("Booking Saved", "بکنگ محفوظ ہو گئی / Booking saved"));
       setSelectedService(null);
       setBookingDate("");
       setBookingTime("");
@@ -286,7 +287,7 @@ const Services = () => {
 
       {/* Header - editable premium hero */}
       {!heroLoaded ? (
-        <div aria-busy="true" aria-label="ہوم سروسز" className="min-h-[210px] bg-muted" />
+        <div aria-busy="true" aria-label={tr("Home Services", "ہوم سروسز")} className="min-h-[210px] bg-muted" />
       ) : <div className="relative overflow-hidden px-4" style={heroBackgroundStyle(heroConfig)}>
         <div className="relative">
           {isAdmin && (
@@ -324,7 +325,7 @@ const Services = () => {
 
       {/* Categories Grid */}
       <div className="container mx-auto px-4 py-3">
-        {!activeCategory && <h2 className="text-lg font-extrabold text-foreground mb-3">Categories / کیٹیگریز</h2>}
+        {!activeCategory && <h2 className="text-lg font-extrabold text-foreground mb-3">{tr("Categories", "Categories / کیٹیگریز")}</h2>}
         <div className={`grid gap-2 ${activeCategory ? "grid-cols-4 sm:grid-cols-6" : "grid-cols-4 sm:grid-cols-6 lg:grid-cols-8"}`}>
           {/* All button */}
           {activeCategory ? (
@@ -333,7 +334,7 @@ const Services = () => {
               className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg border bg-card hover:shadow-sm transition-all"
             >
               <Wrench className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-[8px] font-semibold text-muted-foreground text-center leading-tight">All / سب</span>
+              <span className="text-[8px] font-semibold text-muted-foreground text-center leading-tight">{tr("All", "All / سب")}</span>
             </button>
           ) : (
             <button
@@ -345,7 +346,7 @@ const Services = () => {
               <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center">
                 <Wrench className="w-4 h-4" />
               </div>
-              <span className="text-[10px] font-bold text-foreground text-center leading-tight">All / سب</span>
+              <span className="text-[10px] font-bold text-foreground text-center leading-tight">{tr("All", "All / سب")}</span>
             </button>
           )}
           {categories.map((cat) => {
@@ -394,7 +395,7 @@ const Services = () => {
                 </div>
                 <span className="w-full break-words text-[10px] font-bold text-foreground text-center leading-5">{cat.name}</span>
                 {!cat.is_active && (
-                  <span className="text-[7px] font-bold text-muted-foreground">جلد آ رہا ہے</span>
+                  <span className="text-[7px] font-bold text-muted-foreground">{tr("Coming Soon", "جلد آ رہا ہے")}</span>
                 )}
               </button>
             );
@@ -410,12 +411,12 @@ const Services = () => {
             : t("services.all")}
         </h2>
         {loading ? (
-          <p className="text-center text-muted-foreground py-8">Loading... / لوڈ ہو رہا ہے...</p>
+          <p className="text-center text-muted-foreground py-8">{tr("Loading...", "Loading... / لوڈ ہو رہا ہے...")}</p>
         ) : services.length === 0 ? (
           <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-6 text-center">
             <Wrench className="w-12 h-12 text-primary-foreground mx-auto mb-3" />
-            <h3 className="text-xl font-extrabold text-primary-foreground mb-1">Coming Soon! / جلد آ رہا ہے!</h3>
-            <p className="text-primary-foreground/80 text-sm">No services in this category yet / اس کیٹیگری میں ابھی کوئی سروس نہیں</p>
+            <h3 className="text-xl font-extrabold text-primary-foreground mb-1">{tr("Coming Soon!", "Coming Soon! / جلد آ رہا ہے!")}</h3>
+            <p className="text-primary-foreground/80 text-sm">{tr("No services in this category yet", "No services in this category yet / اس کیٹیگری میں ابھی کوئی سروس نہیں")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -458,7 +459,7 @@ const Services = () => {
                       <h3 className="break-words font-bold text-foreground">{service.name}</h3>
                       {!effectivelyActive && (
                         <span className="shrink-0 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
-                          🔄 جلد آ رہا ہے
+                          {tr("🔄 Coming Soon", "🔄 جلد آ رہا ہے")}
                         </span>
                       )}
                     </div>
@@ -467,7 +468,7 @@ const Services = () => {
                         <p className="text-xs text-muted-foreground truncate">{service.description}</p>
                       )
                     ) : (
-                      <p className="text-xs text-muted-foreground">Coming Soon — اپ ڈیٹ ہو رہی ہے ⏳</p>
+                      <p className="text-xs text-muted-foreground">{tr("Coming Soon — Updating ⏳", "Coming Soon — اپ ڈیٹ ہو رہی ہے ⏳")}</p>
                     )}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
@@ -481,7 +482,7 @@ const Services = () => {
                       <span className={`text-sm font-extrabold ${effectivelyActive ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
                       {effectivelyActive && (
                         <span className="px-3 py-1 rounded-md bg-primary text-primary-foreground text-[11px] font-bold">
-                          Book Now / بکنگ کریں →
+                          {tr("Book Now →", "Book Now / بکنگ کریں →")}
                         </span>
                       )}
                     </div>
@@ -497,7 +498,7 @@ const Services = () => {
       {/* My Appointments / میری اپائنٹمنٹس */}
       {user && allBookings.length > 0 && (
         <div className="container mx-auto px-4 pb-6">
-          <h2 className="text-lg font-extrabold text-foreground mb-3">📋 My Appointments / میری اپائنٹمنٹس</h2>
+          <h2 className="text-lg font-extrabold text-foreground mb-3">{tr("📋 My Appointments", "📋 My Appointments / میری اپائنٹمنٹس")}</h2>
           <div className="space-y-2">
             {allBookings.map((b) => {
               const statusMap: Record<string, { label: string; color: string; emoji: string }> = {
@@ -525,13 +526,13 @@ const Services = () => {
                   </div>
                   {b.status === "confirmed" && (
                     <div className="bg-green-50 rounded-lg p-2 text-xs text-green-700 font-bold">
-                      ✅ آپ کی بکنگ تصدیق شدہ ہے! سروس پرووائیڈر مقررہ وقت پر آئے گا۔
+                      {tr("✅ Your booking is confirmed! The service provider will arrive on time.", "✅ آپ کی بکنگ تصدیق شدہ ہے! سروس پرووائیڈر مقررہ وقت پر آئے گا۔")}
                     </div>
                   )}
                   {b.notes && (
                     <p className="text-[10px] text-muted-foreground">📝 {b.notes}</p>
                   )}
-                  <Button variant="outline" size="sm" onClick={() => setSelectedBookingId(b.id)}>تفصیل، کوٹیشن اور بل / Details, quote & bill</Button>
+                  <Button variant="outline" size="sm" onClick={() => setSelectedBookingId(b.id)}>{tr("Details, Quote & Bill", "تفصیل، کوٹیشن اور بل / Details, quote & bill")}</Button>
                 </div>
               );
             })}
@@ -542,7 +543,7 @@ const Services = () => {
       {/* My Completed Bookings - Feedback */}
       {user && myBookings.length > 0 && (
         <div className="container mx-auto px-4 pb-6">
-          <h2 className="text-xl font-extrabold text-foreground mb-4">Give Feedback / فیڈبیک دیں ⭐</h2>
+          <h2 className="text-xl font-extrabold text-foreground mb-4">{tr("Give Feedback ⭐", "Give Feedback / فیڈبیک دیں ⭐")}</h2>
           <div className="space-y-2">
             {myBookings.map((b) => (
               <button
@@ -554,7 +555,7 @@ const Services = () => {
                   <p className="font-bold text-foreground text-sm">{b.services?.name || t("services.service")}</p>
                   <p className="text-xs text-muted-foreground">{b.scheduled_date}</p>
                 </div>
-                <span className="text-xs font-bold text-primary">Rate Now / ریٹنگ دیں →</span>
+                <span className="text-xs font-bold text-primary">{tr("Rate Now →", "Rate Now / ریٹنگ دیں →")}</span>
               </button>
             ))}
           </div>
@@ -565,7 +566,7 @@ const Services = () => {
       <div className="container mx-auto px-4 pb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-extrabold text-foreground flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" /> Nearby Helpers / قریبی ہیلپرز
+            <Users className="w-5 h-5 text-primary" /> {tr("Nearby Helpers", "Nearby Helpers / قریبی ہیلپرز")}
           </h2>
           <button
             onClick={getUserLocation}
@@ -581,7 +582,7 @@ const Services = () => {
           <div className="bg-card rounded-2xl p-6 border text-center">
             <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-40" />
             <p className="text-sm text-muted-foreground font-medium">
-              ابھی کوئی ہیلپر دستیاب نہیں / No helpers available yet
+              {tr("No helpers available yet", "ابھی کوئی ہیلپر دستیاب نہیں / No helpers available yet")}
             </p>
           </div>
         ) : (
@@ -631,7 +632,7 @@ const Services = () => {
       {/* Feedback Dialog */}
       <Dialog open={!!selectedBookingId} onOpenChange={(open) => { if (!open) setSelectedBookingId(null); }}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>بکنگ کی تفصیل / Booking details</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{tr("Booking Details", "بکنگ کی تفصیل / Booking details")}</DialogTitle></DialogHeader>
           {allBookings.find(b => b.id === selectedBookingId) && <ServiceJobPanel booking={allBookings.find(b => b.id === selectedBookingId)} mode="customer" onChanged={fetchAllBookings} />}
         </DialogContent>
       </Dialog>
@@ -646,7 +647,7 @@ const Services = () => {
       <Drawer open={!!selectedService} onOpenChange={() => setSelectedService(null)}>
         <DrawerContent className="max-h-[85vh]">
           <DrawerHeader className="pb-2">
-            <DrawerTitle className="text-lg font-extrabold">Book Now / بکنگ کریں</DrawerTitle>
+            <DrawerTitle className="text-lg font-extrabold">{tr("Book Now", "Book Now / بکنگ کریں")}</DrawerTitle>
             <DrawerDescription>{selectedService?.name}</DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
@@ -665,8 +666,8 @@ const Services = () => {
               {/* Car Wash Station Note */}
               {selectedService?.name?.toLowerCase().includes("car wash") && (
                 <div className="bg-blue-50 rounded-xl p-3 text-sm border border-blue-200">
-                  <p className="font-bold text-blue-700 mb-1">🏪 Station Visit / سٹیشن وزٹ</p>
-                  <p className="text-blue-600 text-xs">Appointment lein aur gaari service station par le kr aaein / اپائنٹمنٹ لیں اور گاڑی سروس سٹیشن پر لے کر آئیں</p>
+                  <p className="font-bold text-blue-700 mb-1">{tr("🏪 Station Visit", "🏪 Station Visit / سٹیشن وزٹ")}</p>
+                  <p className="text-blue-600 text-xs">{tr("Book an appointment and bring your car to the service station", "Appointment lein aur gaari service station par le kr aaein / اپائنٹمنٹ لیں اور گاڑی سروس سٹیشن پر لے کر آئیں")}</p>
                 </div>
               )}
 
@@ -681,7 +682,7 @@ const Services = () => {
                     onChange={(e) => setCarModel(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm"
                   >
-                    <option value="">Select Car / گاڑی منتخب کریں...</option>
+                    <option value="">{tr("Select Car...", "Select Car / گاڑی منتخب کریں...")}</option>
                     {CAR_MODELS.map((m) => (
                       <option key={m} value={m}>{m}</option>
                     ))}
@@ -693,14 +694,14 @@ const Services = () => {
               {isOilChange && (
                 <div>
                   <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
-                    🛢️ Oil Company / آئل کمپنی <span className="text-destructive">*</span>
+                    {tr("🛢️ Oil Company", "🛢️ Oil Company / آئل کمپنی")} <span className="text-destructive">*</span>
                   </label>
                   <select
                     value={oilCompany}
                     onChange={(e) => setOilCompany(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm"
                   >
-                    <option value="">Select Oil / آئل منتخب کریں...</option>
+                    <option value="">{tr("Select Oil...", "Select Oil / آئل منتخب کریں...")}</option>
                     {OIL_COMPANIES.map((o) => (
                       <option key={o} value={o}>{o}</option>
                     ))}
@@ -711,7 +712,7 @@ const Services = () => {
               {/* Date */}
               <div>
                 <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
-                  <Calendar className="w-4 h-4" /> Select Date / تاریخ منتخب کریں
+                  <Calendar className="w-4 h-4" /> {tr("Select Date", "Select Date / تاریخ منتخب کریں")}
                 </label>
                 <input
                   type="date"
@@ -725,7 +726,7 @@ const Services = () => {
               {/* Time Slots */}
               <div>
                 <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4" /> Select Time / وقت منتخب کریں
+                  <Clock className="w-4 h-4" /> {tr("Select Time", "Select Time / وقت منتخب کریں")}
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                   {timeSlots.map((slot) => (
@@ -747,7 +748,7 @@ const Services = () => {
               {/* Address */}
               <div>
                 <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
-                  <MapPin className="w-4 h-4" /> Address / پتہ
+                  <MapPin className="w-4 h-4" /> {tr("Address", "Address / پتہ")}
                 </label>
                 <textarea
                   value={bookingAddress}
@@ -760,7 +761,7 @@ const Services = () => {
 
               {/* Notes */}
               <div>
-                <label className="text-sm font-bold text-foreground mb-1 block">Notes (Optional) / نوٹس (اختیاری)</label>
+                <label className="text-sm font-bold text-foreground mb-1 block">{tr("Notes (Optional)", "Notes (Optional) / نوٹس (اختیاری)")}</label>
                 <input
                   type="text"
                   value={bookingNotes}
@@ -772,12 +773,12 @@ const Services = () => {
 
               {/* Advance Fee Info */}
               <div className="bg-orange-50 rounded-xl p-3 text-sm">
-                <p className="font-bold text-orange-700 mb-1">⚡ Advance Fee / ایڈوانس فیس (15%)</p>
+                <p className="font-bold text-orange-700 mb-1">{tr("⚡ Advance Fee (15%)", "⚡ Advance Fee / ایڈوانس فیس (15%)")}</p>
                 <div className="flex justify-between text-orange-600">
                   <span>Advance: Rs {advanceFee}</span>
                   <span>Remaining: Rs {selectedService.price - advanceFee}</span>
                 </div>
-                <p className="text-xs text-orange-500 mt-1">Remaining on completion / باقی کام مکمل ہونے پر</p>
+                <p className="text-xs text-orange-500 mt-1">{tr("Remaining on completion", "Remaining on completion / باقی کام مکمل ہونے پر")}</p>
               </div>
 
               {/* Payment Info */}
