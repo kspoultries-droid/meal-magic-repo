@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,26 +25,26 @@ interface Reel {
 }
 
 const FILTERS = [
-  { key: "all", label: "سب", icon: null },
-  { key: "restaurant", label: "کھانا", icon: UtensilsCrossed },
-  { key: "grocery", label: "گروسری", icon: Store },
-  { key: "wholesale", label: "بازار", icon: Package },
+  { key: "all", label: tr("All", "سب"), icon: null },
+  { key: "restaurant", label: tr("Food", "کھانا"), icon: UtensilsCrossed },
+  { key: "grocery", label: tr("Grocery", "گروسری"), icon: Store },
+  { key: "wholesale", label: tr("Market", "بازار"), icon: Package },
 ] as const;
 
 const SOURCE_BADGE: Record<string, string> = {
-  restaurant: "🍔 فوڈ",
-  grocery: "🛒 گروسری",
-  wholesale: "📦 بازار",
+  restaurant: tr("🍔 Food", "🍔 فوڈ"),
+  grocery: tr("🛒 Grocery", "🛒 گروسری"),
+  wholesale: tr("📦 Market", "📦 بازار"),
 };
 
 const LIKED_KEY = "easylife:liked-reels";
 
 const REPORT_REASONS = [
-  { key: "obscene", label: "فحش / بےہودہ مواد" },
-  { key: "violence", label: "تشدد یا نفرت انگیز" },
-  { key: "misleading", label: "گمراہ کن / جھوٹی معلومات" },
-  { key: "spam", label: "اسپام یا غیر متعلقہ" },
-  { key: "other", label: "دیگر وجہ" },
+  { key: "obscene", label: tr("Inappropriate / Obscene content", "فحش / بےہودہ مواد") },
+  { key: "violence", label: tr("Violence or hate speech", "تشدد یا نفرت انگیز") },
+  { key: "misleading", label: tr("Misleading / False information", "گمراہ کن / جھوٹی معلومات") },
+  { key: "spam", label: tr("Spam or irrelevant", "اسپام یا غیر متعلقہ") },
+  { key: "other", label: tr("Other reason", "دیگر وجہ") },
 ];
 
 
@@ -149,7 +150,7 @@ const Reels = () => {
       try { await navigator.share({ title: reel.title, text, url }); } catch {}
     } else {
       await navigator.clipboard.writeText(`${text}\n${url}`);
-      toast.success("لنک کاپی ہو گیا!");
+      toast.success(tr("Link copied!", "لنک کاپی ہو گیا!"));
     }
   }, []);
 
@@ -160,14 +161,14 @@ const Reels = () => {
   }, [navigate]);
 
   const openReport = useCallback((reel: Reel) => {
-    if (!user) { toast.error("رپورٹ کے لیے لاگ اِن ضروری ہے"); return; }
-    if (reported.has(reel.id)) { toast.info("آپ پہلے ہی یہ ریل رپورٹ کر چکے ہیں"); return; }
+    if (!user) { toast.error(tr("Login required to report", "رپورٹ کے لیے لاگ اِن ضروری ہے")); return; }
+    if (reported.has(reel.id)) { toast.info(tr("You have already reported this reel", "آپ پہلے ہی یہ ریل رپورٹ کر چکے ہیں")); return; }
     setReportReel(reel); setReportReason(""); setReportDetails("");
   }, [user, reported]);
 
   const submitReport = async () => {
     if (!reportReel) return;
-    if (!reportReason) { toast.error("وجہ منتخب کریں"); return; }
+    if (!reportReason) { toast.error(tr("Select a reason", "وجہ منتخب کریں")); return; }
     setReporting(true);
     const { error } = await (supabase.from("reel_reports" as any).insert({
       reel_id: reportReel.id,
@@ -177,17 +178,17 @@ const Reels = () => {
     setReporting(false);
     if (error) {
       if ((error as any).code === "23505") {
-        toast.info("آپ پہلے ہی یہ ریل رپورٹ کر چکے ہیں");
+        toast.info(tr("You have already reported this reel", "آپ پہلے ہی یہ ریل رپورٹ کر چکے ہیں"));
         setReported((p) => new Set(p).add(reportReel.id));
         setReportReel(null);
         return;
       }
-      toast.error("رپورٹ نہ بھیجی جا سکی: " + error.message);
+      toast.error(tr("Failed to submit report: ", "رپورٹ نہ بھیجی جا سکی: ") + error.message);
       return;
     }
     setReported((p) => new Set(p).add(reportReel.id));
     setReportReel(null);
-    toast.success("شکریہ! رپورٹ ایڈمن کو بھیج دی گئی 🚩");
+    toast.success(tr("Thank you! Report sent to admin 🚩", "شکریہ! رپورٹ ایڈمن کو بھیج دی گئی 🚩"));
   };
 
 
@@ -200,11 +201,11 @@ const Reels = () => {
           <button
             onClick={() => navigate(-1)}
             className="w-9 h-9 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white"
-            aria-label="واپس"
+            aria-label={tr("Back", "واپس")}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <span className="text-white font-extrabold text-sm">EasyLife ریلز</span>
+          <span className="text-white font-extrabold text-sm">{tr("EasyLife Reels", "EasyLife ریلز")}</span>
         </div>
         <div className="flex gap-2 px-3 pb-2 overflow-x-auto scrollbar-hide">
           {FILTERS.map((f) => (
@@ -224,11 +225,11 @@ const Reels = () => {
       {/* Feed */}
       <div ref={containerRef} className="h-[100dvh] overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
         {loading ? (
-          <div className="h-full flex items-center justify-center text-white/60">ریلز لوڈ ہو رہی ہیں…</div>
+          <div className="h-full flex items-center justify-center text-white/60">{tr("Loading reels…", "ریلز لوڈ ہو رہی ہیں…")}</div>
         ) : filtered.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-white/60 gap-2">
             <Play className="w-10 h-10 opacity-40" />
-            <p>ابھی کوئی ریل دستیاب نہیں</p>
+            <p>{tr("No reels available right now", "ابھی کوئی ریل دستیاب نہیں")}</p>
           </div>
         ) : (
           filtered.map((reel) => {
@@ -260,7 +261,7 @@ const Reels = () => {
 
                 {/* Right action rail */}
                 <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5 z-10">
-                  <button onClick={() => likeReel(reel)} className="flex flex-col items-center gap-1 active:scale-90 transition-transform" aria-label="پسند">
+                  <button onClick={() => likeReel(reel)} className="flex flex-col items-center gap-1 active:scale-90 transition-transform" aria-label={tr("Like", "پسند")}>
                     <Heart className={`w-8 h-8 drop-shadow-lg transition-colors ${isLiked ? "text-red-500 fill-red-500" : "text-white"}`} />
                     <span className="text-white text-xs font-bold drop-shadow">{reel.likes}</span>
                   </button>
@@ -268,16 +269,16 @@ const Reels = () => {
                     <Eye className="w-7 h-7 text-white drop-shadow-lg" />
                     <span className="text-white text-xs font-bold drop-shadow">{reel.views}</span>
                   </div>
-                  <button onClick={() => shareReel(reel)} className="flex flex-col items-center gap-1 active:scale-90 transition-transform" aria-label="شیئر">
+                  <button onClick={() => shareReel(reel)} className="flex flex-col items-center gap-1 active:scale-90 transition-transform" aria-label={tr("Share", "شیئر")}>
                     <Share2 className="w-7 h-7 text-white drop-shadow-lg" />
-                    <span className="text-white text-[10px] font-bold drop-shadow">شیئر</span>
+                    <span className="text-white text-[10px] font-bold drop-shadow">{tr("Share", "شیئر")}</span>
                   </button>
-                  <button onClick={toggleMute} className="flex flex-col items-center active:scale-90 transition-transform" aria-label="آواز">
+                  <button onClick={toggleMute} className="flex flex-col items-center active:scale-90 transition-transform" aria-label={tr("Audio", "آواز")}>
                     {muted ? <VolumeX className="w-7 h-7 text-white drop-shadow-lg" /> : <Volume2 className="w-7 h-7 text-white drop-shadow-lg" />}
                   </button>
-                  <button onClick={() => openReport(reel)} className="flex flex-col items-center gap-1 active:scale-90 transition-transform" aria-label="رپورٹ کریں">
+                  <button onClick={() => openReport(reel)} className="flex flex-col items-center gap-1 active:scale-90 transition-transform" aria-label={tr("Report", "رپورٹ کریں")}>
                     <Flag className={`w-7 h-7 drop-shadow-lg ${reported.has(reel.id) ? "text-red-500 fill-red-500" : "text-white"}`} />
-                    <span className="text-white text-[10px] font-bold drop-shadow">رپورٹ</span>
+                    <span className="text-white text-[10px] font-bold drop-shadow">{tr("Report", "رپورٹ")}</span>
                   </button>
                 </div>
 
@@ -298,7 +299,7 @@ const Reels = () => {
                       className="mt-3 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-5 py-2.5 rounded-full shadow-glow active:scale-95 transition-transform"
                     >
                       <ShoppingBag className="w-4 h-4" />
-                      {reel.price ? `Rs ${reel.price} — آرڈر کریں` : "ابھی آرڈر کریں"}
+                      {reel.price ? `Rs ${reel.price} — آرڈر کریں` : tr("Order Now", "ابھی آرڈر کریں")}
                     </button>
                   )}
                 </div>
@@ -312,7 +313,7 @@ const Reels = () => {
         <DialogContent className="max-w-sm z-[70]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
-              <Flag className="w-4 h-4 text-destructive" /> ریل رپورٹ کریں
+              <Flag className="w-4 h-4 text-destructive" /> {tr("Report Reel", "ریل رپورٹ کریں")}
             </DialogTitle>
           </DialogHeader>
           <p className="text-xs text-muted-foreground -mt-2">{reportReel?.title}</p>
@@ -323,11 +324,11 @@ const Reels = () => {
                 {r.label}
               </label>
             ))}
-            <Textarea placeholder="مزید تفصیل (اختیاری)" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} maxLength={500} rows={3} />
+            <Textarea placeholder={tr("Additional details (optional)", "مزید تفصیل (اختیاری)")} value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} maxLength={500} rows={3} />
             <Button variant="destructive" className="w-full" onClick={submitReport} disabled={reporting}>
-              {reporting ? "بھیجی جا رہی ہے…" : "رپورٹ بھیجیں"}
+              {reporting ? tr("Sending…", "بھیجی جا رہی ہے…") : tr("Submit Report", "رپورٹ بھیجیں")}
             </Button>
-            <p className="text-[10px] text-muted-foreground text-center">جھوٹی رپورٹس پر اکاؤنٹ محدود کیا جا سکتا ہے۔</p>
+            <p className="text-[10px] text-muted-foreground text-center">{tr("False reports may lead to account restrictions.", "جھوٹی رپورٹس پر اکاؤنٹ محدود کیا جا سکتا ہے۔")}</p>
           </div>
         </DialogContent>
       </Dialog>
