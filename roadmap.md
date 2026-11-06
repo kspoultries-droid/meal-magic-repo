@@ -1,12 +1,12 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
 ## Phase 1: Customer-facing core (this turn)
-- [ ] Auth.tsx (login/signup)
-- [ ] Checkout.tsx
-- [ ] Profile.tsx
-- [ ] OrderTracking.tsx
-- [ ] MyOrders.tsx + OrderConfirmation.tsx
-- [ ] Navbar.tsx + Footer.tsx
+- [x] Auth.tsx (login/signup) — verified: 0 Urdu strings in EN mode
+- [x] Checkout.tsx
+- [x] Profile.tsx (was already bilingual)
+- [x] OrderTracking.tsx (was already bilingual)
+- [x] MyOrders.tsx + OrderConfirmation.tsx
+- [x] Navbar.tsx + Footer.tsx + BottomTabBar.tsx
 
 ## Phase 2: Shopping pages
 - [ ] RestaurantDetail.tsx, CategoryPage.tsx, Grocery.tsx, GroceryStoreDetail.tsx, ProductDetail.tsx, Wholesale.tsx, SearchPage.tsx
