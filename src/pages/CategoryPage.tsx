@@ -6,14 +6,17 @@ import BottomTabBar from "@/components/BottomTabBar";
 import RestaurantGrid from "@/components/RestaurantGrid";
 import { Button } from "@/components/ui/button";
 import { foodCategories } from "@/lib/foodCategories";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const CategoryPage = () => {
   const { slug = "" } = useParams();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const { lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
 
   const category = foodCategories.find((c) => c.slug === slug);
-  const label = category?.ur || slug;
+  const label = (lang === "ur" ? category?.ur : category?.name) || slug;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -24,14 +27,14 @@ const CategoryPage = () => {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon"
               onClick={() => navigate(-1)}
-              aria-label="واپس"
+              aria-label={L("Back", "واپس")}
               className="h-10 w-10 shrink-0 rounded-full"
             >
               <ArrowRight className="h-4 w-4 text-primary" />
             </Button>
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-extrabold text-foreground">{label}</h1>
-              <p className="text-xs text-muted-foreground">{category?.name || "Category"}</p>
+              <p className="text-xs text-muted-foreground">{(lang === "ur" ? category?.name : category?.ur) || "Category"}</p>
             </div>
           </div>
 
@@ -40,8 +43,8 @@ const CategoryPage = () => {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={`${label} میں تلاش کریں…`}
-              aria-label="ڈش تلاش کریں"
+              placeholder={L(`Search in ${label}…`, `${label} میں تلاش کریں…`)}
+              aria-label={L("Search dishes", "ڈش تلاش کریں")}
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
@@ -54,7 +57,7 @@ const CategoryPage = () => {
                 aria-pressed={c.slug === slug}
                 className="h-9 shrink-0 rounded-full px-4 text-xs font-bold"
               >
-                {c.ur}
+                {lang === "ur" ? c.ur : c.name}
               </Button>
             ))}
           </div>
