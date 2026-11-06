@@ -55,7 +55,8 @@ const drawCropped = (img: HTMLImageElement, aspect: PhotoAspect) => {
   const canvas = document.createElement("canvas");
   canvas.width = dw;
   canvas.height = dh;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("تصویر تیار نہیں ہو سکی");
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
@@ -235,6 +236,13 @@ export const checkPhoto = async (file: File, aspect: PhotoAspect = "square"): Pr
   if (sharpness < 55) issues.push({ code: "blurry", message: "تصویر دھندلی ہے — موبائل مستحکم رکھ کر دوبارہ لیں" });
 
   return { width: img.width, height: img.height, brightness, sharpness, issues };
+};
+
+/** Keep the original framing and colours; only encode a smaller browser-safe file. */
+export const prepareOriginalPhoto = async (file: File): Promise<File> => {
+  const image = await loadImage(file);
+  const { canvas } = drawCropped(image, "original");
+  return toFile(canvas, `${file.name.replace(/\.[^.]+$/, "") || "photo"}-original.webp`);
 };
 
 export const enhancePhoto = async (

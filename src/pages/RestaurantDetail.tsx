@@ -1,5 +1,6 @@
 import { img } from "@/lib/imageUrl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
@@ -14,23 +15,28 @@ const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { items, addItem, updateQuantity } = useCart();
-  const [restaurant, setRestaurant] = useState<any>(null);
-  const [menuItems, setMenuItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [sheetItem, setSheetItem] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const [{ data: rest }, { data: menu }] = await Promise.all([
+  const { data, isPending: loading } = useQuery({
+    queryKey: ["food-restaurant-detail", id],
+    enabled: !!id,
+    queryFn: async () => {
+      if (!id) throw new Error("ریسٹورنٹ نہیں ملا");
+      const [restResult, menuResult] = await Promise.all([
         supabase.from("restaurants").select("*").eq("id", id).single(),
         supabase.from("menu_items").select("*").eq("restaurant_id", id).eq("is_available", true),
       ]);
-      setRestaurant(rest);
-      setMenuItems(menu || []);
-      setLoading(false);
-    };
-    if (id) fetchData();
-  }, [id]);
+      if (restResult.error) throw restResult.error;
+      if (menuResult.error) throw menuResult.error;
+      return { restaurant: restResult.data, menuItems: (menuResult.data || []).map(item => ({
+        ...item,
+        variants: Array.isArray(item.variants) ? item.variants : [],
+        option_groups: Array.isArray(item.option_groups) ? item.option_groups : [],
+      })) };
+    },
+  });
+  const restaurant = data?.restaurant;
+  const menuItems = data?.menuItems || [];
+  const featuredIds = new Set(menuItems.filter(item => item.image_url).slice(0, 4).map(item => item.id));
 
   if (loading) return (
     <div className="min-h-screen bg-background">
@@ -59,10 +65,13 @@ const RestaurantDetail = () => {
       <Navbar />
 
       {/* Hero */}
-      <div className="relative h-56 md:h-72 overflow-hidden">
+      <div className="relative h-48 md:h-72 overflow-hidden bg-muted">
         <img
           src={restaurant.image_url ? img(restaurant.image_url, 960) : restaurantFallback}
           alt={restaurant.name}
+          fetchPriority="high"
+          decoding="async"
+          onError={event => { event.currentTarget.src = restaurantFallback; }}
           className="w-full h-full object-cover"
         />
         <Button variant="secondary" size="icon"
@@ -123,9 +132,9 @@ const RestaurantDetail = () => {
                   const selectedQty = cartLines.reduce((sum, line) => sum + line.quantity, 0);
                   const simpleLine = cartLines.find((line) => !line.variant_id && line.line_type !== "addon");
                   return (
-                  <div key={item.id} className={`flex items-center gap-3 rounded-lg p-3 border transition-all ${selectedQty > 0 ? "bg-accent border-primary/40 shadow-card" : "bg-card border-border hover:shadow-card"}`}>
+                  <div key={item.id} className={`flex flex-wrap items-center gap-3 rounded-lg p-4 border transition-all ${selectedQty > 0 ? "bg-accent border-primary/40 shadow-card" : "bg-card border-border hover:shadow-card"}`}>
                     {item.image_url && (
-                      <img src={img(item.image_url, 200)} alt={item.name} className="w-20 h-20 rounded-lg object-cover" />
+                      <img src={img(item.image_url, featuredIds.has(item.id) ? 640 : 200)} alt={item.name} loading="lazy" decoding="async" className={featuredIds.has(item.id) ? "aspect-[16/9] w-full rounded-md object-cover" : "w-20 h-20 rounded-md object-cover"} onError={event => { event.currentTarget.style.display = "none"; }} />
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-foreground">{item.name}</h3>

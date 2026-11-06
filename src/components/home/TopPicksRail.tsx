@@ -1,5 +1,5 @@
 import { img } from "@/lib/imageUrl";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Star, Clock, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,30 +17,26 @@ const fallbackImg =
   "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop&fm=webp&q=75";
 
 const TopPicksRail = () => {
-  const [picks, setPicks] = useState<Pick[]>([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
+  const { data: picks = [], isPending: loading } = useQuery({
+    queryKey: ["food-top-picks"],
+    queryFn: async (): Promise<Pick[]> => {
+      const { data, error } = await supabase
         .from("restaurants")
         .select("id, name, image_url, rating, delivery_time, is_active")
         .eq("is_active", true)
         .order("rating", { ascending: false })
         .limit(8);
-      setPicks(
-        (data || []).map((r) => ({
+      if (error) throw error;
+      return (data || []).map((r) => ({
           id: r.id,
           name: r.name,
           image: r.image_url || fallbackImg,
           rating: r.rating || 0,
           deliveryTime: r.delivery_time || "30-45 min",
-        }))
-      );
-      setLoading(false);
-    })();
-  }, []);
+        }));
+    },
+  });
 
   if (loading) {
     return (

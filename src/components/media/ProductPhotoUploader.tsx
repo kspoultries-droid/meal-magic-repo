@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PhotoTips from "@/components/media/PhotoTips";
-import { PhotoAspect, PhotoCheck, dataUrlToFile, enhancePhoto, fileToDataUrl } from "@/lib/imageEnhance";
+import { PhotoAspect, PhotoCheck, dataUrlToFile, enhancePhoto, fileToDataUrl, prepareOriginalPhoto } from "@/lib/imageEnhance";
 
 export type PreparedPhoto = { file: File; original: File };
 
@@ -82,7 +82,8 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
   const save = async () => {
     setSaving(true);
     try {
-      await onDone(items.map((i) => ({ file: i.useOriginal ? i.original : i.enhanced, original: i.original })));
+      const photos = await Promise.all(items.map(async i => ({ file: i.useOriginal ? await prepareOriginalPhoto(i.original) : i.enhanced, original: i.original })));
+      await onDone(photos);
       setItems([]);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "محفوظ نہیں ہو سکا");

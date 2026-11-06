@@ -22,7 +22,9 @@ const toDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
     const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
     const c = document.createElement("canvas");
     c.width = img.width * scale; c.height = img.height * scale;
-    c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+    const ctx = c.getContext("2d");
+    if (!ctx) { reject(new Error("تصویر تیار نہیں ہو سکی")); return; }
+    ctx.drawImage(img, 0, 0, c.width, c.height);
     resolve(c.toDataURL("image/jpeg", 0.8));
   };
   img.onerror = reject;
@@ -58,6 +60,7 @@ export default function AiSetupAssistant({ kind, onSave }: { kind: Kind; onSave:
     if (!valid.length) { toast.error("کم از کم ایک چیز نام اور قیمت کے ساتھ ہو"); return; }
     setBusy(true);
     try { await onSave(valid); setItems([]); setText(""); setImage(null); setOpen(false); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "محفوظ نہیں ہو سکا"); }
     finally { setBusy(false); }
   };
 
@@ -95,6 +98,7 @@ export default function AiSetupAssistant({ kind, onSave }: { kind: Kind; onSave:
                   <Button size="icon" variant="ghost" onClick={() => setItems(items.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
                 </div>
                 <p className="text-xs text-muted-foreground">{it.name_ur} · {it.category}</p>
+                {kind === "menu" && <Input aria-label="ڈش کی کیٹیگری" value={it.category} onChange={e => update(i, { category: e.target.value })} placeholder="کیٹیگری" />}
                 <div className="grid grid-cols-2 gap-1">
                   <Input type="number" value={it.price} onChange={e => update(i, { price: Number(e.target.value) })} placeholder="قیمت" />
                   <Input value={it.unit} onChange={e => update(i, { unit: e.target.value })} placeholder="سائز / یونٹ" />

@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { matchesFoodCategory } from "@/lib/foodCategoryMatch";
+import restaurantFallback from "@/assets/hero-food.jpg";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import RestaurantCard from "./RestaurantCard";
 import { RestaurantGridSkeleton } from "./ui/skeleton-card";
 import type { QuickFilter } from "./QuickCategories";
+import { Button } from "./ui/button";
 
 export interface MenuItem {
   id: string;
@@ -11,6 +14,7 @@ export interface MenuItem {
   price: number;
   description?: string | null;
   image_url?: string | null;
+  category?: string | null;
   variants?: any[] | null;
   option_groups?: any[] | null;
 }
@@ -41,30 +45,30 @@ interface RestaurantGridProps {
 }
 
 const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onClearQuickFilter }: RestaurantGridProps) => {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchRestaurants = async () => {
-      setLoading(true);
-      const { data: rests } = await supabase
+  const { data: restaurants = [], isPending: loading, isError, refetch } = useQuery({
+    queryKey: ["food-restaurant-list"],
+    staleTime: 60_000,
+    queryFn: async (): Promise<Restaurant[]> => {
+      const { data: rests, error: restError } = await supabase
         .from("restaurants")
         .select("id, name, image_url, rating, delivery_time, cuisines, is_active, created_at, pickup_address, delivery_mode, description, pays_delivery_fee");
 
+      if (restError) throw restError;
       if (rests?.length) {
         // Fetch menu items for all restaurants
         const ids = rests.map((r) => r.id);
-        const { data: menus } = await supabase
+        const { data: menus, error: menuError } = await supabase
           .from("menu_items")
-          .select("id, name, price, restaurant_id, description, image_url, variants, option_groups")
+          .select("id, name, price, restaurant_id, description, image_url, category, variants, option_groups")
           .in("restaurant_id", ids)
           .eq("is_available", true);
+        if (menuError) throw menuError;
 
         const mapped: Restaurant[] = rests.map((r) => ({
           id: r.id,
           name: r.name,
-          image: r.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&h=350&fit=crop",
+          image: r.image_url || restaurantFallback,
           rating: r.rating || 0,
           deliveryTime: r.delivery_time || "30-45 min",
           cuisines: r.cuisines || [],
@@ -76,22 +80,21 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
           minPrice: (menus || []).filter((m) => m.restaurant_id === r.id).reduce<number | null>((min, m) => (min === null || m.price < min ? m.price : min), null),
           menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).map((m) => ({
             id: m.id, name: m.name, price: m.price,
+            category: m.category,
             description: (m as any).description, image_url: (m as any).image_url,
             variants: ((m as any).variants || []) as any[],
             option_groups: ((m as any).option_groups || []) as any[],
           })),
         }));
-        setRestaurants(mapped);
+        return mapped;
       } else {
-        setRestaurants([]);
+        return [];
       }
-      setLoading(false);
-    };
-    fetchRestaurants();
-  }, []);
+    },
+  });
 
   const filtered = restaurants.filter((r) => {
-    const matchesCategory = activeCategory === "All" || r.cuisines.some((c) => c.toLowerCase().includes(activeCategory.toLowerCase()));
+    const matchesCategory = matchesFoodCategory(activeCategory, [...r.cuisines, ...r.menuItems.flatMap(item => [item.name, item.category])]);
     const query = searchQuery.trim().toLowerCase();
     const matchesSearch = query === "" || r.name.toLowerCase().includes(query) || r.cuisines.some((c) => c.toLowerCase().includes(query)) || r.menuItems.some((item) => item.name.toLowerCase().includes(query) || item.description?.toLowerCase().includes(query));
     let matchesQuick = true;
@@ -121,6 +124,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
 
   return (
     <section id="food-results" className="container mx-auto px-4 pb-16 min-h-[400px] scroll-mt-16">
+      {isError && <div className="py-6 text-center text-muted-foreground"><p>فہرست لوڈ نہیں ہو سکی</p><Button variant="outline" onClick={() => void refetch()}>دوبارہ کوشش</Button></div>}
       {quickFilter && (
         <div className="mb-4 flex items-center gap-2 rounded-2xl border border-primary/30 bg-accent px-3 py-2 shadow-soft animate-fade-in">
           <span className="text-xs font-bold text-accent-foreground">فلٹر: {quickLabels[quickFilter]}</span>
@@ -148,7 +152,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((r, i) => (
             <div key={r.id} className="animate-fade-in-up cursor-pointer" style={{ animationDelay: `${i * 80}ms` }} onClick={() => navigate(`/restaurant/${r.id}`)}>
-               <RestaurantCard restaurant={{ ...r, menuItems: searchQuery.trim() ? r.menuItems.filter((item) => item.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || item.description?.toLowerCase().includes(searchQuery.trim().toLowerCase())).slice(0, 3) : r.menuItems.slice(0, 3) }} index={i} />
+               <RestaurantCard restaurant={{ ...r, menuItems: r.menuItems.filter(item => matchesFoodCategory(activeCategory, [item.name, item.category]) && (!searchQuery.trim() || item.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || item.description?.toLowerCase().includes(searchQuery.trim().toLowerCase()))).slice(0, 3) }} index={i} />
             </div>
           ))}
         </div>

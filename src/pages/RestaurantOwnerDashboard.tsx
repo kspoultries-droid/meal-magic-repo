@@ -450,13 +450,13 @@ const MenuTab = () => {
 
   const uploadImage = async (file: File): Promise<string | null> => {
     if (!selectedRest) { toast.error("پہلے ریسٹورنٹ منتخب کریں"); return null; }
-    if (file.size > 5 * 1024 * 1024) { toast.error("تصویر 5MB سے کم ہونی چاہیے"); return null; }
+    if (file.size > 5 * 1024 * 1024) throw new Error("تصویر 5MB سے کم ہونی چاہیے");
     setUploading(true);
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const path = `menu/${selectedRest}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file);
     setUploading(false);
-    if (error) { toast.error("اپلوڈ ناکام: " + error.message); return null; }
+    if (error) throw new Error("اپلوڈ ناکام: " + error.message);
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     toast.success("تصویر اپلوڈ ہو گئی");
     return data.publicUrl;
