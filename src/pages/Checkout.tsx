@@ -254,7 +254,14 @@ const Checkout = () => {
     if (!/^03\d{9}$/.test(cleanPhone)) { toast.error("درست 11 ہندسوں کا موبائل نمبر لکھیں (مثلاً 03001234567)"); return; }
     if (user) {
       const { error: phoneErr } = await supabase.from("profiles").update({ phone: cleanPhone }).eq("id", user.id);
-      if (phoneErr) { toast.error("فون نمبر محفوظ نہیں ہو سکا"); return; }
+      if (phoneErr) {
+        if ((phoneErr as any).code === "23505") {
+          toast.error("یہ نمبر پہلے سے کسی دوسرے اکاؤنٹ سے جڑا ہوا ہے — اپنا نمبر لکھیں");
+        } else {
+          toast.error("فون نمبر محفوظ نہیں ہو سکا");
+        }
+        return;
+      }
     }
     if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
     if ((isGroceryOrder || isRestaurantOrder) && (quoteLoading || quoteError || !deliveryQuote || deliveryQuote.needs_quote)) { toast.error(quoteError || "ڈیلیوری کی تصدیق درکار ہے"); return; }
