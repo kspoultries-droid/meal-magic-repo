@@ -226,8 +226,8 @@ const GroceryStoreDetail = () => {
      setShowAddProduct(false); fetchData();
    };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
-  if (!store) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">اسٹور نہیں ملا</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{L("Loading...", "لوڈ ہو رہا ہے...")}</div>;
+  if (!store) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{L("Store not found", "اسٹور نہیں ملا")}</div>;
 
   const minimumOrder = (store as any)?.minimum_order || 0;
   const storeCartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -238,7 +238,7 @@ const GroceryStoreDetail = () => {
       {minimumOrder > 0 && !isOwner && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2 text-center">
           <p className="text-xs font-bold text-yellow-700 dark:text-yellow-400">
-            ⚠️ کم از کم آرڈر: Rs {minimumOrder} | Minimum Order: Rs {minimumOrder}
+            ⚠️ {L("Minimum Order", "کم از کم آرڈر")}: Rs {minimumOrder}
           </p>
         </div>
       )}
@@ -280,21 +280,21 @@ const GroceryStoreDetail = () => {
       <div className="container mx-auto px-4 pb-6">
         <Tabs defaultValue={new URLSearchParams(location.search).get("tab") || "products"} className="w-full">
           <TabsList className="w-full mb-3 justify-start overflow-x-auto">
-            <TabsTrigger value="products" className="flex-1">🛒 پروڈکٹس</TabsTrigger>
+            <TabsTrigger value="products" className="flex-1">🛒 {L("Products", "پروڈکٹس")}</TabsTrigger>
             {(!isBazar || isOwner) && (
-              <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
+              <TabsTrigger value="orders" className="flex-1">📋 {L("Orders", "آرڈرز")}</TabsTrigger>
             )}
-            {isOwner && <TabsTrigger value="stock" className="flex-1">📦 اسٹاک</TabsTrigger>}
-            {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 ریلز</TabsTrigger>}
-            {isOwner && <TabsTrigger value="questions">سوالات</TabsTrigger>}
-            {isOwner && <TabsTrigger value="reviews">رائے</TabsTrigger>}
-            {isOwner && <TabsTrigger value="settings">ترتیبات</TabsTrigger>}
+            {isOwner && <TabsTrigger value="stock" className="flex-1">📦 {L("Stock", "اسٹاک")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 {L("Reels", "ریلز")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="questions">{L("Questions", "سوالات")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="reviews">{L("Reviews", "رائے")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="settings">{L("Settings", "ترتیبات")}</TabsTrigger>}
           </TabsList>
 
 
           <TabsContent value="products">
             {filtered.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">اس کیٹیگری میں کوئی پروڈکٹ نہیں</p>
+              <p className="text-center text-muted-foreground py-8">{L("No products in this category", "اس کیٹیگری میں کوئی پروڈکٹ نہیں")}</p>
             ) : (
               <div className="grid grid-cols-2 gap-3 pt-3">
                 {filtered.map((product, idx) => {
