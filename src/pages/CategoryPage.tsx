@@ -4,7 +4,7 @@ import { ArrowRight, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
 import RestaurantGrid from "@/components/RestaurantGrid";
-import LocationBar from "@/components/location/LocationBar";
+import { Button } from "@/components/ui/button";
 import { foodCategories } from "@/lib/foodCategories";
 
 const CategoryPage = () => {
@@ -16,57 +16,53 @@ const CategoryPage = () => {
   const label = category?.ur || slug;
 
   return (
-    <div className="min-h-screen bg-gradient-subtle pb-24">
+    <div className="min-h-screen bg-background pb-24">
       <Navbar />
 
-      <header className="border-b bg-card/80 px-4 py-3 backdrop-blur">
-        <div className="container mx-auto max-w-3xl space-y-3">
+      <header className="border-b border-border bg-card px-4 py-4">
+        <div className="container mx-auto max-w-5xl space-y-4">
           <div className="flex items-center gap-2">
-            <button
+            <Button variant="outline" size="icon"
               onClick={() => navigate(-1)}
               aria-label="واپس"
-              className="flex h-9 w-9 items-center justify-center rounded-full border bg-card shadow-soft active:scale-90 transition-transform"
+              className="h-10 w-10 shrink-0 rounded-full"
             >
               <ArrowRight className="h-4 w-4 text-primary" />
-            </button>
+            </Button>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-base font-extrabold text-foreground">{label}</h1>
-              <p className="truncate text-[11px] text-muted-foreground">{category?.name || "Category"} · بہترین ریسٹورنٹس</p>
+              <h1 className="text-2xl font-extrabold text-foreground">{label}</h1>
+              <p className="text-xs text-muted-foreground">{category?.name || "Category"}</p>
             </div>
           </div>
 
-          <LocationBar />
-
-          <div className="flex h-11 items-center gap-2.5 rounded-xl border bg-card px-3.5 shadow-soft focus-within:ring-2 focus-within:ring-ring">
+          <div className="flex h-11 items-center gap-2.5 rounded-lg border border-border bg-background px-3.5 focus-within:ring-2 focus-within:ring-ring">
             <Search className="h-4 w-4 shrink-0 text-primary" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`${label} میں تلاش کریں…`}
+              aria-label="ڈش تلاش کریں"
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {foodCategories.map((c) => (
-              <button
+              <Button variant={c.slug === slug ? "default" : "outline"}
                 key={c.slug}
-                onClick={() => navigate(`/category/${c.slug}`)}
-                className={`shrink-0 rounded-full px-3.5 py-2 text-[11px] font-bold transition-all active:scale-95 ${
-                  c.slug === slug
-                    ? "bg-gradient-primary text-primary-foreground shadow-glow"
-                    : "border border-border/60 bg-card text-foreground shadow-soft"
-                }`}
+                onClick={() => { setQuery(""); navigate(`/category/${c.slug}`); }}
+                aria-pressed={c.slug === slug}
+                className="h-9 shrink-0 rounded-full px-4 text-xs font-bold"
               >
                 {c.ur}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
       </header>
 
       <div className="pt-4">
-        <RestaurantGrid searchQuery={query} activeCategory={category?.name || "All"} />
+        <RestaurantGrid searchQuery={query} activeCategory={category?.name || "All"} dishesOnly />
       </div>
 
       <BottomTabBar />

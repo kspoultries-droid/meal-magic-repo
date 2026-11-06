@@ -7,6 +7,9 @@ import RestaurantCard from "./RestaurantCard";
 import { RestaurantGridSkeleton } from "./ui/skeleton-card";
 import type { QuickFilter } from "./QuickCategories";
 import { Button } from "./ui/button";
+import FoodDishCard from "./menu/FoodDishCard";
+import MenuItemSheet from "./menu/MenuItemSheet";
+import { useState } from "react";
 
 export interface MenuItem {
   id: string;
@@ -42,10 +45,12 @@ interface RestaurantGridProps {
   activeCategory: string;
   quickFilter?: QuickFilter;
   onClearQuickFilter?: () => void;
+  dishesOnly?: boolean;
 }
 
-const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onClearQuickFilter }: RestaurantGridProps) => {
+const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onClearQuickFilter, dishesOnly = false }: RestaurantGridProps) => {
   const navigate = useNavigate();
+  const [selectedDish, setSelectedDish] = useState<{ item: MenuItem; restaurant: Restaurant } | null>(null);
   const { data: restaurants = [], isPending: loading, isError, refetch } = useQuery({
     queryKey: ["food-restaurant-list"],
     staleTime: 60_000,
@@ -113,6 +118,19 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
     homechefs: "ہوم شیف",
     "top-rated": "ٹاپ ریٹڈ",
   };
+
+  const dishes = filtered.flatMap(restaurant => restaurant.menuItems
+    .filter(item => matchesFoodCategory(activeCategory, [item.name, item.category]) && (!searchQuery.trim() || [item.name, item.description, restaurant.name].some(text => (text || "").toLowerCase().includes(searchQuery.trim().toLowerCase()))))
+    .map(item => ({ item, restaurant })));
+
+  if (dishesOnly && !loading) return (
+    <section className="container mx-auto max-w-5xl px-4 pb-16">
+      <div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-foreground">دستیاب ڈشیں</h2><span className="text-xs text-muted-foreground">{dishes.length} ڈشیں · {new Set(dishes.map(d => d.restaurant.id)).size} ریسٹورنٹس</span></div>
+      {isError ? <div className="py-10 text-center text-muted-foreground"><p>ڈشیں لوڈ نہیں ہو سکیں</p><Button variant="outline" onClick={() => void refetch()}>دوبارہ کوشش</Button></div> : dishes.length === 0 ? <p className="py-16 text-center text-muted-foreground">اس زمرے میں کوئی ڈش نہیں ملی</p> :
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{dishes.map(({ item, restaurant }) => <FoodDishCard key={item.id} item={item} restaurant={restaurant} onSelect={() => setSelectedDish({ item, restaurant })} onRestaurant={() => navigate(`/restaurant/${restaurant.id}`)} />)}</div>}
+      <MenuItemSheet item={selectedDish?.item || null} restaurant={selectedDish ? { id: selectedDish.restaurant.id, name: selectedDish.restaurant.name } : null} onClose={() => setSelectedDish(null)} />
+    </section>
+  );
 
   if (loading) {
     return (

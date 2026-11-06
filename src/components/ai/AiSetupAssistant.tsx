@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { classifyMenuCategory, MENU_CATEGORIES } from "../../../supabase/functions/_shared/menuCategories";
 
 export type AiItem = { name: string; name_ur: string; price: number; unit: string; category: string; description: string };
 type Kind = "menu" | "grocery" | "service";
@@ -50,7 +51,7 @@ export default function AiSetupAssistant({ kind, onSave }: { kind: Kind; onSave:
       return;
     }
     if (!data.items?.length) { toast.error("کوئی چیز نہیں ملی، صاف تصویر یا تفصیل دیں"); return; }
-    setItems(data.items);
+    setItems(kind === "menu" ? data.items.map((item: AiItem) => ({ ...item, category: classifyMenuCategory(item.name, item.category) })) : data.items);
     toast.success(`${data.items.length} چیزیں ملیں — دیکھ کر درست کریں (آج ${data.remaining} بار باقی)`);
   };
 
@@ -98,7 +99,7 @@ export default function AiSetupAssistant({ kind, onSave }: { kind: Kind; onSave:
                   <Button size="icon" variant="ghost" onClick={() => setItems(items.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button>
                 </div>
                 <p className="text-xs text-muted-foreground">{it.name_ur} · {it.category}</p>
-                {kind === "menu" && <Input aria-label="ڈش کی کیٹیگری" value={it.category} onChange={e => update(i, { category: e.target.value })} placeholder="کیٹیگری" />}
+                {kind === "menu" && <select aria-label="ڈش کی کیٹیگری" className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={it.category} onChange={e => update(i, { category: e.target.value })}>{[...new Set([...MENU_CATEGORIES, it.category])].map(category => <option key={category} value={category}>{category}</option>)}</select>}
                 <div className="grid grid-cols-2 gap-1">
                   <Input type="number" value={it.price} onChange={e => update(i, { price: Number(e.target.value) })} placeholder="قیمت" />
                   <Input value={it.unit} onChange={e => update(i, { unit: e.target.value })} placeholder="سائز / یونٹ" />
