@@ -36,8 +36,12 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
 
   const setLang = useCallback((next: LangCode) => {
     setLangState(next);
+    setTrLang(next);
     try {
+      const prev = localStorage.getItem(STORAGE_KEY);
       localStorage.setItem(STORAGE_KEY, next);
+      // Fixed labels (status lists etc.) are computed once at load, so reload to apply the new language everywhere.
+      if (prev !== next) window.location.reload();
     } catch {
       /* ignore */
     }
