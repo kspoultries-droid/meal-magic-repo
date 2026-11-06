@@ -145,29 +145,29 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
 
   return (
     <section id="food-results" className="container mx-auto px-4 pb-16 min-h-[400px] scroll-mt-16">
-      {isError && <div className="py-6 text-center text-muted-foreground"><p>فہرست لوڈ نہیں ہو سکی</p><Button variant="outline" onClick={() => void refetch()}>دوبارہ کوشش</Button></div>}
+      {isError && <div className="py-6 text-center text-muted-foreground"><p>{L("The list could not load", "فہرست لوڈ نہیں ہو سکی")}</p><Button variant="outline" onClick={() => void refetch()}>{L("Try again", "دوبارہ کوشش")}</Button></div>}
       {quickFilter && (
         <div className="mb-4 flex items-center gap-2 rounded-2xl border border-primary/30 bg-accent px-3 py-2 shadow-soft animate-fade-in">
-          <span className="text-xs font-bold text-accent-foreground">فلٹر: {quickLabels[quickFilter]}</span>
-          <span className="text-[11px] font-semibold text-muted-foreground">{filtered.length} نتائج</span>
+          <span className="text-xs font-bold text-accent-foreground">{L("Filter", "فلٹر")}: {quickLabels[quickFilter]}</span>
+          <span className="text-[11px] font-semibold text-muted-foreground">{filtered.length} {L("results", "نتائج")}</span>
           <button
             onClick={() => onClearQuickFilter?.()}
             className="ml-auto rounded-full bg-card px-3 py-1 text-[11px] font-bold text-primary shadow-soft active:scale-95 transition-transform"
           >
-            ہٹائیں ✕
+            {L("Remove", "ہٹائیں")} ✕
           </button>
         </div>
       )}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-extrabold text-foreground">
-          {searchQuery ? `"${searchQuery}" کے نتائج` : quickFilter ? quickLabels[quickFilter] : "آپ کے قریب مشہور"}
+          {searchQuery ? L(`Results for "${searchQuery}"`, `"${searchQuery}" کے نتائج`) : quickFilter ? quickLabels[quickFilter] : L("Popular near you", "آپ کے قریب مشہور")}
         </h2>
-        <span className="text-muted-foreground text-sm">{filtered.length} ریسٹورنٹس</span>
+        <span className="text-muted-foreground text-sm">{filtered.length} {L("restaurants", "ریسٹورنٹس")}</span>
       </div>
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
-          <p className="text-lg font-semibold mb-2">کوئی ریسٹورنٹ نہیں ملا</p>
-          <p className="text-sm">مختلف سرچ یا کیٹگری آزمائیں</p>
+          <p className="text-lg font-semibold mb-2">{L("No restaurant found", "کوئی ریسٹورنٹ نہیں ملا")}</p>
+          <p className="text-sm">{L("Try a different search or category", "مختلف سرچ یا کیٹگری آزمائیں")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
