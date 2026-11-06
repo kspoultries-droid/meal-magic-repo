@@ -194,21 +194,21 @@ const ProductDetail = () => {
             {activeTab === "overview" && (
               <>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <InfoTile icon={<Truck className="h-4 w-4" />} label="ڈیلیوری" value={product.delivery_days || (store.ships_nationwide ? "کورئیر کے مطابق" : "مقامی رائیڈر")} />
-                  <InfoTile icon={<Clock3 className="h-4 w-4" />} label="تیاری" value={store.delivery_time || "دکان کے مطابق"} />
-                  <InfoTile icon={<ShoppingBag className="h-4 w-4" />} label="فروخت" value={String(product.sold_count || 0)} />
+                  <InfoTile icon={<Truck className="h-4 w-4" />} label={L("Delivery", "ڈیلیوری")} value={product.delivery_days || (store.ships_nationwide ? L("By courier", "کورئیر کے مطابق") : L("Local rider", "مقامی رائیڈر"))} />
+                  <InfoTile icon={<Clock3 className="h-4 w-4" />} label={L("Prep time", "تیاری")} value={store.delivery_time || L("As per shop", "دکان کے مطابق")} />
+                  <InfoTile icon={<ShoppingBag className="h-4 w-4" />} label={L("Sold", "فروخت")} value={String(product.sold_count || 0)} />
                 </div>
                 <div className="rounded-2xl border border-border bg-card p-4">
-                  <h2 className="text-sm font-extrabold text-foreground">اس پروڈکٹ کے بارے میں</h2>
+                  <h2 className="text-sm font-extrabold text-foreground">{L("About this product", "اس پروڈکٹ کے بارے میں")}</h2>
                   {product.description ? (
                     <p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted-foreground">{product.description}</p>
                   ) : (
                     <ul className="mt-2 space-y-1.5 text-sm leading-7 text-muted-foreground">
                       <li>{product.name}{product.brand ? ` — ${product.brand}` : ""}</li>
-                      {product.weight && <li>وزن / سائز: {product.weight}</li>}
-                      {product.unit && <li>یونٹ: فی {product.unit}</li>}
-                      <li>قیمت: Rs. {effectivePrice.toLocaleString()}{product.min_order_qty > 1 ? ` · کم از کم ${product.min_order_qty} عدد` : ""}</li>
-                      <li>{store.name} سے تصدیق شدہ، محفوظ پیکنگ کے ساتھ ڈیلیوری۔</li>
+                      {product.weight && <li>{L("Weight / size", "وزن / سائز")}: {product.weight}</li>}
+                      {product.unit && <li>{L("Unit", "یونٹ")}: {L(`per ${product.unit}`, `فی ${product.unit}`)}</li>}
+                      <li>{L("Price", "قیمت")}: Rs. {effectivePrice.toLocaleString()}{product.min_order_qty > 1 ? L(` · min ${product.min_order_qty} pcs`, ` · کم از کم ${product.min_order_qty} عدد`) : ""}</li>
+                      <li>{L(`Verified by ${store.name}, delivered with safe packing.`, `${store.name} سے تصدیق شدہ، محفوظ پیکنگ کے ساتھ ڈیلیوری۔`)}</li>
                     </ul>
                   )}
                   {Array.isArray(product.tags) && product.tags.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{product.tags.map((tag: string) => <span key={tag} className="rounded-full bg-accent px-3 py-1 text-[10px] font-bold text-accent-foreground">{tag}</span>)}</div>}
