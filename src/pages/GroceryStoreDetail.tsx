@@ -312,12 +312,12 @@ const GroceryStoreDetail = () => {
                     >
                       {product.is_special_offer && product.discount_price && product.price > product.discount_price && (
                         <div className="absolute top-2 left-2 z-10 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                          <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}% آفر
+                          <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}% {L("off", "آفر")}
                         </div>
                       )}
                       {isOwner && !product.is_available && (
                         <div className="absolute top-2 right-2 z-10 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          غیر فعال / Hidden
+                          {L("Hidden", "غیر فعال")}
                         </div>
                       )}
                        <div
@@ -341,11 +341,11 @@ const GroceryStoreDetail = () => {
                            <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
                            {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
                          </button>
-                        {availableShopQuantity(product) !== null && <p className="mt-1 text-[11px] text-muted-foreground">دستیاب / Available: {availableShopQuantity(product)}</p>}
+                        {availableShopQuantity(product) !== null && <p className="mt-1 text-[11px] text-muted-foreground">{L("Available", "دستیاب")}: {availableShopQuantity(product)}</p>}
 
                         {!isOwner && productVariants.length > 0 && (
                           <button type="button" onClick={() => navigate(`/product/${product.id}`)} className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-bold text-accent-foreground">
-                            {productVariants.length} آپشنز · سائز/رنگ منتخب کریں
+                            {productVariants.length} {L("options · choose size/color", "آپشنز · سائز/رنگ منتخب کریں")}
                           </button>
                         )}
 
@@ -356,12 +356,12 @@ const GroceryStoreDetail = () => {
                         {isEditing ? (
                           <div className="mt-2 space-y-1.5">
                             <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-muted-foreground w-12">قیمت:</span>
+                              <span className="text-[10px] text-muted-foreground w-12">{L("Price:", "قیمت:")}</span>
                               <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="h-7 text-xs" />
                             </div>
                             <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-muted-foreground w-12">ڈسکاؤنٹ:</span>
-                              <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder="خالی = بغیر ڈسکاؤنٹ" className="h-7 text-xs" />
+                              <span className="text-[10px] text-muted-foreground w-12">{L("Discount:", "ڈسکاؤنٹ:")}</span>
+                              <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder={L("empty = no discount", "خالی = بغیر ڈسکاؤنٹ")} className="h-7 text-xs" />
                             </div>
                             <div>
                               <span className="text-[10px] text-muted-foreground">تفصیل / Details:</span>
