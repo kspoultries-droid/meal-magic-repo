@@ -218,7 +218,29 @@ const MyRestaurantTab = () => {
   return (
     <Card>
       <CardHeader className="py-3">
-        <CardTitle className="text-base">{t("rest.myRestaurant")}</CardTitle>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <CardTitle className="text-base">{t("rest.myRestaurant")}</CardTitle>
+          {isAdmin && (
+            <Dialog open={showNew} onOpenChange={setShowNew}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-1"><Plus className="h-4 w-4" /> نیا ریستورنٹ</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>نیا ریستورنٹ بنائیں</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <Input placeholder="ریسٹورنٹ کا نام" maxLength={150} value={newForm.name} onChange={(e) => setNewForm({ ...newForm, name: e.target.value })} />
+                  <select className="w-full rounded-md border bg-background p-2 text-sm" value={newForm.city} onChange={(e) => setNewForm({ ...newForm, city: e.target.value })}>
+                    <option value="">شہر منتخب کریں</option>
+                    {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <Input placeholder="مکمل پتہ" maxLength={500} value={newForm.address} onChange={(e) => setNewForm({ ...newForm, address: e.target.value })} />
+                  <Input placeholder="رابطہ فون (مثلاً 03001234567)" maxLength={16} value={newForm.phone} onChange={(e) => setNewForm({ ...newForm, phone: e.target.value })} />
+                  <Button className="w-full" disabled={creating} onClick={createRestaurant}>{creating ? "بن رہا ہے…" : "ریسٹورنٹ بنائیں"}</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
         <p className="text-[11px] text-muted-foreground">{t("rest.approvalNote")}</p>
       </CardHeader>
       <CardContent>
