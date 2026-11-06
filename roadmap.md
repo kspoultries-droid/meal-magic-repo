@@ -9,7 +9,7 @@
 - [x] Navbar.tsx + Footer.tsx + BottomTabBar.tsx
 
 ## Phase 2: Shopping pages
-- [ ] RestaurantDetail.tsx, CategoryPage.tsx, Grocery.tsx, GroceryStoreDetail.tsx, ProductDetail.tsx, Wholesale.tsx, SearchPage.tsx
+- [x] RestaurantDetail.tsx, CategoryPage.tsx, SearchPage.tsx, Grocery.tsx, GroceryStoreDetail.tsx, ProductDetail.tsx, Wholesale.tsx — all Urdu strings wrapped in L(en, ur); typecheck + build OK
 
 ## Phase 3: Dashboards
 - [ ] RestaurantOwnerDashboard, RiderDashboard, AdminDashboard, SupportDashboard, ServiceManagerDashboard, MechanicDashboard, Wallet, RiderPayments, RiderRemit
