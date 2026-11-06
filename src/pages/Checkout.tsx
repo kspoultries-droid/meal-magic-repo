@@ -20,7 +20,8 @@ const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
   const { items, totalPrice, clearCart, updateQuantity } = useCart();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -79,7 +80,7 @@ const Checkout = () => {
         if (def) {
           setAddress(def.address || "");
           setCoords(def.lat != null && def.lng != null ? { lat: def.lat, lng: def.lng } : null);
-          if (!stored) setStoredLocation({ label: def.label || "پتہ", address: def.address, lat: def.lat, lng: def.lng });
+          if (!stored) setStoredLocation({ label: def.label || L("Address", "پتہ"), address: def.address, lat: def.lat, lng: def.lng });
         }
       });
   }, [user]);
@@ -135,7 +136,7 @@ const Checkout = () => {
       if (error || !data) {
         setDeliveryQuote(null);
         setDeliveryFee(0);
-        setQuoteError(error?.message || "ڈیلیوری کی فیس نہیں مل سکی");
+        setQuoteError(error?.message || L("Delivery fee could not be calculated", "ڈیلیوری کی فیس نہیں مل سکی"));
       } else {
         setDeliveryQuote(data);
         setDeliveryFee(isFood ? restaurantDeliveryMode === "self" || vendorPaysDelivery ? 0 : Number(data.fee || 0) : Number(data.customer_fee ?? data.fee ?? 0));
@@ -171,7 +172,7 @@ const Checkout = () => {
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("آپ کا براؤزر لوکیشن سپورٹ نہیں کرتا");
+      toast.error(L("Your browser does not support location", "آپ کا براؤزر لوکیشن سپورٹ نہیں کرتا"));
       return;
     }
     setLocating(true);
@@ -185,16 +186,16 @@ const Checkout = () => {
           const data = await res.json();
           if (data.display_name) {
             setAddress(data.display_name);
-            toast.success("لوکیشن مل گئی! 📍");
+            toast.success(L("Location found! 📍", "لوکیشن مل گئی! 📍"));
           }
         } catch {
           setAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-          toast.success("لوکیشن سیٹ ہو گئی");
+          toast.success(L("Location set", "لوکیشن سیٹ ہو گئی"));
         }
         setLocating(false);
       },
       (err) => {
-        toast.error("لوکیشن نہیں مل سکی — براؤزر میں اجازت دیں");
+        toast.error(L("Location not found — allow access in browser", "لوکیشن نہیں مل سکی — براؤزر میں اجازت دیں"));
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -229,12 +230,12 @@ const Checkout = () => {
     }) as any);
     setApplyingVoucher(false);
     if (error || !data?.ok) {
-      toast.error(data?.error || "واؤچر لاگو نہیں ہو سکا");
+      toast.error(data?.error || L("Voucher could not be applied", "واؤچر لاگو نہیں ہو سکا"));
       setVoucher(null);
       return;
     }
     setVoucher({ code: data.code, discount: data.discount });
-    toast.success(`واؤچر لاگو ہو گیا! Rs ${data.discount} رعایت 🎟️`);
+    toast.success(L(`Voucher applied! Rs ${data.discount} off 🎟️`, `واؤچر لاگو ہو گیا! Rs ${data.discount} رعایت 🎟️`));
   };
 
   const redeemVoucherOnOrder = async (kind: "food" | "grocery", orderId: string) => {
@@ -247,30 +248,30 @@ const Checkout = () => {
   };
 
   const placeOrder = async () => {
-    if (isMixed) { toast.error("کارٹ میں مختلف شاپس کے آئٹمز ہیں — ایک شاپ کا آرڈر الگ سے دیں"); return; }
-    if (!address.trim()) { toast.error("ڈلیوری ایڈریس درکار ہے"); return; }
-    if (!selectedCity) { toast.error("ڈلیوری علاقہ دستیاب نہیں — تھوڑی دیر بعد کوشش کریں"); return; }
+    if (isMixed) { toast.error(L("Cart has items from different shops — order each shop separately", "کارٹ میں مختلف شاپس کے آئٹمز ہیں — ایک شاپ کا آرڈر الگ سے دیں")); return; }
+    if (!address.trim()) { toast.error(L("Delivery address is required", "ڈلیوری ایڈریس درکار ہے")); return; }
+    if (!selectedCity) { toast.error(L("Delivery area unavailable — try again shortly", "ڈلیوری علاقہ دستیاب نہیں — تھوڑی دیر بعد کوشش کریں")); return; }
     const cleanPhone = myPhone.replace(/\D/g, "");
-    if (!/^03\d{9}$/.test(cleanPhone)) { toast.error("درست 11 ہندسوں کا موبائل نمبر لکھیں (مثلاً 03001234567)"); return; }
+    if (!/^03\d{9}$/.test(cleanPhone)) { toast.error(L("Enter a valid 11-digit mobile number (e.g. 03001234567)", "درست 11 ہندسوں کا موبائل نمبر لکھیں (مثلاً 03001234567)")); return; }
     if (user) {
       const { error: phoneErr } = await supabase.from("profiles").update({ phone: cleanPhone }).eq("id", user.id);
       if (phoneErr) {
         if ((phoneErr as any).code === "23505") {
-          toast.error("یہ نمبر پہلے سے کسی دوسرے اکاؤنٹ سے جڑا ہوا ہے — اپنا نمبر لکھیں");
+          toast.error(L("This number is already linked to another account — enter your own number", "یہ نمبر پہلے سے کسی دوسرے اکاؤنٹ سے جڑا ہوا ہے — اپنا نمبر لکھیں"));
         } else {
-          toast.error("فون نمبر محفوظ نہیں ہو سکا");
+          toast.error(L("Phone number could not be saved", "فون نمبر محفوظ نہیں ہو سکا"));
         }
         return;
       }
     }
-    if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
-    if ((isGroceryOrder || isRestaurantOrder) && (quoteLoading || quoteError || !deliveryQuote || deliveryQuote.needs_quote)) { toast.error(quoteError || "ڈیلیوری کی تصدیق درکار ہے"); return; }
+    if (isGift && !receiverPhone.trim()) { toast.error(L("Receiver's phone number is required", "وصول کنندہ کا فون نمبر درکار ہے")); return; }
+    if ((isGroceryOrder || isRestaurantOrder) && (quoteLoading || quoteError || !deliveryQuote || deliveryQuote.needs_quote)) { toast.error(quoteError || L("Delivery confirmation is required", "ڈیلیوری کی تصدیق درکار ہے")); return; }
     setSubmitting(true);
 
     if (saveThisAddress && user) {
       await supabase.from("user_addresses").insert({
         user_id: user.id,
-        label: "میرا پتہ",
+        label: L("My address", "میرا پتہ"),
         address: address.trim(),
         lat: coords?.lat ?? null,
         lng: coords?.lng ?? null,
@@ -281,7 +282,7 @@ const Checkout = () => {
     try {
       if (isGroceryOrder) {
         const storeId = items[0]?.sourceId;
-        if (!storeId) { toast.error("اسٹور کی معلومات نہیں ملیں"); setSubmitting(false); return; }
+        if (!storeId) { toast.error(L("Store information not found", "اسٹور کی معلومات نہیں ملیں")); setSubmitting(false); return; }
         const orderItems = items.map(item => ({
           id: item.menu_item_id,
           quantity: item.quantity,
@@ -304,7 +305,7 @@ const Checkout = () => {
         });
 
         if (error) throw error;
-        toast.success(storeType === "wholesale" ? "بازار آرڈر کامیابی سے دیا گیا! 🎉" : "گروسری آرڈر کامیابی سے دیا گیا! 🛒🎉");
+        toast.success(storeType === "wholesale" ? L("Bazar order placed successfully! 🎉", "بازار آرڈر کامیابی سے دیا گیا! 🎉") : L("Grocery order placed successfully! 🛒🎉", "گروسری آرڈر کامیابی سے دیا گیا! 🛒🎉"));
         clearCart();
         navigate(`/order-confirmation/grocery/${newId}`);
       } else {
@@ -313,7 +314,7 @@ const Checkout = () => {
         if (!restaurantId) {
           const restaurantName = items[0]?.restaurant;
           const { data: restData } = await supabase.from("restaurants").select("id").eq("name", restaurantName).limit(1).maybeSingle();
-          if (!restData) { toast.error("ریسٹورنٹ نہیں ملا — دوبارہ کارٹ سے آئٹم شامل کریں"); setSubmitting(false); return; }
+          if (!restData) { toast.error(L("Restaurant not found — add the item from cart again", "ریسٹورنٹ نہیں ملا — دوبارہ کارٹ سے آئٹم شامل کریں")); setSubmitting(false); return; }
           restaurantId = restData.id;
         }
 
@@ -342,12 +343,12 @@ const Checkout = () => {
 
         if (orderError) throw orderError;
         await redeemVoucherOnOrder("food", orderId);
-        toast.success("آرڈر کامیابی سے دیا گیا! 🎉");
+        toast.success(L("Order placed successfully! 🎉", "آرڈر کامیابی سے دیا گیا! 🎉"));
         clearCart();
         navigate(`/order-confirmation/food/${orderId}`);
       }
     } catch (error: any) {
-      toast.error(error.message || "آرڈر میں مسئلہ آ گیا");
+      toast.error(error.message || L("There was a problem with the order", "آرڈر میں مسئلہ آ گیا"));
     } finally {
       setSubmitting(false);
     }
@@ -385,7 +386,7 @@ const Checkout = () => {
             </h2>
             {items[0]?.sourceId && (
               <button type="button" onClick={() => navigate(items[0].source === "grocery" ? (storeType === "wholesale" ? `/bazar/${items[0].sourceId}` : `/grocery/${items[0].sourceId}`) : `/restaurant/${items[0].sourceId}`)}
-                className="rounded-full border border-primary/40 px-2.5 py-1 text-[11px] font-bold text-primary">+ مزید اشیاء شامل کریں</button>
+                className="rounded-full border border-primary/40 px-2.5 py-1 text-[11px] font-bold text-primary">{L("+ Add more items", "+ مزید اشیاء شامل کریں")}</button>
             )}
           </div>
           <div className="space-y-2">
@@ -416,18 +417,18 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">{t("checkout.deliveryFee")}</span>
-                <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : quoteError ? "—" : deliveryFee === 0 && (vendorPaysDelivery || restaurantDeliveryMode === "self") ? "مفت ڈیلیوری / Free" : `Rs ${deliveryFee}`}</span>
+                <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : quoteError ? "—" : deliveryFee === 0 && (vendorPaysDelivery || restaurantDeliveryMode === "self") ? L("Free delivery", "مفت ڈیلیوری") : `Rs ${deliveryFee}`}</span>
               </div>
               {quoteError && <p role="alert" className="text-xs font-bold text-destructive">{quoteError}</p>}
               {deliveryQuote && !isRestaurantOrder && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-foreground">
                     <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5 text-primary" />{formatDeliveryMode(deliveryQuote.mode)}</span>
-                    <span className="flex items-center gap-1"><Scale className="h-3.5 w-3.5 text-primary" />{deliveryQuote.weight_kg.toFixed(1)} کلو</span>
-                    {deliveryQuote.distance_km > 0 && <span className="flex items-center gap-1"><Route className="h-3.5 w-3.5 text-primary" />{deliveryQuote.distance_km.toFixed(1)} کلومیٹر</span>}
+                    <span className="flex items-center gap-1"><Scale className="h-3.5 w-3.5 text-primary" />{deliveryQuote.weight_kg.toFixed(1)} {L("kg", "کلو")}</span>
+                    {deliveryQuote.distance_km > 0 && <span className="flex items-center gap-1"><Route className="h-3.5 w-3.5 text-primary" />{deliveryQuote.distance_km.toFixed(1)} {L("km", "کلومیٹر")}</span>}
                   </div>
-                  <p className="mt-1">{formatFeeBreakdown(deliveryQuote)}{deliveryQuote.vehicle_name ? ` · گاڑی: ${deliveryQuote.vehicle_name}` : ""}</p>
-                  {deliveryQuote.needs_quote && <p className="mt-1 font-bold text-destructive">اس bulk آرڈر کے لیے حتمی کرایہ دکاندار/ایڈمن کی منظوری کے بعد آئے گا۔</p>}
+                  <p className="mt-1">{formatFeeBreakdown(deliveryQuote)}{deliveryQuote.vehicle_name ? ` · ${L("Vehicle", "گاڑی")}: ${deliveryQuote.vehicle_name}` : ""}</p>
+                  {deliveryQuote.needs_quote && <p className="mt-1 font-bold text-destructive">{L("Final freight for this bulk order will be confirmed after vendor/admin approval.", "اس bulk آرڈر کے لیے حتمی کرایہ دکاندار/ایڈمن کی منظوری کے بعد آئے گا۔")}</p>}
                 </div>
               )}
               {voucher && (
@@ -490,7 +491,7 @@ const Checkout = () => {
               <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
                 {cities.map((city) => <option key={city.id} value={city.id}>{city.name}</option>)}
               </select>
-              <p className="mt-1 text-[11px] text-muted-foreground">شہر بدلنے سے intercity یا courier delivery quote خودکار دوبارہ بنے گا۔</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{L("Changing the city will automatically recalculate the intercity or courier delivery quote.", "شہر بدلنے سے intercity یا courier delivery quote خودکار دوبارہ بنے گا۔")}</p>
             </div>
           )}
           <div className="space-y-3">
@@ -552,12 +553,12 @@ const Checkout = () => {
 
         <div className="glass rounded-2xl border border-border/50 shadow-card p-4 space-y-2">
           <label htmlFor="my-phone" className="flex items-center gap-2 text-sm font-extrabold text-foreground">
-            <Phone className="w-4 h-4 text-primary" /> آپ کا موبائل نمبر / Your mobile
+            <Phone className="w-4 h-4 text-primary" /> {L("Your mobile number", "آپ کا موبائل نمبر")}
           </label>
           <Input id="my-phone" type="tel" inputMode="numeric" maxLength={11} placeholder="03001234567"
             value={myPhone} onChange={(e) => setMyPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
             className="h-11 rounded-xl bg-background/80" />
-          <p className="text-[11px] text-muted-foreground">ایک وقت میں زیادہ سے زیادہ 2 آرڈر چل سکتے ہیں۔</p>
+          <p className="text-[11px] text-muted-foreground">{L("You can have at most 2 active orders at a time.", "ایک وقت میں زیادہ سے زیادہ 2 آرڈر چل سکتے ہیں۔")}</p>
         </div>
 
         {/* Gift Delivery - Glass */}

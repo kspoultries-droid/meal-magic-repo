@@ -12,7 +12,8 @@ import { saveMode, type AppMode } from "@/lib/appMode";
 const Navbar = () => {
   const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, isStaff, signOut } = useAuth();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const hasRoles = isStaff || isAdmin || isRestaurantOwner || isRider || isSupport || isMechanic || isServiceManager;
@@ -98,7 +99,7 @@ const Navbar = () => {
                     <Button variant="ghost"
                       onClick={() => setMenuOpen(!menuOpen)}
                       className="h-10 w-10 p-2 rounded-lg text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
-                      aria-label="مینو"
+                      aria-label={L("Menu", "مینو")}
                     >
                       {menuOpen ? <X className="w-5 h-5 text-primary-foreground" /> : <Menu className="w-5 h-5 text-primary-foreground" />}
                     </Button>
@@ -109,19 +110,19 @@ const Navbar = () => {
                         setMenuOpen(false);
                       };
                       const items = [
-                        { show: true, label: "کسٹمر", icon: User, path: "/", mode: "customer" as AppMode },
-                        { show: isRider, label: "رائیڈر", icon: Bike, path: "/rider-dashboard", mode: "rider" as AppMode },
-                        { show: isRestaurantOwner, label: "دکان", icon: Store, path: "/restaurant-dashboard", mode: "restaurant" as AppMode },
-                        { show: isAdmin || isStaff, label: "ایڈمن", icon: Shield, path: "/admin" },
-                        { show: isSupport, label: "سپورٹ", icon: Headphones, path: "/support-dashboard" },
-                        { show: isMechanic, label: "مکینک", icon: Wrench, path: "/mechanic-dashboard" },
+                        { show: true, label: L("Customer", "کسٹمر"), icon: User, path: "/", mode: "customer" as AppMode },
+                        { show: isRider, label: t("role.rider"), icon: Bike, path: "/rider-dashboard", mode: "rider" as AppMode },
+                        { show: isRestaurantOwner, label: L("Shop", "دکان"), icon: Store, path: "/restaurant-dashboard", mode: "restaurant" as AppMode },
+                        { show: isAdmin || isStaff, label: t("role.admin"), icon: Shield, path: "/admin" },
+                        { show: isSupport, label: t("role.support"), icon: Headphones, path: "/support-dashboard" },
+                        { show: isMechanic, label: t("role.mechanic"), icon: Wrench, path: "/mechanic-dashboard" },
                         { show: isServiceManager, label: t("role.serviceManager"), icon: ClipboardList, path: "/service-manager" },
                       ].filter((i) => i.show);
                       return (
                         <>
                           <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                           <div className="absolute right-0 top-full mt-1 w-60 bg-card border rounded-xl shadow-elegant p-2 z-50">
-                            <p className="px-1 pb-1.5 text-[11px] font-semibold text-muted-foreground">موڈ منتخب کریں</p>
+                            <p className="px-1 pb-1.5 text-[11px] font-semibold text-muted-foreground">{L("Select mode", "موڈ منتخب کریں")}</p>
                             <div className="grid grid-cols-3 gap-1.5">
                               {items.map(({ label, icon: Icon, path, mode }) => (
                                 <button
@@ -140,7 +141,7 @@ const Navbar = () => {
                               onClick={async () => { await signOut(); navigate("/"); setMenuOpen(false); }}
                               className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary"
                             >
-                              <LogOut className="w-4 h-4" /> لاگ آؤٹ
+                              <LogOut className="w-4 h-4" /> {t("common.logout")}
                             </button>
                           </div>
                         </>
@@ -151,7 +152,7 @@ const Navbar = () => {
                   <Button variant="ghost"
                     onClick={async () => { await signOut(); navigate("/"); }}
                     className="h-10 w-10 p-2 rounded-lg text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
-                    aria-label="لاگ آؤٹ"
+                    aria-label={t("common.logout")}
                   >
                     <LogOut className="w-5 h-5 text-primary-foreground" />
                   </Button>
@@ -162,7 +163,7 @@ const Navbar = () => {
               <Button variant="ghost"
                 onClick={async () => { await signOut(); navigate("/"); }}
                 className="hidden md:flex h-10 w-10 p-2 rounded-lg text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
-                aria-label="لاگ آؤٹ"
+                aria-label={t("common.logout")}
               >
                 <LogOut className="w-5 h-5 text-primary-foreground" />
               </Button>
@@ -171,7 +172,7 @@ const Navbar = () => {
             <Button variant="ghost"
               onClick={() => navigate("/auth")}
               className="h-10 w-10 p-2 rounded-lg text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
-              aria-label="لاگ ان / سائن اپ"
+              aria-label={L("Log in / Sign up", "لاگ ان / سائن اپ")}
             >
               <User className="w-5 h-5 text-primary-foreground" />
             </Button>

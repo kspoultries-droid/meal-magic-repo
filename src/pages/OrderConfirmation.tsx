@@ -11,7 +11,8 @@ import { shopStatusStep } from "@/lib/shopOrders";
 const OrderConfirmation = () => {
   const { type, id } = useParams<{ type: string; id: string }>();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [locOpen, setLocOpen] = useState(false);
@@ -35,7 +36,7 @@ const OrderConfirmation = () => {
   const copyId = () => {
     if (!id) return;
     navigator.clipboard.writeText(id);
-    toast.success("آرڈر ID کاپی ہو گیا");
+    toast.success(L("Order ID copied", "آرڈر ID کاپی ہو گیا"));
   };
 
   if (loading) {
@@ -101,9 +102,9 @@ const OrderConfirmation = () => {
                 onSelected={async (loc) => {
                   const table = isGrocery ? "grocery_cart_orders" : "orders";
                   const { error } = await supabase.from(table).update({ delivery_address: loc.address }).eq("id", id || "");
-                  if (error) return toast.error("پتہ تبدیل نہیں ہو سکا");
+                  if (error) return toast.error(L("Address could not be changed", "پتہ تبدیل نہیں ہو سکا"));
                   setOrder((o: any) => ({ ...o, delivery_address: loc.address }));
-                  toast.success("ڈیلیوری کا پتہ اپڈیٹ ہو گیا");
+                  toast.success(L("Delivery address updated", "ڈیلیوری کا پتہ اپڈیٹ ہو گیا"));
                 }}
               />
               {order.is_gift && order.receiver_name && (
@@ -115,7 +116,13 @@ const OrderConfirmation = () => {
 
         <div className="flex items-center gap-2 rounded-xl border bg-card p-3 text-xs shadow-card animate-slide-up">
           <Package className="h-5 w-5 shrink-0 text-primary" />
-          <p className="font-semibold">{isGrocery ? ["cancelled", "returned_to_store"].includes(order?.status) ? "یہ آرڈر بند ہو چکا ہے۔" : ["آرڈر دکان کو مل گیا؛ اشیا کی دستیابی کی تصدیق کا انتظار ہے۔", "دکان نے آرڈر قبول کر لیا؛ پیک ہونے کے بعد روانگی ہوگی۔", "آرڈر پیکنگ یا روانگی کے لیے تیار ہے۔", "آپ کی ڈیلیوری جاری ہے۔", "آپ کا آرڈر پہنچا دیا گیا ہے۔"][shopStatusStep(order?.status, order?.delivery_stage)] : t("conf.nextStep")}</p>
+          <p className="font-semibold">{isGrocery ? ["cancelled", "returned_to_store"].includes(order?.status) ? L("This order is closed.", "یہ آرڈر بند ہو چکا ہے۔") : [
+            L("Order received by the shop; waiting for availability confirmation.", "آرڈر دکان کو مل گیا؛ اشیا کی دستیابی کی تصدیق کا انتظار ہے۔"),
+            L("Shop accepted the order; it will be dispatched after packing.", "دکان نے آرڈر قبول کر لیا؛ پیک ہونے کے بعد روانگی ہوگی۔"),
+            L("Order is packed or ready for dispatch.", "آرڈر پیکنگ یا روانگی کے لیے تیار ہے۔"),
+            L("Your delivery is on the way.", "آپ کی ڈیلیوری جاری ہے۔"),
+            L("Your order has been delivered.", "آپ کا آرڈر پہنچا دیا گیا ہے۔"),
+          ][shopStatusStep(order?.status, order?.delivery_stage)] : t("conf.nextStep")}</p>
         </div>
       </div>
 
