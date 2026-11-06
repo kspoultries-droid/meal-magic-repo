@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import RestaurantCard from "./RestaurantCard";
 import { RestaurantGridSkeleton } from "./ui/skeleton-card";
 import type { QuickFilter } from "./QuickCategories";
+import { Button } from "./ui/button";
 
 export interface MenuItem {
   id: string;
@@ -123,6 +124,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
 
   return (
     <section id="food-results" className="container mx-auto px-4 pb-16 min-h-[400px] scroll-mt-16">
+      {isError && <div className="py-6 text-center text-muted-foreground"><p>فہرست لوڈ نہیں ہو سکی</p><Button variant="outline" onClick={() => void refetch()}>دوبارہ کوشش</Button></div>}
       {quickFilter && (
         <div className="mb-4 flex items-center gap-2 rounded-2xl border border-primary/30 bg-accent px-3 py-2 shadow-soft animate-fade-in">
           <span className="text-xs font-bold text-accent-foreground">فلٹر: {quickLabels[quickFilter]}</span>
