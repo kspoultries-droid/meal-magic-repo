@@ -53,7 +53,8 @@ const Grocery = () => {
   const [sortBy, setSortBy] = useState("default");
   const [loading, setLoading] = useState(true);
   const { groceryLive, city, cities: liveCities, setCityId } = useCityServices();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -129,19 +130,19 @@ const Grocery = () => {
             <div className="min-w-0">
               <p className="text-[11px] font-semibold opacity-90">{t("grocery.eyebrow")}</p>
               <h1 className="mt-0.5 text-2xl font-extrabold leading-tight">{t("grocery.title")}</h1>
-              <p className="mt-1 text-xs opacity-90">تازہ سبزی، پھل اور روزمرہ سامان — گھر کی دہلیز پر</p>
+              <p className="mt-1 text-xs opacity-90">{L("Fresh vegetables, fruits and daily essentials — at your doorstep", "تازہ سبزی، پھل اور روزمرہ سامان — گھر کی دہلیز پر")}</p>
             </div>
             <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary-foreground/15 text-3xl backdrop-blur">🛒</span>
           </div>
           <label className="relative mt-4 flex h-12 items-center gap-2.5 rounded-xl bg-card px-3.5 text-card-foreground shadow-soft focus-within:ring-2 focus-within:ring-ring">
             <Search className="size-5 shrink-0 text-primary" />
-            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="دکان یا چیز تلاش کریں (اردو / English)" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-            {searchQuery && <button type="button" aria-label="صاف کریں" onClick={() => setSearchQuery("")} className="grid size-7 place-items-center rounded-full bg-muted"><X className="size-3.5" /></button>}
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={L("Search a shop or item (English / اردو)", "دکان یا چیز تلاش کریں (اردو / English)")} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+            {searchQuery && <button type="button" aria-label={L("Clear", "صاف کریں")} onClick={() => setSearchQuery("")} className="grid size-7 place-items-center rounded-full bg-muted"><X className="size-3.5" /></button>}
           </label>
           <div className="relative mt-3 grid grid-cols-3 gap-2 text-[10px] font-bold">
-            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><BadgeCheck className="size-3.5" /> روزانہ تازہ</span>
-            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Truck className="size-3.5" /> تیز ڈیلیوری</span>
-            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Percent className="size-3.5" /> 30% تک رعایت</span>
+            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><BadgeCheck className="size-3.5" /> {L("Fresh daily", "روزانہ تازہ")}</span>
+            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Truck className="size-3.5" /> {L("Fast delivery", "تیز ڈیلیوری")}</span>
+            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Percent className="size-3.5" /> {L("Up to 30% off", "30% تک رعایت")}</span>
           </div>
         </div>
       </section>
@@ -156,7 +157,7 @@ const Grocery = () => {
 
       {debounced && (
         <section className="container mx-auto px-4 pt-4">
-          <h2 className="mb-2 text-base font-extrabold">«{debounced}» — {productHits.length} اشیاء</h2>
+          <h2 className="mb-2 text-base font-extrabold">«{debounced}» — {productHits.length} {L("items", "اشیاء")}</h2>
           {productHits.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {productHits.map((p) => (
@@ -166,7 +167,7 @@ const Grocery = () => {
                 </Button>
               ))}
             </div>
-          ) : <p className="rounded-xl border bg-card py-6 text-center text-xs text-muted-foreground">کوئی چیز نہیں ملی — اردو یا انگریزی میں دوسرا نام لکھیں</p>}
+          ) : <p className="rounded-xl border bg-card py-6 text-center text-xs text-muted-foreground">{L("Nothing found — try another name in English or Urdu", "کوئی چیز نہیں ملی — اردو یا انگریزی میں دوسرا نام لکھیں")}</p>}
         </section>
       )}
 
