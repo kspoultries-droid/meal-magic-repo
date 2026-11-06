@@ -7,9 +7,9 @@ const aliases: Record<string, string[]> = {
   chinese: ["chinese", "چائنیز", "chow mein", "chowmein", "manchurian", "fried rice", "shashlik"],
   broast: ["broast", "بروسٹ"],
   shawarma: ["shawarma", "شوارما"],
-  coffee: ["coffee", "کافی"],
+  coffee: ["coffee", "کافی", "latte", "cappuccino", "espresso", "mocha", "americano", "frappe", "chai", "چائے", "doodh patti", "green tea", "hot chocolate"],
   desserts: ["dessert", "sweet", "halwa", "cake", "ice cream", "میٹھا", "حلوہ", "کیک"],
-  juice: ["juice", "جوس"],
+  juice: ["juice", "جوس", "shake", "شیک", "smoothie", "lassi", "لسی", "lemonade", "mojito", "margarita", "slush", "sharbat", "شربت", "fresh lime", "drink", "beverage", "soft drink", "cola"],
   healthy: ["healthy", "salad", "ہیلتھی", "سلاد"],
 };
 

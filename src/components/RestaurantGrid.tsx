@@ -1,3 +1,4 @@
+import CategoryEmptyState from "@/components/food/CategoryEmptyState";
 import { useQuery } from "@tanstack/react-query";
 import { matchesFoodCategory } from "@/lib/foodCategoryMatch";
 import restaurantFallback from "@/assets/hero-food.jpg";
@@ -129,7 +130,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
   if (dishesOnly && !loading) return (
     <section className="container mx-auto max-w-5xl px-4 pb-16">
       <div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-foreground">{L("Available dishes", "دستیاب ڈشیں")}</h2><span className="text-xs text-muted-foreground">{dishes.length} {L("dishes", "ڈشیں")} · {new Set(dishes.map(d => d.restaurant.id)).size} {L("restaurants", "ریسٹورنٹس")}</span></div>
-      {isError ? <div className="py-10 text-center text-muted-foreground"><p>{L("Dishes could not load", "ڈشیں لوڈ نہیں ہو سکیں")}</p><Button variant="outline" onClick={() => void refetch()}>{L("Try again", "دوبارہ کوشش")}</Button></div> : dishes.length === 0 ? <p className="py-16 text-center text-muted-foreground">{L("No dish found in this category", "اس زمرے میں کوئی ڈش نہیں ملی")}</p> :
+      {isError ? <div className="py-10 text-center text-muted-foreground"><p>{L("Dishes could not load", "ڈشیں لوڈ نہیں ہو سکیں")}</p><Button variant="outline" onClick={() => void refetch()}>{L("Try again", "دوبارہ کوشش")}</Button></div> : dishes.length === 0 ? <CategoryEmptyState category={activeCategory} /> :
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{dishes.map(({ item, restaurant }) => <FoodDishCard key={item.id} item={item} restaurant={restaurant} onSelect={() => setSelectedDish({ item, restaurant })} onRestaurant={() => navigate(`/restaurant/${restaurant.id}`)} />)}</div>}
       <MenuItemSheet item={selectedDish?.item || null} restaurant={selectedDish ? { id: selectedDish.restaurant.id, name: selectedDish.restaurant.name } : null} onClose={() => setSelectedDish(null)} />
     </section>
