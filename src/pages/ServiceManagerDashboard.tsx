@@ -73,11 +73,11 @@ interface ServiceItem {
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: tr("Pending", "زیرِ التوا"), color: "bg-warning text-warning-foreground" },
-  confirmed: { label: tr("Verified", "تصدیق شدہ"), color: "bg-primary text-primary-foreground" },
-  in_progress: { label: tr("Open", "جاری"), color: "bg-accent text-accent-foreground" },
-  completed: { label: tr("Completed", "مکمل"), color: "bg-success text-success-foreground" },
-  cancelled: { label: tr("Cancelled", "منسوخ"), color: "bg-destructive text-destructive-foreground" },
+  pending: { get label() { return tr("Pending", "زیرِ التوا"); }, color: "bg-warning text-warning-foreground" },
+  confirmed: { get label() { return tr("Confirmed", "تصدیق شدہ"); }, color: "bg-primary text-primary-foreground" },
+  in_progress: { get label() { return tr("In progress", "جاری"); }, color: "bg-accent text-accent-foreground" },
+  completed: { get label() { return tr("Completed", "مکمل"); }, color: "bg-success text-success-foreground" },
+  cancelled: { get label() { return tr("Cancelled", "منسوخ"); }, color: "bg-destructive text-destructive-foreground" },
 };
 
 const ServiceManagerDashboard = () => {
