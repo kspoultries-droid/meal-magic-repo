@@ -1,4 +1,5 @@
 import { tr } from "@/lib/i18n/tr";
+import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import NotificationBell from "@/components/common/NotificationBell";
@@ -643,6 +644,16 @@ const MenuTab = () => {
             {restaurants.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </div>
+        <AiSetupAssistant kind="menu" onSave={async (items) => {
+          const { error } = await supabase.from("menu_items").insert(items.map(i => ({
+            restaurant_id: selectedRest, name: i.name, description: i.description,
+            price: i.price, category: i.category || "Main",
+            variants: (i.unit ? [{ id: "base", label: i.unit, price: i.price }] : []) as any,
+          })) as any);
+          if (error) { toast.error(error.message); throw error; }
+          toast.success(tr(`${items.length} items added to the menu`, `${items.length} آئٹمز مینو میں شامل ہو گئے`));
+          fetchMenu();
+        }} />
         <Dialog open={showAdd} onOpenChange={setShowAdd}>
           <DialogTrigger asChild>
             <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {t("rest.newItem")}</Button>
