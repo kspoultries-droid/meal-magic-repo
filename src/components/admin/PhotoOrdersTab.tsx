@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,15 +11,15 @@ import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { toast } from "sonner";
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pending: { label: "نئی / Pending", color: "bg-yellow-100 text-yellow-800" },
-  quoted: { label: "قیمت بتائی / Quoted", color: "bg-blue-100 text-blue-800" },
-  confirmed: { label: "تصدیق / Confirmed", color: "bg-primary/20 text-primary" },
-  ready_for_pickup: { label: "پک اَپ کے لیے تیار", color: "bg-primary/10 text-primary" },
-  delivered: { label: "پہنچا دیا", color: "bg-success/10 text-success" },
-  returned_to_store: { label: "واپس", color: "bg-warning/10 text-warning" },
-  delivering: { label: "ڈلیوری / Delivering", color: "bg-orange-100 text-orange-800" },
-  completed: { label: "مکمل / Done", color: "bg-green-100 text-green-800" },
-  cancelled: { label: "منسوخ / Cancelled", color: "bg-destructive/20 text-destructive" },
+  pending: { label: tr("New / Pending", "نئی / Pending"), color: "bg-yellow-100 text-yellow-800" },
+  quoted: { label: tr("Quoted", "قیمت بتائی / Quoted"), color: "bg-blue-100 text-blue-800" },
+  confirmed: { label: tr("Confirmed", "تصدیق / Confirmed"), color: "bg-primary/20 text-primary" },
+  ready_for_pickup: { label: tr("Ready for Pickup", "پک اَپ کے لیے تیار"), color: "bg-primary/10 text-primary" },
+  delivered: { label: tr("Delivered", "پہنچا دیا"), color: "bg-success/10 text-success" },
+  returned_to_store: { label: tr("Returned", "واپس"), color: "bg-warning/10 text-warning" },
+  delivering: { label: tr("Delivering", "ڈلیوری / Delivering"), color: "bg-orange-100 text-orange-800" },
+  completed: { label: tr("Completed", "مکمل / Done"), color: "bg-green-100 text-green-800" },
+  cancelled: { label: tr("Cancelled", "منسوخ / Cancelled"), color: "bg-destructive/20 text-destructive" },
 };
 
 const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
@@ -71,7 +72,7 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     if (!canCancel || status !== "cancelled") return;
     const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: "grocery_list", _order_id: orderId, _note: "سپورٹ کی ہنگامی منسوخی" });
     if (error) toast.error(error.message);
-    else { toast.success("اپڈیٹ ہو گیا"); setSelectedOrder(null); fetchData(); }
+    else { toast.success(tr("Updated", "اپڈیٹ ہو گیا")); setSelectedOrder(null); fetchData(); }
   };
 
   return (
@@ -79,11 +80,11 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label: "کل آرڈرز", value: stats.total, color: "text-foreground" },
-          { label: "زیر التواء", value: stats.pending, color: "text-yellow-600" },
-          { label: "جاری", value: stats.confirmed, color: "text-blue-600" },
-          { label: "مکمل", value: stats.completed, color: "text-green-600" },
-          { label: "آمدنی", value: `Rs ${stats.revenue}`, color: "text-primary" },
+          { label: tr("Total Orders", "کل آرڈرز"), value: stats.total, color: "text-foreground" },
+          { label: tr("Pending", "زیر التواء"), value: stats.pending, color: "text-yellow-600" },
+          { label: tr("Open", "جاری"), value: stats.confirmed, color: "text-blue-600" },
+          { label: tr("Completed", "مکمل"), value: stats.completed, color: "text-green-600" },
+          { label: tr("Earnings", "آمدنی"), value: `Rs ${stats.revenue}`, color: "text-primary" },
         ].map((s, i) => (
           <Card key={i}>
             <CardContent className="p-4 text-center">
@@ -97,7 +98,7 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       {/* Filter + List */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2"><FileImage className="w-5 h-5" /> فوٹو لسٹ آرڈرز</CardTitle>
+          <CardTitle className="flex items-center gap-2"><FileImage className="w-5 h-5" /> {tr("Photo List Orders", "فوٹو لسٹ آرڈرز")}</CardTitle>
           <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className="h-4 w-4" /></Button>
         </CardHeader>
         <CardContent>
@@ -105,13 +106,13 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
           {/* Filter Chips */}
           <div className="flex gap-2 mb-4 flex-wrap">
             {[
-              { key: "all", label: "سب" },
-              { key: "pending", label: "زیر التواء" },
-              { key: "quoted", label: "قیمت بتائی" },
-              { key: "confirmed", label: "تصدیق شدہ" },
-              { key: "delivering", label: "ڈلیوری" },
-              { key: "completed", label: "مکمل" },
-              { key: "cancelled", label: "منسوخ" },
+              { key: "all", label: tr("All", "سب") },
+              { key: "pending", label: tr("Pending", "زیر التواء") },
+              { key: "quoted", label: tr("Price Quoted", "قیمت بتائی") },
+              { key: "confirmed", label: tr("Verified", "تصدیق شدہ") },
+              { key: "delivering", label: tr("Delivery", "ڈلیوری") },
+              { key: "completed", label: tr("Completed", "مکمل") },
+              { key: "cancelled", label: tr("Cancelled", "منسوخ") },
             ].map(f => (
               <button
                 key={f.key}
@@ -123,8 +124,8 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
             ))}
           </div>
 
-          {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : filtered.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>
+          {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : filtered.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">{tr("No orders", "کوئی آرڈر نہیں")}</p>
           ) : (
             <div className="space-y-2">
               {filtered.slice((page - 1) * 20, page * 20).map(order => {
@@ -157,19 +158,19 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       {/* Detail Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={v => !v && setSelectedOrder(null)}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>📋 آرڈر تفصیل</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{tr("📋 Order Details", "📋 آرڈر تفصیل")}</DialogTitle></DialogHeader>
           {selectedOrder && (
             <div className="space-y-3">
               <img src={selectedOrder.image_url} alt="Ration list" className="w-full rounded-xl border max-h-64 object-contain bg-secondary" />
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div><span className="text-muted-foreground">اسٹور:</span> <strong>{getStoreName(selectedOrder.store_id)}</strong></div>
-                <div><span className="text-muted-foreground">سٹیٹس:</span> <Badge className={STATUS_MAP[selectedOrder.status]?.color}>{STATUS_MAP[selectedOrder.status]?.label}</Badge></div>
-                <div><span className="text-muted-foreground">رقم:</span> <strong>Rs {selectedOrder.total_amount || 0}</strong></div>
-                <div><span className="text-muted-foreground">ادائیگی:</span> {selectedOrder.payment_method}</div>
+                <div><span className="text-muted-foreground">{tr("Store:", "اسٹور:")}</span> <strong>{getStoreName(selectedOrder.store_id)}</strong></div>
+                <div><span className="text-muted-foreground">{tr("Status:", "سٹیٹس:")}</span> <Badge className={STATUS_MAP[selectedOrder.status]?.color}>{STATUS_MAP[selectedOrder.status]?.label}</Badge></div>
+                <div><span className="text-muted-foreground">{tr("Amount:", "رقم:")}</span> <strong>Rs {selectedOrder.total_amount || 0}</strong></div>
+                <div><span className="text-muted-foreground">{tr("Payment:", "ادائیگی:")}</span> {selectedOrder.payment_method}</div>
               </div>
               {selectedOrder.delivery_address && <p className="text-sm flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedOrder.delivery_address}</p>}
-              {selectedOrder.notes && <p className="text-sm bg-accent/50 p-2 rounded-lg"><strong>کسٹمر نوٹ:</strong> {selectedOrder.notes}</p>}
-              {selectedOrder.shopkeeper_notes && <p className="text-sm bg-primary/10 p-2 rounded-lg"><strong>دکاندار نوٹ:</strong> {selectedOrder.shopkeeper_notes}</p>}
+              {selectedOrder.notes && <p className="text-sm bg-accent/50 p-2 rounded-lg"><strong>{tr("Customer Note:", "کسٹمر نوٹ:")}</strong> {selectedOrder.notes}</p>}
+              {selectedOrder.shopkeeper_notes && <p className="text-sm bg-primary/10 p-2 rounded-lg"><strong>{tr("Merchant Note:", "دکاندار نوٹ:")}</strong> {selectedOrder.shopkeeper_notes}</p>}
 
               <div className="flex gap-2 flex-wrap">
                 {(canCancel ? ["cancelled"] : []).filter(s => s !== selectedOrder.status && !["delivered", "completed", "cancelled", "returned_to_store"].includes(selectedOrder.status) && (s !== "ready_for_pickup" || selectedOrder.status === "confirmed")).map(s => (

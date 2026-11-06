@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,11 +9,11 @@ import { toast } from "sonner";
 import { staffActivityStart } from "@/lib/staffActivityPeriod";
 
 const ENTITY: Record<string, string> = {
-  orders: "فوڈ آرڈر", grocery_cart_orders: "گروسری آرڈر", riders: "رائیڈر", restaurants: "ریسٹورنٹ",
-  grocery_stores: "دکان", payouts: "ادائیگی", refunds: "ریفنڈ", rider_remittances: "کیش وصولی",
-  user_roles: "کردار", partner_applications: "درخواست", approval_requests: "منظوری", staff_scopes: "شہر",
+  orders: tr("Food order", "فوڈ آرڈر"), grocery_cart_orders: tr("Grocery order", "گروسری آرڈر"), riders: tr("Rider", "رائیڈر"), restaurants: tr("Restaurant", "ریسٹورنٹ"),
+  grocery_stores: tr("Shop", "دکان"), payouts: tr("Payment", "ادائیگی"), refunds: tr("Refund", "ریفنڈ"), rider_remittances: tr("Cash Collection", "کیش وصولی"),
+  user_roles: tr("Role", "کردار"), partner_applications: tr("Request", "درخواست"), approval_requests: tr("Approval", "منظوری"), staff_scopes: tr("City", "شہر"),
 };
-const ACTION: Record<string, string> = { insert: "بنایا", update: "بدلا", delete: "ہٹایا", approve: "منظور کیا", reject: "مسترد کیا", request: "درخواست دی" };
+const ACTION: Record<string, string> = { insert: tr("Created", "بنایا"), update: tr("Changed", "بدلا"), delete: tr("Removed", "ہٹایا"), approve: tr("Approved", "منظور کیا"), reject: tr("Rejected", "مسترد کیا"), request: tr("Requested", "درخواست دی") };
 
 const safeCell = (v: unknown) => {
   const s = String(v ?? "");
@@ -69,27 +70,27 @@ const TeamActivityTab = () => {
       {permissions.includes("team") && (
         <Card>
           <CardHeader className="flex-row items-center justify-between gap-2 pb-2">
-            <CardTitle className="text-base">ٹیم کی کارروائیاں</CardTitle>
+            <CardTitle className="text-base">{tr("Team Activity", "ٹیم کی کارروائیاں")}</CardTitle>
             <div className="flex items-center gap-1">
               {[1, 7, 30].map((d) => (
-                <Button key={d} size="sm" variant={days === d ? "default" : "outline"} onClick={() => { setPage(1); setDays(d); }} className="h-7 px-2.5 text-xs">{d === 1 ? "آج" : `${d} دن`}</Button>
+                <Button key={d} size="sm" variant={days === d ? "default" : "outline"} onClick={() => { setPage(1); setDays(d); }} className="h-7 px-2.5 text-xs">{d === 1 ? tr("Today", "آج") : `${d} ${tr("Day", "دن")}`}</Button>
               ))}
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={exportCsv}><Download className="h-4 w-4" /></Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
-            {perf.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">اس مدت میں کوئی کام ریکارڈ نہیں</p>}
+            {perf.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">{tr("No activity recorded for this period", "اس مدت میں کوئی کام ریکارڈ نہیں")}</p>}
             {perf.map((r) => (
               <div key={r.actor_id} className="rounded-xl border p-3">
                 <div className="flex items-center justify-between">
                   <span className="truncate text-sm font-bold">{r.full_name || r.email}</span>
-                  <span className="text-end"><span className="block text-lg font-extrabold text-primary">{r.total_actions}</span><span className="text-[10px] text-muted-foreground">کل کارروائیاں</span></span>
+                  <span className="text-end"><span className="block text-lg font-extrabold text-primary">{r.total_actions}</span><span className="text-[10px] text-muted-foreground">{tr("Total Actions", "کل کارروائیاں")}</span></span>
                 </div>
                 <div className="mt-1 grid grid-cols-4 gap-1 text-center text-[10px] text-muted-foreground">
-                  <div><p className="text-sm font-bold text-foreground">{r.order_actions}</p>آرڈر کارروائیاں</div>
-                  <div><p className="text-sm font-bold text-foreground">{r.rider_actions}</p>رائیڈر کارروائیاں</div>
-                  <div><p className="text-sm font-bold text-foreground">{r.finance_actions}</p>فنانس</div>
-                  <div><p className="text-sm font-bold text-foreground">{r.approvals}</p>منظوری</div>
+                  <div><p className="text-sm font-bold text-foreground">{r.order_actions}</p>{tr("Order Actions", "آرڈر کارروائیاں")}</div>
+                  <div><p className="text-sm font-bold text-foreground">{r.rider_actions}</p>{tr("Rider Actions", "رائیڈر کارروائیاں")}</div>
+                  <div><p className="text-sm font-bold text-foreground">{r.finance_actions}</p>{tr("Finance", "فنانس")}</div>
+                  <div><p className="text-sm font-bold text-foreground">{r.approvals}</p>{tr("Approval", "منظوری")}</div>
                 </div>
               </div>
             ))}
@@ -99,21 +100,21 @@ const TeamActivityTab = () => {
 
       <Card>
         <CardHeader className="flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base">عملے کے کاموں کا ریکارڈ</CardTitle>
+          <CardTitle className="text-base">{tr("Staff Activity Log", "عملے کے کاموں کا ریکارڈ")}</CardTitle>
           <Button variant="ghost" size="sm" onClick={load}><RefreshCw className="h-4 w-4" /></Button>
         </CardHeader>
         <CardContent className="space-y-1.5">
-          {log.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ابھی کوئی ریکارڈ نہیں</p>}
+          {log.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">{tr("No records yet", "ابھی کوئی ریکارڈ نہیں")}</p>}
           {log.map((r) => (
             <details key={r.id} className="rounded-lg border px-3 py-2 text-xs">
               <summary className="cursor-pointer">
-                <b>{names[r.actor_id] || r.actor_id?.slice(0, 8)}</b> نے {ENTITY[r.entity_type] || r.entity_type} {r.entity_id ? `#${String(r.entity_id).slice(0, 8)}` : ""} {ACTION[r.action] || r.action}
+                <b>{names[r.actor_id] || r.actor_id?.slice(0, 8)}</b> {tr("by", "نے")} {ENTITY[r.entity_type] || r.entity_type} {r.entity_id ? `#${String(r.entity_id).slice(0, 8)}` : ""} {ACTION[r.action] || r.action}
                 <span className="ms-2 text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString("ur-PK-u-nu-latn", { timeZone: "Asia/Karachi" })}</span>
               </summary>
               <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap text-[10px] text-muted-foreground" dir="ltr">{JSON.stringify(r.details, null, 1)}</pre>
             </details>
           ))}
-          <div className="flex justify-between items-center pt-2"><Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>پچھلا</Button><span className="text-xs">{count} کارروائیاں — صفحہ {page}</span><Button variant="outline" size="sm" disabled={page * 30 >= count} onClick={() => setPage(p => p + 1)}>اگلا</Button></div>
+          <div className="flex justify-between items-center pt-2"><Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>{tr("Previous", "پچھلا")}</Button><span className="text-xs">{count} {tr("Actions — Page", "کارروائیاں — صفحہ")} {page}</span><Button variant="outline" size="sm" disabled={page * 30 >= count} onClick={() => setPage(p => p + 1)}>{tr("Next", "اگلا")}</Button></div>
         </CardContent>
       </Card>
     </div>

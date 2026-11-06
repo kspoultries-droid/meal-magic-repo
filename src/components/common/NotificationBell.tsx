@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CheckCheck } from "lucide-react";
@@ -14,11 +15,11 @@ type Notif = { id: string; title: string; body: string | null; path: string | nu
 
 const timeAgo = (iso: string) => {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (m < 1) return "ابھی";
-  if (m < 60) return `${m} منٹ پہلے`;
+  if (m < 1) return tr("Just now", "ابھی");
+  if (m < 60) return `${m} ${tr("mins ago", "منٹ پہلے")}`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h} گھنٹے پہلے`;
-  return `${Math.floor(h / 24)} دن پہلے`;
+  if (h < 24) return `${h} ${tr("hours ago", "گھنٹے پہلے")}`;
+  return `${Math.floor(h / 24)} ${tr("days ago", "دن پہلے")}`;
 };
 
 const NotificationBell = ({ className = "" }: { className?: string }) => {
@@ -89,26 +90,26 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
 
   const askPermission = async () => {
     if (pushBusy) return;
-    if (!native && window.top !== window.self) return toast.info("اطلاعات چالو کرنے کے لیے ایپ الگ ٹیب میں کھولیں");
+    if (!native && window.top !== window.self) return toast.info(tr("Open app in a new tab to enable notifications", "اطلاعات چالو کرنے کے لیے ایپ الگ ٹیب میں کھولیں"));
     let r: string;
     setPushBusy(true);
     try { r = native ? await enableNativePush() : await enableWebPush(user.id); } catch (e) {
       console.error(e);
-      return toast.error(e instanceof Error ? e.message : "فون رجسٹر نہیں ہو سکا — انٹرنیٹ چیک کر کے دوبارہ کوشش کریں");
+      return toast.error(e instanceof Error ? e.message : tr("Failed to register device — check your internet and try again", "فون رجسٹر نہیں ہو سکا — انٹرنیٹ چیک کر کے دوبارہ کوشش کریں"));
     } finally { setPushBusy(false); }
     setPushOk(r === "registered");
-    if (r === "registered") toast.success("فون اطلاعات کے لیے رجسٹر ہو گیا — فون سے زبردستی بند کرنے یا اجازت روکنے پر اطلاعات رک سکتی ہیں");
-    else if (r === "not-configured") toast.error("سرور پر اطلاعات کی ترتیب ابھی مکمل نہیں — ایڈمن سے رابطہ کریں");
-    else if (r === "unsupported") toast.error("یہ براؤزر پس منظر کی اطلاعات سپورٹ نہیں کرتا — Chrome استعمال کریں");
-    else if (r === "open-in-new-tab") toast.info("ایپ الگ ٹیب میں کھولیں");
-    else toast.error(native ? "فون کی ترتیبات میں Easy Life کی اطلاعات کی اجازت دیں" : "اجازت نہیں ملی — براؤزر سیٹنگ سے چالو کریں");
+    if (r === "registered") toast.success(tr("Device registered for notifications — force stopping or revoking permissions may stop alerts", "فون اطلاعات کے لیے رجسٹر ہو گیا — فون سے زبردستی بند کرنے یا اجازت روکنے پر اطلاعات رک سکتی ہیں"));
+    else if (r === "not-configured") toast.error(tr("Server notification setup incomplete — contact admin", "سرور پر اطلاعات کی ترتیب ابھی مکمل نہیں — ایڈمن سے رابطہ کریں"));
+    else if (r === "unsupported") toast.error(tr("This browser doesn't support background notifications — use Chrome", "یہ براؤزر پس منظر کی اطلاعات سپورٹ نہیں کرتا — Chrome استعمال کریں"));
+    else if (r === "open-in-new-tab") toast.info(tr("Open app in a separate tab", "ایپ الگ ٹیب میں کھولیں"));
+    else toast.error(native ? tr("Allow Easy Life notifications in phone settings", "فون کی ترتیبات میں Easy Life کی اطلاعات کی اجازت دیں") : tr("Permission denied — enable in browser settings", "اجازت نہیں ملی — براؤزر سیٹنگ سے چالو کریں"));
   };
 
   return (
     <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o && unread > 0) markAll(); }}>
 
       <PopoverTrigger asChild>
-        <button aria-label="اطلاعات" className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent/40 ${className}`}>
+        <button aria-label={tr("Notifications", "اطلاعات")} className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent/40 ${className}`}>
           <Bell className="h-5 w-5" />
           {unread > 0 && (
             <span className="absolute -end-0.5 -top-0.5 min-w-[18px] rounded-full bg-destructive px-1 text-center text-[10px] font-bold leading-[18px] text-destructive-foreground">
@@ -119,14 +120,14 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0" dir="rtl">
         <div className="flex items-center justify-between border-b px-3 py-2">
-          <span className="text-sm font-bold">اطلاعات</span>
+          <span className="text-sm font-bold">{tr("Notifications", "اطلاعات")}</span>
           {unread > 0 && (
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={markAll}><CheckCheck className="h-3.5 w-3.5" /> سب پڑھ لیں</Button>
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={markAll}><CheckCheck className="h-3.5 w-3.5" /> {tr("Mark all as read", "سب پڑھ لیں")}</Button>
           )}
         </div>
         <div className="max-h-96 overflow-y-auto">
           {items.length === 0 ? (
-            <p className="py-8 text-center text-xs text-muted-foreground">کوئی اطلاع نہیں</p>
+            <p className="py-8 text-center text-xs text-muted-foreground">{tr("No notifications", "کوئی اطلاع نہیں")}</p>
           ) : items.map((n) => (
             <button key={n.id} onClick={() => openItem(n)} className={`block w-full border-b px-3 py-2 text-start hover:bg-accent/40 ${n.read_at ? "" : "bg-primary/5"}`}>
               <div className="flex items-start gap-2">
@@ -141,9 +142,9 @@ const NotificationBell = ({ className = "" }: { className?: string }) => {
           ))}
         </div>
         {(native || "Notification" in window) && (pushOk ? (
-          <p className="w-full border-t py-2 text-center text-[11px] text-muted-foreground">✅ یہ فون اطلاعات کے لیے رجسٹر ہے</p>
+          <p className="w-full border-t py-2 text-center text-[11px] text-muted-foreground">{tr("✅ This phone is registered for notifications", "✅ یہ فون اطلاعات کے لیے رجسٹر ہے")}</p>
         ) : (
-          <Button variant="ghost" disabled={pushBusy} onClick={askPermission} className="w-full rounded-none border-t py-2 text-xs font-semibold text-primary"><Bell className="h-3.5 w-3.5" /> {pushBusy ? "فون رجسٹر ہو رہا ہے…" : "فون پر اطلاعات چالو کریں"}</Button>
+          <Button variant="ghost" disabled={pushBusy} onClick={askPermission} className="w-full rounded-none border-t py-2 text-xs font-semibold text-primary"><Bell className="h-3.5 w-3.5" /> {pushBusy ? tr("Registering phone…", "فون رجسٹر ہو رہا ہے…") : tr("Enable notifications on phone", "فون پر اطلاعات چالو کریں")}</Button>
         ))}
       </PopoverContent>
     </Popover>

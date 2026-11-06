@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,7 +57,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       supabase.from("rider_earnings").select("rider_id, amount").eq("status", "pending").limit(5000),
     ]);
     if ([planResult, riderResult, accountResult, earningResult].some(result => result.error)) {
-      toast.error("ادائیگی کی تفصیل مکمل نہیں آئی؛ دوبارہ تازہ کریں۔");
+      toast.error(tr("Payment details incomplete; please refresh.", "ادائیگی کی تفصیل مکمل نہیں آئی؛ دوبارہ تازہ کریں۔"));
       setLoading(false);
       return;
     }
@@ -103,14 +104,14 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       : await supabase.from("rider_pay_plans").insert({ ...payload, rider_id: rid });
     setBusy(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("پے پلان محفوظ ✓");
+    toast.success(tr("Pay plan saved ✓", "پے پلان محفوظ ✓"));
     load();
   };
 
   const payRider = async (rid: string) => {
     const f = form[`pay_${rid}`] || {};
     if (busy) return;
-    if (!f.account || String(f.note || "").trim().length < 3) return toast.error("اکاؤنٹ اور ادائیگی کی وجہ درج کریں");
+    if (!f.account || String(f.note || "").trim().length < 3) return toast.error(tr("Enter account and payment reason", "اکاؤنٹ اور ادائیگی کی وجہ درج کریں"));
     setBusy(`pay_${rid}`);
     const { error } = await supabase.rpc("pay_rider", {
       _rider: rid,
@@ -126,13 +127,13 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     setBusy(null);
     if (error) { toast.error(error.message); return; }
     setSelected(null); setConfirmPay(false);
-    toast.success("رائیڈر کو ادائیگی ہو گئی ✅");
+    toast.success(tr("Rider paid ✅", "رائیڈر کو ادائیگی ہو گئی ✅"));
     load();
   };
 
   const requestPayment = async (rid: string) => {
     const f = form[`pay_${rid}`] || {};
-    if (!f.account || String(f.note || "").trim().length < 3) return toast.error("اکاؤنٹ اور ادائیگی کی وجہ درج کریں");
+    if (!f.account || String(f.note || "").trim().length < 3) return toast.error(tr("Enter account and payment reason", "اکاؤنٹ اور ادائیگی کی وجہ درج کریں"));
     const from = f.from || monthStart(); const to = f.to || today();
     const { data: earnings, error: previewError } = await supabase.rpc("staff_rider_payment_preview", { _rider: rid, _from: from, _to: to });
     if (previewError) return toast.error(previewError.message);
@@ -141,7 +142,7 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     const total = salary + Number(earnings || 0) + bonus - deduction;
     const { error } = await supabase.rpc("request_secure_approval", { _kind: "other", _reference_id: rid, _amount: total, _note: String(f.note).trim(), _payload: { operation: "rider_pay", rider_id: rid, total, salary_amount: salary, bonus, deduction, order_earnings: Number(earnings || 0), period_start: from, period_end: to, from_account_id: f.account || null, reference_no: f.ref || null } });
     if (error) return toast.error(error.message);
-    toast.success("عین ادائیگی کی منظوری بھیج دی گئی");
+    toast.success(tr("Exact payment approval sent", "عین ادائیگی کی منظوری بھیج دی گئی"));
   };
 
   const planFields = (key: string, existing: Plan | null) => {
@@ -151,36 +152,36 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
           <div>
-            <label className="text-[10px] text-muted-foreground">ادائیگی کی قسم</label>
+            <label className="text-[10px] text-muted-foreground">{tr("Payment Type", "ادائیگی کی قسم")}</label>
             <select
               className="h-8 w-full rounded-md border bg-background px-2 text-xs"
               value={v("pay_type")}
               onChange={(e) => set(key, "pay_type", e.target.value)}
             >
-              <option value="per_order">صرف فی آرڈر</option>
-              <option value="salaried">صرف ماہانہ تنخواہ</option>
-              <option value="hybrid">تنخواہ + فی آرڈر</option>
+              <option value="per_order">{tr("Per Order Only", "صرف فی آرڈر")}</option>
+              <option value="salaried">{tr("Monthly Salary Only", "صرف ماہانہ تنخواہ")}</option>
+              <option value="hybrid">{tr("Salary + Per Order", "تنخواہ + فی آرڈر")}</option>
             </select>
           </div>
           <div>
-            <label className="text-[10px] text-muted-foreground">ماہانہ تنخواہ Rs</label>
+            <label className="text-[10px] text-muted-foreground">{tr("Monthly Salary Rs", "ماہانہ تنخواہ Rs")}</label>
             <Input type="number" min="0" className="h-8" value={v("monthly_salary")} onChange={(e) => set(key, "monthly_salary", e.target.value)} />
           </div>
           <div>
-            <label className="text-[10px] text-muted-foreground">فی آرڈر Rs</label>
+            <label className="text-[10px] text-muted-foreground">{tr("Per Order Rs", "فی آرڈر Rs")}</label>
             <Input type="number" min="0" className="h-8" value={v("per_order_fee")} onChange={(e) => set(key, "per_order_fee", e.target.value)} />
           </div>
           <div>
-            <label className="text-[10px] text-muted-foreground">فی کلومیٹر Rs</label>
+            <label className="text-[10px] text-muted-foreground">{tr("Per KM Rs", "فی کلومیٹر Rs")}</label>
             <Input type="number" min="0" className="h-8" value={v("per_km_fee")} onChange={(e) => set(key, "per_km_fee", e.target.value)} />
           </div>
           <div>
-            <label className="text-[10px] text-muted-foreground">کم از کم فی آرڈر Rs</label>
+            <label className="text-[10px] text-muted-foreground">{tr("Minimum Per Order Rs", "کم از کم فی آرڈر Rs")}</label>
             <Input type="number" min="0" className="h-8" value={v("min_order_pay")} onChange={(e) => set(key, "min_order_pay", e.target.value)} />
           </div>
         </div>
         <Button size="sm" className="h-8 w-full font-bold md:w-auto md:px-6" disabled={busy === key} onClick={() => savePlan(key === "global" ? null : key)}>
-          {busy === key ? "محفوظ ہو رہا ہے…" : "پے پلان محفوظ کریں"}
+          {busy === key ? tr("Saving…", "محفوظ ہو رہا ہے…") : tr("Save Pay Plan", "پے پلان محفوظ کریں")}
         </Button>
       </div>
     );
@@ -192,62 +193,62 @@ const RiderPayTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     const p = planFor(r.id);
     const f = form[`pay_${r.id}`] || {};
     return (                <div className="space-y-2 rounded-lg bg-secondary/40 p-2">
-                  <p className="text-[11px] font-bold">تنخواہ / کمائی ادا کریں</p>
+                  <p className="text-[11px] font-bold">{tr("Pay Salary / Earnings", "تنخواہ / کمائی ادا کریں")}</p>
                   <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
                     <div>
-                      <label className="text-[10px] text-muted-foreground">مدت — سے</label>
+                      <label className="text-[10px] text-muted-foreground">{tr("Period — From", "مدت — سے")}</label>
                       <Input type="date" className="h-8" value={f.from || monthStart()} onChange={(e) => set(`pay_${r.id}`, "from", e.target.value)} />
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">تک</label>
+                      <label className="text-[10px] text-muted-foreground">{tr("To", "تک")}</label>
                       <Input type="date" className="h-8" value={f.to || today()} onChange={(e) => set(`pay_${r.id}`, "to", e.target.value)} />
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">تنخواہ Rs</label>
+                      <label className="text-[10px] text-muted-foreground">{tr("Salary Rs", "تنخواہ Rs")}</label>
                       <Input type="number" min="0" className="h-8" value={f.salary ?? (p?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)} onChange={(e) => set(`pay_${r.id}`, "salary", e.target.value)} />
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">بونس Rs</label>
+                      <label className="text-[10px] text-muted-foreground">{tr("Bonus Rs", "بونس Rs")}</label>
                       <Input type="number" min="0" className="h-8" value={f.bonus || ""} onChange={(e) => set(`pay_${r.id}`, "bonus", e.target.value)} />
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">کٹوتی Rs</label>
+                      <label className="text-[10px] text-muted-foreground">{tr("Deduction Rs", "کٹوتی Rs")}</label>
                       <Input type="number" min="0" className="h-8" value={f.deduction || ""} onChange={(e) => set(`pay_${r.id}`, "deduction", e.target.value)} />
                     </div>
                     <div>
-                      <label className="text-[10px] text-muted-foreground">ریفرنس نمبر</label>
+                      <label className="text-[10px] text-muted-foreground">{tr("Reference No.", "ریفرنس نمبر")}</label>
                       <Input className="h-8" value={f.ref || ""} onChange={(e) => set(`pay_${r.id}`, "ref", e.target.value)} />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] text-muted-foreground">کس اکاؤنٹ سے</label>
+                    <label className="text-[10px] text-muted-foreground">{tr("From Account", "کس اکاؤنٹ سے")}</label>
                     <select
                       className="h-8 w-full rounded-md border bg-background px-2 text-xs"
                       value={f.account || ""}
                       onChange={(e) => set(`pay_${r.id}`, "account", e.target.value || null)}
                     >
-                      <option value="">— اکاؤنٹ منتخب کریں —</option>
+                      <option value="">{tr("— Select Account —", "— اکاؤنٹ منتخب کریں —")}</option>
                       {accounts.map((a) => (
                         <option key={a.id} value={a.id}>{a.label}{isAdmin ? ` (Rs ${Math.round(Number(a.balance || 0))})` : ""}</option>
                       ))}
                     </select>
                   </div>
-                  <Input aria-label="رائیڈر ادائیگی کی وجہ" placeholder="ادائیگی / مالک کے استثنا کی وجہ" value={f.note || ""} onChange={e => set(`pay_${r.id}`, "note", e.target.value)} />
-                  {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r.id)}>عین ادائیگی کی منظوری مانگیں</Button>}
-                  <Button size="sm" className="h-8 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={async () => { if (!f.account || String(f.note || "").trim().length < 3) return toast.error("اکاؤنٹ اور ادائیگی کی وجہ درج کریں"); setBusy(`pay_${r.id}`); const { data, error } = await supabase.rpc("staff_rider_payment_preview", { _rider: r.id, _from: f.from || monthStart(), _to: f.to || today() }); setBusy(null); if (error) return toast.error(error.message); setPreview(Number(data || 0)); setConfirmPay(true); }}>
-                    {busy === `pay_${r.id}` ? "ادائیگی ہو رہی ہے…" : "ادائیگی کریں"}
+                  <Input aria-label={tr("Rider Payout Reason", "رائیڈر ادائیگی کی وجہ")} placeholder={tr("Reason for Payout / Owner Exemption", "ادائیگی / مالک کے استثنا کی وجہ")} value={f.note || ""} onChange={e => set(`pay_${r.id}`, "note", e.target.value)} />
+                  {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r.id)}>{tr("Request exact payment approval", "عین ادائیگی کی منظوری مانگیں")}</Button>}
+                  <Button size="sm" className="h-8 w-full font-bold" disabled={busy === `pay_${r.id}`} onClick={async () => { if (!f.account || String(f.note || "").trim().length < 3) return toast.error(tr("Enter account and payment reason", "اکاؤنٹ اور ادائیگی کی وجہ درج کریں")); setBusy(`pay_${r.id}`); const { data, error } = await supabase.rpc("staff_rider_payment_preview", { _rider: r.id, _from: f.from || monthStart(), _to: f.to || today() }); setBusy(null); if (error) return toast.error(error.message); setPreview(Number(data || 0)); setConfirmPay(true); }}>
+                    {busy === `pay_${r.id}` ? tr("Processing payment…", "ادائیگی ہو رہی ہے…") : tr("Make Payment", "ادائیگی کریں")}
                   </Button>
                 </div>
 );
   };
   return <section className="space-y-3" dir="rtl">
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2"><h2 className="flex items-center gap-2 font-bold"><Bike className="size-4" /> رائیڈر پلان اور ادائیگی</h2><div className="flex gap-2">{isAdmin && <Button size="sm" variant="outline" onClick={() => setSelected({ id: "global", mode: "plan" })}><Pencil className="size-3.5" /> ڈیفالٹ پلان</Button>}<Button size="icon" variant="outline" aria-label="ادائیگی فہرست تازہ کریں" onClick={() => void load()}><RefreshCw className="size-4" /></Button></div></div>
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2"><h2 className="flex items-center gap-2 font-bold"><Bike className="size-4" /> {tr("Rider Plan & Payout", "رائیڈر پلان اور ادائیگی")}</h2><div className="flex gap-2">{isAdmin && <Button size="sm" variant="outline" onClick={() => setSelected({ id: "global", mode: "plan" })}><Pencil className="size-3.5" /> {tr("Default Plan", "ڈیفالٹ پلان")}</Button>}<Button size="icon" variant="outline" aria-label={tr("Refresh Payout List", "ادائیگی فہرست تازہ کریں")} onClick={() => void load()}><RefreshCw className="size-4" /></Button></div></div>
     <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filtered.length} />
-    {loading ? <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p> : filtered.length === 0 ? <p className="text-xs text-muted-foreground">کوئی رائیڈر نہیں ملا</p> : <div className="divide-y border-y">{filtered.slice((page - 1) * 20, page * 20).map(r => <div key={r.id} className="grid items-center gap-2 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"><div className="min-w-0"><p className="truncate text-sm font-semibold">{names[r.id] || r.id.slice(0, 8)}</p><Badge variant="outline" className="text-[10px]">{planFor(r.id) ? "الگ پلان" : "ڈیفالٹ"}</Badge></div><div className="flex gap-4 text-xs"><span>واجب الادا <strong className="text-success">Rs {Math.round(pending[r.id] || 0)}</strong></span><span>نقد Rs {Math.round(Number(r.wallet_balance || 0))}</span></div><div className="flex gap-1">{isAdmin && <Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, mode: "plan" })}><Pencil className="size-3" /> پلان</Button>}<Button size="sm" onClick={() => { setConfirmPay(false); setSelected({ id: r.id, mode: "pay" }); }}><Wallet className="size-3" /> ادائیگی</Button></div></div>)}</div>}
+    {loading ? <p className="text-xs text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p> : filtered.length === 0 ? <p className="text-xs text-muted-foreground">{tr("No Rider Found", "کوئی رائیڈر نہیں ملا")}</p> : <div className="divide-y border-y">{filtered.slice((page - 1) * 20, page * 20).map(r => <div key={r.id} className="grid items-center gap-2 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"><div className="min-w-0"><p className="truncate text-sm font-semibold">{names[r.id] || r.id.slice(0, 8)}</p><Badge variant="outline" className="text-[10px]">{planFor(r.id) ? tr("Custom Plan", "الگ پلان") : tr("Default", "ڈیفالٹ")}</Badge></div><div className="flex gap-4 text-xs"><span>{tr("Payable", "واجب الادا")} <strong className="text-success">Rs {Math.round(pending[r.id] || 0)}</strong></span><span>{tr("Cash Rs", "نقد Rs")} {Math.round(Number(r.wallet_balance || 0))}</span></div><div className="flex gap-1">{isAdmin && <Button size="sm" variant="outline" onClick={() => setSelected({ id: r.id, mode: "plan" })}><Pencil className="size-3" /> {tr("Plan", "پلان")}</Button>}<Button size="sm" onClick={() => { setConfirmPay(false); setSelected({ id: r.id, mode: "pay" }); }}><Wallet className="size-3" /> {tr("Payment", "ادائیگی")}</Button></div></div>)}</div>}
     <AdminPagination page={page} count={filtered.length} onPage={setPage} />
-    <Dialog open={selected !== null} onOpenChange={open => { if (!open && !busy) { setSelected(null); setConfirmPay(false); } }}><DialogContent aria-describedby={undefined} className="max-h-[85dvh] max-w-xl overflow-y-auto" dir="rtl"><DialogHeader><DialogTitle>{selected?.mode === "plan" ? "پے پلان" : "رائیڈر کی ادائیگی"} — {selected?.id === "global" ? "ڈیفالٹ" : names[selected?.id || ""]}</DialogTitle></DialogHeader>
+    <Dialog open={selected !== null} onOpenChange={open => { if (!open && !busy) { setSelected(null); setConfirmPay(false); } }}><DialogContent aria-describedby={undefined} className="max-h-[85dvh] max-w-xl overflow-y-auto" dir="rtl"><DialogHeader><DialogTitle>{selected?.mode === "plan" ? tr("Pay Plan", "پے پلان") : tr("Rider Payout", "رائیڈر کی ادائیگی")} — {selected?.id === "global" ? tr("Default", "ڈیفالٹ") : names[selected?.id || ""]}</DialogTitle></DialogHeader>
       {isAdmin && selected?.mode === "plan" && planFields(selected.id, selected.id === "global" ? globalPlan : planFor(selected.id))}
-      {selected?.mode === "pay" && selectedRider && (!confirmPay ? paymentFields(selectedRider) : <div className="space-y-3"><p className="text-sm font-bold">ادائیگی کی حتمی تصدیق</p><p className="text-xs">واجب الادا کمائی: Rs {Math.round(preview || 0)} · تنخواہ: Rs {Number(form[`pay_${selectedRider.id}`]?.salary ?? planFor(selectedRider.id)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)}</p><p className="text-xs text-muted-foreground">بونس: Rs {Number(form[`pay_${selectedRider.id}`]?.bonus || 0)} · کٹوتی: Rs {Number(form[`pay_${selectedRider.id}`]?.deduction || 0)}</p><div className="flex gap-2"><Button disabled={busy !== null} onClick={() => void payRider(selectedRider.id)}>{busy ? "ادائیگی ہو رہی ہے…" : "تصدیق اور ادائیگی"}</Button><Button variant="outline" disabled={busy !== null} onClick={() => setConfirmPay(false)}>واپس</Button></div></div>)}
+      {selected?.mode === "pay" && selectedRider && (!confirmPay ? paymentFields(selectedRider) : <div className="space-y-3"><p className="text-sm font-bold">{tr("Final Payout Confirmation", "ادائیگی کی حتمی تصدیق")}</p><p className="text-xs">{tr("Payable Earnings: Rs", "واجب الادا کمائی: Rs")} {Math.round(preview || 0)} {tr("· Salary: Rs", "· تنخواہ: Rs")} {Number(form[`pay_${selectedRider.id}`]?.salary ?? planFor(selectedRider.id)?.monthly_salary ?? globalPlan?.monthly_salary ?? 0)}</p><p className="text-xs text-muted-foreground">{tr("Bonus: Rs", "بونس: Rs")} {Number(form[`pay_${selectedRider.id}`]?.bonus || 0)} {tr("· Deduction: Rs", "· کٹوتی: Rs")} {Number(form[`pay_${selectedRider.id}`]?.deduction || 0)}</p><div className="flex gap-2"><Button disabled={busy !== null} onClick={() => void payRider(selectedRider.id)}>{busy ? tr("Processing payment…", "ادائیگی ہو رہی ہے…") : tr("Confirm and Pay", "تصدیق اور ادائیگی")}</Button><Button variant="outline" disabled={busy !== null} onClick={() => setConfirmPay(false)}>{tr("Returned", "واپس")}</Button></div></div>)}
     </DialogContent></Dialog>
   </section>;
 };

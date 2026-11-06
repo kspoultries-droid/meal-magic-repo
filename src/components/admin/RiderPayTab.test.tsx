@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { fireEvent, render, screen, waitFor, cleanup } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import RiderPayTab from "./RiderPayTab";
@@ -20,11 +21,11 @@ it("submits the displayed default salary only after final confirmation", async (
   render(<RiderPayTab />);
   await screen.findByText("Test rider");
   fireEvent.click(screen.getByRole("button", { name: /^ادائیگی$/ }));
-  fireEvent.change(screen.getByLabelText("رائیڈر ادائیگی کی وجہ"), { target: { value: "Monthly verified payment" } });
+  fireEvent.change(screen.getByLabelText(tr("Rider Payout Reason", "رائیڈر ادائیگی کی وجہ")), { target: { value: "Monthly verified payment" } });
   fireEvent.change(screen.getByRole("combobox"), { target: { value: "account" } });
   fireEvent.click(screen.getByRole("button", { name: /ادائیگی کریں/ }));
-  await screen.findByText("تصدیق اور ادائیگی");
+  await screen.findByText(tr("Confirm and Pay", "تصدیق اور ادائیگی"));
   expect(rpc).not.toHaveBeenCalledWith("pay_rider", expect.anything());
-  fireEvent.click(screen.getByRole("button", { name: "تصدیق اور ادائیگی" }));
+  fireEvent.click(screen.getByRole("button", { name: tr("Confirm and Pay", "تصدیق اور ادائیگی") }));
   await waitFor(() => expect(rpc).toHaveBeenCalledWith("pay_rider", expect.objectContaining({ _rider: "rider", _salary: 5000, _from_account_id: "account", _note: "Monthly verified payment" })));
 });

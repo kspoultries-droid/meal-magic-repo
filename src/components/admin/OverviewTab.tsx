@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,21 +69,21 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
   const exportTrend = () => {
     downloadCsv(
       `easylife-daily-trend-${new Date().toISOString().slice(0, 10)}`,
-      ["تاریخ", "آرڈرز", "کل سیل", "کمیشن"],
+      [tr("Date", "تاریخ"), tr("Orders", "آرڈرز"), tr("Total Sales", "کل سیل"), tr("Commission", "کمیشن")],
       trend.map((t) => [t.day, t.orders_count, Math.round(Number(t.gross || 0)), Math.round(Number(t.commission || 0))])
     );
   };
 
   const cards = data
     ? [
-        { label: "آج کے آرڈرز", value: `${Number(data.food_today) + Number(data.grocery_today)}`, sub: `فوڈ ${data.food_today} • گروسری ${data.grocery_today}`, icon: ShoppingBag, tone: "text-foreground", section: "operations", subTab: "orders" },
-        { label: "آج کی سیل", value: `Rs ${Math.round(Number(data.gross_today))}`, sub: `کمیشن Rs ${Math.round(Number(data.commission_today))}`, icon: Wallet, tone: "text-primary", section: "finance", subTab: "revenue" },
-        { label: "زیرِ عمل آرڈرز", value: `${data.pending_orders}`, sub: `بغیر رائیڈر ${data.unassigned_orders}`, icon: RefreshCw, tone: "text-foreground", section: "operations", subTab: "orders" },
-        { label: "رُکے ہوئے آرڈرز", value: `${data.stuck_orders}`, sub: "45 منٹ سے زیادہ", icon: AlertTriangle, tone: data.stuck_orders ? "text-destructive" : "text-muted-foreground", section: "operations", subTab: "grocery-dispatch" },
-        { label: "آن لائن رائیڈرز", value: `${data.riders_online}`, sub: `ایپ میں فعال ${data.riders_present ?? 0} • کل رائیڈر ${data.riders_total}`, icon: Bike, tone: data.riders_online ? "text-success" : "text-muted-foreground", section: "partners", subTab: "riders" },
-        { label: "بند دکانیں", value: `${data.shops_closed}/${data.shops_total}`, sub: "ریسٹورنٹس", icon: Store, tone: "text-foreground", section: "partners", subTab: "restaurants" },
-        { label: "نئی درخواستیں", value: `${data.pending_applications}`, sub: "منظوری کی منتظر", icon: Store, tone: data.pending_applications ? "text-warning" : "text-muted-foreground", section: "partners", subTab: "applications" },
-        { label: "زیرِ التوا ادائیگیاں", value: `${Number(data.pending_payouts) + Number(data.pending_remittances)}`, sub: `سلپس ${data.pending_remittances}`, icon: Wallet, tone: "text-foreground", section: "finance", subTab: "payouts" },
+        { label: tr("Today's Orders", "آج کے آرڈرز"), value: `${Number(data.food_today) + Number(data.grocery_today)}`, sub: `${tr("Food", "فوڈ")} ${data.food_today} ${tr("• Grocery", "• گروسری")} ${data.grocery_today}`, icon: ShoppingBag, tone: "text-foreground", section: "operations", subTab: "orders" },
+        { label: tr("Today's Sales", "آج کی سیل"), value: `Rs ${Math.round(Number(data.gross_today))}`, sub: `${tr("Commission Rs", "کمیشن Rs")} ${Math.round(Number(data.commission_today))}`, icon: Wallet, tone: "text-primary", section: "finance", subTab: "revenue" },
+        { label: tr("Active Orders", "زیرِ عمل آرڈرز"), value: `${data.pending_orders}`, sub: `${tr("Unassigned", "بغیر رائیڈر")} ${data.unassigned_orders}`, icon: RefreshCw, tone: "text-foreground", section: "operations", subTab: "orders" },
+        { label: tr("On-Hold Orders", "رُکے ہوئے آرڈرز"), value: `${data.stuck_orders}`, sub: tr("> 45 mins", "45 منٹ سے زیادہ"), icon: AlertTriangle, tone: data.stuck_orders ? "text-destructive" : "text-muted-foreground", section: "operations", subTab: "grocery-dispatch" },
+        { label: tr("Online Riders", "آن لائن رائیڈرز"), value: `${data.riders_online}`, sub: `${tr("Active in App", "ایپ میں فعال")} ${data.riders_present ?? 0} ${tr("• Total Riders", "• کل رائیڈر")} ${data.riders_total}`, icon: Bike, tone: data.riders_online ? "text-success" : "text-muted-foreground", section: "partners", subTab: "riders" },
+        { label: tr("Closed Stores", "بند دکانیں"), value: `${data.shops_closed}/${data.shops_total}`, sub: tr("Restaurants", "ریسٹورنٹس"), icon: Store, tone: "text-foreground", section: "partners", subTab: "restaurants" },
+        { label: tr("New Requests", "نئی درخواستیں"), value: `${data.pending_applications}`, sub: tr("Pending Approval", "منظوری کی منتظر"), icon: Store, tone: data.pending_applications ? "text-warning" : "text-muted-foreground", section: "partners", subTab: "applications" },
+        { label: tr("Pending Payments", "زیرِ التوا ادائیگیاں"), value: `${Number(data.pending_payouts) + Number(data.pending_remittances)}`, sub: `${tr("Slips", "سلپس")} ${data.pending_remittances}`, icon: Wallet, tone: "text-foreground", section: "finance", subTab: "payouts" },
       ]
     : [];
 
@@ -90,7 +91,7 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
     <div className="space-y-3">
       <Card className="border-border/60">
         <CardHeader className="flex flex-row items-center justify-between gap-2 px-4 py-3">
-          <CardTitle className="text-base">کمانڈ سینٹر</CardTitle>
+          <CardTitle className="text-base">{tr("Command Center", "کمانڈ سینٹر")}</CardTitle>
           <div className="flex gap-1">
             <Button size="sm" variant="outline" onClick={exportTrend} disabled={!trend.length}><Download className="h-3.5 w-3.5" /></Button>
             <Button size="sm" variant="outline" onClick={() => load(true)}><RefreshCw className="h-3.5 w-3.5" /></Button>
@@ -98,9 +99,9 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
         </CardHeader>
         <CardContent className="px-4 pb-4">
           {loading ? (
-            <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
+            <p className="text-xs text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>
           ) : !data ? (
-            <p className="text-xs text-muted-foreground">ڈیٹا دستیاب نہیں</p>
+            <p className="text-xs text-muted-foreground">{tr("No data available", "ڈیٹا دستیاب نہیں")}</p>
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {cards.map((c) => (
@@ -123,9 +124,9 @@ const OverviewTab = ({ onNavigate }: { onNavigate?: NavFn }) => {
       </Card>
 
       <Card className="border-border/60">
-        <CardHeader className="px-4 py-3"><CardTitle className="text-sm">30 دن کا رجحان (سیل اور کمیشن)</CardTitle></CardHeader>
+        <CardHeader className="px-4 py-3"><CardTitle className="text-sm">{tr("30-Day Trend (Sales & Commission)", "30 دن کا رجحان (سیل اور کمیشن)")}</CardTitle></CardHeader>
         <CardContent className="px-2 pb-3">
-          <TrendChart data={chart} valueLabel="سیل" secondaryLabel="کمیشن" height={200} />
+          <TrendChart data={chart} valueLabel={tr("Sale", "سیل")} secondaryLabel={tr("Commission", "کمیشن")} height={200} />
         </CardContent>
       </Card>
 

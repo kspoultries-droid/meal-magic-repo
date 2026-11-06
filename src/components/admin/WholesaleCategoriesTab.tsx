@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,20 +36,20 @@ const WholesaleCategoriesTab = () => {
   useEffect(() => { fetchCats(); }, []);
 
   const handleAdd = async () => {
-    if (!form.name.trim()) return toast.error("نام درج کریں");
+    if (!form.name.trim()) return toast.error(tr("Enter name", "نام درج کریں"));
     const { error } = await supabase.from("wholesale_categories").insert(form as any);
     if (error) return toast.error(error.message);
-    toast.success("کیٹیگری شامل ہو گئی");
+    toast.success(tr("Category added", "کیٹیگری شامل ہو گئی"));
     setForm({ name: "", name_ur: "", icon: "Package", sort_order: 0, kind: "item" });
     setAdding(false);
     fetchCats();
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("ڈلیٹ کریں؟")) return;
+    if (!confirm(tr("Delete?", "ڈلیٹ کریں؟"))) return;
     const { error } = await supabase.from("wholesale_categories").delete().eq("id", id);
     if (error) return toast.error(error.message);
-    toast.success("ڈلیٹ ہو گیا");
+    toast.success(tr("Deleted", "ڈلیٹ ہو گیا"));
     fetchCats();
   };
 
@@ -64,7 +65,7 @@ const WholesaleCategoriesTab = () => {
       name: editForm.name, name_ur: editForm.name_ur, icon: editForm.icon, sort_order: editForm.sort_order, kind: editForm.kind || "item",
     }).eq("id", editId);
     if (error) return toast.error(error.message);
-    toast.success("اپڈیٹ ہو گیا");
+    toast.success(tr("Updated", "اپڈیٹ ہو گیا"));
     setEditId(null);
     fetchCats();
   };
@@ -72,20 +73,20 @@ const WholesaleCategoriesTab = () => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>ہول سیل کیٹیگریز / Wholesale Categories</CardTitle>
+        <CardTitle>{tr("Wholesale Categories", "ہول سیل کیٹیگریز / Wholesale Categories")}</CardTitle>
         <Button size="sm" onClick={() => setAdding(!adding)}>
-          <Plus className="h-4 w-4 mr-1" /> نئی کیٹیگری
+          <Plus className="h-4 w-4 mr-1" /> {tr("New Category", "نئی کیٹیگری")}
         </Button>
       </CardHeader>
       <CardContent>
         {adding && (
           <div className="grid grid-cols-1 md:grid-cols-6 gap-2 mb-4 p-3 border rounded-lg bg-muted/30">
             <Input placeholder="Name (Toys)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <Input placeholder="نام اردو" value={form.name_ur} onChange={(e) => setForm({ ...form, name_ur: e.target.value })} />
+            <Input placeholder={tr("Urdu Name", "نام اردو")} value={form.name_ur} onChange={(e) => setForm({ ...form, name_ur: e.target.value })} />
             <Input placeholder="Icon (Package)" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} />
             <select className="border rounded-md p-2 bg-background text-foreground text-sm" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
-              <option value="item">آئٹم کیٹیگری / Item</option>
-              <option value="shop">دکان کی قسم / Shop</option>
+              <option value="item">{tr("Item Category / Item", "آئٹم کیٹیگری / Item")}</option>
+              <option value="shop">{tr("Shop Type / Shop", "دکان کی قسم / Shop")}</option>
             </select>
             <Input type="number" placeholder="Sort" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: +e.target.value })} />
             <Button onClick={handleAdd}>Save</Button>
@@ -94,13 +95,13 @@ const WholesaleCategoriesTab = () => {
         <p className="text-xs text-muted-foreground mb-3">
           💡 Icon names from <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="text-primary underline">lucide.dev</a> (e.g. Package, Shirt, Cpu, ToyBrick, Wheat).
         </p>
-        {loading ? <p>لوڈ ہو رہا ہے...</p> : (
+        {loading ? <p>{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Sort</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>اردو</TableHead>
+                <TableHead>{tr("Urdu", "اردو")}</TableHead>
                 <TableHead>Icon</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Active</TableHead>
@@ -136,7 +137,7 @@ const WholesaleCategoriesTab = () => {
                       <TableCell><code className="text-xs">{c.icon}</code></TableCell>
                       <TableCell>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.kind === "shop" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                          {c.kind === "shop" ? "دکان" : "آئٹم"}
+                          {c.kind === "shop" ? tr("Shop", "دکان") : tr("Item", "آئٹم")}
                         </span>
                       </TableCell>
                       <TableCell>

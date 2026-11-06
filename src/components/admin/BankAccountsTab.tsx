@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,10 +11,10 @@ import { Landmark, RefreshCw, Plus, ArrowDownLeft, ArrowUpRight } from "lucide-r
 import { AdminPagination } from "./AdminListTools";
 
 const METHODS = [
-  { value: "cash", label: "نقد (آفس)" },
-  { value: "easypaisa", label: "ایزی پیسہ" },
-  { value: "jazzcash", label: "جاز کیش" },
-  { value: "bank", label: "بینک" },
+  { value: "cash", label: tr("Cash (Office)", "نقد (آفس)") },
+  { value: "easypaisa", label: tr("Easypaisa", "ایزی پیسہ") },
+  { value: "jazzcash", label: tr("JazzCash", "جاز کیش") },
+  { value: "bank", label: tr("Bank", "بینک") },
 ];
 
 const emptyForm = { label: "", method: "bank", bank_name: "", account_title: "", account_number: "" };
@@ -46,16 +47,16 @@ const BankAccountsTab = () => {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [filter, page]);
 
   const reconcile = async (entry: any) => {
-    const reference = window.prompt("اصل بینک اسٹیٹمنٹ کا حوالہ نمبر"); if (!reference) return;
-    const amount = window.prompt("بینک میں اصل رقم Rs", String(entry.amount)); if (amount === null) return;
-    const date = window.prompt("بینک اسٹیٹمنٹ کی تاریخ YYYY-MM-DD", new Date().toISOString().slice(0,10)); if (!date) return;
+    const reference = window.prompt(tr("Original Bank Statement Ref No.", "اصل بینک اسٹیٹمنٹ کا حوالہ نمبر")); if (!reference) return;
+    const amount = window.prompt(tr("Actual Bank Amount Rs", "بینک میں اصل رقم Rs"), String(entry.amount)); if (amount === null) return;
+    const date = window.prompt(tr("Bank Statement Date YYYY-MM-DD", "بینک اسٹیٹمنٹ کی تاریخ YYYY-MM-DD"), new Date().toISOString().slice(0,10)); if (!date) return;
     const { error } = await supabase.rpc("staff_confirm_bank_entry", { _ledger: entry.id, _reference: reference, _amount: Number(amount), _date: date });
     if (error) return toast.error(error.message);
-    toast.success(Number(amount) === Number(entry.amount) ? "آزاد بینک تصدیق محفوظ ہوئی" : "فرق کا تحقیقی کیس کھل گیا"); await load();
+    toast.success(Number(amount) === Number(entry.amount) ? tr("Independent Bank Verification Saved", "آزاد بینک تصدیق محفوظ ہوئی") : tr("Discrepancy Investigation Case Opened", "فرق کا تحقیقی کیس کھل گیا")); await load();
   };
 
   const save = async () => {
-    if (!form.label.trim()) { toast.error("اکاؤنٹ کا نام درج کریں"); return; }
+    if (!form.label.trim()) { toast.error(tr("Enter account name", "اکاؤنٹ کا نام درج کریں")); return; }
     setBusy(true);
     const { error } = await supabase.from("payment_accounts").insert({
       label: form.label.trim(),
@@ -66,7 +67,7 @@ const BankAccountsTab = () => {
     });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("اکاؤنٹ شامل ہو گیا ✓");
+    toast.success(tr("Account added ✓", "اکاؤنٹ شامل ہو گیا ✓"));
     setForm(emptyForm); setShowForm(false); load();
   };
 
@@ -82,7 +83,7 @@ const BankAccountsTab = () => {
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="flex items-center gap-2 text-base"><Landmark className="h-4 w-4" /> EasyLife بینک اکاؤنٹس</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><Landmark className="h-4 w-4" /> {tr("EasyLife Bank Accounts", "EasyLife بینک اکاؤنٹس")}</CardTitle>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
             {isAdmin && <Button size="sm" onClick={() => setShowForm((s) => !s)}><Plus className="h-3.5 w-3.5" /></Button>}
@@ -90,26 +91,26 @@ const BankAccountsTab = () => {
         </CardHeader>
         <CardContent className="space-y-3">
           {isAdmin && <div className="rounded-xl bg-primary/10 px-3 py-2 flex items-center justify-between">
-            <span className="text-xs font-bold text-muted-foreground">کل بیلنس</span>
+            <span className="text-xs font-bold text-muted-foreground">{tr("Total balance", "کل بیلنس")}</span>
             <span className="text-lg font-extrabold text-primary">Rs {Math.round(total)}</span>
           </div>}
 
           {isAdmin && showForm && (
             <div className="rounded-xl border p-3 space-y-2">
-              <Input placeholder="اکاؤنٹ کا نام (مثلاً میزان مین اکاؤنٹ)" value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} className="h-9 text-sm" />
+              <Input placeholder={tr("Account name (e.g. Meezan Main Account)", "اکاؤنٹ کا نام (مثلاً میزان مین اکاؤنٹ)")} value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} className="h-9 text-sm" />
               <div className="grid grid-cols-2 gap-2">
                 <select value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })} className="h-9 rounded-md border bg-background px-2 text-sm">
                   {METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
                 </select>
-                <Input placeholder="بینک کا نام" value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} className="h-9 text-sm" />
+                <Input placeholder={tr("Bank Name", "بینک کا نام")} value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} className="h-9 text-sm" />
               </div>
-              <Input placeholder="اکاؤنٹ ٹائٹل" value={form.account_title} onChange={(e) => setForm({ ...form, account_title: e.target.value })} className="h-9 text-sm" />
-              <Input placeholder="اکاؤنٹ / موبائل نمبر" value={form.account_number} onChange={(e) => setForm({ ...form, account_number: e.target.value })} className="h-9 text-sm" />
-              <Button size="sm" className="w-full font-bold" disabled={busy} onClick={save}>محفوظ کریں</Button>
+              <Input placeholder={tr("Account Title", "اکاؤنٹ ٹائٹل")} value={form.account_title} onChange={(e) => setForm({ ...form, account_title: e.target.value })} className="h-9 text-sm" />
+              <Input placeholder={tr("Account / Mobile Number", "اکاؤنٹ / موبائل نمبر")} value={form.account_number} onChange={(e) => setForm({ ...form, account_number: e.target.value })} className="h-9 text-sm" />
+              <Button size="sm" className="w-full font-bold" disabled={busy} onClick={save}>{tr("Save", "محفوظ کریں")}</Button>
             </div>
           )}
 
-          {accounts.length === 0 && <p className="text-sm text-muted-foreground">ابھی کوئی اکاؤنٹ شامل نہیں</p>}
+          {accounts.length === 0 && <p className="text-sm text-muted-foreground">{tr("No accounts added yet", "ابھی کوئی اکاؤنٹ شامل نہیں")}</p>}
           {accounts.map((a) => (
             <div key={a.id} className="rounded-xl border p-3 flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -120,7 +121,7 @@ const BankAccountsTab = () => {
               <div className="text-right shrink-0">
                 {isAdmin && <p className="font-extrabold text-primary">Rs {Math.round(Number(a.balance || 0))}</p>}
                 {isAdmin && <Button variant="link" size="sm" onClick={() => toggle(a)} className="text-[11px] font-bold text-muted-foreground underline">
-                  {a.is_active ? "غیر فعال کریں" : "فعال کریں"}
+                  {a.is_active ? tr("Deactivate", "غیر فعال کریں") : tr("Activate", "فعال کریں")}
                 </Button>}
               </div>
             </div>
@@ -129,20 +130,20 @@ const BankAccountsTab = () => {
       </Card>
 
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">EasyLife بینک اسٹیٹمنٹ</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">{tr("EasyLife Bank Statement", "EasyLife بینک اسٹیٹمنٹ")}</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           <select value={filter} onChange={(e) => { setFilter(e.target.value); setPage(1); }} className="h-9 w-full rounded-md border bg-background px-2 text-sm">
-            <option value="all">تمام اکاؤنٹس</option>
+            <option value="all">{tr("All accounts", "تمام اکاؤنٹس")}</option>
             {accounts.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
           </select>
 
-          {ledger.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">ابھی کوئی ٹرانزیکشن نہیں</p>}
+          {ledger.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">{tr("No transactions yet", "ابھی کوئی ٹرانزیکشن نہیں")}</p>}
           {ledger.map((l) => (
             <div key={l.id} className="border-b pb-2 flex items-start justify-between gap-2 text-xs">
               <div className="min-w-0">
                 <p className="font-bold flex items-center gap-1">
                   {l.direction === "in" ? <ArrowDownLeft className="h-3 w-3 text-success" /> : <ArrowUpRight className="h-3 w-3 text-destructive" />}
-                  {l.source_type === "rider_remittance" ? "رائیڈر سے وصولی" : l.source_type === "vendor_payout" ? "دکاندار کو ادائیگی" : l.source_type}
+                  {l.source_type === "rider_remittance" ? tr("Rider Collection", "رائیڈر سے وصولی") : l.source_type === "vendor_payout" ? tr("Vendor Payout", "دکاندار کو ادائیگی") : l.source_type}
                 </p>
                 <p className="text-[11px] text-muted-foreground truncate">
                   {l.counterparty_label} {l.destination_account ? `→ ${l.destination_account}` : ""}
@@ -150,13 +151,13 @@ const BankAccountsTab = () => {
                 <p className="text-[10px] text-muted-foreground">
                   {new Date(l.created_at).toLocaleString("en-PK")} {l.reference_no ? `• ${l.reference_no}` : ""}
                 </p>
-                {confirmed.includes(l.id) ? <Badge variant="secondary">بینک سے آزاد تصدیق</Badge> : <Button size="sm" variant="outline" onClick={() => void reconcile(l)}>بینک سے ملائیں</Button>}
+                {confirmed.includes(l.id) ? <Badge variant="secondary">{tr("Independent Bank Verification", "بینک سے آزاد تصدیق")}</Badge> : <Button size="sm" variant="outline" onClick={() => void reconcile(l)}>{tr("Reconcile with Bank", "بینک سے ملائیں")}</Button>}
               </div>
               <div className="text-right shrink-0">
                 <p className={`font-extrabold ${l.direction === "in" ? "text-success" : "text-destructive"}`}>
                   {l.direction === "in" ? "+" : "−"} Rs {Math.round(Number(l.amount))}
                 </p>
-                <p className="text-[10px] text-muted-foreground">بیلنس: Rs {Math.round(Number(l.balance_after))}</p>
+                <p className="text-[10px] text-muted-foreground">{tr("Balance: Rs", "بیلنس: Rs")} {Math.round(Number(l.balance_after))}</p>
               </div>
             </div>
           ))}

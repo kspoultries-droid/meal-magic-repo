@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,17 +17,17 @@ interface OfferRow {
 }
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
-  accepted: { label: "قبول کیا", cls: "bg-success text-success-foreground" },
-  declined: { label: "انکار کیا", cls: "bg-destructive text-destructive-foreground" },
-  expired: { label: "جواب نہیں دیا", cls: "bg-warning text-warning-foreground" },
-  cancelled: { label: "منسوخ", cls: "bg-muted text-muted-foreground" },
-  pending: { label: "زیرِ التوا", cls: "bg-primary text-primary-foreground" },
+  accepted: { label: tr("Accepted", "قبول کیا"), cls: "bg-success text-success-foreground" },
+  declined: { label: tr("Rejected", "انکار کیا"), cls: "bg-destructive text-destructive-foreground" },
+  expired: { label: tr("No Response", "جواب نہیں دیا"), cls: "bg-warning text-warning-foreground" },
+  cancelled: { label: tr("Cancelled", "منسوخ"), cls: "bg-muted text-muted-foreground" },
+  pending: { label: tr("Pending", "زیرِ التوا"), cls: "bg-primary text-primary-foreground" },
 };
 
 const KIND_LABEL: Record<string, string> = {
-  food: "فوڈ",
-  grocery_cart: "گروسری",
-  grocery_list: "لسٹ آرڈر",
+  food: tr("Food", "فوڈ"),
+  grocery_cart: tr("Grocery", "گروسری"),
+  grocery_list: tr("Order List", "لسٹ آرڈر"),
 };
 
 const RiderOfferHistory = ({ riderId }: { riderId: string }) => {
@@ -56,16 +57,16 @@ const RiderOfferHistory = ({ riderId }: { riderId: string }) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between py-3">
-        <CardTitle className="text-sm flex items-center gap-2"><History className="h-4 w-4" /> پیشکشوں کا ریکارڈ</CardTitle>
+        <CardTitle className="text-sm flex items-center gap-2"><History className="h-4 w-4" /> {tr("Offer History", "پیشکشوں کا ریکارڈ")}</CardTitle>
         <Button variant="outline" size="icon" className="h-8 w-8" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
       </CardHeader>
       <CardContent className="space-y-2 pt-0">
         <div className="grid grid-cols-4 gap-1.5">
           {[
-            { label: "قبول", value: count("accepted"), cls: "text-success" },
-            { label: "انکار", value: count("declined"), cls: "text-destructive" },
-            { label: "بے جواب", value: count("expired"), cls: "text-warning" },
-            { label: "قبولیت", value: `${acceptance}%`, cls: "text-primary" },
+            { label: tr("Accepted", "قبول"), value: count("accepted"), cls: "text-success" },
+            { label: tr("Rejected", "انکار"), value: count("declined"), cls: "text-destructive" },
+            { label: tr("Unanswered", "بے جواب"), value: count("expired"), cls: "text-warning" },
+            { label: tr("Acceptance", "قبولیت"), value: `${acceptance}%`, cls: "text-primary" },
           ].map((s) => (
             <div key={s.label} className="rounded-lg border bg-card px-1.5 py-2 text-center">
               <p className="text-[9px] text-muted-foreground">{s.label}</p>
@@ -75,9 +76,9 @@ const RiderOfferHistory = ({ riderId }: { riderId: string }) => {
         </div>
 
         {loading ? (
-          <p className="py-3 text-center text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
+          <p className="py-3 text-center text-xs text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>
         ) : rows.length === 0 ? (
-          <p className="py-3 text-center text-xs text-muted-foreground">ابھی کوئی پیشکش موصول نہیں ہوئی</p>
+          <p className="py-3 text-center text-xs text-muted-foreground">{tr("No offers received yet", "ابھی کوئی پیشکش موصول نہیں ہوئی")}</p>
         ) : (
           <div className="space-y-1.5">
             {rows.map((r) => {

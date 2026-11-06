@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { Search, MapPin, ChevronDown } from "lucide-react";
 import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -63,7 +64,7 @@ const PageHero = ({
               className="flex shrink-0 items-center gap-1 rounded-full border bg-card px-2.5 py-1 text-primary shadow-soft active:scale-95 transition-transform"
             >
               <MapPin className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-bold">ڈیلیوری</span>
+              <span className="text-[11px] font-bold">{tr("Delivery", "ڈیلیوری")}</span>
               <ChevronDown className="h-3 w-3" />
             </button>
           )}

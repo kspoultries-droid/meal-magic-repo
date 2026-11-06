@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,18 +13,18 @@ import AdProductPicker from "@/components/admin/AdProductPicker";
 import { Plus, Trash2, RefreshCw, Megaphone, Eye, EyeOff, Package } from "lucide-react";
 
 const PLACEMENT_LABELS: Record<string, string> = {
-  home: "🏠 ہوم پیج",
-  grocery: "🛒 گروسری",
-  restaurant: "🍔 ریسٹورنٹ",
-  checkout: "💳 چیک آؤٹ",
-  bazar_top: "📦 بازار ٹاپ بینر (15)",
-  bazar: "📦 بازار درمیانی ایڈ",
+  home: tr("🏠 Home", "🏠 ہوم پیج"),
+  grocery: tr("🛒 Grocery", "🛒 گروسری"),
+  restaurant: tr("🍔 Restaurant", "🍔 ریسٹورنٹ"),
+  checkout: tr("💳 Checkout", "💳 چیک آؤٹ"),
+  bazar_top: tr("📦 Market Top Banner (15)", "📦 بازار ٹاپ بینر (15)"),
+  bazar: tr("📦 Market Mid Ad", "📦 بازار درمیانی ایڈ"),
 };
 
 const AD_TYPES: Record<string, { label: string; hint: string; cta: string }> = {
-  banner: { label: "🏢 برانڈ کیمپین", hint: "مثلاً JazzCash، Coca-Cola — صرف برانڈ کی تشہیر", cta: "مزید جانیں" },
-  product: { label: "🛍️ ایک پروڈکٹ", hint: "کسی ایک چیز کی قیمت اور تصویر کے ساتھ", cta: "ابھی خریدیں" },
-  offer: { label: "🏷️ ڈسکاؤنٹ / آفر", hint: "مثلاً 20% OFF یا پرومو کوڈ", cta: "آفر حاصل کریں" },
+  banner: { label: tr("🏢 Brand Campaign", "🏢 برانڈ کیمپین"), hint: tr("e.g. JazzCash, Coca-Cola — brand awareness only", "مثلاً JazzCash، Coca-Cola — صرف برانڈ کی تشہیر"), cta: tr("Learn More", "مزید جانیں") },
+  product: { label: tr("🛍️ Single Product", "🛍️ ایک پروڈکٹ"), hint: tr("With photo and price for a single item", "کسی ایک چیز کی قیمت اور تصویر کے ساتھ"), cta: tr("Buy Now", "ابھی خریدیں") },
+  offer: { label: tr("🏷️ Discount / Offer", "🏷️ ڈسکاؤنٹ / آفر"), hint: tr("e.g. 20% OFF or promo code", "مثلاً 20% OFF یا پرومو کوڈ"), cta: tr("Claim Offer", "آفر حاصل کریں") },
 };
 
 const AdsTab = () => {
@@ -85,14 +86,14 @@ const AdsTab = () => {
     const ext = file.name.split(".").pop();
     const path = `ads/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file);
-    if (error) { toast.error("تصویر اپلوڈ ناکام"); return null; }
+    if (error) { toast.error(tr("Image upload failed", "تصویر اپلوڈ ناکام")); return null; }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     return data.publicUrl;
   };
 
   const saveAd = async () => {
-    if (!title.trim() || !brandName.trim()) { toast.error("ٹائٹل اور برانڈ نام ضروری ہے"); return; }
-    if (placements.length === 0) { toast.error("کم از کم ایک جگہ منتخب کریں"); return; }
+    if (!title.trim() || !brandName.trim()) { toast.error(tr("Title and brand name are required", "ٹائٹل اور برانڈ نام ضروری ہے")); return; }
+    if (placements.length === 0) { toast.error(tr("Select at least one location", "کم از کم ایک جگہ منتخب کریں")); return; }
 
     let finalImageUrl = imageUrl;
     if (imageFile) {
@@ -122,7 +123,7 @@ const AdsTab = () => {
     }
 
     if (error) { toast.error(error.message); return; }
-    toast.success(editId ? "ایڈ اپڈیٹ ہو گئی!" : "نئی ایڈ شامل ہو گئی! 🎉");
+    toast.success(editId ? tr("Ad updated!", "ایڈ اپڈیٹ ہو گئی!") : tr("New ad added! 🎉", "نئی ایڈ شامل ہو گئی! 🎉"));
     resetForm();
     setDialogOpen(false);
     fetchData();
@@ -144,14 +145,14 @@ const AdsTab = () => {
 
   const toggleActive = async (id: string, current: boolean) => {
     await supabase.from("promotional_ads").update({ is_active: !current }).eq("id", id);
-    toast.success(!current ? "ایڈ فعال ہو گئی" : "ایڈ غیر فعال ہو گئی");
+    toast.success(!current ? tr("Ad activated", "ایڈ فعال ہو گئی") : tr("Ad deactivated", "ایڈ غیر فعال ہو گئی"));
     fetchData();
   };
 
   const deleteAd = async (id: string) => {
-    if (!confirm("کیا آپ واقعی یہ ایڈ حذف کرنا چاہتے ہیں؟")) return;
+    if (!confirm(tr("Are you sure you want to delete this ad?", "کیا آپ واقعی یہ ایڈ حذف کرنا چاہتے ہیں؟"))) return;
     await supabase.from("promotional_ads").delete().eq("id", id);
-    toast.success("ایڈ حذف ہو گئی");
+    toast.success(tr("Ad deleted", "ایڈ حذف ہو گئی"));
     fetchData();
   };
 
@@ -160,9 +161,9 @@ const AdsTab = () => {
       {/* Ad Packages */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base"><Package className="w-5 h-5" /> ایڈ پیکیجز / ریٹس</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><Package className="w-5 h-5" /> {tr("Ad Packages / Rates", "ایڈ پیکیجز / ریٹس")}</CardTitle>
           <Button variant="ghost" size="sm" onClick={() => setShowPackages(!showPackages)}>
-            {showPackages ? "چھپائیں ▲" : "دیکھیں ▼"}
+            {showPackages ? tr("Hide ▲", "چھپائیں ▲") : tr("View ▼", "دیکھیں ▼")}
           </Button>
         </CardHeader>
         {showPackages && (
@@ -178,9 +179,9 @@ const AdsTab = () => {
                     ))}
                   </div>
                   <div className="text-sm space-y-0.5">
-                    <p>📅 روزانہ: <strong>Rs {pkg.price_per_day}</strong></p>
-                    <p>📅 ہفتہ وار: <strong>Rs {pkg.price_per_week}</strong></p>
-                    <p>📅 ماہانہ: <strong>Rs {pkg.price_per_month}</strong></p>
+                    <p>{tr("📅 Daily:", "📅 روزانہ:")} <strong>Rs {pkg.price_per_day}</strong></p>
+                    <p>{tr("📅 Weekly:", "📅 ہفتہ وار:")} <strong>Rs {pkg.price_per_week}</strong></p>
+                    <p>{tr("📅 Monthly:", "📅 ماہانہ:")} <strong>Rs {pkg.price_per_month}</strong></p>
                   </div>
                 </div>
               ))}
@@ -192,25 +193,25 @@ const AdsTab = () => {
       {/* Ads Management */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2"><Megaphone className="w-5 h-5" /> پروموشنل ایڈز</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Megaphone className="w-5 h-5" /> {tr("Promotional Ads", "پروموشنل ایڈز")}</CardTitle>
           <div className="flex gap-2">
             <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetForm(); }}>
               <DialogTrigger asChild>
-                <Button size="sm"><Plus className="h-4 w-4 mr-1" /> نئی ایڈ</Button>
+                <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {tr("New Ad", "نئی ایڈ")}</Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{editId ? "ایڈ ایڈٹ کریں" : "نئی ایڈ شامل کریں"}</DialogTitle>
+                  <DialogTitle>{editId ? tr("Edit Ad", "ایڈ ایڈٹ کریں") : tr("Add New Ad", "نئی ایڈ شامل کریں")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3">
                   {/* Live preview */}
                   <div>
-                    <p className="mb-1 text-xs font-medium text-muted-foreground">پیش منظر (فون پر ایسی نظر آئے گی)</p>
-                    <AdSlide ad={{ id: "preview", title: title || "ایڈ کا عنوان", brand_name: brandName || "برانڈ", image_url: previewUrl || imageUrl || null, link_url: linkUrl || null, sort_order: 0, ad_type: adType, subtitle, cta_text: ctaText, offer_badge: offerBadge, promo_code: promoCode, price: parseFloat(price) || null, original_price: parseFloat(originalPrice) || null, show_text: showText }} eager />
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">{tr("Preview (How it looks on phone)", "پیش منظر (فون پر ایسی نظر آئے گی)")}</p>
+                    <AdSlide ad={{ id: "preview", title: title || tr("Ad Title", "ایڈ کا عنوان"), brand_name: brandName || tr("Brand", "برانڈ"), image_url: previewUrl || imageUrl || null, link_url: linkUrl || null, sort_order: 0, ad_type: adType, subtitle, cta_text: ctaText, offer_badge: offerBadge, promo_code: promoCode, price: parseFloat(price) || null, original_price: parseFloat(originalPrice) || null, show_text: showText }} eager />
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">ایڈ کی قسم *</label>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{tr("Ad Type *", "ایڈ کی قسم *")}</label>
                     <div className="grid grid-cols-3 gap-1.5">
                       {Object.entries(AD_TYPES).map(([key, t]) => (
                         <button key={key} type="button" onClick={() => { setAdType(key); if (!ctaText) setCtaText(t.cta); }}
@@ -220,32 +221,32 @@ const AdsTab = () => {
                     <p className="mt-1 text-[11px] text-muted-foreground">{AD_TYPES[adType]?.hint}</p>
                   </div>
 
-                  <Input placeholder="کمپنی / دکان کا نام * (مثلاً JazzCash)" value={brandName} onChange={(e) => setBrandName(e.target.value)} />
-                  <Input placeholder={adType === "product" ? "پروڈکٹ کا نام * (مثلاً Coke 1.5L)" : "بڑا عنوان * (مثلاً ہر بل پر 10% کیش بیک)"} value={title} onChange={(e) => setTitle(e.target.value)} />
-                  <Input placeholder="چھوٹی لائن (اختیاری) — مثلاً صرف اس ہفتے" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
+                  <Input placeholder={tr("Company / Store Name * (e.g., JazzCash)", "کمپنی / دکان کا نام * (مثلاً JazzCash)")} value={brandName} onChange={(e) => setBrandName(e.target.value)} />
+                  <Input placeholder={adType === "product" ? tr("Product Name * (e.g., Coke 1.5L)", "پروڈکٹ کا نام * (مثلاً Coke 1.5L)") : tr("Headline * (e.g., 10% cashback on every bill)", "بڑا عنوان * (مثلاً ہر بل پر 10% کیش بیک)")} value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Input placeholder={tr("Tagline (Optional) — e.g., This week only", "چھوٹی لائن (اختیاری) — مثلاً صرف اس ہفتے")} value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
 
                   {adType === "product" && (
                     <div className="grid grid-cols-2 gap-2">
-                      <Input type="number" placeholder="نئی قیمت Rs" value={price} onChange={(e) => setPrice(e.target.value)} />
-                      <Input type="number" placeholder="پرانی قیمت Rs" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} />
+                      <Input type="number" placeholder={tr("New Price Rs", "نئی قیمت Rs")} value={price} onChange={(e) => setPrice(e.target.value)} />
+                      <Input type="number" placeholder={tr("Old Price Rs", "پرانی قیمت Rs")} value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} />
                     </div>
                   )}
                   {adType !== "banner" && (
                     <div className="grid grid-cols-2 gap-2">
-                      <Input placeholder="نشان (مثلاً 20% OFF)" value={offerBadge} onChange={(e) => setOfferBadge(e.target.value)} />
-                      <Input placeholder="پرومو کوڈ (اختیاری)" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
+                      <Input placeholder={tr("Badge (e.g., 20% OFF)", "نشان (مثلاً 20% OFF)")} value={offerBadge} onChange={(e) => setOfferBadge(e.target.value)} />
+                      <Input placeholder={tr("Promo code (optional)", "پرومو کوڈ (اختیاری)")} value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
                     </div>
                   )}
-                  <Input placeholder="بٹن کا لفظ (مثلاً ابھی خریدیں)" value={ctaText} onChange={(e) => setCtaText(e.target.value)} />
+                  <Input placeholder={tr("Button text (e.g. Buy Now)", "بٹن کا لفظ (مثلاً ابھی خریدیں)")} value={ctaText} onChange={(e) => setCtaText(e.target.value)} />
 
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">تصویر (چوڑی، 2:1 — مثلاً 1200×600)</label>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{tr("Image (wide, 2:1 — e.g. 1200×600)", "تصویر (چوڑی، 2:1 — مثلاً 1200×600)")}</label>
                     <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0] || null; setImageFile(f); setPreviewUrl(f ? URL.createObjectURL(f) : ""); }} className="text-sm" />
-                    <span className="text-xs text-muted-foreground block mt-1">یا URL لکھیں:</span>
-                    <Input placeholder="تصویر URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                    <span className="text-xs text-muted-foreground block mt-1">{tr("Or enter URL:", "یا URL لکھیں:")}</span>
+                    <Input placeholder={tr("Image URL", "تصویر URL")} value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
                     <label className="mt-2 flex items-center gap-2 text-xs text-foreground">
                       <input type="checkbox" checked={!showText} onChange={(e) => setShowText(!e.target.checked)} />
-                      تصویر پر پہلے سے لکھائی ہے — اوپر سے الفاظ نہ لکھیں
+                      {tr("Image already has text — do not add overlay text", "تصویر پر پہلے سے لکھائی ہے — اوپر سے الفاظ نہ لکھیں")}
                     </label>
                   </div>
 
@@ -255,15 +256,15 @@ const AdsTab = () => {
                     if (!brandName && p.store) setBrandName(p.store);
                     if (!imageUrl && !previewUrl && p.image) setImageUrl(p.image);
                     if (p.price && !price) setPrice(String(p.price));
-                    toast.success("پروڈکٹ جوڑ دی گئی");
+                    toast.success(tr("Product added", "پروڈکٹ جوڑ دی گئی"));
                   }} />
                   <div>
-                    <Input placeholder="دبانے پر کہاں جائے؟" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
-                    <p className="mt-1 text-[11px] text-muted-foreground">ایپ کا صفحہ: /restaurant/... یا /grocery/... — ویب سائٹ: https://... — WhatsApp: https://wa.me/923001234567</p>
+                    <Input placeholder={tr("Where should clicking take the user?", "دبانے پر کہاں جائے؟")} value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
+                    <p className="mt-1 text-[11px] text-muted-foreground">{tr("App page: /restaurant/... or /grocery/... — Website: https://... — WhatsApp: https://wa.me/923001234567", "ایپ کا صفحہ: /restaurant/... یا /grocery/... — ویب سائٹ: https://... — WhatsApp: https://wa.me/923001234567")}</p>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">ایڈ کی جگہ *</label>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{tr("Ad placement *", "ایڈ کی جگہ *")}</label>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(PLACEMENT_LABELS).map(([key, label]) => (
                         <button
@@ -281,40 +282,40 @@ const AdsTab = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">پیکیج</label>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{tr("Package", "پیکیج")}</label>
                     <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={packageId} onChange={(e) => setPackageId(e.target.value)}>
-                      <option value="">بغیر پیکیج</option>
-                      {packages.map((pkg) => <option key={pkg.id} value={pkg.id}>{pkg.name} — Rs {pkg.price_per_month}/ماہ</option>)}
+                      <option value="">{tr("No Package", "بغیر پیکیج")}</option>
+                      {packages.map((pkg) => <option key={pkg.id} value={pkg.id}>{pkg.name} — Rs {pkg.price_per_month}{tr("/mo", "/ماہ")}</option>)}
                     </select>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-muted-foreground">شروع</label>
+                      <label className="text-xs text-muted-foreground">{tr("Start", "شروع")}</label>
                       <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">ختم</label>
+                      <label className="text-xs text-muted-foreground">{tr("End", "ختم")}</label>
                       <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-muted-foreground">ادائیگی سٹیٹس</label>
+                      <label className="text-xs text-muted-foreground">{tr("Payment Status", "ادائیگی سٹیٹس")}</label>
                       <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}>
-                        <option value="pending">زیر التواء</option>
-                        <option value="paid">ادا شدہ</option>
-                        <option value="expired">معیاد ختم</option>
+                        <option value="pending">{tr("Pending", "زیر التواء")}</option>
+                        <option value="paid">{tr("Paid", "ادا شدہ")}</option>
+                        <option value="expired">{tr("Expired", "معیاد ختم")}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground">رقم (Rs)</label>
+                      <label className="text-xs text-muted-foreground">{tr("Amount (Rs)", "رقم (Rs)")}</label>
                       <Input type="number" placeholder="0" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
                     </div>
                   </div>
 
-                  <Button className="w-full" onClick={saveAd}>{editId ? "اپڈیٹ کریں" : "شامل کریں"}</Button>
+                  <Button className="w-full" onClick={saveAd}>{editId ? tr("Update", "اپڈیٹ کریں") : tr("Add", "شامل کریں")}</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -322,21 +323,21 @@ const AdsTab = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : ads.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">کوئی ایڈ نہیں — اوپر "نئی ایڈ" سے شامل کریں</p>
+          {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : ads.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">{tr("No ads — add via \"New Ad\" above", "کوئی ایڈ نہیں — اوپر \"نئی ایڈ\" سے شامل کریں")}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>تصویر</TableHead>
-                    <TableHead>ٹائٹل / برانڈ</TableHead>
-                    <TableHead>جگہیں</TableHead>
-                    <TableHead>مدت</TableHead>
-                    <TableHead>ادائیگی</TableHead>
-                    <TableHead>نتائج</TableHead>
-                    <TableHead>سٹیٹس</TableHead>
-                    <TableHead>ایکشنز</TableHead>
+                    <TableHead>{tr("Image", "تصویر")}</TableHead>
+                    <TableHead>{tr("Title / Brand", "ٹائٹل / برانڈ")}</TableHead>
+                    <TableHead>{tr("Locations", "جگہیں")}</TableHead>
+                    <TableHead>{tr("Duration", "مدت")}</TableHead>
+                    <TableHead>{tr("Payment", "ادائیگی")}</TableHead>
+                    <TableHead>{tr("Results", "نتائج")}</TableHead>
+                    <TableHead>{tr("Status", "سٹیٹس")}</TableHead>
+                    <TableHead>{tr("Actions", "ایکشنز")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -365,7 +366,7 @@ const AdsTab = () => {
                       </TableCell>
                       <TableCell>
                         <Badge className={ad.payment_status === "paid" ? "bg-success text-success-foreground" : "bg-warning text-warning-foreground"}>
-                          {ad.payment_status === "paid" ? "ادا شدہ" : ad.payment_status === "expired" ? "ختم" : "زیر التواء"}
+                          {ad.payment_status === "paid" ? tr("Paid", "ادا شدہ") : ad.payment_status === "expired" ? tr("End", "ختم") : tr("Pending", "زیر التواء")}
                         </Badge>
                         <p className="text-xs mt-0.5">Rs {ad.payment_amount}</p>
                       </TableCell>
@@ -376,7 +377,7 @@ const AdsTab = () => {
                       </TableCell>
                       <TableCell>
                         <Badge className={ad.is_active ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
-                          {ad.is_active ? "فعال" : "غیر فعال"}
+                          {ad.is_active ? tr("Active", "فعال") : tr("Inactive", "غیر فعال")}
                         </Badge>
                       </TableCell>
                       <TableCell>

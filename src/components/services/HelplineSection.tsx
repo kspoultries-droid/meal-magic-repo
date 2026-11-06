@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useState, useEffect } from "react";
 import { Phone, MessageCircle, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,7 @@ const HelplineSection = () => {
 
   return (
     <div className="container mx-auto px-4 pb-6">
-      <h2 className="text-xl font-extrabold text-foreground mb-4">Helpline & Support / ہیلپ لائن اور سپورٹ</h2>
+      <h2 className="text-xl font-extrabold text-foreground mb-4">{tr("Helpline & Support", "Helpline & Support / ہیلپ لائن اور سپورٹ")}</h2>
       <div className="grid grid-cols-1 gap-3">
         <a
           href={`tel:${phone}`}
@@ -34,8 +35,8 @@ const HelplineSection = () => {
             <Phone className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground">Call Helpline / ہیلپ لائن کال کریں</h3>
-            <p className="text-xs text-muted-foreground">{phone} (9 AM - 9 PM / صبح 9 سے رات 9 تک)</p>
+            <h3 className="font-bold text-foreground">{tr("Call Helpline", "Call Helpline / ہیلپ لائن کال کریں")}</h3>
+            <p className="text-xs text-muted-foreground">{phone} {tr("(9 AM - 9 PM)", "(9 AM - 9 PM / صبح 9 سے رات 9 تک)")}</p>
           </div>
         </a>
 
@@ -49,8 +50,8 @@ const HelplineSection = () => {
             <MessageCircle className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground">WhatsApp Support / واٹس ایپ سپورٹ</h3>
-            <p className="text-xs text-muted-foreground">Message for instant help / فوری مدد کے لیے میسج کریں</p>
+            <h3 className="font-bold text-foreground">{tr("WhatsApp Support", "WhatsApp Support / واٹس ایپ سپورٹ")}</h3>
+            <p className="text-xs text-muted-foreground">{tr("Message for instant help", "Message for instant help / فوری مدد کے لیے میسج کریں")}</p>
           </div>
         </a>
 
@@ -59,8 +60,8 @@ const HelplineSection = () => {
             <Shield className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-foreground">Service Guarantee / سروس گارنٹی</h3>
-            <p className="text-xs text-muted-foreground">File a complaint within 24 hours if not satisfied / اگر مطمئن نہ ہوں تو 24 گھنٹے میں شکایت درج کرائیں</p>
+            <h3 className="font-bold text-foreground">{tr("Service Guarantee", "Service Guarantee / سروس گارنٹی")}</h3>
+            <p className="text-xs text-muted-foreground">{tr("File a complaint within 24 hours if not satisfied", "File a complaint within 24 hours if not satisfied / اگر مطمئن نہ ہوں تو 24 گھنٹے میں شکایت درج کرائیں")}</p>
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,7 +10,7 @@ import { elapsedMinutes, SUPPORT_SLA_MINUTES } from "@/lib/staffTiming";
 
 const SLA_MIN = SUPPORT_SLA_MINUTES;
 
-const CATEGORY_LABELS: Record<string, string> = { missing: "چیز کم آئی", wrong: "غلط چیز", not_as_described: "تصویر جیسی نہیں", late: "دیر", quality: "معیار", rider: "رائیڈر", payment: "ادائیگی", other: "دیگر" };
+const CATEGORY_LABELS: Record<string, string> = { missing: tr("Missing item", "چیز کم آئی"), wrong: tr("Wrong item", "غلط چیز"), not_as_described: tr("Not as pictured", "تصویر جیسی نہیں"), late: tr("Delayed", "دیر"), quality: tr("Quality", "معیار"), rider: tr("Rider", "رائیڈر"), payment: tr("Payment", "ادائیگی"), other: tr("Other", "دیگر") };
 
 export default function TicketsQueue({ serviceOnly = false }: { serviceOnly?: boolean }) {
   const { user } = useAuth();
@@ -37,20 +38,20 @@ export default function TicketsQueue({ serviceOnly = false }: { serviceOnly?: bo
 
   const resolve = async (t: any) => {
     const reply = (replies[t.id] || "").trim();
-    if (!reply) { toast.error("جواب لکھیں"); return; }
+    if (!reply) { toast.error(tr("Write a reply", "جواب لکھیں")); return; }
     const { error } = t.service_booking_id ? await supabase.rpc("resolve_service_issue", { _ticket_id:t.id,_reply:reply }) : await (supabase as any).from("support_tickets")
       .update({ status: "resolved", staff_reply: reply, resolved_by: user?.id, resolved_at: new Date().toISOString() }).eq("id", t.id);
     if (error) { toast.error(error.message); return; }
-    toast.success("حل شدہ"); load();
+    toast.success(tr("Resolved", "حل شدہ")); load();
   };
 
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
-        <Button size="sm" variant={filter === "open" ? "default" : "outline"} onClick={() => { setPage(1); setFilter("open"); }}>کھلی شکایات</Button>
-        <Button size="sm" variant={filter === "resolved" ? "default" : "outline"} onClick={() => { setPage(1); setFilter("resolved"); }}>حل شدہ</Button>
+        <Button size="sm" variant={filter === "open" ? "default" : "outline"} onClick={() => { setPage(1); setFilter("open"); }}>{tr("Open complaints", "کھلی شکایات")}</Button>
+        <Button size="sm" variant={filter === "resolved" ? "default" : "outline"} onClick={() => { setPage(1); setFilter("resolved"); }}>{tr("Resolved", "حل شدہ")}</Button>
       </div>
-      {tickets.length === 0 && <p className="text-center text-sm text-muted-foreground py-6">کوئی شکایت نہیں</p>}
+      {tickets.length === 0 && <p className="text-center text-sm text-muted-foreground py-6">{tr("No complaints", "کوئی شکایت نہیں")}</p>}
       {tickets.map((t) => {
         const age = elapsedMinutes(t.created_at, clock);
         const late = filter === "open" && age > SLA_MIN;
@@ -58,21 +59,21 @@ export default function TicketsQueue({ serviceOnly = false }: { serviceOnly?: bo
           <div key={t.id} className={`rounded-lg border p-3 text-xs space-y-1.5 ${late ? "border-destructive" : ""}`}>
             <div className="flex justify-between gap-2">
               <Badge variant={t.category === "not_as_described" ? "destructive" : "outline"}>{CATEGORY_LABELS[t.category] || t.category}</Badge>
-              <span className={late ? "text-destructive font-bold" : "text-muted-foreground"}>{age} منٹ پہلے{late ? " — وقت سے زیادہ" : ""}</span>
+              <span className={late ? "text-destructive font-bold" : "text-muted-foreground"}>{age} {tr("mins ago", "منٹ پہلے")}{late ? tr(" — Overdue", " — وقت سے زیادہ") : ""}</span>
             </div>
-            {t.order_id && <p>آرڈر #{String(t.order_id).slice(0, 6).toUpperCase()} ({t.order_kind})</p>}
+            {t.order_id && <p>{tr("Order #", "آرڈر #")}{String(t.order_id).slice(0, 6).toUpperCase()} ({t.order_kind})</p>}
             {t.description && <p>{t.description}</p>}
             {t.photo_url && <a href={t.photo_url} target="_blank" rel="noreferrer"><img src={t.photo_url} alt="" className="h-24 rounded object-cover" /></a>}
             {filter === "open" ? (
               <div className="flex gap-2">
-                <Input className="h-8 text-xs" placeholder="گاہک کو جواب" value={replies[t.id] || ""} onChange={(e) => setReplies({ ...replies, [t.id]: e.target.value })} />
-                <Button size="sm" className="h-8" onClick={() => resolve(t)}>حل کریں</Button>
+                <Input className="h-8 text-xs" placeholder={tr("Reply to customer", "گاہک کو جواب")} value={replies[t.id] || ""} onChange={(e) => setReplies({ ...replies, [t.id]: e.target.value })} />
+                <Button size="sm" className="h-8" onClick={() => resolve(t)}>{tr("Resolve", "حل کریں")}</Button>
               </div>
-            ) : <p className="text-success">جواب: {t.staff_reply}</p>}
+            ) : <p className="text-success">{tr("Reply:", "جواب:")} {t.staff_reply}</p>}
           </div>
         );
       })}
-      <div className="flex justify-between items-center"><Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>پچھلا</Button><span className="text-xs">{count} شکایات — صفحہ {page}</span><Button variant="outline" size="sm" disabled={page * 20 >= count} onClick={() => setPage(p => p + 1)}>اگلا</Button></div>
+      <div className="flex justify-between items-center"><Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>{tr("Previous", "پچھلا")}</Button><span className="text-xs">{count} {tr("Complaints — Page", "شکایات — صفحہ")} {page}</span><Button variant="outline" size="sm" disabled={page * 20 >= count} onClick={() => setPage(p => p + 1)}>{tr("Next", "اگلا")}</Button></div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,51 +45,51 @@ const CommissionRulesTab = () => {
     }).eq("id", r.id);
     setSaving(null);
     if (error) { toast.error(error.message); return; }
-    toast.success("محفوظ ہو گیا ✓");
+    toast.success(tr("Saved ✓", "محفوظ ہو گیا ✓"));
   };
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-base"><Percent className="h-4 w-4" /> کمیشن کی شرحیں</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><Percent className="h-4 w-4" /> {tr("Commission Rates", "کمیشن کی شرحیں")}</CardTitle>
           <Button size="sm" variant="outline" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-[11px] text-muted-foreground">
-            یہ ہر شعبے کی ڈیفالٹ شرح ہے۔ کسی مخصوص وینڈر کی الگ شرح ہو تو وہ (پے آؤٹ سیٹنگز میں) ترجیح پائے گی۔ شرح صرف نئے آرڈرز پر لاگو ہوگی — پرانے ریکارڈز محفوظ رہیں گے۔
+            {tr("This is the default rate for each category. Custom vendor rates (in payout settings) will take priority. Changes apply to new orders only — past records remain unchanged.", "یہ ہر شعبے کی ڈیفالٹ شرح ہے۔ کسی مخصوص وینڈر کی الگ شرح ہو تو وہ (پے آؤٹ سیٹنگز میں) ترجیح پائے گی۔ شرح صرف نئے آرڈرز پر لاگو ہوگی — پرانے ریکارڈز محفوظ رہیں گے۔")}
           </p>
 
-          {loading && <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>}
+          {loading && <p className="text-sm text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>}
 
           {rules.map((r) => (
             <div key={r.id} className="space-y-2 rounded-xl border p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-bold">{r.label || r.sector}</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-muted-foreground">{r.is_active ? "فعال" : "بند"}</span>
+                  <span className="text-[11px] text-muted-foreground">{r.is_active ? tr("Active", "فعال") : tr("Closed", "بند")}</span>
                   <Switch checked={r.is_active} onCheckedChange={(v) => patch(r.id, "is_active", v)} />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] text-muted-foreground">شرح %</label>
+                  <label className="text-[10px] text-muted-foreground">{tr("Rate %", "شرح %")}</label>
                   <Input type="number" className="h-9" value={r.rate}
                     onChange={(e) => patch(r.id, "rate", e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground">کم از کم Rs</label>
+                  <label className="text-[10px] text-muted-foreground">{tr("Min Rs", "کم از کم Rs")}</label>
                   <Input type="number" className="h-9" value={r.min_commission}
                     onChange={(e) => patch(r.id, "min_commission", e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground">زیادہ سے زیادہ Rs</label>
-                  <Input type="number" className="h-9" placeholder="کوئی حد نہیں" value={r.max_commission ?? ""}
+                  <label className="text-[10px] text-muted-foreground">{tr("Max Rs", "زیادہ سے زیادہ Rs")}</label>
+                  <Input type="number" className="h-9" placeholder={tr("No limit", "کوئی حد نہیں")} value={r.max_commission ?? ""}
                     onChange={(e) => patch(r.id, "max_commission", e.target.value === "" ? null : e.target.value)} />
                 </div>
               </div>
               <Button size="sm" className="h-9 w-full font-bold" disabled={saving === r.id} onClick={() => save(r)}>
-                {saving === r.id ? "محفوظ ہو رہا ہے…" : "محفوظ کریں"}
+                {saving === r.id ? tr("Saving…", "محفوظ ہو رہا ہے…") : tr("Save", "محفوظ کریں")}
               </Button>
             </div>
           ))}

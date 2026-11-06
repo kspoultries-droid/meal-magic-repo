@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,22 +52,22 @@ const AlertCenter = ({ onNavigate }: { onNavigate?: (section: string, sub?: stri
     (orders || []).forEach((o: any) => {
       if (o.status === "pending" && isStaffOrderOverdue(o.created_at)) {
         out.push({ id: `stuck-${o.id}`, kind: "order", severity: "high", at: o.created_at,
-          title: "آرڈر ابھی تک قبول نہیں ہوا", detail: `#${o.id.slice(0, 8)} — Rs ${o.total_amount}` });
+          title: tr("Order not accepted yet", "آرڈر ابھی تک قبول نہیں ہوا"), detail: `#${o.id.slice(0, 8)} — Rs ${o.total_amount}` });
       }
       if (["confirmed", "preparing"].includes(o.status) && !o.rider_id && isStaffOrderOverdue(o.created_at)) {
         out.push({ id: `norider-${o.id}`, kind: "order", severity: "high", at: o.created_at,
-          title: "رائیڈر تفویض نہیں ہوا", detail: `#${o.id.slice(0, 8)} — Rs ${o.total_amount}` });
+          title: tr("Rider not assigned", "رائیڈر تفویض نہیں ہوا"), detail: `#${o.id.slice(0, 8)} — Rs ${o.total_amount}` });
       }
     });
 
     (apps || []).forEach((a: any) => out.push({
       id: `app-${a.id}`, kind: "application", severity: "normal", at: a.created_at,
-      title: "نئی پارٹنر درخواست", detail: `${a.business_name} — ${a.applicant_type}`,
+      title: tr("New partner request", "نئی پارٹنر درخواست"), detail: `${a.business_name} — ${a.applicant_type}`,
     }));
 
     (remits || []).forEach((r: any) => out.push({
       id: `remit-${r.id}`, kind: "remittance", severity: "normal", at: r.created_at,
-      title: "رائیڈر کیش جمع — تصدیق درکار", detail: `Rs ${Math.round(Number(r.amount || 0))}`,
+      title: tr("Rider cash deposit — verification required", "رائیڈر کیش جمع — تصدیق درکار"), detail: `Rs ${Math.round(Number(r.amount || 0))}`,
     }));
 
     out.sort((a, b) => +new Date(a.at) - +new Date(b.at));
@@ -90,24 +91,24 @@ const AlertCenter = ({ onNavigate }: { onNavigate?: (section: string, sub?: stri
     <Card className="border-border/60">
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 px-3 py-2">
         <CardTitle className="flex items-center gap-1.5 text-sm">
-          <BellRing className="h-4 w-4" /> الرٹ سینٹر
-          {unreadCount > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{unreadCount} اس صفحے پر</Badge>}
+          <BellRing className="h-4 w-4" /> {tr("Alert Center", "الرٹ سینٹر")}
+          {unreadCount > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{unreadCount} {tr("On this page", "اس صفحے پر")}</Badge>}
         </CardTitle>
         <div className="flex flex-wrap gap-1">
           <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setOnlyUnread((v) => !v)}>
-            {onlyUnread ? "سب دکھائیں" : "صرف نئے"}
+            {onlyUnread ? tr("Show all", "سب دکھائیں") : tr("New only", "صرف نئے")}
           </Button>
           <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={markAll} disabled={unreadCount === 0}>
-            <CheckCheck className="me-1 h-3.5 w-3.5" /> سب پڑھ لیے
+            <CheckCheck className="me-1 h-3.5 w-3.5" /> {tr("Mark all as read", "سب پڑھ لیے")}
           </Button>
           <Button size="sm" variant="outline" className="h-7 px-2" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-1.5 px-3 pb-3">
         {loading ? (
-          <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
+          <p className="text-xs text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>
         ) : visible.length === 0 ? (
-          <p className="py-4 text-center text-xs text-muted-foreground">کوئی نیا الرٹ نہیں ✅</p>
+          <p className="py-4 text-center text-xs text-muted-foreground">{tr("No new alerts ✅", "کوئی نیا الرٹ نہیں ✅")}</p>
         ) : (
           visible.map((a) => {
             const isRead = read.has(a.id);
@@ -120,17 +121,17 @@ const AlertCenter = ({ onNavigate }: { onNavigate?: (section: string, sub?: stri
                 >
                   <p className="truncate text-xs font-bold">{a.title}</p>
                   <p className="truncate text-[11px] text-muted-foreground">{a.detail}</p>
-                  <p className="text-[10px] text-muted-foreground">{elapsedMinutes(a.at)} منٹ پہلے</p>
+                  <p className="text-[10px] text-muted-foreground">{elapsedMinutes(a.at)} {tr("mins ago", "منٹ پہلے")}</p>
                 </Button>
                 {!isRead && (
-                  <Button size="sm" variant="ghost" className="h-6 shrink-0 px-2 text-[10px]" onClick={() => markRead(a.id)}>پڑھ لیا</Button>
+                  <Button size="sm" variant="ghost" className="h-6 shrink-0 px-2 text-[10px]" onClick={() => markRead(a.id)}>{tr("Read", "پڑھ لیا")}</Button>
                 )}
               </div>
             );
           })
         )}
       </CardContent>
-      <div className="flex items-center justify-between px-3 pb-3"><Button variant="outline" size="sm" disabled={page === 1 || loading} onClick={() => setPage(p => p - 1)}>پچھلا</Button><span className="text-xs">صفحہ {page}</span><Button variant="outline" size="sm" disabled={alerts.length < 40 || loading} onClick={() => setPage(p => p + 1)}>اگلا</Button></div>
+      <div className="flex items-center justify-between px-3 pb-3"><Button variant="outline" size="sm" disabled={page === 1 || loading} onClick={() => setPage(p => p - 1)}>{tr("Previous", "پچھلا")}</Button><span className="text-xs">{tr("Page", "صفحہ")} {page}</span><Button variant="outline" size="sm" disabled={alerts.length < 40 || loading} onClick={() => setPage(p => p + 1)}>{tr("Next", "اگلا")}</Button></div>
     </Card>
   );
 };

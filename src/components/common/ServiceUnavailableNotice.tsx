@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useNavigate } from "react-router-dom";
 import { Package, Bike } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,8 @@ interface Props {
 }
 
 const labels = {
-  food: { ur: "فوڈ ڈلیوری", en: "Food delivery" },
-  grocery: { ur: "گروسری ڈلیوری", en: "Grocery delivery" },
+  food: { ur: tr("Food Delivery", "فوڈ ڈلیوری"), en: "Food delivery" },
+  grocery: { ur: tr("Grocery Delivery", "گروسری ڈلیوری"), en: "Grocery delivery" },
 };
 
 const ServiceUnavailableNotice = ({ kind, city, cities, onCityChange }: Props) => {
@@ -26,27 +27,27 @@ const ServiceUnavailableNotice = ({ kind, city, cities, onCityChange }: Props) =
           <Bike className="h-7 w-7 text-muted-foreground" />
         </span>
         <h2 className="text-lg font-extrabold text-foreground">
-          {city?.name ? `${city.name} میں ` : ""}
-          {label.ur} فی الحال دستیاب نہیں
+          {city?.name ? `${city.name} ${tr("in", "میں")} ` : ""}
+          {label.ur} {tr("Currently unavailable", "فی الحال دستیاب نہیں")}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          یہاں ابھی ہمارے رائیڈرز موجود نہیں۔ آپ بازار (کورئیر ڈلیوری) سے پورے پاکستان میں خریداری کر سکتے ہیں۔
+          {tr("Riders are not available here yet. You can shop across Pakistan via Bazaar (Courier Delivery).", "یہاں ابھی ہمارے رائیڈرز موجود نہیں۔ آپ بازار (کورئیر ڈلیوری) سے پورے پاکستان میں خریداری کر سکتے ہیں۔")}
         </p>
         <p className="mt-1 text-[11px] text-muted-foreground">{label.en} is not available in your city yet.</p>
 
         <Button className="mt-5 h-11 w-full rounded-xl font-extrabold gap-2" onClick={() => navigate("/wholesale")}>
-          <Package className="h-4 w-4" /> بازار دیکھیں — کورئیر ڈلیوری
+          <Package className="h-4 w-4" /> {tr("View Bazaar — Courier Delivery", "بازار دیکھیں — کورئیر ڈلیوری")}
         </Button>
 
         {cities.length > 0 && (
           <div className="mt-4 text-right">
-            <label className="mb-1 block text-[11px] font-bold text-muted-foreground">شہر تبدیل کریں</label>
+            <label className="mb-1 block text-[11px] font-bold text-muted-foreground">{tr("Change City", "شہر تبدیل کریں")}</label>
             <select
               value={city?.id || ""}
               onChange={(e) => onCityChange(e.target.value)}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
             >
-              <option value="">شہر منتخب کریں</option>
+              <option value="">{tr("Select City", "شہر منتخب کریں")}</option>
               {cities.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}

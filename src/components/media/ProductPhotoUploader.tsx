@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useState, ReactNode } from "react";
 import { Camera, ImagePlus, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +30,7 @@ interface Props {
   children?: ReactNode;
 }
 
-const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, compact = false, label = "تصویر شامل کریں" }: Props) => {
+const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, compact = false, label = tr("Add photo", "تصویر شامل کریں") }: Props) => {
   const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -54,7 +55,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
       }
       setItems(prepared);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "تصویر پڑھی نہیں جا سکی");
+      toast.error(error instanceof Error ? error.message : tr("Couldn't read image", "تصویر پڑھی نہیں جا سکی"));
     } finally {
       setBusy(false);
     }
@@ -66,16 +67,16 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
       const imageDataUrl = await fileToDataUrl(item.enhanced);
       const { data, error } = await supabase.functions.invoke("enhance-product-image", { body: { imageDataUrl } });
       const message = (data as any)?.error || error?.message;
-      if (!data || (data as any)?.error || error) throw new Error(message || "پس منظر صاف نہیں ہو سکا");
+      if (!data || (data as any)?.error || error) throw new Error(message || tr("Couldn't remove background", "پس منظر صاف نہیں ہو سکا"));
       const cleaned = await dataUrlToFile((data as any).image, `${item.original.name.replace(/\.[^.]+$/, "")}-studio.png`);
       const { file: finalFile, url } = await enhancePhoto(cleaned, aspect);
       setItems((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, enhanced: finalFile, enhancedUrl: url, useOriginal: false, cleaning: false } : i)),
       );
-      toast.success("پس منظر صاف ہو گیا");
+      toast.success(tr("Background removed", "پس منظر صاف ہو گیا"));
     } catch (error) {
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, cleaning: false } : i)));
-      toast.error(error instanceof Error ? error.message : "پس منظر صاف نہیں ہو سکا");
+      toast.error(error instanceof Error ? error.message : tr("Couldn't remove background", "پس منظر صاف نہیں ہو سکا"));
     }
   };
 
@@ -86,7 +87,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
       await onDone(photos);
       setItems([]);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "محفوظ نہیں ہو سکا");
+      toast.error(error instanceof Error ? error.message : tr("Couldn't save", "محفوظ نہیں ہو سکا"));
     } finally {
       setSaving(false);
     }
@@ -99,10 +100,10 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
           ? "flex size-7 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md"
           : "flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold text-foreground shadow-sm"
       }
-      title={capture ? "کیمرہ" : "گیلری"}
+      title={capture ? tr("Camera", "کیمرہ") : tr("Gallery", "گیلری")}
     >
       {capture ? <Camera className="size-3.5" /> : <ImagePlus className="size-3.5" />}
-      {!compact && <span>{capture ? "کیمرہ سے تصویر" : label}</span>}
+      {!compact && <span>{capture ? tr("Take photo", "کیمرہ سے تصویر") : label}</span>}
       <input
         type="file"
         accept="image/*"
@@ -130,25 +131,25 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
         <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
-              <Sparkles className="size-4 text-primary" /> تصویر بہتر کریں / Photo studio
+              <Sparkles className="size-4 text-primary" /> {tr("Enhance photo / Photo studio", "تصویر بہتر کریں / Photo studio")}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
             <p className="text-[11px] text-muted-foreground">
-              آپ کی اصل تصویر ہی رہے گی — صرف روشنی، رنگ، کٹائی اور صفائی بہتر کی گئی ہے۔
+              {tr("Your original photo remains — only lighting, color, crop, and clarity have been enhanced.", "آپ کی اصل تصویر ہی رہے گی — صرف روشنی، رنگ، کٹائی اور صفائی بہتر کی گئی ہے۔")}
             </p>
 
             {items.map((item) => (
               <div key={item.id} className="space-y-2 rounded-xl border border-border/70 bg-card p-3">
                 <div className="grid grid-cols-2 gap-2">
                   <figure className="space-y-1">
-                    <img src={item.originalUrl} alt="اصل تصویر" className="aspect-square w-full rounded-lg object-cover" />
-                    <figcaption className="text-center text-[10px] font-semibold text-muted-foreground">پہلے / Before</figcaption>
+                    <img src={item.originalUrl} alt={tr("Original photo", "اصل تصویر")} className="aspect-square w-full rounded-lg object-cover" />
+                    <figcaption className="text-center text-[10px] font-semibold text-muted-foreground">{tr("Before", "پہلے / Before")}</figcaption>
                   </figure>
                   <figure className="space-y-1">
-                    <img src={item.enhancedUrl} alt="بہتر تصویر" className="aspect-square w-full rounded-lg object-cover ring-2 ring-primary" />
-                    <figcaption className="text-center text-[10px] font-semibold text-primary">بعد میں / After</figcaption>
+                    <img src={item.enhancedUrl} alt={tr("Enhanced photo", "بہتر تصویر")} className="aspect-square w-full rounded-lg object-cover ring-2 ring-primary" />
+                    <figcaption className="text-center text-[10px] font-semibold text-primary">{tr("After", "بعد میں / After")}</figcaption>
                   </figure>
                 </div>
 
@@ -165,7 +166,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
                 <div className="flex flex-wrap items-center gap-2">
                   <Button type="button" size="sm" variant="secondary" className="h-8 gap-1 text-[11px]" disabled={item.cleaning} onClick={() => cleanBackground(item)}>
                     {item.cleaning ? <Loader2 className="size-3.5 animate-spin" /> : <Wand2 className="size-3.5" />}
-                    پس منظر صاف کریں
+                    {tr("Remove background", "پس منظر صاف کریں")}
                   </Button>
                   <label className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
                     <input
@@ -173,7 +174,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
                       checked={item.useOriginal}
                       onChange={(e) => setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, useOriginal: e.target.checked } : i)))}
                     />
-                    اصل تصویر ہی رکھیں
+                    {tr("Keep original photo", "اصل تصویر ہی رکھیں")}
                   </label>
                 </div>
               </div>
@@ -183,10 +184,10 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
 
             <div className="flex gap-2">
               <Button type="button" variant="outline" className="flex-1" onClick={() => setItems([])} disabled={saving}>
-                منسوخ
+                {tr("Cancelled", "منسوخ")}
               </Button>
               <Button type="button" className="flex-1 gap-1" onClick={save} disabled={saving}>
-                {saving && <Loader2 className="size-4 animate-spin" />} محفوظ کریں
+                {saving && <Loader2 className="size-4 animate-spin" />} {tr("Save", "محفوظ کریں")}
               </Button>
             </div>
           </div>

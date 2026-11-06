@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,10 +10,10 @@ type Info = {
   book_days_ahead: number; bonus_tiers: { target: number; amount: number }[];
 };
 const SLOTS = [
-  { id: "morning", label: "صبح 8–12" },
-  { id: "afternoon", label: "دوپہر 12–4" },
-  { id: "evening", label: "شام 4–8" },
-  { id: "night", label: "رات 8–12" },
+  { id: "morning", label: tr("8–12 AM", "صبح 8–12") },
+  { id: "afternoon", label: tr("12–4 PM", "دوپہر 12–4") },
+  { id: "evening", label: tr("4–8 PM", "شام 4–8") },
+  { id: "night", label: tr("8–12 PM", "رات 8–12") },
 ];
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -38,7 +39,7 @@ export default function RiderLevelShifts({ riderId }: { riderId: string }) {
       : await supabase.from("rider_shifts" as any).insert({ rider_id: riderId, shift_date: date, slot });
     setBusy(false);
     if (error) toast.error(error.message, { id: "shift" });
-    else { toast.success(ex ? "شفٹ منسوخ" : "شفٹ بک ہو گئی", { id: "shift" }); load(); }
+    else { toast.success(ex ? tr("Shift Cancelled", "شفٹ منسوخ") : tr("Shift Booked", "شفٹ بک ہو گئی"), { id: "shift" }); load(); }
   };
 
   if (!info) return null;
@@ -52,20 +53,20 @@ export default function RiderLevelShifts({ riderId }: { riderId: string }) {
     <div className="space-y-3" dir="rtl">
       <div className="rounded-xl border bg-card p-3">
         <div className="flex items-center justify-between">
-          <span className="font-extrabold">لیول {info.level} / 5</span>
+          <span className="font-extrabold">{tr("Level", "لیول")} {info.level} / 5</span>
           <span className="text-primary text-lg">{"★".repeat(info.level)}</span>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          اسکور {info.score} — ریٹنگ، آرڈر قبول کرنے کی شرح اور کل ڈلیوریز سے بنتا ہے۔ شفٹ بکنگ {info.book_days_ahead} دن آگے تک۔
+          {tr("Score", "اسکور")} {info.score} {tr("— based on rating, acceptance rate, and total deliveries. Shift booking", "— ریٹنگ، آرڈر قبول کرنے کی شرح اور کل ڈلیوریز سے بنتا ہے۔ شفٹ بکنگ")} {info.book_days_ahead} {tr("days in advance.", "دن آگے تک۔")}
         </p>
       </div>
 
       <div className="rounded-xl border bg-card p-3 space-y-2">
-        <div className="font-extrabold">ہفتہ وار بونس</div>
-        <p className="text-sm">اس ہفتے: {info.week_deliveries} ڈلیوریز{earned ? ` — Rs ${earned.amount} بونس کا موجودہ ہدف مکمل` : ""}</p>
+        <div className="font-extrabold">{tr("Weekly Bonus", "ہفتہ وار بونس")}</div>
+        <p className="text-sm">{tr("This week:", "اس ہفتے:")} {info.week_deliveries} {tr("Deliveries", "ڈلیوریز")}{earned ? ` — Rs ${earned.amount} ${tr("Current bonus target achieved", "بونس کا موجودہ ہدف مکمل")}` : ""}</p>
         {next && (<>
           <Progress value={(info.week_deliveries / next.target) * 100} />
-          <p className="text-xs text-muted-foreground">مزید {next.target - info.week_deliveries} ڈلیوریز پر Rs {next.amount}</p>
+          <p className="text-xs text-muted-foreground">{tr("more", "مزید")} {next.target - info.week_deliveries} {tr("Rs on deliveries", "ڈلیوریز پر Rs")} {next.amount}</p>
         </>)}
         <div className="flex gap-2 text-xs">
           {info.bonus_tiers.map((t) => <span key={t.target} className="rounded bg-muted px-2 py-1">{t.target} = Rs {t.amount}</span>)}
@@ -73,7 +74,7 @@ export default function RiderLevelShifts({ riderId }: { riderId: string }) {
       </div>
 
       <div className="rounded-xl border bg-card p-3 space-y-2">
-        <div className="font-extrabold">شفٹ بکنگ</div>
+        <div className="font-extrabold">{tr("Shift Booking", "شفٹ بکنگ")}</div>
         {days.map((d) => {
           const date = iso(d);
           return (

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,17 +10,17 @@ import { toast } from "sonner";
 type Range = "today" | "week" | "month";
 
 const RANGES: { key: Range; label: string; days: number }[] = [
-  { key: "today", label: "آج", days: 0 },
-  { key: "week", label: "اس ہفتے", days: 7 },
-  { key: "month", label: "اس ماہ", days: 30 },
+  { key: "today", label: tr("Today", "آج"), days: 0 },
+  { key: "week", label: tr("This Week", "اس ہفتے"), days: 7 },
+  { key: "month", label: tr("This Month", "اس ماہ"), days: 30 },
 ];
 
 const SECTOR_LABEL: Record<string, string> = {
-  food: "فوڈ",
-  grocery: "گروسری",
-  wholesale: "بازار / ہول سیل",
-  service: "ہوم سروسز",
-  partner: "پارٹنر API",
+  food: tr("Food", "فوڈ"),
+  grocery: tr("Grocery", "گروسری"),
+  wholesale: tr("Bazaar / Wholesale", "بازار / ہول سیل"),
+  service: tr("Home Services", "ہوم سروسز"),
+  partner: tr("Partner API", "پارٹنر API"),
 };
 
 interface Row {
@@ -155,7 +156,7 @@ const RevenueTab = () => {
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-base"><TrendingUp className="h-4 w-4" /> پلیٹ فارم آمدنی</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><TrendingUp className="h-4 w-4" /> {tr("Platform Revenue", "پلیٹ فارم آمدنی")}</CardTitle>
           <div className="flex gap-1">
             <Button size="sm" variant="outline" onClick={exportCsv} disabled={!rows.length}><Download className="h-3.5 w-3.5" /></Button>
             <Button size="sm" variant="outline" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
@@ -172,19 +173,19 @@ const RevenueTab = () => {
           </div>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>
+            <p className="text-sm text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-2 text-center text-xs">
-                <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">مکمل آرڈرز</p><p className="text-lg font-extrabold">{totals.orders}</p></div>
-                <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">کل سیل</p><p className="text-lg font-extrabold">Rs {totals.gross}</p></div>
-                <div className="rounded-xl bg-primary/10 py-3"><p className="text-muted-foreground">کمیشن آمدنی</p><p className="text-lg font-extrabold text-primary">Rs {totals.commission}</p></div>
-                <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">ڈلیوری فیس</p><p className="text-lg font-extrabold">Rs {totals.delivery}</p></div>
+                <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">{tr("Completed Orders", "مکمل آرڈرز")}</p><p className="text-lg font-extrabold">{totals.orders}</p></div>
+                <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">{tr("Total Sales", "کل سیل")}</p><p className="text-lg font-extrabold">Rs {totals.gross}</p></div>
+                <div className="rounded-xl bg-primary/10 py-3"><p className="text-muted-foreground">{tr("Commission Revenue", "کمیشن آمدنی")}</p><p className="text-lg font-extrabold text-primary">Rs {totals.commission}</p></div>
+                <div className="rounded-xl bg-secondary/50 py-3"><p className="text-muted-foreground">{tr("Delivery Fee", "ڈلیوری فیس")}</p><p className="text-lg font-extrabold">Rs {totals.delivery}</p></div>
               </div>
               <div className="rounded-xl border p-3 text-center">
-                <p className="text-xs text-muted-foreground">کل پلیٹ فارم آمدنی (کمیشن + ڈلیوری فیس)</p>
+                <p className="text-xs text-muted-foreground">{tr("Total Platform Revenue (Commission + Delivery Fee)", "کل پلیٹ فارم آمدنی (کمیشن + ڈلیوری فیس)")}</p>
                 <p className="text-2xl font-extrabold text-primary">Rs {totals.commission + totals.delivery}</p>
-                <p className="text-[11px] text-muted-foreground">وینڈرز کو قابلِ ادائیگی: Rs {totals.payable}</p>
+                <p className="text-[11px] text-muted-foreground">{tr("Payable to Vendors: Rs", "وینڈرز کو قابلِ ادائیگی: Rs")} {totals.payable}</p>
               </div>
             </>
           )}
@@ -192,25 +193,25 @@ const RevenueTab = () => {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">شعبہ وار</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{tr("Category-wise", "شعبہ وار")}</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          {bySector.length === 0 && <p className="text-sm text-muted-foreground">اس عرصے میں کوئی ریکارڈ نہیں</p>}
+          {bySector.length === 0 && <p className="text-sm text-muted-foreground">{tr("No records in this period", "اس عرصے میں کوئی ریکارڈ نہیں")}</p>}
           {bySector.map(([sector, v]) => (
             <div key={sector} className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-bold">{SECTOR_LABEL[sector] || sector}</span>
                 <Badge variant="secondary">{v.orders}</Badge>
               </div>
-              <span>سیل Rs {Math.round(v.gross)} • کمیشن <b className="text-primary">Rs {Math.round(v.commission)}</b></span>
+              <span>{tr("Sales Rs", "سیل Rs")} {Math.round(v.gross)} {tr("• Commission", "• کمیشن")} <b className="text-primary">Rs {Math.round(v.commission)}</b></span>
             </div>
           ))}
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">شہر وار کمیشن</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{tr("City-wise Commission", "شہر وار کمیشن")}</CardTitle></CardHeader>
         <CardContent className="space-y-1.5">
-          {byCity.length === 0 && <p className="text-sm text-muted-foreground">کوئی ریکارڈ نہیں</p>}
+          {byCity.length === 0 && <p className="text-sm text-muted-foreground">{tr("No records found", "کوئی ریکارڈ نہیں")}</p>}
           {byCity.map(([city, amt]) => (
             <div key={city} className="flex items-center justify-between border-b pb-1 text-xs">
               <span>{city}</span><span className="font-bold">Rs {Math.round(amt)}</span>
@@ -220,13 +221,13 @@ const RevenueTab = () => {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">ٹاپ 10 وینڈرز</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{tr("Top 10 Vendors", "ٹاپ 10 وینڈرز")}</CardTitle></CardHeader>
         <CardContent className="space-y-1.5">
-          {topVendors.length === 0 && <p className="text-sm text-muted-foreground">کوئی ریکارڈ نہیں</p>}
+          {topVendors.length === 0 && <p className="text-sm text-muted-foreground">{tr("No records found", "کوئی ریکارڈ نہیں")}</p>}
           {topVendors.map(([vid, v]) => (
             <div key={vid} className="flex items-center justify-between border-b pb-1 text-xs">
-              <span className="truncate pr-2">{vendors[vid] || vid.slice(0, 8)} • {v.orders} آرڈرز</span>
-              <span className="shrink-0 font-bold">کمیشن Rs {Math.round(v.commission)}</span>
+              <span className="truncate pr-2">{vendors[vid] || vid.slice(0, 8)} • {v.orders} {tr("Orders", "آرڈرز")}</span>
+              <span className="shrink-0 font-bold">{tr("Commission Rs", "کمیشن Rs")} {Math.round(v.commission)}</span>
             </div>
           ))}
         </CardContent>

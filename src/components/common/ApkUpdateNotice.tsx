@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Download, RefreshCw } from "lucide-react";
@@ -77,7 +78,7 @@ export function ApkUpdateNotice() {
         window.open(APK_DOWNLOAD_URL, "_blank", "noopener,noreferrer");
       }
     } catch {
-      toast.error("ڈاؤن لوڈ نہیں کھلا؛ دوبارہ کوشش کریں۔");
+      toast.error(tr("Download didn't open; please try again.", "ڈاؤن لوڈ نہیں کھلا؛ دوبارہ کوشش کریں۔"));
     } finally {
       setDownloading(false);
     }
@@ -87,12 +88,12 @@ export function ApkUpdateNotice() {
     <Dialog open={open} onOpenChange={value => { if (!value) dismiss(); }}>
       <DialogContent dir="rtl" className="w-[calc(100%-2rem)] max-w-sm rounded-lg gap-3">
         <RefreshCw className="h-7 w-7 text-primary" />
-        <DialogTitle>نیا ورژن دستیاب ہے</DialogTitle>
-        <DialogDescription>Easy Life {release?.version} — اپ ڈیٹ ڈاؤن لوڈ کریں، پھر فائل کھول کر Install دبائیں۔</DialogDescription>
+        <DialogTitle>{tr("New version available", "نیا ورژن دستیاب ہے")}</DialogTitle>
+        <DialogDescription>Easy Life {release?.version} {tr("— Download the update, then open the file and tap Install.", "— اپ ڈیٹ ڈاؤن لوڈ کریں، پھر فائل کھول کر Install دبائیں۔")}</DialogDescription>
         <Button onClick={download} disabled={downloading} className="w-full gap-2">
-          <Download className="h-4 w-4" />{downloading ? "کھل رہا ہے…" : "اپ ڈیٹ ڈاؤن لوڈ کریں"}
+          <Download className="h-4 w-4" />{downloading ? tr("Opening…", "کھل رہا ہے…") : tr("Download update", "اپ ڈیٹ ڈاؤن لوڈ کریں")}
         </Button>
-        <Button variant="ghost" onClick={dismiss} className="w-full">ابھی نہیں</Button>
+        <Button variant="ghost" onClick={dismiss} className="w-full">{tr("Not now", "ابھی نہیں")}</Button>
       </DialogContent>
     </Dialog>
   );

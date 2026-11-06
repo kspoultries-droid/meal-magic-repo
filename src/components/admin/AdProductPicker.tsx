@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -27,8 +28,8 @@ const AdProductPicker = ({ onPick }: Props) => {
 
   return (
     <div className="rounded-lg border border-border p-2">
-      <p className="mb-1 text-xs font-medium text-foreground">دکان کی پروڈکٹ سے جوڑیں (دبانے پر وہی چیز کھلے گی)</p>
-      <Input placeholder="پروڈکٹ کا نام لکھیں..." value={q} onChange={(e) => setQ(e.target.value)} />
+      <p className="mb-1 text-xs font-medium text-foreground">{tr("Link to store product (opens on click)", "دکان کی پروڈکٹ سے جوڑیں (دبانے پر وہی چیز کھلے گی)")}</p>
+      <Input placeholder={tr("Enter product name...", "پروڈکٹ کا نام لکھیں...")} value={q} onChange={(e) => setQ(e.target.value)} />
       {rows.length > 0 && (
         <div className="mt-1 max-h-48 overflow-y-auto">
           {rows.map((r) => (
