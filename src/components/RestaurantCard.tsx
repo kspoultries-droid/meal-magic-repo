@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import MenuItemSheet, { type MenuItemLike } from "@/components/menu/MenuItemSheet";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Restaurant } from "./RestaurantGrid";
 
 interface RestaurantCardProps {
@@ -33,6 +34,8 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const [sheetItem, setSheetItem] = useState<MenuItemLike | null>(null);
   const { addItem } = useCart();
+  const { lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const navigate = useNavigate();
   const optimizedImage = optimizeImageUrl(image);
   const isAboveFold = index < 4;
@@ -102,11 +105,11 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
         <p className="text-muted-foreground text-xs truncate mb-3">{cuisines.join(" · ")}</p>
         <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1 text-[10px] font-bold text-accent-foreground bg-accent rounded-full px-2.5 py-1">
-            <Bike className="w-3 h-3" /> {paysDeliveryFee ? "فری ڈیلیوری" : "فوری ڈیلیوری"}
+            <Bike className="w-3 h-3" /> {paysDeliveryFee ? L("Free delivery", "فری ڈیلیوری") : L("Fast delivery", "فوری ڈیلیوری")}
           </span>
           {minPrice != null && (
             <span className="text-[10px] font-bold text-foreground bg-secondary rounded-full px-2.5 py-1">
-              Rs. {minPrice} سے
+              {L(`From Rs. ${minPrice}`, `Rs. ${minPrice} سے`)}
             </span>
           )}
           {menuItems.length > 0 && isActive && (
@@ -115,7 +118,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
               onClick={(e) => { e.stopPropagation(); setShowMenu((v) => !v); }}
               className="h-8 text-[11px] font-semibold text-primary ml-auto rounded-lg border border-primary/30 px-2.5 py-1"
             >
-              {showMenu ? "بند کریں" : "فوری آرڈر"}
+              {showMenu ? L("Close", "بند کریں") : L("Quick order", "فوری آرڈر")}
             </Button>
           )}
         </div>
@@ -124,7 +127,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
       {/* Quick Menu */}
       {showMenu && menuItems.length > 0 && (
         <div className="border-t border-border/60 px-4 py-3 space-y-2 animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase">فوری شامل کریں</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase">{L("Quick add", "فوری شامل کریں")}</p>
           {menuItems.map((item) => {
             const hasChoices = (item.variants?.length || 0) > 0 || (item.option_groups?.length || 0) > 0;
             const variantPrices = (item.variants || []).map((v: any) => Number(v.price) || 0).filter((n: number) => n > 0);
@@ -136,7 +139,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
                   <p className="text-xs text-primary font-bold">
-                    {item.variants?.length ? `Rs. ${minPrice} سے` : `Rs. ${item.price}`}
+                    {item.variants?.length ? L(`From Rs. ${minPrice}`, `Rs. ${minPrice} سے`) : `Rs. ${item.price}`}
                   </p>
                 </div>
                 <Button variant="ghost"
