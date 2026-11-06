@@ -22,23 +22,28 @@ const CategoryPage = () => {
     <div className="min-h-screen bg-background pb-24">
       <Navbar />
 
-      <header className="border-b border-border bg-card px-4 py-4">
-        <div className="container mx-auto max-w-5xl space-y-4">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon"
-              onClick={() => navigate(-1)}
-              aria-label={L("Back", "واپس")}
-              className="h-10 w-10 shrink-0 rounded-full"
-            >
-              <ArrowRight className="h-4 w-4 text-primary" />
-            </Button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-extrabold text-foreground">{label}</h1>
-              <p className="text-xs text-muted-foreground">{(lang === "ur" ? category?.name : category?.ur) || "Category"}</p>
+      <header className="relative overflow-hidden border-b border-border bg-card">
+        <div className="relative h-44 w-full overflow-hidden sm:h-56">
+          {category?.image && <img src={category.image.replace("w=240&h=240", "w=1200&h=600")} alt={label} className="h-full w-full object-cover" />}
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
+          <Button variant="secondary" size="icon"
+            onClick={() => navigate(-1)}
+            aria-label={L("Back", "واپس")}
+            className="absolute top-3 h-10 w-10 rounded-full shadow-md ltr:left-3 rtl:right-3"
+          >
+            <ArrowRight className="h-4 w-4 text-primary ltr:rotate-180" />
+          </Button>
+          <div className="absolute inset-x-0 bottom-0 px-4 pb-5">
+            <div className="container mx-auto max-w-5xl">
+              <p className="text-xs font-semibold uppercase tracking-widest text-background/80">{L("Today's craving", "آج کیا کھانا؟")}</p>
+              <h1 className="text-3xl font-extrabold text-background drop-shadow">{label}</h1>
+              <p className="text-sm text-background/85">{(lang === "ur" ? category?.name : category?.ur) || ""}</p>
             </div>
           </div>
+        </div>
 
-          <div className="flex h-11 items-center gap-2.5 rounded-lg border border-border bg-background px-3.5 focus-within:ring-2 focus-within:ring-ring">
+        <div className="container mx-auto -mt-5 max-w-5xl space-y-3 px-4 pb-4">
+          <div className="relative flex h-12 items-center gap-2.5 rounded-full border border-border bg-background px-4 shadow-lg focus-within:ring-2 focus-within:ring-ring">
             <Search className="h-4 w-4 shrink-0 text-primary" />
             <input
               value={query}
@@ -49,17 +54,23 @@ const CategoryPage = () => {
             />
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {foodCategories.map((c) => (
-              <Button variant={c.slug === slug ? "default" : "outline"}
-                key={c.slug}
-                onClick={() => { setQuery(""); navigate(`/category/${c.slug}`); }}
-                aria-pressed={c.slug === slug}
-                className="h-9 shrink-0 rounded-full px-4 text-xs font-bold"
-              >
-                {lang === "ur" ? c.ur : c.name}
-              </Button>
-            ))}
+          <div className="flex gap-3 overflow-x-auto pb-1 pt-1 scrollbar-hide">
+            {foodCategories.map((c) => {
+              const active = c.slug === slug;
+              return (
+                <button
+                  key={c.slug}
+                  onClick={() => { setQuery(""); navigate(`/category/${c.slug}`); }}
+                  aria-pressed={active}
+                  className="flex w-16 shrink-0 flex-col items-center gap-1"
+                >
+                  <span className={`h-14 w-14 overflow-hidden rounded-full border-2 transition ${active ? "border-primary ring-2 ring-primary/30 scale-105" : "border-border"}`}>
+                    <img src={c.image} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  </span>
+                  <span className={`truncate text-[11px] font-bold ${active ? "text-primary" : "text-foreground"}`}>{lang === "ur" ? c.ur : c.name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </header>
