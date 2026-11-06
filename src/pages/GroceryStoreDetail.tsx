@@ -364,13 +364,13 @@ const GroceryStoreDetail = () => {
                               <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder={L("empty = no discount", "خالی = بغیر ڈسکاؤنٹ")} className="h-7 text-xs" />
                             </div>
                             <div>
-                              <span className="text-[10px] text-muted-foreground">تفصیل / Details:</span>
-                              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="پروڈکٹ کی تفصیل لکھیں..." rows={3} className="mt-1 text-xs" />
+                              <span className="text-[10px] text-muted-foreground">{L("Details:", "تفصیل:")}</span>
+                              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder={L("Write product details...", "پروڈکٹ کی تفصیل لکھیں...")} rows={3} className="mt-1 text-xs" />
                             </div>
-                            <ProductPhotoUploader multiple label="تصویر تبدیل کریں" onDone={(photos) => uploadProductImage(product.id, photos)} />
+                            <ProductPhotoUploader multiple label={L("Change photo", "تصویر تبدیل کریں")} onDone={(photos) => uploadProductImage(product.id, photos)} />
                             <div className="flex gap-1">
                               <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
-                                <Check className="w-3 h-3 mr-0.5" /> محفوظ / Save
+                                <Check className="w-3 h-3 mr-0.5" /> {L("Save", "محفوظ")}
                               </Button>
                               <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setEditingId(null)}>
                                 <X className="w-3 h-3" />
@@ -392,10 +392,10 @@ const GroceryStoreDetail = () => {
                             </div>
                             {isOwner ? (
                               <div className="flex gap-0.5 flex-wrap">
-                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "up")} title="اوپر / Move Up">
+                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "up")} title={L("Move Up", "اوپر")}>
                                   <ArrowUp className="w-3 h-3 text-foreground" />
                                 </button>
-                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "down")} title="نیچے / Move Down">
+                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "down")} title={L("Move Down", "نیچے")}>
                                   <ArrowDown className="w-3 h-3 text-foreground" />
                                 </button>
                                 <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => startEdit(product)}>
@@ -427,7 +427,7 @@ const GroceryStoreDetail = () => {
                             {/* Minimum order warning under product */}
                             {minimumOrder > 0 && qty > 0 && storeCartTotal < minimumOrder && !isOwner && (
                               <p className="text-[9px] text-destructive font-bold mt-1 col-span-full">
-                                Rs {minimumOrder - storeCartTotal} اور شامل کریں
+                                {L(`Add Rs ${minimumOrder - storeCartTotal} more`, `Rs ${minimumOrder - storeCartTotal} اور شامل کریں`)}
                               </p>
                             )}
                           </div>
