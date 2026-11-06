@@ -3,9 +3,11 @@ import { ChevronDown, MapPin } from "lucide-react";
 import LocationSheet from "./LocationSheet";
 import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const LocationPill = ({ className = "" }: { className?: string }) => {
   const { location } = useDeliveryLocation();
+  const { lang } = useLanguage();
   const [open, setOpen] = useState(false);
 
   return (
@@ -16,7 +18,7 @@ const LocationPill = ({ className = "" }: { className?: string }) => {
       >
         <MapPin className="h-3.5 w-3.5 shrink-0 text-primary-foreground" />
         <span className="truncate text-[11px] font-bold text-primary-foreground">
-          {location?.address || "لوکیشن شامل کریں"}
+          {location?.address || (lang === "ur" ? "لوکیشن شامل کریں" : "Add location")}
         </span>
         <ChevronDown className="h-3 w-3 shrink-0 text-primary-foreground/80" />
       </Button>

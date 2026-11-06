@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowLeft, Plus, Minus, ShoppingBasket, Star, Clock, Percent, Pencil, Check, X, Trash2, ArrowUp, ArrowDown, Camera } from "lucide-react";
 import StoreBanner from "@/components/grocery/StoreBanner";
 import PhotoListOrder from "@/components/grocery/PhotoListOrder";
@@ -44,6 +45,8 @@ const GroceryStoreDetail = () => {
   const isBazar = location.pathname.startsWith("/bazar");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const { items: cartItems, addItem, updateQuantity } = useCart();
   const [store, setStore] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -101,7 +104,7 @@ const GroceryStoreDetail = () => {
 
   const handleAdd = (product: any) => {
     const stock = availableShopQuantity(product);
-    if (stock !== null && (getCartLine(product.id)?.quantity || 0) >= stock) { toast.error("مزید مقدار دستیاب نہیں"); return; }
+    if (stock !== null && (getCartLine(product.id)?.quantity || 0) >= stock) { toast.error(L("No more stock available", "مزید مقدار دستیاب نہیں")); return; }
     const effectivePrice = product.wholesale_price || product.discount_price || product.price;
     const variants = getVariants(product);
     if (variants.length > 0) {
@@ -142,21 +145,21 @@ const GroceryStoreDetail = () => {
     updates.description = editDescription.trim() || null;
     const { error } = await supabase.from("grocery_products").update(updates).eq("id", productId);
     if (error) { toast.error(error.message); return; }
-    toast.success("قیمت اپڈیٹ ہو گئی / Price updated");
+    toast.success(L("Price updated", "قیمت اپڈیٹ ہو گئی"));
     setEditingId(null);
     fetchData();
   };
 
   const toggleAvailable = async (productId: string, current: boolean) => {
     await supabase.from("grocery_products").update({ is_available: !current }).eq("id", productId);
-    toast.success("اپڈیٹ ہو گیا / Updated");
+    toast.success(L("Updated", "اپڈیٹ ہو گیا"));
     fetchData();
   };
 
   const deleteProduct = async (productId: string) => {
-    if (!window.confirm("کیا آپ واقعی حذف کرنا چاہتے ہیں؟\nAre you sure?")) return;
+    if (!window.confirm(L("Are you sure you want to delete this?", "کیا آپ واقعی حذف کرنا چاہتے ہیں؟"))) return;
     await supabase.from("grocery_products").delete().eq("id", productId);
-    toast.success("پروڈکٹ حذف / Product deleted");
+    toast.success(L("Product deleted", "پروڈکٹ حذف"));
     fetchData();
   };
 
@@ -179,18 +182,18 @@ const GroceryStoreDetail = () => {
     const urls: string[] = [];
     for (const photo of photos) {
       try { urls.push(await uploadGroceryProductPhoto(productId, photo.file)); }
-      catch (e) { throw new Error("تصویر محفوظ نہیں ہوئی: " + (e instanceof Error ? e.message : "دوبارہ کوشش کریں")); }
+      catch (e) { throw new Error(L("Photo could not be saved: ", "تصویر محفوظ نہیں ہوئی: ") + (e instanceof Error ? e.message : L("try again", "دوبارہ کوشش کریں"))); }
     }
     if (!urls.length) return;
     const { error } = await supabase.from("grocery_products").update(mergeProductPhotos(current || {}, urls)).eq("id", productId).select("id").single();
     if (error) throw new Error(error.message);
-    toast.success(`${urls.length} تصاویر محفوظ / Photos saved`);
+    toast.success(L(`${urls.length} photos saved`, `${urls.length} تصاویر محفوظ`));
     await fetchData();
   };
 
 
    const addProduct = async () => {
-     if (!newProduct.name.trim() || !newProduct.price) { toast.error("نام اور قیمت درکار / Name & price required"); return; }
+     if (!newProduct.name.trim() || !newProduct.price) { toast.error(L("Name & price required", "نام اور قیمت درکار")); return; }
      const sizes = newProduct.sizes.split(",").map((value) => value.trim()).filter(Boolean);
      const colors = newProduct.colors.split(",").map((value) => value.trim()).filter(Boolean);
      const variants = [...sizes, ...colors].map((label, index) => ({ id: `${index + 1}`, label, size: sizes.includes(label) ? label : undefined, color: colors.includes(label) ? label : undefined }));
@@ -205,10 +208,10 @@ const GroceryStoreDetail = () => {
         barcode: newProduct.barcode?.trim() || null, catalog_item_id: newProduct.catalog_item_id || null,
         ...(newProduct.catalogImages?.length ? { image_url: newProduct.image_url || newProduct.catalogImages[0], images: newProduct.catalogImages } : {}),
       }).select("id").single();
-     if (error || !createdProduct) { toast.error(error?.message || "پروڈکٹ شامل نہیں ہو سکی"); return; }
+     if (error || !createdProduct) { toast.error(error?.message || L("Product could not be added", "پروڈکٹ شامل نہیں ہو سکی")); return; }
      const imageUrls = await Promise.all((newProduct.imageFiles || []).map(async (file) => {
        try { return await uploadGroceryProductPhoto(createdProduct.id, file); }
-       catch (error) { toast.error("پروڈکٹ شامل ہو گئی، مگر تصویر محفوظ نہیں ہوئی: " + (error instanceof Error ? error.message : "دوبارہ کوشش کریں")); return null; }
+       catch (error) { toast.error(L("Product added, but the photo was not saved: ", "پروڈکٹ شامل ہو گئی، مگر تصویر محفوظ نہیں ہوئی: ") + (error instanceof Error ? error.message : L("try again", "دوبارہ کوشش کریں"))); return null; }
      }));
      const validImages = imageUrls.filter((url): url is string => Boolean(url));
      const allImages = [...(newProduct.catalogImages || []), ...validImages].slice(0, 8);
@@ -218,13 +221,13 @@ const GroceryStoreDetail = () => {
        await (supabase as any).from("catalog_suggestions").insert({ product_id: createdProduct.id, store_id: id, name: newProduct.name.trim(), brand: newProduct.brand.trim() || null,
          category: newProduct.category, unit: newProduct.unit || null, barcode: newProduct.barcode?.trim() || null, description: newProduct.description?.trim() || null, specs, images: validImages });
      }
-     toast.success("پروڈکٹ شامل / Product added");
+     toast.success(L("Product added", "پروڈکٹ شامل"));
      setNewProduct({ name: "", price: "", category: "General", unit: "piece", discount_price: "", description: "", image_url: "", imageFiles: [], brand: "", sku: "", weight: "", weight_kg: "", shipping_class: "standard", dimensions: "", material: "", voltage: "", screen_size: "", ram: "", storage: "", stock_qty: "", tags: "", colors: "", sizes: "", barcode: "", catalog_item_id: null, catalogImages: [], extraSpecs: {}, suggestToCatalog: true });
      setShowAddProduct(false); fetchData();
    };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">لوڈ ہو رہا ہے...</div>;
-  if (!store) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">اسٹور نہیں ملا</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{L("Loading...", "لوڈ ہو رہا ہے...")}</div>;
+  if (!store) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{L("Store not found", "اسٹور نہیں ملا")}</div>;
 
   const minimumOrder = (store as any)?.minimum_order || 0;
   const storeCartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -235,7 +238,7 @@ const GroceryStoreDetail = () => {
       {minimumOrder > 0 && !isOwner && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2 text-center">
           <p className="text-xs font-bold text-yellow-700 dark:text-yellow-400">
-            ⚠️ کم از کم آرڈر: Rs {minimumOrder} | Minimum Order: Rs {minimumOrder}
+            ⚠️ {L("Minimum Order", "کم از کم آرڈر")}: Rs {minimumOrder}
           </p>
         </div>
       )}
@@ -277,21 +280,21 @@ const GroceryStoreDetail = () => {
       <div className="container mx-auto px-4 pb-6">
         <Tabs defaultValue={new URLSearchParams(location.search).get("tab") || "products"} className="w-full">
           <TabsList className="w-full mb-3 justify-start overflow-x-auto">
-            <TabsTrigger value="products" className="flex-1">🛒 پروڈکٹس</TabsTrigger>
+            <TabsTrigger value="products" className="flex-1">🛒 {L("Products", "پروڈکٹس")}</TabsTrigger>
             {(!isBazar || isOwner) && (
-              <TabsTrigger value="orders" className="flex-1">📋 آرڈرز</TabsTrigger>
+              <TabsTrigger value="orders" className="flex-1">📋 {L("Orders", "آرڈرز")}</TabsTrigger>
             )}
-            {isOwner && <TabsTrigger value="stock" className="flex-1">📦 اسٹاک</TabsTrigger>}
-            {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 ریلز</TabsTrigger>}
-            {isOwner && <TabsTrigger value="questions">سوالات</TabsTrigger>}
-            {isOwner && <TabsTrigger value="reviews">رائے</TabsTrigger>}
-            {isOwner && <TabsTrigger value="settings">ترتیبات</TabsTrigger>}
+            {isOwner && <TabsTrigger value="stock" className="flex-1">📦 {L("Stock", "اسٹاک")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 {L("Reels", "ریلز")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="questions">{L("Questions", "سوالات")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="reviews">{L("Reviews", "رائے")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="settings">{L("Settings", "ترتیبات")}</TabsTrigger>}
           </TabsList>
 
 
           <TabsContent value="products">
             {filtered.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">اس کیٹیگری میں کوئی پروڈکٹ نہیں</p>
+              <p className="text-center text-muted-foreground py-8">{L("No products in this category", "اس کیٹیگری میں کوئی پروڈکٹ نہیں")}</p>
             ) : (
               <div className="grid grid-cols-2 gap-3 pt-3">
                 {filtered.map((product, idx) => {
@@ -309,12 +312,12 @@ const GroceryStoreDetail = () => {
                     >
                       {product.is_special_offer && product.discount_price && product.price > product.discount_price && (
                         <div className="absolute top-2 left-2 z-10 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                          <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}% آفر
+                          <Percent className="w-3 h-3" /> {Math.round(((product.price - product.discount_price) / product.price) * 100)}% {L("off", "آفر")}
                         </div>
                       )}
                       {isOwner && !product.is_available && (
                         <div className="absolute top-2 right-2 z-10 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          غیر فعال / Hidden
+                          {L("Hidden", "غیر فعال")}
                         </div>
                       )}
                        <div
@@ -338,11 +341,11 @@ const GroceryStoreDetail = () => {
                            <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
                            {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
                          </button>
-                        {availableShopQuantity(product) !== null && <p className="mt-1 text-[11px] text-muted-foreground">دستیاب / Available: {availableShopQuantity(product)}</p>}
+                        {availableShopQuantity(product) !== null && <p className="mt-1 text-[11px] text-muted-foreground">{L("Available", "دستیاب")}: {availableShopQuantity(product)}</p>}
 
                         {!isOwner && productVariants.length > 0 && (
                           <button type="button" onClick={() => navigate(`/product/${product.id}`)} className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[9px] font-bold text-accent-foreground">
-                            {productVariants.length} آپشنز · سائز/رنگ منتخب کریں
+                            {productVariants.length} {L("options · choose size/color", "آپشنز · سائز/رنگ منتخب کریں")}
                           </button>
                         )}
 
@@ -353,21 +356,21 @@ const GroceryStoreDetail = () => {
                         {isEditing ? (
                           <div className="mt-2 space-y-1.5">
                             <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-muted-foreground w-12">قیمت:</span>
+                              <span className="text-[10px] text-muted-foreground w-12">{L("Price:", "قیمت:")}</span>
                               <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="h-7 text-xs" />
                             </div>
                             <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-muted-foreground w-12">ڈسکاؤنٹ:</span>
-                              <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder="خالی = بغیر ڈسکاؤنٹ" className="h-7 text-xs" />
+                              <span className="text-[10px] text-muted-foreground w-12">{L("Discount:", "ڈسکاؤنٹ:")}</span>
+                              <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder={L("empty = no discount", "خالی = بغیر ڈسکاؤنٹ")} className="h-7 text-xs" />
                             </div>
                             <div>
-                              <span className="text-[10px] text-muted-foreground">تفصیل / Details:</span>
-                              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="پروڈکٹ کی تفصیل لکھیں..." rows={3} className="mt-1 text-xs" />
+                              <span className="text-[10px] text-muted-foreground">{L("Details:", "تفصیل:")}</span>
+                              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder={L("Write product details...", "پروڈکٹ کی تفصیل لکھیں...")} rows={3} className="mt-1 text-xs" />
                             </div>
-                            <ProductPhotoUploader multiple label="تصویر تبدیل کریں" onDone={(photos) => uploadProductImage(product.id, photos)} />
+                            <ProductPhotoUploader multiple label={L("Change photo", "تصویر تبدیل کریں")} onDone={(photos) => uploadProductImage(product.id, photos)} />
                             <div className="flex gap-1">
                               <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
-                                <Check className="w-3 h-3 mr-0.5" /> محفوظ / Save
+                                <Check className="w-3 h-3 mr-0.5" /> {L("Save", "محفوظ")}
                               </Button>
                               <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setEditingId(null)}>
                                 <X className="w-3 h-3" />
@@ -389,10 +392,10 @@ const GroceryStoreDetail = () => {
                             </div>
                             {isOwner ? (
                               <div className="flex gap-0.5 flex-wrap">
-                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "up")} title="اوپر / Move Up">
+                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "up")} title={L("Move Up", "اوپر")}>
                                   <ArrowUp className="w-3 h-3 text-foreground" />
                                 </button>
-                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "down")} title="نیچے / Move Down">
+                                <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => moveProduct(product.id, "down")} title={L("Move Down", "نیچے")}>
                                   <ArrowDown className="w-3 h-3 text-foreground" />
                                 </button>
                                 <button className="w-7 h-7 rounded-full bg-accent flex items-center justify-center" onClick={() => startEdit(product)}>
@@ -424,7 +427,7 @@ const GroceryStoreDetail = () => {
                             {/* Minimum order warning under product */}
                             {minimumOrder > 0 && qty > 0 && storeCartTotal < minimumOrder && !isOwner && (
                               <p className="text-[9px] text-destructive font-bold mt-1 col-span-full">
-                                Rs {minimumOrder - storeCartTotal} اور شامل کریں
+                                {L(`Add Rs ${minimumOrder - storeCartTotal} more`, `Rs ${minimumOrder - storeCartTotal} اور شامل کریں`)}
                               </p>
                             )}
                           </div>

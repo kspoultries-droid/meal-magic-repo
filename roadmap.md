@@ -9,7 +9,8 @@
 - [x] Navbar.tsx + Footer.tsx + BottomTabBar.tsx
 
 ## Phase 2: Shopping pages
-- [ ] RestaurantDetail.tsx, CategoryPage.tsx, Grocery.tsx, GroceryStoreDetail.tsx, ProductDetail.tsx, Wholesale.tsx, SearchPage.tsx
+- [x] RestaurantDetail.tsx, CategoryPage.tsx, SearchPage.tsx, Grocery.tsx, GroceryStoreDetail.tsx, ProductDetail.tsx, Wholesale.tsx — all Urdu strings wrapped in L(en, ur); typecheck + build OK
+- [x] Shared components: RestaurantGrid.tsx, RestaurantCard.tsx, LocationBar.tsx, LocationPill.tsx — verified via Playwright: 0 Urdu strings on /grocery and /search in EN mode
 
 ## Phase 3: Dashboards
 - [ ] RestaurantOwnerDashboard, RiderDashboard, AdminDashboard, SupportDashboard, ServiceManagerDashboard, MechanicDashboard, Wallet, RiderPayments, RiderRemit

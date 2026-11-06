@@ -10,6 +10,7 @@ import { Button } from "./ui/button";
 import FoodDishCard from "./menu/FoodDishCard";
 import MenuItemSheet from "./menu/MenuItemSheet";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface MenuItem {
   id: string;
@@ -50,6 +51,8 @@ interface RestaurantGridProps {
 
 const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onClearQuickFilter, dishesOnly = false }: RestaurantGridProps) => {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const [selectedDish, setSelectedDish] = useState<{ item: MenuItem; restaurant: Restaurant } | null>(null);
   const { data: restaurants = [], isPending: loading, isError, refetch } = useQuery({
     queryKey: ["food-restaurant-list"],
@@ -112,11 +115,11 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
   });
 
   const quickLabels: Record<string, string> = {
-    offers: "آفرز اور سستے سودے",
-    new: "نئے ریسٹورنٹس",
-    pickup: "پِک اپ دستیاب",
-    homechefs: "ہوم شیف",
-    "top-rated": "ٹاپ ریٹڈ",
+    offers: L("Offers & deals", "آفرز اور سستے سودے"),
+    new: L("New restaurants", "نئے ریسٹورنٹس"),
+    pickup: L("Pickup available", "پِک اپ دستیاب"),
+    homechefs: L("Home chefs", "ہوم شیف"),
+    "top-rated": L("Top rated", "ٹاپ ریٹڈ"),
   };
 
   const dishes = filtered.flatMap(restaurant => restaurant.menuItems
@@ -125,8 +128,8 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
 
   if (dishesOnly && !loading) return (
     <section className="container mx-auto max-w-5xl px-4 pb-16">
-      <div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-foreground">دستیاب ڈشیں</h2><span className="text-xs text-muted-foreground">{dishes.length} ڈشیں · {new Set(dishes.map(d => d.restaurant.id)).size} ریسٹورنٹس</span></div>
-      {isError ? <div className="py-10 text-center text-muted-foreground"><p>ڈشیں لوڈ نہیں ہو سکیں</p><Button variant="outline" onClick={() => void refetch()}>دوبارہ کوشش</Button></div> : dishes.length === 0 ? <p className="py-16 text-center text-muted-foreground">اس زمرے میں کوئی ڈش نہیں ملی</p> :
+      <div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-foreground">{L("Available dishes", "دستیاب ڈشیں")}</h2><span className="text-xs text-muted-foreground">{dishes.length} {L("dishes", "ڈشیں")} · {new Set(dishes.map(d => d.restaurant.id)).size} {L("restaurants", "ریسٹورنٹس")}</span></div>
+      {isError ? <div className="py-10 text-center text-muted-foreground"><p>{L("Dishes could not load", "ڈشیں لوڈ نہیں ہو سکیں")}</p><Button variant="outline" onClick={() => void refetch()}>{L("Try again", "دوبارہ کوشش")}</Button></div> : dishes.length === 0 ? <p className="py-16 text-center text-muted-foreground">{L("No dish found in this category", "اس زمرے میں کوئی ڈش نہیں ملی")}</p> :
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{dishes.map(({ item, restaurant }) => <FoodDishCard key={item.id} item={item} restaurant={restaurant} onSelect={() => setSelectedDish({ item, restaurant })} onRestaurant={() => navigate(`/restaurant/${restaurant.id}`)} />)}</div>}
       <MenuItemSheet item={selectedDish?.item || null} restaurant={selectedDish ? { id: selectedDish.restaurant.id, name: selectedDish.restaurant.name } : null} onClose={() => setSelectedDish(null)} />
     </section>
@@ -142,29 +145,29 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
 
   return (
     <section id="food-results" className="container mx-auto px-4 pb-16 min-h-[400px] scroll-mt-16">
-      {isError && <div className="py-6 text-center text-muted-foreground"><p>فہرست لوڈ نہیں ہو سکی</p><Button variant="outline" onClick={() => void refetch()}>دوبارہ کوشش</Button></div>}
+      {isError && <div className="py-6 text-center text-muted-foreground"><p>{L("The list could not load", "فہرست لوڈ نہیں ہو سکی")}</p><Button variant="outline" onClick={() => void refetch()}>{L("Try again", "دوبارہ کوشش")}</Button></div>}
       {quickFilter && (
         <div className="mb-4 flex items-center gap-2 rounded-2xl border border-primary/30 bg-accent px-3 py-2 shadow-soft animate-fade-in">
-          <span className="text-xs font-bold text-accent-foreground">فلٹر: {quickLabels[quickFilter]}</span>
-          <span className="text-[11px] font-semibold text-muted-foreground">{filtered.length} نتائج</span>
+          <span className="text-xs font-bold text-accent-foreground">{L("Filter", "فلٹر")}: {quickLabels[quickFilter]}</span>
+          <span className="text-[11px] font-semibold text-muted-foreground">{filtered.length} {L("results", "نتائج")}</span>
           <button
             onClick={() => onClearQuickFilter?.()}
             className="ml-auto rounded-full bg-card px-3 py-1 text-[11px] font-bold text-primary shadow-soft active:scale-95 transition-transform"
           >
-            ہٹائیں ✕
+            {L("Remove", "ہٹائیں")} ✕
           </button>
         </div>
       )}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-extrabold text-foreground">
-          {searchQuery ? `"${searchQuery}" کے نتائج` : quickFilter ? quickLabels[quickFilter] : "آپ کے قریب مشہور"}
+          {searchQuery ? L(`Results for "${searchQuery}"`, `"${searchQuery}" کے نتائج`) : quickFilter ? quickLabels[quickFilter] : L("Popular near you", "آپ کے قریب مشہور")}
         </h2>
-        <span className="text-muted-foreground text-sm">{filtered.length} ریسٹورنٹس</span>
+        <span className="text-muted-foreground text-sm">{filtered.length} {L("restaurants", "ریسٹورنٹس")}</span>
       </div>
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
-          <p className="text-lg font-semibold mb-2">کوئی ریسٹورنٹ نہیں ملا</p>
-          <p className="text-sm">مختلف سرچ یا کیٹگری آزمائیں</p>
+          <p className="text-lg font-semibold mb-2">{L("No restaurant found", "کوئی ریسٹورنٹ نہیں ملا")}</p>
+          <p className="text-sm">{L("Try a different search or category", "مختلف سرچ یا کیٹگری آزمائیں")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

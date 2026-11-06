@@ -3,9 +3,11 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import BottomTabBar from "@/components/BottomTabBar";
 import RestaurantGrid from "@/components/RestaurantGrid";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { lang } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -19,7 +21,7 @@ const SearchPage = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for restaurants, cuisines or dishes..."
+              placeholder={lang === "ur" ? "ریسٹورنٹ، کھانا یا ڈش تلاش کریں…" : "Search for restaurants, cuisines or dishes..."}
               className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
               autoFocus
             />

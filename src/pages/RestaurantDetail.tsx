@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, Clock, Plus, Minus, Check } from "lucide-react";
@@ -16,12 +17,14 @@ const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { items, addItem, updateQuantity } = useCart();
+  const { lang } = useLanguage();
+  const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const [sheetItem, setSheetItem] = useState<any>(null);
   const { data, isPending: loading } = useQuery({
     queryKey: ["food-restaurant-detail", id],
     enabled: !!id,
     queryFn: async () => {
-      if (!id) throw new Error("ریسٹورنٹ نہیں ملا");
+      if (!id) throw new Error("Restaurant not found");
       const [restResult, menuResult] = await Promise.all([
         supabase.from("restaurants").select("*").eq("id", id).single(),
         supabase.from("menu_items").select("*").eq("restaurant_id", id).eq("is_available", true),
@@ -57,7 +60,7 @@ const RestaurantDetail = () => {
       </div>
     </div>
   );
-  if (!restaurant) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">ریسٹورنٹ نہیں ملا</div>;
+  if (!restaurant) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{L("Restaurant not found", "ریسٹورنٹ نہیں ملا")}</div>;
 
   const categories = [...new Set(menuItems.map((m) => m.category || "Main"))];
 
@@ -146,12 +149,12 @@ const RestaurantDetail = () => {
                         const min = prices.length ? Math.min(item.price > 0 ? item.price : Infinity, ...prices) : item.price;
                         return (
                           <p className="text-primary font-extrabold mt-1">
-                             Rs. {min}{vs.length > 1 ? " سے" : ""}
+                             Rs. {min}{vs.length > 1 ? L(" from", " سے") : ""}
                           </p>
                         );
                       })()}
                     </div>
-                    {selectedQty > 0 && <span className="self-start rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground"><Check className="inline h-3 w-3" /> {selectedQty} منتخب</span>}
+                    {selectedQty > 0 && <span className="self-start rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground"><Check className="inline h-3 w-3" /> {selectedQty} {L("selected", "منتخب")}</span>}
                     {(item.variants?.length || item.option_groups?.length) ? <Button
                       size="sm"
                       className="rounded-full h-10 w-10 p-0"
@@ -188,7 +191,7 @@ const RestaurantDetail = () => {
           </div>
         ))}
         {menuItems.length === 0 && (
-          <p className="text-center text-muted-foreground py-16">ابھی اس ریسٹورنٹ کا مینو دستیاب نہیں ہے</p>
+          <p className="text-center text-muted-foreground py-16">{L("This restaurant's menu is not available yet", "ابھی اس ریسٹورنٹ کا مینو دستیاب نہیں ہے")}</p>
         )}
       </div>
 
