@@ -27,7 +27,11 @@ const RestaurantDetail = () => {
       ]);
       if (restResult.error) throw restResult.error;
       if (menuResult.error) throw menuResult.error;
-      return { restaurant: restResult.data, menuItems: menuResult.data || [] };
+      return { restaurant: restResult.data, menuItems: (menuResult.data || []).map(item => ({
+        ...item,
+        variants: Array.isArray(item.variants) ? item.variants : [],
+        option_groups: Array.isArray(item.option_groups) ? item.option_groups : [],
+      })) };
     },
   });
   const restaurant = data?.restaurant;
