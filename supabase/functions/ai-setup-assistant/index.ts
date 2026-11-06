@@ -7,7 +7,7 @@ const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-const DAILY_LIMIT = 10;
+const DAILY_LIMIT = 3;
 const PRODUCT_DAILY_LIMIT = 40;
 const MODEL = "google/gemini-3.1-flash-lite";
 const json = (body: unknown, status = 200) =>
@@ -74,6 +74,13 @@ Deno.serve(async (req) => {
     if (hasImage && imageDataUrl.length > 6_000_000) return json({ error: "تصویر بہت بڑی ہے" }, 400);
 
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    // Only real partners (admin, restaurant owner, or a shop owner) may use the scanner.
+    const [{ data: roles }, { count: rests }, { count: shops }] = await Promise.all([
+      admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "restaurant_owner"]),
+      admin.from("restaurants").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
+      admin.from("grocery_stores").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
+    ]);
+    if (!(roles?.length || (rests ?? 0) > 0 || (shops ?? 0) > 0)) return json({ error: "یہ سہولت صرف رجسٹرڈ پارٹنرز کے لیے ہے" }, 403);
     const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const { count } = await admin.from("ai_setup_usage").select("id", { count: "exact", head: true })
       .eq("user_id", user.id).gte("created_at", since)[isProduct ? "eq" : "neq"]("kind", "product");
@@ -94,7 +101,7 @@ Deno.serve(async (req) => {
         model: MODEL,
         messages: isProduct
           ? [{ role: "system", content: PRODUCT_PROMPT + (allowed.length ? ` Allowed categories: ${allowed.join(", ")}.` : "") }, { role: "user", content }]
-          : [{ role: "system", content: PROMPTS[kind] + " Return at most 60 items. If nothing usable, return empty items." }, { role: "user", content }],
+          : [{ role: "system", content: PROMPTS[kind] + " Return at most 40 items. If nothing usable, return empty items." }, { role: "user", content }],
         response_format: isProduct
           ? { type: "json_schema", json_schema: { name: "product", strict: true, schema: productSchema } }
           : { type: "json_schema", json_schema: { name: "items", strict: true, schema } },
@@ -113,6 +120,7 @@ Deno.serve(async (req) => {
       return json({ product: parsed, remaining: limit - (count ?? 0) - 1 });
     }
     const items = kind === "menu" ? (parsed.items ?? []).map((item: { name: string; category: string }) => ({ ...item, category: classifyMenuCategory(item.name, item.category) })) : parsed.items ?? [];
+    items.splice(40);
     return json({ items, summary: parsed.summary ?? "", remaining: DAILY_LIMIT - (count ?? 0) - 1 });
   } catch (e) {
     console.error(e);
