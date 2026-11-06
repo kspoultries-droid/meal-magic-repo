@@ -25,7 +25,7 @@ export const catalogFitsMode = (category: string | null | undefined, mode: "groc
   GROCERY_CATALOG_CATEGORIES.has(String(category || "general").trim().toLowerCase()) === (mode === "grocery");
 type Draft = { price: string; discount: string; available: boolean };
 
-export default function StoreInventoryTools({ storeId, products, categories, onChanged, mode = "grocery" }: Props) {
+export default function StoreInventoryTools({ storeId, products, categories, onChanged, mode = "grocery", storeCategory }: Props & { storeCategory?: string | null }) {
   const [q, setQ] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [saving, setSaving] = useState(false);
@@ -134,7 +134,7 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
           )}
         </TabsContent>
 
-        <TabsContent value="catalog"><CatalogPicker storeId={storeId} existing={products} onChanged={onChanged} mode={mode} /></TabsContent>
+        <TabsContent value="catalog"><CatalogPicker storeId={storeId} existing={products} onChanged={onChanged} mode={mode} storeCategory={storeCategory} /></TabsContent>
         <TabsContent value="excel"><ExcelImport storeId={storeId} products={products} onChanged={onChanged} /></TabsContent>
       </Tabs>
     </div>
@@ -143,7 +143,7 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
 
 type Pick = { price: string; discount: string; stock: string; unit: string; usePhoto: boolean };
 
-function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string; existing: any[]; onChanged: () => void; mode: "grocery" | "bazar" }) {
+function CatalogPicker({ storeId, existing, onChanged, mode, storeCategory }: { storeId: string; existing: any[]; onChanged: () => void; mode: "grocery" | "bazar"; storeCategory?: string | null }) {
   const [items, setItems] = useState<any[]>([]);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
@@ -157,6 +157,13 @@ function CatalogPicker({ storeId, existing, onChanged, mode }: { storeId: string
 
   const have = useMemo(() => new Set(existing.map((p) => `${p.name}`.toLowerCase())), [existing]);
   const cats = useMemo(() => Array.from(new Set(items.map((i) => i.category))).sort(), [items]);
+  // Start on the shop's own category (e.g. an "Electric Store" opens on Electric/Electronics items)
+  useEffect(() => {
+    const sc = String(storeCategory || "").toLowerCase();
+    if (!sc || !cats.length) return;
+    const match = cats.find((c) => c.toLowerCase() === sc) || cats.find((c) => sc.includes(c.toLowerCase()) || c.toLowerCase().includes(sc.split(" ")[0]));
+    if (match) setCat(match);
+  }, [cats, storeCategory]);
   const shown = useMemo(() => items.filter((i) => !have.has(i.name.toLowerCase()) && (cat === "all" || i.category === cat) && (!q || matchesSearch(q, i.name, i.name_ur, i.category, i.brand, i.barcode))).slice(0, 200), [items, q, have, cat]);
   const picked = Object.entries(picks).filter(([, v]) => Number(v.price) > 0);
   const pickOf = (i: any): Pick => picks[i.id] || { price: "", discount: "", stock: "", unit: i.unit || "", usePhoto: hasRealPhoto(i) };

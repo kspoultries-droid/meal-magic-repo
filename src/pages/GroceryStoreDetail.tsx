@@ -248,7 +248,7 @@ const GroceryStoreDetail = () => {
         isOwner={isOwner}
         storeId={store.id}
         onRefresh={fetchData}
-        categories={GROCERY_CATEGORIES}
+        categories={store.store_type === "wholesale" ? BAZAR_CATEGORIES : GROCERY_CATEGORIES}
         showAddProduct={showAddProduct}
         setShowAddProduct={setShowAddProduct}
         newProduct={newProduct}
@@ -462,7 +462,7 @@ const GroceryStoreDetail = () => {
           )}
           {isOwner && (
             <TabsContent value="stock">
-              <StoreInventoryTools storeId={store.id} products={products} categories={isBazar ? BAZAR_CATEGORIES : GROCERY_CATEGORIES} onChanged={fetchData} mode={isBazar ? "bazar" : "grocery"} />
+              <StoreInventoryTools storeId={store.id} products={products} categories={isBazar ? BAZAR_CATEGORIES : GROCERY_CATEGORIES} onChanged={fetchData} mode={store.store_type === "wholesale" ? "bazar" : "grocery"} storeCategory={store.category} />
             </TabsContent>
           )}
           {isOwner && <TabsContent value="questions"><ShopQuestions storeId={store.id} /></TabsContent>}

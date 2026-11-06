@@ -1,5 +1,5 @@
 import { img } from "@/lib/imageUrl";
-import { ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link, Share2, Copy, Download, MessageCircle } from "lucide-react";
+import { Zap, Smartphone, Shirt, Footprints, Wrench, Sparkles, Gift, BookOpen, Store as StoreIcon, ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link, Share2, Copy, Download, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,20 @@ const COLLAGE_SETS: Record<string, string[]> = {
   Snacks: [biscuits, beverages, tea, sugar, fruits, oil, spices, dal],
   Cleaning: [oil, sugar, dal, spices, tea, attaRice, ghee, biscuits],
   "Personal Care": [milk, beverages, tea, sugar, oil, dal, spices, biscuits],
+};
+
+// Auto banner for Bazar shops: picks an icon/motif from the shop category so a new shop looks finished instantly
+const autoBannerIcon = (cat: string) => {
+  const c = (cat || "").toLowerCase();
+  if (/electric|electronic|hardware/.test(c)) return Zap;
+  if (/mobile|tablet|laptop/.test(c)) return Smartphone;
+  if (/cloth|fashion|garment/.test(c)) return Shirt;
+  if (/shoe/.test(c)) return Footprints;
+  if (/tool/.test(c)) return Wrench;
+  if (/cosmetic|beauty/.test(c)) return Sparkles;
+  if (/gift|toy/.test(c)) return Gift;
+  if (/station|book/.test(c)) return BookOpen;
+  return StoreIcon;
 };
 
 const BANNER_THEMES: Record<string, { gradient: string; label: string }> = {
@@ -128,14 +142,20 @@ const StoreBanner = ({
       <div className="relative isolate overflow-hidden">
         {store.image_url ? (
           <img src={img(store.image_url, 960)} alt={store.name} className="h-56 w-full object-cover sm:h-72" />
-        ) : (
+        ) : store.store_type === "wholesale" ? (() => { const Icon = autoBannerIcon(store.category); return (
+          <div className="relative h-56 w-full overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-accent sm:h-72">
+            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--primary-foreground)) 1px, transparent 0)", backgroundSize: "18px 18px" }} />
+            <Icon className="absolute -right-6 top-4 size-48 text-primary-foreground/15" strokeWidth={1.2} />
+            <Icon className="absolute right-8 top-10 size-16 text-primary-foreground/80" />
+          </div>); })()
+        : (
           <div className="grid h-56 w-full grid-cols-4 grid-rows-2 sm:h-72">
             {collageImages.slice(0, 8).map((img, i) => <img key={i} src={img} alt="" className="h-full w-full object-cover" />)}
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-foreground/80 via-foreground/35 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
-          <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className="text-xl font-extrabold leading-tight break-words sm:text-3xl">{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p></div>
+          <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className="text-xl font-extrabold leading-tight break-words sm:text-3xl">{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p>{isOwner && store.image_url && store.store_type === "wholesale" && <button className="mt-2 rounded-full bg-card/90 px-3 py-1 text-[11px] font-bold text-foreground" onClick={() => { if (confirm("اپنی تصویر ہٹا کر خودکار بینر لگائیں؟ / Use auto banner?")) updateStore({ image_url: null }); }}>✨ خودکار بینر / Auto banner</button>}</div>
           {isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label="بینر تبدیل" onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${crypto.randomUUID()}/${storeId}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: false, contentType: photo.file.type }); if (upErr) throw new Error(upErr.message); const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: urlData.publicUrl }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || "بینر محفوظ نہیں ہو سکا"); toast.success("بینر تبدیل ہو گیا"); onRefresh(); }} /></div>}
         </div>
       </div>
@@ -150,7 +170,7 @@ const StoreBanner = ({
            </span>
            <span className="flex items-center gap-1 font-semibold text-foreground">
              {store.category}
-             {isOwner && <button className="text-muted-foreground hover:text-foreground" aria-label="کیٹیگری تبدیل کریں" onClick={async () => { const val = prompt("کیٹیگری / Category:\n" + groceryCategories.join(", "), store.category); if (val && val.trim()) await updateStore({ category: val.trim() }); }}><Pencil className="size-3" /></button>}
+             {isOwner && <button className="text-muted-foreground hover:text-foreground" aria-label="کیٹیگری تبدیل کریں" onClick={async () => { const val = prompt("کیٹیگری / Category (ان میں سے ایک لکھیں):\n" + groceryCategories.join(", "), store.category); if (val && val.trim()) await updateStore({ category: val.trim() }); }}><Pencil className="size-3" /></button>}
            </span>
            {isOwner && <button className="ms-auto text-muted-foreground hover:text-foreground" aria-label="دکان کا نام تبدیل کریں" onClick={async () => { const newName = prompt("دکان کا نام / Store Name:", store.name); if (newName && newName.trim() && newName.trim() !== store.name) await updateStore({ name: newName.trim() }); }}><Pencil className="size-4" /></button>}
          </div>
