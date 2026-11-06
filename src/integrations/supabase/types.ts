@@ -3007,6 +3007,7 @@ export type Database = {
           delivery_mode: string
           delivery_time: string | null
           description: string | null
+          featured_menu_item_ids: string[]
           id: string
           image_url: string | null
           is_active: boolean | null
@@ -3033,6 +3034,7 @@ export type Database = {
           delivery_mode?: string
           delivery_time?: string | null
           description?: string | null
+          featured_menu_item_ids?: string[]
           id?: string
           image_url?: string | null
           is_active?: boolean | null
@@ -3059,6 +3061,7 @@ export type Database = {
           delivery_mode?: string
           delivery_time?: string | null
           description?: string | null
+          featured_menu_item_ids?: string[]
           id?: string
           image_url?: string | null
           is_active?: boolean | null
