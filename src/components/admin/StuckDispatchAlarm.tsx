@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ const StuckDispatchAlarm = ({ onOpen }: { onOpen?: () => void }) => {
       notified.current.add(o.id);
       try {
         if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("رائیڈر نہیں ملا — فوری توجہ", { body: `آرڈر #${o.id.slice(0, 8)} خود تفویض کریں`, requireInteraction: true, tag: `stuck-${o.id}` });
+          new Notification(tr("No rider found — Urgent", "رائیڈر نہیں ملا — فوری توجہ"), { body: `${tr("Order #", "آرڈر #")}${o.id.slice(0, 8)} ${tr("Self-assign", "خود تفویض کریں")}`, requireInteraction: true, tag: `stuck-${o.id}` });
         }
       } catch { /* noop */ }
     });
@@ -72,11 +73,11 @@ const StuckDispatchAlarm = ({ onOpen }: { onOpen?: () => void }) => {
     <div role="alert" className="sticky top-0 z-40 flex flex-wrap items-center justify-between gap-2 bg-destructive px-3 py-2.5 text-destructive-foreground shadow-lg animate-pulse">
       <div className="flex items-center gap-2 text-sm font-bold">
         <AlertTriangle className="h-5 w-5 shrink-0" />
-        {active.length} آرڈر کو کوئی رائیڈر نہیں ملا — خود تفویض کریں
+        {active.length} {tr("No rider found for order — Self-assign", "آرڈر کو کوئی رائیڈر نہیں ملا — خود تفویض کریں")}
       </div>
       <div className="flex gap-1.5">
-        <Button size="sm" variant="secondary" onClick={() => { onOpen?.(); }}>آرڈر دیکھیں</Button>
-        <Button size="sm" variant="outline" className="border-destructive-foreground/50 bg-transparent text-destructive-foreground" onClick={acknowledge}>دیکھ لیا</Button>
+        <Button size="sm" variant="secondary" onClick={() => { onOpen?.(); }}>{tr("View order", "آرڈر دیکھیں")}</Button>
+        <Button size="sm" variant="outline" className="border-destructive-foreground/50 bg-transparent text-destructive-foreground" onClick={acknowledge}>{tr("Seen", "دیکھ لیا")}</Button>
       </div>
     </div>
   );

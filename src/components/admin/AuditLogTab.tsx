@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,15 +8,15 @@ import { Input } from "@/components/ui/input";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 
 const TYPE_LABEL: Record<string, string> = {
-  food: "فوڈ",
-  grocery_cart: "گروسری",
-  grocery_list: "لسٹ آرڈر",
+  food: tr("Food", "فوڈ"),
+  grocery_cart: tr("Grocery", "گروسری"),
+  grocery_list: tr("Order List", "لسٹ آرڈر"),
 };
 
 const EVENT_LABEL: Record<string, string> = {
-  status: "آرڈر اسٹیٹس",
-  shipment: "شپمنٹ اسٹیٹس",
-  courier: "ٹریکنگ نمبر",
+  status: tr("Order Status", "آرڈر اسٹیٹس"),
+  shipment: tr("Shipment Status", "شپمنٹ اسٹیٹس"),
+  courier: tr("Tracking Number", "ٹریکنگ نمبر"),
 };
 
 const AuditLogTab = () => {
@@ -62,14 +63,13 @@ const AuditLogTab = () => {
         <Card className="border-destructive/40">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base text-destructive">
-              <AlertTriangle className="h-4 w-4" /> کورئیر اپڈیٹس جو ابھی مکمل نہیں ہوئیں
+              <AlertTriangle className="h-4 w-4" /> {tr("Pending Courier Updates", "کورئیر اپڈیٹس جو ابھی مکمل نہیں ہوئیں")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {queue.map((q) => (
               <div key={q.id} className="rounded-lg border p-2 text-xs">
-                <span className="font-mono">#{q.order_id.slice(0, 8)}</span> · {q.provider} · {q.shipment_status} ·
-                کوششیں {q.attempts} · <Badge variant="outline" className="text-[10px]">{q.state}</Badge>
+                <span className="font-mono">#{q.order_id.slice(0, 8)}</span> · {q.provider} · {q.shipment_status} {tr("·\n                Attempts", "·\n                کوششیں")} {q.attempts} · <Badge variant="outline" className="text-[10px]">{q.state}</Badge>
                 {q.last_error && <p className="text-muted-foreground">{q.last_error}</p>}
               </div>
             ))}
@@ -79,11 +79,11 @@ const AuditLogTab = () => {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle>آڈٹ لاگ — آرڈر و شپمنٹ تبدیلیاں</CardTitle>
+          <CardTitle>{tr("Audit Log — Order & Shipment Changes", "آڈٹ لاگ — آرڈر و شپمنٹ تبدیلیاں")}</CardTitle>
           <div className="flex items-center gap-2">
             <Input
               className="h-8 w-40 text-xs"
-              placeholder="آرڈر / ٹریکنگ"
+              placeholder={tr("Order / Tracking", "آرڈر / ٹریکنگ")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -92,9 +92,9 @@ const AuditLogTab = () => {
         </CardHeader>
         <CardContent className="space-y-2">
           {loading ? (
-            <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p>
+            <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p>
           ) : filtered.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">کوئی ریکارڈ نہیں</p>
+            <p className="py-8 text-center text-muted-foreground">{tr("No records found", "کوئی ریکارڈ نہیں")}</p>
           ) : (
             filtered.map((e) => (
               <div key={e.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs">
@@ -106,7 +106,7 @@ const AuditLogTab = () => {
                   {e.tracking_number && <span className="text-muted-foreground">· {e.courier_name} {e.tracking_number}</span>}
                 </div>
                 <div className="text-muted-foreground">
-                  {e.actor_id ? (actors[e.actor_id] || e.actor_id.slice(0, 8)) : `سسٹم (${e.source})`} ·{" "}
+                  {e.actor_id ? (actors[e.actor_id] || e.actor_id.slice(0, 8)) : `${tr("System (", "سسٹم (")}${e.source})`} ·{" "}
                   {new Date(e.created_at).toLocaleString("ur-PK", { dateStyle: "short", timeStyle: "short" })}
                 </div>
               </div>

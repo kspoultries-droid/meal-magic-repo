@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,18 +33,18 @@ const RiderRemit = () => {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-sm font-extrabold text-primary leading-tight">رقم جمع کرائیں</h1>
-          <p className="text-[10px] text-muted-foreground">کیش آن ڈلیوری کی رقم EasyLife کو جمع کرائیں</p>
+          <h1 className="text-sm font-extrabold text-primary leading-tight">{tr("Deposit Amount", "رقم جمع کرائیں")}</h1>
+          <p className="text-[10px] text-muted-foreground">{tr("Deposit Cash on Delivery amount to EasyLife", "کیش آن ڈلیوری کی رقم EasyLife کو جمع کرائیں")}</p>
         </div>
       </header>
       <div className="p-3 space-y-3">
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border bg-card p-3 text-center">
-            <p className="text-[10px] text-muted-foreground">واجب الادا</p>
+            <p className="text-[10px] text-muted-foreground">{tr("Payable", "واجب الادا")}</p>
             <p className="text-lg font-extrabold text-destructive">Rs {Math.round(cashDue)}</p>
           </div>
           <div className="rounded-xl border bg-card p-3 text-center">
-            <p className="text-[10px] text-muted-foreground">تصدیق کے انتظار میں</p>
+            <p className="text-[10px] text-muted-foreground">{tr("Pending verification", "تصدیق کے انتظار میں")}</p>
             <p className="text-lg font-extrabold text-warning">Rs {Math.round(pending)}</p>
           </div>
         </div>

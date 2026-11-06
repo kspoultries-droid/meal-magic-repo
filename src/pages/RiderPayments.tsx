@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,17 +49,17 @@ const RiderPayments = () => {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-sm font-extrabold text-primary leading-tight">پیمنٹ اور کمائی</h1>
-          <p className="text-[10px] text-muted-foreground">جمع کرائی گئی رقم، کمائی اور تنخواہ</p>
+          <h1 className="text-sm font-extrabold text-primary leading-tight">{tr("Payments & Earnings", "پیمنٹ اور کمائی")}</h1>
+          <p className="text-[10px] text-muted-foreground">{tr("Deposited Amount, Earnings & Salary", "جمع کرائی گئی رقم، کمائی اور تنخواہ")}</p>
         </div>
       </header>
 
       <div className="p-3 space-y-3">
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: "کل کمائی", value: `Rs ${Math.round(Number(summary?.total_earnings ?? 0))}`, cls: "text-success" },
-            { label: "جمع کرا دی", value: `Rs ${Math.round(Number(summary?.remitted ?? 0))}`, cls: "text-primary" },
-            { label: "واجب الادا", value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
+            { label: tr("Total Earnings", "کل کمائی"), value: `Rs ${Math.round(Number(summary?.total_earnings ?? 0))}`, cls: "text-success" },
+            { label: tr("Deposited", "جمع کرا دی"), value: `Rs ${Math.round(Number(summary?.remitted ?? 0))}`, cls: "text-primary" },
+            { label: tr("Payable", "واجب الادا"), value: `Rs ${Math.round(cashDue)}`, cls: "text-destructive" },
           ].map((s) => (
             <div key={s.label} className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
               <p className="text-[9px] text-muted-foreground leading-tight">{s.label}</p>
@@ -69,25 +70,25 @@ const RiderPayments = () => {
 
         <Card>
           <CardHeader className="py-3">
-            <CardTitle className="text-base flex items-center gap-2"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> میری ریٹنگ</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {tr("My rating", "میری ریٹنگ")}</CardTitle>
           </CardHeader>
           <CardContent className="pt-0 space-y-2">
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
-                <p className="text-[9px] text-muted-foreground">اوسط ریٹنگ</p>
+                <p className="text-[9px] text-muted-foreground">{tr("Average Rating", "اوسط ریٹنگ")}</p>
                 <p className="text-sm font-extrabold text-yellow-500">⭐ {Number(me?.rating ?? 5).toFixed(2)}</p>
               </div>
               <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
-                <p className="text-[9px] text-muted-foreground">کل ریویوز</p>
+                <p className="text-[9px] text-muted-foreground">{tr("Total Reviews", "کل ریویوز")}</p>
                 <p className="text-sm font-extrabold">{me?.total_reviews ?? 0}</p>
               </div>
               <div className="rounded-xl border bg-card px-1.5 py-2.5 text-center">
-                <p className="text-[9px] text-muted-foreground">قبولیت کی شرح</p>
+                <p className="text-[9px] text-muted-foreground">{tr("Acceptance rate", "قبولیت کی شرح")}</p>
                 <p className="text-sm font-extrabold text-primary">{Math.round(Number(me?.acceptance_rate ?? 1) * 100)}%</p>
               </div>
             </div>
             <p className="text-[10px] text-muted-foreground leading-relaxed">
-              زیادہ ریٹنگ اور زیادہ قبولیت کی شرح والے رائیڈر کو نئے آرڈر کی آفر پہلے جاتی ہے۔
+              {tr("Riders with higher ratings and acceptance rates get new order offers first.", "زیادہ ریٹنگ اور زیادہ قبولیت کی شرح والے رائیڈر کو نئے آرڈر کی آفر پہلے جاتی ہے۔")}
             </p>
             {reviews.length > 0 && (
               <div className="space-y-1.5 pt-1">
@@ -103,21 +104,21 @@ const RiderPayments = () => {
         </Card>
 
         <Button className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-remit")}>
-          <Banknote className="w-4 h-4 mr-1.5" /> رقم جمع کرائیں
+          <Banknote className="w-4 h-4 mr-1.5" /> {tr("Deposit Amount", "رقم جمع کرائیں")}
         </Button>
 
         <Card>
           <CardHeader className="py-3">
-            <CardTitle className="text-base flex items-center gap-2"><Wallet className="w-4 h-4" /> فی آرڈر کمائی</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Wallet className="w-4 h-4" /> {tr("Earnings per order", "فی آرڈر کمائی")}</CardTitle>
           </CardHeader>
           <CardContent className="pt-0 space-y-2">
             {earnings.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-4">ابھی کوئی ریکارڈ نہیں</p>
+              <p className="text-center text-sm text-muted-foreground py-4">{tr("No records yet", "ابھی کوئی ریکارڈ نہیں")}</p>
             ) : earnings.map((e) => (
               <div key={e.id} className="rounded-lg border bg-secondary/20 p-2.5 flex items-center justify-between gap-2">
                 <div className="text-xs">
                   <p className="font-mono text-[10px] text-muted-foreground">#{String(e.order_id).slice(0, 8)}</p>
-                  <p className="text-muted-foreground">{Number(e.distance_km || 0).toFixed(1)} کلومیٹر • {e.order_kind}</p>
+                  <p className="text-muted-foreground">{Number(e.distance_km || 0).toFixed(1)} {tr("km •", "کلومیٹر •")} {e.order_kind}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-extrabold text-success text-sm">Rs {Math.round(Number(e.amount))}</p>
@@ -130,11 +131,11 @@ const RiderPayments = () => {
 
         <Card>
           <CardHeader className="py-3">
-            <CardTitle className="text-base flex items-center gap-2"><Banknote className="w-4 h-4" /> تنخواہ / پے آؤٹ</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Banknote className="w-4 h-4" /> {tr("Salary / Payout", "تنخواہ / پے آؤٹ")}</CardTitle>
           </CardHeader>
           <CardContent className="pt-0 space-y-2">
             {salaries.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-4">ابھی کوئی تنخواہ جاری نہیں ہوئی</p>
+              <p className="text-center text-sm text-muted-foreground py-4">{tr("No payout issued yet", "ابھی کوئی تنخواہ جاری نہیں ہوئی")}</p>
             ) : salaries.map((s) => (
               <div key={s.id} className="rounded-lg border bg-secondary/20 p-2.5 space-y-1">
                 <div className="flex items-center justify-between">
@@ -142,7 +143,7 @@ const RiderPayments = () => {
                   <Badge className="bg-success text-success-foreground text-[10px]">Rs {Math.round(Number(s.total))}</Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  تنخواہ Rs {Math.round(Number(s.salary_amount))} • آرڈر کمائی Rs {Math.round(Number(s.order_earnings))} • بونس Rs {Math.round(Number(s.bonus))} • کٹوتی Rs {Math.round(Number(s.deduction))}
+                  {tr("Salary Rs", "تنخواہ Rs")} {Math.round(Number(s.salary_amount))} {tr("• Order earnings Rs", "• آرڈر کمائی Rs")} {Math.round(Number(s.order_earnings))} {tr("• Bonus Rs", "• بونس Rs")} {Math.round(Number(s.bonus))} {tr("• Deduction Rs", "• کٹوتی Rs")} {Math.round(Number(s.deduction))}
                 </p>
                 {s.reference_no && <p className="text-[10px] font-mono text-muted-foreground">Ref: {s.reference_no}</p>}
               </div>
@@ -153,8 +154,7 @@ const RiderPayments = () => {
         <div className="rounded-xl border bg-secondary/20 p-3 text-[11px] leading-relaxed text-muted-foreground flex gap-2">
           <Receipt className="w-4 h-4 shrink-0 text-primary" />
           <span>
-            پیٹرول اور موبائل خرچ رائیڈر کے اپنے ذمے ہیں — یہ فی آرڈر فیس اور فی کلومیٹر ریٹ میں شامل کر کے ادا کیے جاتے ہیں۔
-            کیش آن ڈلیوری کی پوری رقم EasyLife کو جمع کرانی ہے؛ آپ کی کمائی/تنخواہ الگ سے آپ کے اکاؤنٹ میں بھیجی جاتی ہے۔
+            {tr("Fuel and mobile expenses are the rider's responsibility — they are included and paid in the per-order fee and per-km rate.\n            The full Cash on Delivery amount must be submitted to EasyLife; your earnings/payout are sent separately to your account.", "پیٹرول اور موبائل خرچ رائیڈر کے اپنے ذمے ہیں — یہ فی آرڈر فیس اور فی کلومیٹر ریٹ میں شامل کر کے ادا کیے جاتے ہیں۔\n            کیش آن ڈلیوری کی پوری رقم EasyLife کو جمع کرانی ہے؛ آپ کی کمائی/تنخواہ الگ سے آپ کے اکاؤنٹ میں بھیجی جاتی ہے۔")}
           </span>
         </div>
       </div>

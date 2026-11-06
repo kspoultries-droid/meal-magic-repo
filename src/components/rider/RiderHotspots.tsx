@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,9 +19,9 @@ export default function RiderHotspots() {
   const max = Math.max(1, ...spots.map((s) => Number(s.orders_2h)));
   return (
     <div className="rounded-xl border bg-card p-3 space-y-2" dir="rtl">
-      <div className="font-extrabold">🔥 رش والے علاقے</div>
-      <p className="text-xs text-muted-foreground">پچھلے 2 گھنٹوں میں جہاں سے زیادہ آرڈر آئے — وہاں کے قریب رہیں تو جلدی آرڈر ملے گا۔</p>
-      {spots.length === 0 && <p className="text-sm text-muted-foreground">آج ابھی کوئی رش نہیں۔</p>}
+      <div className="font-extrabold">{tr("🔥 High demand areas", "🔥 رش والے علاقے")}</div>
+      <p className="text-xs text-muted-foreground">{tr("Areas with the most orders in the last 2 hours — stay nearby to get orders faster.", "پچھلے 2 گھنٹوں میں جہاں سے زیادہ آرڈر آئے — وہاں کے قریب رہیں تو جلدی آرڈر ملے گا۔")}</p>
+      {spots.length === 0 && <p className="text-sm text-muted-foreground">{tr("No rush right now today.", "آج ابھی کوئی رش نہیں۔")}</p>}
       {spots.map((s, i) => {
         const hot = Number(s.orders_2h) / max;
         return (
@@ -33,9 +34,9 @@ export default function RiderHotspots() {
             </div>
             <div className="text-left shrink-0">
               <div className={`text-sm font-extrabold ${hot > 0.6 ? "text-destructive" : hot > 0.3 ? "text-warning" : "text-primary"}`}>
-                {s.orders_2h} آرڈر
+                {s.orders_2h} {tr("Order", "آرڈر")}
               </div>
-              <div className="text-[10px] text-muted-foreground">آج {s.orders_today} · نقشہ ↗</div>
+              <div className="text-[10px] text-muted-foreground">{tr("Today", "آج")} {s.orders_today} {tr("· Map ↗", "· نقشہ ↗")}</div>
             </div>
           </a>
         );

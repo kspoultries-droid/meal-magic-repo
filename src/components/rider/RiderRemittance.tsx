@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,13 +10,13 @@ import { toast } from "sonner";
 import { Banknote, Upload, Loader2, Landmark } from "lucide-react";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
-  pending: { label: "زیرِ تصدیق", cls: "bg-warning/15 text-warning border-warning/30" },
-  approved: { label: "منظور ✅", cls: "bg-success/15 text-success border-success/30" },
-  rejected: { label: "مسترد ❌", cls: "bg-destructive/15 text-destructive border-destructive/30" },
+  pending: { label: tr("Under review", "زیرِ تصدیق"), cls: "bg-warning/15 text-warning border-warning/30" },
+  approved: { label: tr("Approved ✅", "منظور ✅"), cls: "bg-success/15 text-success border-success/30" },
+  rejected: { label: tr("Rejected ❌", "مسترد ❌"), cls: "bg-destructive/15 text-destructive border-destructive/30" },
 };
 
 const METHOD_LABEL: Record<string, string> = {
-  cash: "نقد", easypaisa: "ایزی پیسہ", jazzcash: "جاز کیش", bank: "بینک",
+  cash: tr("Cash", "نقد"), easypaisa: tr("Easypaisa", "ایزی پیسہ"), jazzcash: tr("JazzCash", "جاز کیش"), bank: tr("Bank", "بینک"),
 };
 
 interface Props {
@@ -54,10 +55,10 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
   const submit = async () => {
     if (!user) return;
     const amt = Number(amount);
-    if (!amt || amt <= 0) { toast.error("درست رقم درج کریں"); return; }
-    if (!accountId) { toast.error("EasyLife اکاؤنٹ منتخب کریں"); return; }
-    if (amt > cashDue) { toast.error(`واجب الادا رقم Rs ${Math.round(cashDue)} سے زیادہ جمع نہیں کرا سکتے`); return; }
-    if (pendingExists) { toast.error("آپ کی ایک درخواست پہلے سے زیرِ تصدیق ہے"); return; }
+    if (!amt || amt <= 0) { toast.error(tr("Enter a valid amount", "درست رقم درج کریں")); return; }
+    if (!accountId) { toast.error(tr("Select EasyLife account", "EasyLife اکاؤنٹ منتخب کریں")); return; }
+    if (amt > cashDue) { toast.error(`${tr("Amount due Rs", "واجب الادا رقم Rs")} ${Math.round(cashDue)} ${tr("Cannot deposit more than", "سے زیادہ جمع نہیں کرا سکتے")}`); return; }
+    if (pendingExists) { toast.error(tr("One of your requests is already under review", "آپ کی ایک درخواست پہلے سے زیرِ تصدیق ہے")); return; }
     setBusy(true);
     try {
       let receipt_url: string | null = null;
@@ -78,13 +79,13 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
         receipt_url,
       });
       if (error) throw error;
-      toast.success("رقم جمع کرانے کی درخواست بھیج دی گئی — ایڈمن تصدیق کرے گا");
+      toast.success(tr("Deposit request submitted — Admin will verify", "رقم جمع کرانے کی درخواست بھیج دی گئی — ایڈمن تصدیق کرے گا"));
       setAmount(""); setNote(""); setReference(""); setFile(null);
       if (fileRef.current) fileRef.current.value = "";
       load();
       onSubmitted?.();
     } catch (e: any) {
-      toast.error(e.message || "مسئلہ آ گیا");
+      toast.error(e.message || tr("Something went wrong", "مسئلہ آ گیا"));
     } finally {
       setBusy(false);
     }
@@ -94,26 +95,26 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
-          <Banknote className="w-4 h-4" /> EasyLife کو رقم جمع کرائیں
+          <Banknote className="w-4 h-4" /> {tr("Deposit to EasyLife", "EasyLife کو رقم جمع کرائیں")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-3 py-2 flex items-center justify-between">
-          <span className="text-xs font-bold text-muted-foreground">واجب الادا رقم</span>
+          <span className="text-xs font-bold text-muted-foreground">{tr("Amount Due", "واجب الادا رقم")}</span>
           <span className="text-lg font-extrabold text-destructive">Rs {Math.round(cashDue)}</span>
         </div>
 
         {pendingExists && (
           <p className="rounded-lg bg-warning/10 border border-warning/30 px-3 py-2 text-[11px] font-bold text-warning">
-            آپ کی ایک درخواست زیرِ تصدیق ہے — تصدیق کے بعد ہی نئی درخواست بھیج سکیں گے۔
+            {tr("A request is pending verification — you can submit a new one once verified.", "آپ کی ایک درخواست زیرِ تصدیق ہے — تصدیق کے بعد ہی نئی درخواست بھیج سکیں گے۔")}
           </p>
         )}
 
         {accounts.length === 0 ? (
-          <p className="text-xs text-muted-foreground">ابھی کوئی EasyLife اکاؤنٹ دستیاب نہیں — ایڈمن سے رابطہ کریں۔</p>
+          <p className="text-xs text-muted-foreground">{tr("No EasyLife account available — please contact admin.", "ابھی کوئی EasyLife اکاؤنٹ دستیاب نہیں — ایڈمن سے رابطہ کریں۔")}</p>
         ) : (
           <div className="space-y-2">
-            <p className="text-[11px] font-bold text-muted-foreground flex items-center gap-1"><Landmark className="w-3 h-3" /> EasyLife اکاؤنٹ منتخب کریں</p>
+            <p className="text-[11px] font-bold text-muted-foreground flex items-center gap-1"><Landmark className="w-3 h-3" /> {tr("Select EasyLife account", "EasyLife اکاؤنٹ منتخب کریں")}</p>
             {accounts.map((a) => (
               <button key={a.id} onClick={() => setAccountId(a.id)}
                 className={`w-full text-right rounded-xl border p-2.5 ${accountId === a.id ? "border-primary bg-primary/5" : "border-border"}`}>
@@ -125,23 +126,23 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
           </div>
         )}
 
-        <Input type="number" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="رقم (Rs)" className="h-10 text-sm" />
-        <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="ٹرانزیکشن / ریفرنس نمبر (منفرد)" className="h-10 text-sm" />
-        <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="نوٹ (اختیاری)" className="h-10 text-sm" />
+        <Input type="number" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={tr("Amount (Rs)", "رقم (Rs)")} className="h-10 text-sm" />
+        <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder={tr("Transaction / Reference No. (Unique)", "ٹرانزیکشن / ریفرنس نمبر (منفرد)")} className="h-10 text-sm" />
+        <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (Optional)", "نوٹ (اختیاری)")} className="h-10 text-sm" />
 
         <label className="flex items-center gap-2 rounded-xl border border-dashed px-3 py-2.5 cursor-pointer text-xs font-bold text-muted-foreground">
           <Upload className="w-4 h-4" />
-          {file ? file.name : "رسید / اسکرین شاٹ اٹیچ کریں"}
+          {file ? file.name : tr("Attach Receipt / Screenshot", "رسید / اسکرین شاٹ اٹیچ کریں")}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
         </label>
 
         <Button className="w-full h-11 font-extrabold" onClick={submit} disabled={busy || pendingExists || accounts.length === 0}>
-          {busy ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> بھیجا جا رہا ہے…</> : "رقم جمع کرائیں"}
+          {busy ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {tr("Sending…", "بھیجا جا رہا ہے…")}</> : tr("Deposit Amount", "رقم جمع کرائیں")}
         </Button>
 
         {rows.length > 0 && (
           <div className="space-y-1.5 pt-1">
-            <p className="text-[11px] font-bold text-muted-foreground">پچھلی جمع کرائی گئی رقوم</p>
+            <p className="text-[11px] font-bold text-muted-foreground">{tr("Past Deposits", "پچھلی جمع کرائی گئی رقوم")}</p>
             {rows.map((r) => (
               <div key={r.id} className="flex items-center justify-between gap-2 border-b pb-1.5 text-xs">
                 <div>

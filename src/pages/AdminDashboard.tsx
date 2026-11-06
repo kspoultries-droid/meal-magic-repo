@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import TicketsQueue from "@/components/support/TicketsQueue";
 import { staffWorkspace, staffLanding } from "@/lib/staffAccess";
 import CompanySettingsTab from "@/components/admin/CompanySettingsTab";
@@ -126,7 +127,7 @@ const AdminDashboard = () => {
           {isAdmin && <AdminSearch onNavigate={goto} />}
           <NotificationBell />
           <LanguageSwitcher />
-          {can("orders") && <Button variant="default" size="sm" onClick={() => navigate("/operations")}>آپریشنز</Button>}{can("support") && <Button variant="outline" size="sm" onClick={() => navigate("/support-dashboard")}>شکایات</Button>}
+          {can("orders") && <Button variant="default" size="sm" onClick={() => navigate("/operations")}>{tr("Operations", "آپریشنز")}</Button>}{can("support") && <Button variant="outline" size="sm" onClick={() => navigate("/support-dashboard")}>{tr("Complaints", "شکایات")}</Button>}
           <Button variant="outline" size="sm" onClick={() => navigate("/")}>🏠 {t("common.home")}</Button>
           <span className="hidden text-xs text-muted-foreground lg:inline">{user?.email}</span>
           <Button variant="outline" size="sm" onClick={() => { signOut(); navigate("/"); }}>
@@ -138,7 +139,7 @@ const AdminDashboard = () => {
       <div className="mx-auto max-w-7xl p-3 sm:p-4">
         <Tabs value={tab} onValueChange={value => { setRecordQuery(""); setTab(value); }}>
           <TabsList className="mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar rounded-lg border bg-card p-1">
-            <TabsTrigger value="work" className="h-8 shrink-0 gap-1.5 px-3 text-xs"><Clock3 className="size-3.5" />آج کا کام</TabsTrigger>
+            <TabsTrigger value="work" className="h-8 shrink-0 gap-1.5 px-3 text-xs"><Clock3 className="size-3.5" />{tr("Today's Tasks", "آج کا کام")}</TabsTrigger>
             {isAdmin && <TabsTrigger value="overview" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutDashboard className="h-3.5 w-3.5" /> {t("admin.commandCenter")}</TabsTrigger>}
             {work.operations.length > 0 && <TabsTrigger value="operations" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShoppingBag className="h-3.5 w-3.5" /> {t("admin.operations")}</TabsTrigger>}
             {(can("partners") || can("riders")) && <TabsTrigger value="partners" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Store className="h-3.5 w-3.5" /> {t("admin.partners")}</TabsTrigger>}
@@ -146,7 +147,7 @@ const AdminDashboard = () => {
             {can("finance") && <TabsTrigger value="finance" className="relative h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Ticket className="h-3.5 w-3.5" /> {t("admin.finance")}{pendingRemittances > 0 && <Badge className="h-4 min-w-4 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>}
             {can("content") && <TabsTrigger value="content" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Megaphone className="h-3.5 w-3.5" /> {t("admin.content")}</TabsTrigger>}
             {can("settings") && <TabsTrigger value="settings" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><MapPin className="h-3.5 w-3.5" /> {t("common.settings")}</TabsTrigger>}
-            {work.team.length > 0 && <TabsTrigger value="team" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Shield className="h-3.5 w-3.5" /> ٹیم</TabsTrigger>}
+            {work.team.length > 0 && <TabsTrigger value="team" className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Shield className="h-3.5 w-3.5" /> {tr("Team", "ٹیم")}</TabsTrigger>}
           </TabsList>
 
           {isAdmin && <TabsContent value="overview" className="admin-compact space-y-3"><AlertCenter onNavigate={goto} /><OverviewTab onNavigate={goto} /></TabsContent>}
@@ -154,7 +155,7 @@ const AdminDashboard = () => {
 
           {work.operations.length > 0 && <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={value => { setRecordQuery(""); setOpsTab(value); }}>
-              <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.operations.includes("orders") && <TabsTrigger value="orders">{t("common.orders")}</TabsTrigger>}{work.operations.includes("grocery-dispatch") && <TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger>}{work.operations.includes("rider-supervision") && <TabsTrigger value="rider-supervision">رائیڈر نگرانی</TabsTrigger>}{work.operations.includes("photo-orders") && <TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger>}{work.operations.includes("audit") && <TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger>}{can("support") && <TabsTrigger value="support">شکایات</TabsTrigger>}</TabsList>
+              <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.operations.includes("orders") && <TabsTrigger value="orders">{t("common.orders")}</TabsTrigger>}{work.operations.includes("grocery-dispatch") && <TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger>}{work.operations.includes("rider-supervision") && <TabsTrigger value="rider-supervision">{tr("Rider Monitoring", "رائیڈر نگرانی")}</TabsTrigger>}{work.operations.includes("photo-orders") && <TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger>}{work.operations.includes("audit") && <TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger>}{can("support") && <TabsTrigger value="support">{tr("Complaints", "شکایات")}</TabsTrigger>}</TabsList>
               {work.operations.includes("orders") && <TabsContent value="orders"><OrdersTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("grocery-dispatch") && <TabsContent value="grocery-dispatch"><GroceryDispatchTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("rider-supervision") && <TabsContent value="rider-supervision"><RiderOperationsPanel /></TabsContent>}{work.operations.includes("photo-orders") && <TabsContent value="photo-orders"><PhotoOrdersTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("audit") && <TabsContent value="audit"><AuditLogTab /></TabsContent>}
               {can("support") && <TabsContent value="support"><TicketsQueue /></TabsContent>}
             </Tabs>
@@ -170,19 +171,19 @@ const AdminDashboard = () => {
           {isAdmin && <TabsContent value="people" className="admin-compact"><UsersTab initialQuery={recordQuery} /></TabsContent>}
 
           {can("finance") && <TabsContent value="finance" className="admin-compact">
-            <Tabs value={financeTab} onValueChange={value => { setRecordQuery(""); setFinanceTab(value); }}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.finance.includes("revenue") && <TabsTrigger value="revenue">{t("admin.revenue")}</TabsTrigger>}{work.finance.includes("banks") && <TabsTrigger value="banks">{t("admin.banks")}</TabsTrigger>}{work.finance.includes("wallet-topups") && <TabsTrigger value="wallet-topups">والیٹ درخواستیں</TabsTrigger>}{work.finance.includes("payouts") && <TabsTrigger value="payouts">{t("admin.payouts")}</TabsTrigger>}{work.finance.includes("rider-remit") && <TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> رائیڈر سیٹلمنٹ{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>}{work.finance.includes("rider-pay") && <TabsTrigger value="rider-pay">رائیڈر تنخواہ</TabsTrigger>}{work.finance.includes("rates") && <TabsTrigger value="rates">کمیشن شرحیں</TabsTrigger>}</TabsList>{work.finance.includes("revenue") && <TabsContent value="revenue"><RevenueTab /></TabsContent>}{work.finance.includes("banks") && <TabsContent value="banks"><BankAccountsTab /></TabsContent>}{work.finance.includes("wallet-topups") && <TabsContent value="wallet-topups"><WalletTopupsTab /></TabsContent>}{work.finance.includes("payouts") && <TabsContent value="payouts"><PayoutsTab /></TabsContent>}{work.finance.includes("rider-remit") && <TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent>}{work.finance.includes("rider-pay") && <TabsContent value="rider-pay"><RiderPayTab initialQuery={recordQuery} /></TabsContent>}{work.finance.includes("rates") && <TabsContent value="rates"><CommissionRulesTab /></TabsContent>}</Tabs>
+            <Tabs value={financeTab} onValueChange={value => { setRecordQuery(""); setFinanceTab(value); }}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.finance.includes("revenue") && <TabsTrigger value="revenue">{t("admin.revenue")}</TabsTrigger>}{work.finance.includes("banks") && <TabsTrigger value="banks">{t("admin.banks")}</TabsTrigger>}{work.finance.includes("wallet-topups") && <TabsTrigger value="wallet-topups">{tr("Wallet Requests", "والیٹ درخواستیں")}</TabsTrigger>}{work.finance.includes("payouts") && <TabsTrigger value="payouts">{t("admin.payouts")}</TabsTrigger>}{work.finance.includes("rider-remit") && <TabsTrigger value="rider-remit" className="gap-1"><BellRing className="h-3.5 w-3.5" /> {tr("Rider Settlement", "رائیڈر سیٹلمنٹ")}{pendingRemittances > 0 && <Badge className="h-5 min-w-5 justify-center px-1 text-[10px]">{pendingRemittances}</Badge>}</TabsTrigger>}{work.finance.includes("rider-pay") && <TabsTrigger value="rider-pay">{tr("Rider Pay", "رائیڈر تنخواہ")}</TabsTrigger>}{work.finance.includes("rates") && <TabsTrigger value="rates">{tr("Commission Rates", "کمیشن شرحیں")}</TabsTrigger>}</TabsList>{work.finance.includes("revenue") && <TabsContent value="revenue"><RevenueTab /></TabsContent>}{work.finance.includes("banks") && <TabsContent value="banks"><BankAccountsTab /></TabsContent>}{work.finance.includes("wallet-topups") && <TabsContent value="wallet-topups"><WalletTopupsTab /></TabsContent>}{work.finance.includes("payouts") && <TabsContent value="payouts"><PayoutsTab /></TabsContent>}{work.finance.includes("rider-remit") && <TabsContent value="rider-remit"><RiderRemittancesTab /></TabsContent>}{work.finance.includes("rider-pay") && <TabsContent value="rider-pay"><RiderPayTab initialQuery={recordQuery} /></TabsContent>}{work.finance.includes("rates") && <TabsContent value="rates"><CommissionRulesTab /></TabsContent>}</Tabs>
           </TabsContent>}
 
           {can("content") && <TabsContent value="content" className="admin-compact">
-            <Tabs value={contentTab} onValueChange={setContentTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="ads">ایڈز</TabsTrigger><TabsTrigger value="vouchers">واؤچرز</TabsTrigger><TabsTrigger value="reels">ریلز</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
+            <Tabs value={contentTab} onValueChange={setContentTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1"><TabsTrigger value="ads">{tr("Ads", "ایڈز")}</TabsTrigger><TabsTrigger value="vouchers">{tr("Vouchers", "واؤچرز")}</TabsTrigger><TabsTrigger value="reels">{tr("Reels", "ریلز")}</TabsTrigger></TabsList><TabsContent value="ads"><AdsTab /></TabsContent><TabsContent value="vouchers"><VouchersTab /></TabsContent><TabsContent value="reels"><ReelsTab /></TabsContent></Tabs>
           </TabsContent>}
 
           {work.team.length > 0 && <TabsContent value="team" className="admin-compact">
-            <Tabs value={teamTab} onValueChange={setTeamTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.team.includes("team") && <TabsTrigger value="team">عملہ</TabsTrigger>}{work.team.includes("approvals") && <TabsTrigger value="approvals">منظوریاں</TabsTrigger>}{work.team.includes("activity") && <TabsTrigger value="activity">کارکردگی و ریکارڈ</TabsTrigger>}</TabsList>{work.team.includes("team") && <TabsContent value="team"><TeamTab /></TabsContent>}{work.team.includes("approvals") && <TabsContent value="approvals"><ApprovalsTab /></TabsContent>}{work.team.includes("activity") && <TabsContent value="activity"><TeamActivityTab /></TabsContent>}</Tabs>
+            <Tabs value={teamTab} onValueChange={setTeamTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.team.includes("team") && <TabsTrigger value="team">{tr("Staff", "عملہ")}</TabsTrigger>}{work.team.includes("approvals") && <TabsTrigger value="approvals">{tr("Approvals", "منظوریاں")}</TabsTrigger>}{work.team.includes("activity") && <TabsTrigger value="activity">{tr("Performance & Records", "کارکردگی و ریکارڈ")}</TabsTrigger>}</TabsList>{work.team.includes("team") && <TabsContent value="team"><TeamTab /></TabsContent>}{work.team.includes("approvals") && <TabsContent value="approvals"><ApprovalsTab /></TabsContent>}{work.team.includes("activity") && <TabsContent value="activity"><TeamActivityTab /></TabsContent>}</Tabs>
           </TabsContent>}
 
           {can("settings") && <TabsContent value="settings" className="admin-compact">
-            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{isAdmin && <TabsTrigger value="my-businesses">میرے کاروبار</TabsTrigger>}{isAdmin && <TabsTrigger value="company">کمپنی معلومات</TabsTrigger>}{isAdmin && <TabsTrigger value="catalog">معیاری فہرست</TabsTrigger>}<TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList>{isAdmin && <TabsContent value="my-businesses"><MyBusinessesTab /></TabsContent>}{isAdmin && <TabsContent value="company"><CompanySettingsTab /></TabsContent>}{isAdmin && <TabsContent value="catalog"><CatalogManagerTab /></TabsContent>}<TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
+            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{isAdmin && <TabsTrigger value="my-businesses">{tr("My Businesses", "میرے کاروبار")}</TabsTrigger>}{isAdmin && <TabsTrigger value="company">{tr("Company Info", "کمپنی معلومات")}</TabsTrigger>}{isAdmin && <TabsTrigger value="catalog">{tr("Standard Menu", "معیاری فہرست")}</TabsTrigger>}<TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList>{isAdmin && <TabsContent value="my-businesses"><MyBusinessesTab /></TabsContent>}{isAdmin && <TabsContent value="company"><CompanySettingsTab /></TabsContent>}{isAdmin && <TabsContent value="catalog"><CatalogManagerTab /></TabsContent>}<TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
           </TabsContent>}
         </Tabs>
       </div>
@@ -231,16 +232,16 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const getUserRoles = (userId: string) => roles.filter((r) => r.user_id === userId).map((r) => r.role);
 
   const addRole = async () => {
-    if (!roleEmail.trim()) { toast.error("یوزر ID درکار ہے"); return; }
+    if (!roleEmail.trim()) { toast.error(tr("User ID is required", "یوزر ID درکار ہے")); return; }
     const matchedProfile = profiles.find((p) => p.id.startsWith(roleEmail.trim()));
-    if (!matchedProfile) { toast.error("یوزر نہیں ملا — مکمل ID یا شروع کے حروف لکھیں"); return; }
+    if (!matchedProfile) { toast.error(tr("User not found — enter full ID or prefix", "یوزر نہیں ملا — مکمل ID یا شروع کے حروف لکھیں")); return; }
 
     const existingRoles = getUserRoles(matchedProfile.id);
-    if (existingRoles.includes(roleType)) { toast.error("یہ رول پہلے سے موجود ہے"); return; }
+    if (existingRoles.includes(roleType)) { toast.error(tr("This role already exists", "یہ رول پہلے سے موجود ہے")); return; }
 
     // Secondary admins can't assign admin role
     if (roleType === "admin" && !isAppOwner) {
-      toast.error("صرف ایپ اونر ہی ایڈمن رول دے سکتا ہے");
+      toast.error(tr("Only app owner can grant admin role", "صرف ایپ اونر ہی ایڈمن رول دے سکتا ہے"));
       return;
     }
 
@@ -251,30 +252,30 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       await supabase.from("riders").upsert({ id: matchedProfile.id });
     }
 
-    toast.success(`${roleType} رول شامل ہو گیا!`);
+    toast.success(`${roleType} ${tr("Role added!", "رول شامل ہو گیا!")}`);
     setRoleEmail("");
     fetchData();
   };
 
   const quickAddRole = async (userId: string, role: string) => {
     const existingRoles = getUserRoles(userId);
-    if (existingRoles.includes(role)) { toast.error("یہ رول پہلے سے موجود ہے"); return; }
+    if (existingRoles.includes(role)) { toast.error(tr("This role already exists", "یہ رول پہلے سے موجود ہے")); return; }
     const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
     if (error) { toast.error(error.message); return; }
     if (role === "rider") await supabase.from("riders").upsert({ id: userId });
-    toast.success(`${role} رول شامل ہو گیا!`);
+    toast.success(`${role} ${tr("Role added!", "رول شامل ہو گیا!")}`);
     fetchData();
   };
 
   const removeRole = async (userId: string, role: string) => {
     // Double protection: prevent removing admin from app owner in UI
     if (userId === APP_OWNER_ID && role === "admin") {
-      toast.error("🔒 ایپ اونر کا ایڈمن رول کبھی نہیں ہٹایا جا سکتا!");
+      toast.error(tr("🔒 App Owner's admin role can never be removed!", "🔒 ایپ اونر کا ایڈمن رول کبھی نہیں ہٹایا جا سکتا!"));
       return;
     }
     // Secondary admins can't remove admin role from anyone
     if (role === "admin" && !isAppOwner) {
-      toast.error("صرف ایپ اونر ہی ایڈمن رول ہٹا سکتا ہے");
+      toast.error(tr("Only app owner can remove admin role", "صرف ایپ اونر ہی ایڈمن رول ہٹا سکتا ہے"));
       return;
     }
     const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
@@ -282,7 +283,7 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       toast.error(error.message);
       return;
     }
-    toast.success("رول ہٹا دیا گیا");
+    toast.success(tr("Role removed", "رول ہٹا دیا گیا"));
     fetchData();
   };
 
@@ -299,32 +300,32 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     if (existing) {
       const { error } = await supabase.from("service_manager_categories").delete().eq("id", existing.id);
       if (error) { toast.error(error.message); return; }
-      toast.success("کیٹیگری ہٹا دی گئی");
+      toast.success(tr("Category removed", "کیٹیگری ہٹا دی گئی"));
     } else {
       const { error } = await supabase.from("service_manager_categories").insert({ user_id: userId, category_id: categoryId });
       if (error) { toast.error(error.message); return; }
-      toast.success("کیٹیگری اسائن ہو گئی");
+      toast.success(tr("Category assigned", "کیٹیگری اسائن ہو گئی"));
     }
     fetchData();
   };
 
   const copyId = (id: string) => {
     navigator.clipboard.writeText(id);
-    toast.success("ID کاپی ہو گئی");
+    toast.success(tr("ID copied", "ID کاپی ہو گئی"));
   };
 
   const filteredProfiles = profiles.filter(p => `${p.id} ${p.full_name || ""} ${p.phone || ""}`.toLowerCase().includes(query.trim().toLowerCase()));
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5" /> یوزرز اور رولز</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5" /> {tr("Users & Roles", "یوزرز اور رولز")}</CardTitle>
         {isAppOwner && (
-          <p className="text-xs text-muted-foreground mt-1">👑 آپ ایپ اونر ہیں — آپ کا ایڈمن رول مستقل محفوظ ہے</p>
+          <p className="text-xs text-muted-foreground mt-1">{tr("👑 You are the app owner — your admin role is permanently protected", "👑 آپ ایپ اونر ہیں — آپ کا ایڈمن رول مستقل محفوظ ہے")}</p>
         )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2 flex-wrap">
-          <Input placeholder="یوزر ID (پہلے 8 حروف)" value={roleEmail} onChange={(e) => setRoleEmail(e.target.value)} className="max-w-[200px]" />
+          <Input placeholder={tr("User ID (first 8 chars)", "یوزر ID (پہلے 8 حروف)")} value={roleEmail} onChange={(e) => setRoleEmail(e.target.value)} className="max-w-[200px]" />
           <select className="border rounded-md p-2 bg-background text-foreground text-sm" value={roleType} onChange={(e) => setRoleType(e.target.value)}>
             <option value="restaurant_owner">Restaurant Owner</option>
             <option value="rider">Rider</option>
@@ -333,20 +334,20 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
             <option value="service_manager">Service Manager</option>
             {isAppOwner && <option value="admin">Admin</option>}
           </select>
-          <Button onClick={addRole}><Plus className="h-4 w-4 mr-1" /> رول دیں</Button>
+          <Button onClick={addRole}><Plus className="h-4 w-4 mr-1" /> {tr("Assign Role", "رول دیں")}</Button>
           <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className="h-4 w-4" /></Button>
         </div>
 
         <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filteredProfiles.length} />
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
+        {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : (
           <Table className="admin-mobile-table">
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>نام</TableHead>
-                <TableHead>فون</TableHead>
-                <TableHead>رولز</TableHead>
-                <TableHead>ایکشنز</TableHead>
+                <TableHead>{tr("Name", "نام")}</TableHead>
+                <TableHead>{tr("Phone", "فون")}</TableHead>
+                <TableHead>{tr("Roles", "رولز")}</TableHead>
+                <TableHead>{tr("Actions", "ایکشنز")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -355,15 +356,15 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                 const isOwner = p.id === APP_OWNER_ID;
                 return (
                   <TableRow key={p.id} className={isOwner ? "bg-primary/5" : ""}>
-                    <TableCell data-label="ID" className="font-mono text-xs cursor-pointer hover:text-primary" onClick={() => copyId(p.id)} title="کاپی کرنے کے لیے کلک کریں">{p.id.slice(0, 8)}…</TableCell>
-                    <TableCell data-label="نام">
+                    <TableCell data-label="ID" className="font-mono text-xs cursor-pointer hover:text-primary" onClick={() => copyId(p.id)} title={tr("Click to copy", "کاپی کرنے کے لیے کلک کریں")}>{p.id.slice(0, 8)}…</TableCell>
+                    <TableCell data-label={tr("Name", "نام")}>
                       <div className="flex items-center gap-1">
                         {p.full_name || "—"}
                         {isOwner && <span title="App Owner">👑</span>}
                       </div>
                     </TableCell>
-                    <TableCell data-label="فون">{p.phone || "—"}</TableCell>
-                    <TableCell data-label="رولز">
+                    <TableCell data-label={tr("Phone", "فون")}>{p.phone || "—"}</TableCell>
+                    <TableCell data-label={tr("Roles", "رولز")}>
                       <div className="flex gap-1 flex-wrap">
                         {userRoles.map((r) => (
                           <Badge key={r} variant="outline" className={`text-xs ${isOwner && r === "admin" ? "border-primary bg-primary/10 font-bold" : ""}`}>
@@ -372,13 +373,13 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell data-label="ایکشنز">
+                    <TableCell data-label={tr("Actions", "ایکشنز")}>
                       <div className="flex gap-1 flex-wrap">
                         {userRoles.filter((r) => r !== "customer").map((r) => {
                           // Don't show delete button for app owner's admin role
                           if (isOwner && r === "admin") return (
                             <Badge key={r} className="h-6 text-xs px-2 bg-primary/20 text-primary border border-primary/30">
-                              🔒 محفوظ
+                              {tr("🔒 Secure", "🔒 محفوظ")}
                             </Badge>
                           );
                           // Secondary admins can't remove admin roles
@@ -396,13 +397,13 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         {/* Quick role buttons */}
                         {!userRoles.includes("restaurant_owner") && (
                           <Button size="sm" variant="outline" className="h-6 text-xs px-2" onClick={() => quickAddRole(p.id, "restaurant_owner")}>
-                            🍽️ ریسٹورنٹ اونر
+                            {tr("🍽️ Restaurant Owner", "🍽️ ریسٹورنٹ اونر")}
                           </Button>
                         )}
                         {/* Category assignment for service managers */}
                         {userRoles.includes("service_manager") && (
                           <Button size="sm" variant="outline" className="h-6 text-xs px-2 border-primary text-primary" onClick={() => openCategoryDialog(p.id)}>
-                            📂 کیٹیگریز ({getUserManagerCategories(p.id).length})
+                            {tr("📂 Categories (", "📂 کیٹیگریز (")}{getUserManagerCategories(p.id).length})
                           </Button>
                         )}
                       </div>
@@ -419,12 +420,12 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
         <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>سروس مینیجر کیٹیگریز اسائن کریں</DialogTitle>
+              <DialogTitle>{tr("Assign Service Manager Categories", "سروس مینیجر کیٹیگریز اسائن کریں")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-2 mt-2">
               {catDialogUser && (
                 <p className="text-xs text-muted-foreground mb-3">
-                  یوزر: {profiles.find(p => p.id === catDialogUser)?.full_name || catDialogUser.slice(0, 8)}
+                  {tr("User:", "یوزر:")} {profiles.find(p => p.id === catDialogUser)?.full_name || catDialogUser.slice(0, 8)}
                 </p>
               )}
               {allCategories.map((cat) => {
@@ -442,7 +443,7 @@ const UsersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                 );
               })}
               {allCategories.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">کوئی سروس کیٹیگری نہیں ملی — پہلے سروسز ٹیب میں کیٹیگری بنائیں</p>
+                <p className="text-center text-muted-foreground py-4">{tr("No service category found — create a category in Services tab first", "کوئی سروس کیٹیگری نہیں ملی — پہلے سروسز ٹیب میں کیٹیگری بنائیں")}</p>
               )}
             </div>
           </DialogContent>
@@ -524,8 +525,8 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
         }
         // Restaurant accepted an order and no rider is assigned yet → alert admin
         if (nw.status === "confirmed" && old.status !== "confirmed" && !nw.rider_id) {
-          triggerAlert("ریسٹورنٹ نے آرڈر قبول کر لیا — رائیڈر تفویض کریں!");
-          toast.info("✅ آرڈر قبول ہوا — رائیڈر تفویض کریں");
+          triggerAlert(tr("Restaurant accepted order — Assign rider!", "ریسٹورنٹ نے آرڈر قبول کر لیا — رائیڈر تفویض کریں!"));
+          toast.info(tr("✅ Order accepted — Assign rider", "✅ آرڈر قبول ہوا — رائیڈر تفویض کریں"));
         }
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "delivery_offers" }, async () => {
@@ -550,37 +551,37 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
   const updateStatus = async (order: any, status: string) => {
     if (["delivered", "completed", "cancelled"].includes(order.status)) {
-      toast.error("یہ آرڈر بند ہو چکا ہے — اسے واپس نہیں بدلا جا سکتا");
+      toast.error(tr("This order is closed — it cannot be reverted", "یہ آرڈر بند ہو چکا ہے — اسے واپس نہیں بدلا جا سکتا"));
       return;
     }
     if (status !== "cancelled") {
-      toast.error("ایڈمن صرف rider assign یا emergency cancel کرے گا؛ status ریسٹورنٹ/رائیڈر چلائیں گے");
+      toast.error(tr("Admin will only assign rider or emergency cancel; status will be managed by restaurant/rider", "ایڈمن صرف rider assign یا emergency cancel کرے گا؛ status ریسٹورنٹ/رائیڈر چلائیں گے"));
       return;
     }
     const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: "food", _order_id: order.id, _note: "ہنگامی منسوخی" });
     if (error) { toast.error(error.message); return; }
-    toast.success("سٹیٹس اپڈیٹ ہو گئی");
+    toast.success(tr("Status updated", "سٹیٹس اپڈیٹ ہو گئی"));
     fetchOrders();
   };
 
   const assignRider = async (orderId: string, riderId: string) => {
     const { error } = await (supabase.rpc as any)("admin_offer_order_to_rider", { _kind: "food", _order_id: orderId, _rider_id: riderId, _delivery_fee: null });
     if (error) { toast.error(error.message); return; }
-    toast.success("رائیڈر کو آفر بھیج دی گئی — قبولیت کا انتظار ہے 🏍️");
+    toast.success(tr("Offer sent to rider — awaiting acceptance 🏍️", "رائیڈر کو آفر بھیج دی گئی — قبولیت کا انتظار ہے 🏍️"));
     fetchOrders();
   };
 
   const forceAssignRider = async (orderId: string, riderId: string) => {
     const { error } = await (supabase.rpc as any)("admin_force_assign_rider", { _kind: "food", _order_id: orderId, _rider_id: riderId });
     if (error) { toast.error(error.message); return; }
-    toast.success("رائیڈر براہِ راست تفویض کر دیا گیا ✅");
+    toast.success(tr("Rider directly assigned ✅", "رائیڈر براہِ راست تفویض کر دیا گیا ✅"));
     fetchOrders();
   };
 
   const retryDispatch = async (orderId: string) => {
     const { error } = await (supabase.rpc as any)("retry_order_dispatch", { _kind: "food", _order_id: orderId });
     if (error) { toast.error(error.message); return; }
-    toast.success("قریب ترین رائیڈر کو نئی آفر بھیج دی گئی");
+    toast.success(tr("New offer sent to nearest rider", "قریب ترین رائیڈر کو نئی آفر بھیج دی گئی"));
     fetchOrders();
   };
 
@@ -597,7 +598,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const customerOf = (o: any) => {
     const prof = customerProfiles.find(p => p.id === o.customer_id);
     return {
-      name: o.receiver_name || prof?.full_name || "کسٹمر",
+      name: o.receiver_name || prof?.full_name || tr("Customer", "کسٹمر"),
       phone: o.receiver_phone || prof?.phone || "",
     };
   };
@@ -631,17 +632,17 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const filteredOrders = orders.filter(o => (statusFilter === "all" || (statusFilter === "open" ? !["delivered", "completed", "cancelled", "returned_to_store"].includes(o.status) : ["delivered", "completed", "cancelled", "returned_to_store"].includes(o.status))) && `${o.id} ${o.restaurants?.name || ""} ${customerOf(o).name} ${customerOf(o).phone}`.toLowerCase().includes(query.trim().toLowerCase()));
   return (
     <Card>
-      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label="آرڈر قبول ہوا — رائیڈر تفویض کریں!" />
+      <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label={tr("Order accepted — assign a rider!", "آرڈر قبول ہوا — رائیڈر تفویض کریں!")} />
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>آرڈرز</CardTitle>
+        <CardTitle>{tr("Orders", "آرڈرز")}</CardTitle>
         <Button variant="outline" size="sm" onClick={() => fetchOrders()}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent>
         <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filteredOrders.length} />
-        <div className="mb-2 flex gap-1">{[["all", "سب"], ["open", "جاری"], ["closed", "بند"]].map(([value, label]) => <Button key={value} size="sm" variant={statusFilter === value ? "default" : "outline"} onClick={() => { setStatusFilter(value); setPage(1); }}>{label}</Button>)}</div>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
+        <div className="mb-2 flex gap-1">{[["all", tr("All", "سب")], ["open", tr("Open", "جاری")], ["closed", tr("Closed", "بند")]].map(([value, label]) => <Button key={value} size="sm" variant={statusFilter === value ? "default" : "outline"} onClick={() => { setStatusFilter(value); setPage(1); }}>{label}</Button>)}</div>
+        {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : (
           <div className="space-y-3">
-            {orders.length === 0 && <p className="text-center text-muted-foreground py-8">کوئی آرڈر نہیں</p>}
+            {orders.length === 0 && <p className="text-center text-muted-foreground py-8">{tr("No orders", "کوئی آرڈر نہیں")}</p>}
             {filteredOrders.slice((page - 1) * 20, page * 20).map((o) => {
               const deliveryMode = o.restaurants?.delivery_mode || "platform";
               const nearestRiders = getNearestRiders(o);
@@ -654,19 +655,19 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
                     <span className="font-bold text-xs">Rs {o.total_amount}</span>
-                    <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status === "confirmed" ? "قبول شدہ" : o.status}</Badge>
+                    <Badge className={`${statusColor(o.status)} h-5 px-1.5 text-[10px]`}>{o.status === "confirmed" ? tr("Accepted", "قبول شدہ") : o.status}</Badge>
                     {canDispatch && needsRider && (dispatch.active
-                      ? <Badge className="h-5 bg-warning px-1.5 text-[10px] text-warning-foreground">آفر بھیجی ({dispatch.tries}/3) — {getRiderName(dispatch.active.rider_id)}</Badge>
-                      : <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">{dispatch.tries >= 3 || o.dispatch_state === "stuck" ? "رائیڈر درکار (خود تفویض کریں)" : "رائیڈر تلاش جاری"}</Badge>)}
+                      ? <Badge className="h-5 bg-warning px-1.5 text-[10px] text-warning-foreground">{tr("Offer sent (", "آفر بھیجی (")}{dispatch.tries}/3) — {getRiderName(dispatch.active.rider_id)}</Badge>
+                      : <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">{dispatch.tries >= 3 || o.dispatch_state === "stuck" ? tr("Rider needed (Assign manually)", "رائیڈر درکار (خود تفویض کریں)") : tr("Finding rider", "رائیڈر تلاش جاری")}</Badge>)}
                     <span className="text-[10px] font-bold">{cust.name}{cust.phone ? ` · ${cust.phone}` : ""}</span>
                     {o.rider_id && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{getRiderName(o.rider_id)}</Badge>}
-                    {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">خود ڈلیوری</Badge>}
+                    {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">{tr("Self delivery", "خود ڈلیوری")}</Badge>}
                      <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
                     {canDispatch && needsRider && (
-                      <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => setExpandedOrder(o.id)}>دستی تفویض</Button>
+                      <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => setExpandedOrder(o.id)}>{tr("Manual assign", "دستی تفویض")}</Button>
                     )}
                     <button className="ms-auto text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
-                      {expandedOrder === o.id ? "بند ▲" : `تفصیل (${o.order_items?.length || 0}) ▼`}
+                      {expandedOrder === o.id ? tr("Closed ▲", "بند ▲") : `${tr("Details (", "تفصیل (")}${o.order_items?.length || 0}) ▼`}
                     </button>
                   </div>
 
@@ -684,7 +685,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       )}
 
                       <div className="grid gap-0.5 text-[11px] text-muted-foreground">
-                        <p>🏪 {o.restaurants?.name || "ریسٹورنٹ"} · {o.payment_method}</p>
+                        <p>🏪 {o.restaurants?.name || tr("Restaurant", "ریسٹورنٹ")} · {o.payment_method}</p>
                         <p>
                           👤 {cust.name}
                           {cust.phone && <> · <a className="text-primary underline" href={`tel:${cust.phone}`}>📞 {cust.phone}</a></>}
@@ -695,29 +696,29 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
                       {canDispatch && needsRider && (
                         <div className="rounded-md bg-secondary/20 p-2 space-y-1">
-                          <p className="text-[11px] font-bold">🏍️ دستی تفویض (20/40/40 کا انتظار ضروری نہیں):</p>
+                          <p className="text-[11px] font-bold">{tr("🏍️ Manual Dispatch (no 20/40/40 wait needed):", "🏍️ دستی تفویض (20/40/40 کا انتظار ضروری نہیں):")}</p>
                           {(nearestRiders.length > 0 ? nearestRiders : riders.filter((r: any) => !r.is_suspended)).map((r: any) => (
                             <div key={r.id} className="flex items-center justify-between gap-1.5 rounded-md border bg-background px-2 py-1">
                               <p className="min-w-0 truncate text-[11px]">
                                 <span className="font-bold">{getRiderName(r.id)}</span>
                                 {r.distance != null ? ` · ${r.distance.toFixed(1)} km` : ""}
-                                {!r.is_available && <span className="text-muted-foreground"> · آف لائن</span>}
+                                {!r.is_available && <span className="text-muted-foreground"> {tr("· Offline", "· آف لائن")}</span>}
                               </p>
                               <div className="flex shrink-0 gap-1">
                                 {r.is_available && (
-                                  <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => assignRider(o.id, r.id)}>آفر</Button>
+                                  <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => assignRider(o.id, r.id)}>{tr("Offer", "آفر")}</Button>
                                 )}
-                                <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => forceAssignRider(o.id, r.id)}>براہِ راست</Button>
+                                <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => forceAssignRider(o.id, r.id)}>{tr("Live", "براہِ راست")}</Button>
                               </div>
                             </div>
                           ))}
-                          {riders.length === 0 && <p className="text-[11px] text-muted-foreground">کوئی رائیڈر موجود نہیں</p>}
+                          {riders.length === 0 && <p className="text-[11px] text-muted-foreground">{tr("No riders available", "کوئی رائیڈر موجود نہیں")}</p>}
                         </div>
                       )}
 
                       <div className="flex flex-wrap items-center gap-1.5">
                         {canDispatch && !o.rider_id && o.dispatch_state === "stuck" && (
-                          <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => retryDispatch(o.id)}>دوبارہ ڈسپیچ</Button>
+                          <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => retryDispatch(o.id)}>{tr("Redispatch", "دوبارہ ڈسپیچ")}</Button>
                         )}
                         {canCancel && !isClosed && o.status !== "delivering" && (
                           <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>Emergency cancel</Button>
@@ -767,7 +768,7 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const toggleActive = async (id: string, current: boolean) => {
     const { error } = await supabase.from("restaurants").update({ is_active: !current, busy_until: null }).eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("اپڈیٹ ہو گیا");
+    toast.success(tr("Updated", "اپڈیٹ ہو گیا"));
     fetchRests();
   };
 
@@ -776,51 +777,51 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     if (duration === "hour") until.setHours(until.getHours() + 1);
     else if (duration === "today") until.setHours(23, 59, 59, 999);
     else {
-      const value = window.prompt("بندش ختم ہونے کا وقت درج کریں (مثال: 2026-09-11T18:30)");
+      const value = window.prompt(tr("Enter closure end time (e.g. 2026-09-11T18:30)", "بندش ختم ہونے کا وقت درج کریں (مثال: 2026-09-11T18:30)"));
       if (!value) return;
       const parsed = new Date(value);
-      if (Number.isNaN(parsed.getTime()) || parsed <= new Date()) { toast.error("درست آئندہ وقت درج کریں"); return; }
+      if (Number.isNaN(parsed.getTime()) || parsed <= new Date()) { toast.error(tr("Enter a valid future time", "درست آئندہ وقت درج کریں")); return; }
       until.setTime(parsed.getTime());
     }
     const { error } = await supabase.from("restaurants").update({ busy_until: until.toISOString() }).eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("ریسٹورنٹ عارضی طور پر بند کر دیا گیا");
+    toast.success(tr("Restaurant temporarily closed", "ریسٹورنٹ عارضی طور پر بند کر دیا گیا"));
     fetchRests();
   };
 
   const restoreRestaurant = async (id: string) => {
     const { error } = await supabase.from("restaurants").update({ is_active: true, busy_until: null }).eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("ریسٹورنٹ دوبارہ کھول دیا گیا");
+    toast.success(tr("Restaurant reopened", "ریسٹورنٹ دوبارہ کھول دیا گیا"));
     fetchRests();
   };
 
   const changeOwner = async (restId: string) => {
     if (!ownerInput.trim()) return;
     const matchedProfile = allProfiles.find((p) => p.id === ownerInput);
-    if (!matchedProfile) { toast.error("یوزر نہیں ملا"); return; }
+    if (!matchedProfile) { toast.error(tr("User not found", "یوزر نہیں ملا")); return; }
     // Auto-assign restaurant_owner role
     await supabase.from("user_roles").upsert({ user_id: matchedProfile.id, role: "restaurant_owner" as any }, { onConflict: "user_id,role" });
     const { error } = await supabase.from("restaurants").update({ owner_id: matchedProfile.id }).eq("id", restId);
     if (error) { toast.error(error.message); return; }
-    toast.success(`اونر تبدیل → ${matchedProfile.full_name || matchedProfile.id.slice(0, 8)}`);
+    toast.success(`${tr("Change Owner →", "اونر تبدیل →")} ${matchedProfile.full_name || matchedProfile.id.slice(0, 8)}`);
     setEditingOwner(null);
     setOwnerInput("");
     fetchRests();
   };
 
   const deleteRestaurant = async (id: string) => {
-    if (!window.confirm("کیا آپ واقعی یہ ریسٹورنٹ حذف کرنا چاہتے ہیں؟")) return;
+    if (!window.confirm(tr("Are you sure you want to delete this restaurant?", "کیا آپ واقعی یہ ریسٹورنٹ حذف کرنا چاہتے ہیں؟"))) return;
     const { error } = await supabase.from("restaurants").delete().eq("id", id);
     if (error) {
       if (error.code === "23503") {
-        toast.error("یہ ریسٹورنٹ حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز منسلک ہیں");
+        toast.error(tr("Cannot delete this restaurant because it has linked orders", "یہ ریسٹورنٹ حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز منسلک ہیں"));
       } else {
         toast.error(error.message);
       }
       return;
     }
-    toast.success("حذف ہو گیا");
+    toast.success(tr("Deleted", "حذف ہو گیا"));
     fetchRests();
   };
 
@@ -828,31 +829,31 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>ریسٹورنٹس</CardTitle>
+        <CardTitle>{tr("Restaurants", "ریسٹورنٹس")}</CardTitle>
         <Button variant="outline" size="sm" onClick={fetchRests}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent>
         <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filteredRestaurants.length} />
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
+        {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : (
           <Table className="admin-mobile-table">
             <TableHeader>
               <TableRow>
-                <TableHead>نام</TableHead>
-                <TableHead>اونر</TableHead>
-                <TableHead>ریٹنگ</TableHead>
-                <TableHead>ایکٹو</TableHead>
-                <TableHead>ایکشنز</TableHead>
+                <TableHead>{tr("Name", "نام")}</TableHead>
+                <TableHead>{tr("Owner", "اونر")}</TableHead>
+                <TableHead>{tr("Rating", "ریٹنگ")}</TableHead>
+                <TableHead>{tr("Active", "ایکٹو")}</TableHead>
+                <TableHead>{tr("Actions", "ایکشنز")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRestaurants.slice((page - 1) * 20, page * 20).map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell data-label="نام" className="font-medium">{r.name}</TableCell>
-                  <TableCell data-label="اونر">
+                  <TableCell data-label={tr("Name", "نام")} className="font-medium">{r.name}</TableCell>
+                  <TableCell data-label={tr("Owner", "اونر")}>
                     {editingOwner === r.id ? (
                       <div className="flex items-center gap-1">
                         <select className="border rounded p-1 bg-background text-foreground text-xs max-w-[140px]" value={ownerInput} onChange={(e) => setOwnerInput(e.target.value)}>
-                          <option value="">یوزر منتخب کریں</option>
+                          <option value="">{tr("Select user", "یوزر منتخب کریں")}</option>
                           {allProfiles.map((p) => <option key={p.id} value={p.id}>{p.full_name || p.id.slice(0, 8)}</option>)}
                         </select>
                         <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => changeOwner(r.id)}><Check className="h-3 w-3" /></Button>
@@ -864,31 +865,31 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       </span>
                     )}
                   </TableCell>
-                  <TableCell data-label="ریٹنگ">⭐ {r.rating}</TableCell>
-                  <TableCell data-label="ایکٹو">
+                  <TableCell data-label={tr("Rating", "ریٹنگ")}>⭐ {r.rating}</TableCell>
+                  <TableCell data-label={tr("Active", "ایکٹو")}>
                     <Badge className={!r.is_active || (r.busy_until && new Date(r.busy_until) > new Date()) ? "bg-destructive text-destructive-foreground" : "bg-success text-success-foreground"}>
-                      {!r.is_active ? "غیر فعال" : r.busy_until && new Date(r.busy_until) > new Date() ? `عارضی بند: ${new Date(r.busy_until).toLocaleTimeString("ur-PK", { hour: "numeric", minute: "2-digit" })}` : "کھلا"}
+                      {!r.is_active ? tr("Inactive", "غیر فعال") : r.busy_until && new Date(r.busy_until) > new Date() ? `${tr("Temporarily Closed:", "عارضی بند:")} ${new Date(r.busy_until).toLocaleTimeString("ur-PK", { hour: "numeric", minute: "2-digit" })}` : tr("Open", "کھلا")}
                     </Badge>
                   </TableCell>
-                  <TableCell data-label="ایکشنز" className="flex flex-wrap gap-1">
+                  <TableCell data-label={tr("Actions", "ایکشنز")} className="flex flex-wrap gap-1">
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(r.id, r.is_active)}>
-                      {r.is_active ? <><Ban className="me-1 h-3 w-3" />غیر فعال</> : <><RotateCcw className="me-1 h-3 w-3" />فعال</>}
+                      {r.is_active ? <><Ban className="me-1 h-3 w-3" />{tr("Inactive", "غیر فعال")}</> : <><RotateCcw className="me-1 h-3 w-3" />{tr("Active", "فعال")}</>}
                     </Button>
                     {r.is_active && !(r.busy_until && new Date(r.busy_until) > new Date()) && (
                       <>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "hour")}><Clock3 className="me-1 h-3 w-3" />1 گھنٹہ</Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "today")}>آج تک</Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "custom")}>وقت چنیں</Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "hour")}><Clock3 className="me-1 h-3 w-3" />{tr("1 hour", "1 گھنٹہ")}</Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "today")}>{tr("Until today", "آج تک")}</Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "custom")}>{tr("Select time", "وقت چنیں")}</Button>
                       </>
                     )}
-                    {r.busy_until && new Date(r.busy_until) > new Date() && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => restoreRestaurant(r.id)}>ابھی کھولیں</Button>}
+                    {r.busy_until && new Date(r.busy_until) > new Date() && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => restoreRestaurant(r.id)}>{tr("Open Now", "ابھی کھولیں")}</Button>}
                     {isAdmin && <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>}
                   </TableCell>
                 </TableRow>
               ))}
-              {restaurants.length === 0 && <TableRow><TableCell data-label="نام" colSpan={5} className="text-center text-muted-foreground">کوئی ریسٹورنٹ نہیں</TableCell></TableRow>}
+              {restaurants.length === 0 && <TableRow><TableCell data-label={tr("Name", "نام")} colSpan={5} className="text-center text-muted-foreground">{tr("No Restaurants", "کوئی ریسٹورنٹ نہیں")}</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
@@ -917,7 +918,7 @@ const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
     setWorkingId(null);
     if (error) { toast.error(error.message); return; }
     setRiders(current => current.map(row => row.id === riderId ? { ...row, city_id: cityId } : row));
-    toast.success("رائیڈر کا شہر محفوظ ہو گیا");
+    toast.success(tr("Rider's city saved", "رائیڈر کا شہر محفوظ ہو گیا"));
   };
 
   const fetchRiders = async () => {
@@ -952,15 +953,15 @@ const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
   const setRiderState = async (riderId: string, action: "online" | "offline" | "suspend" | "restore" | "remove_role") => {
     let reason: string | null = null;
     if (action === "suspend" || action === "remove_role") {
-      reason = window.prompt(action === "suspend" ? "معطلی کی وجہ (اختیاری)" : "رائیڈر رول ہٹانے کی وجہ (اختیاری)");
+      reason = window.prompt(action === "suspend" ? tr("Suspension reason (optional)", "معطلی کی وجہ (اختیاری)") : tr("Reason for removing rider role (optional)", "رائیڈر رول ہٹانے کی وجہ (اختیاری)"));
       if (reason === null) return;
     }
-    if (action === "remove_role" && !window.confirm("رائیڈر رول ہٹا دیا جائے؟ سابقہ آرڈرز اور حساب محفوظ رہیں گے۔")) return;
+    if (action === "remove_role" && !window.confirm(tr("Remove rider role? Past orders and records will be kept.", "رائیڈر رول ہٹا دیا جائے؟ سابقہ آرڈرز اور حساب محفوظ رہیں گے۔"))) return;
     setWorkingId(riderId);
     const { error } = await (supabase.rpc as any)("admin_set_rider_state", { _rider_id: riderId, _action: action, _reason: reason });
     setWorkingId(null);
     if (error) { toast.error(error.message); return; }
-    toast.success(action === "remove_role" ? "رائیڈر رول محفوظ طریقے سے ہٹا دیا گیا" : "رائیڈر کی حالت اپڈیٹ ہو گئی");
+    toast.success(action === "remove_role" ? tr("Rider role safely removed", "رائیڈر رول محفوظ طریقے سے ہٹا دیا گیا") : tr("Rider status updated", "رائیڈر کی حالت اپڈیٹ ہو گئی"));
     fetchRiders();
   };
 
@@ -969,23 +970,23 @@ const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>رائیڈرز</CardTitle>
+        <CardTitle>{tr("Riders", "رائیڈرز")}</CardTitle>
         <Button variant="outline" size="sm" onClick={fetchRiders}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent>
         <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filteredRiders.length} />
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
+        {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : (
           <Table className="admin-mobile-table">
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>نام</TableHead>
-                <TableHead>فون</TableHead>
-                <TableHead>دستیاب</TableHead>
-                <TableHead>تیاری</TableHead>
-                <TableHead>والٹ</TableHead>
-                <TableHead>کل آمدنی</TableHead>
-                <TableHead>ایکشنز</TableHead>
+                <TableHead>{tr("Name", "نام")}</TableHead>
+                <TableHead>{tr("Phone", "فون")}</TableHead>
+                <TableHead>{tr("Available", "دستیاب")}</TableHead>
+                <TableHead>{tr("Preparing", "تیاری")}</TableHead>
+                <TableHead>{tr("Wallet", "والٹ")}</TableHead>
+                <TableHead>{tr("Total Earnings", "کل آمدنی")}</TableHead>
+                <TableHead>{tr("Actions", "ایکشنز")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -996,29 +997,29 @@ const RidersTab = ({ onPay }: { onPay: (id: string) => void }) => {
                 return (
                   <TableRow key={r.id}>
                     <TableCell data-label="ID" className="font-mono text-xs">{r.id.slice(0, 8)}</TableCell>
-                    <TableCell data-label="نام"><Button variant="link" size="sm" className="h-auto p-0" onClick={() => setDetailId(r.id)}>{prof?.full_name || "—"}</Button></TableCell>
-                    <TableCell data-label="فون">{prof?.phone || "—"}</TableCell>
-                    <TableCell data-label="دستیاب">
+                    <TableCell data-label={tr("Name", "نام")}><Button variant="link" size="sm" className="h-auto p-0" onClick={() => setDetailId(r.id)}>{prof?.full_name || "—"}</Button></TableCell>
+                    <TableCell data-label={tr("Phone", "فون")}>{prof?.phone || "—"}</TableCell>
+                    <TableCell data-label={tr("Available", "دستیاب")}>
                       <Badge className={r.is_suspended ? "bg-destructive text-destructive-foreground" : r.is_available && hasRole ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
-                        {!hasRole ? "رول ہٹا ہوا" : r.is_suspended ? "معطل" : r.is_available ? "آن لائن" : "آف لائن"}
+                        {!hasRole ? tr("Role removed", "رول ہٹا ہوا") : r.is_suspended ? tr("Suspended", "معطل") : r.is_available ? tr("Online", "آن لائن") : tr("Offline", "آف لائن")}
                       </Badge>
                     </TableCell>
-                    <TableCell data-label="تیاری" className="text-xs"><div className="flex min-w-[140px] flex-col gap-1"><span>{hasGps ? "GPS ✓" : "GPS درکار"}</span><select aria-label="رائیڈر کا شہر" disabled={workingId === r.id} value={r.city_id || ""} onChange={e => e.target.value && void setRiderCity(r.id, e.target.value)} className={`h-7 rounded-md border bg-background px-1 text-[11px] ${r.city_id ? "" : "border-destructive text-destructive"}`}><option value="">شہر منتخب کریں</option>{riderCities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div></TableCell>
-                    <TableCell data-label="والٹ">Rs {r.wallet_balance}</TableCell>
-                    <TableCell data-label="کل آمدنی">Rs {r.total_earnings}</TableCell>
-                    <TableCell data-label="ایکشنز">
+                    <TableCell data-label={tr("Preparing", "تیاری")} className="text-xs"><div className="flex min-w-[140px] flex-col gap-1"><span>{hasGps ? "GPS ✓" : tr("GPS Required", "GPS درکار")}</span><select aria-label={tr("Rider's City", "رائیڈر کا شہر")} disabled={workingId === r.id} value={r.city_id || ""} onChange={e => e.target.value && void setRiderCity(r.id, e.target.value)} className={`h-7 rounded-md border bg-background px-1 text-[11px] ${r.city_id ? "" : "border-destructive text-destructive"}`}><option value="">{tr("Select City", "شہر منتخب کریں")}</option>{riderCities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div></TableCell>
+                    <TableCell data-label={tr("Wallet", "والٹ")}>Rs {r.wallet_balance}</TableCell>
+                    <TableCell data-label={tr("Total Earnings", "کل آمدنی")}>Rs {r.total_earnings}</TableCell>
+                    <TableCell data-label={tr("Actions", "ایکشنز")}>
                       <div className="flex min-w-[210px] flex-wrap gap-1">
-                        <Button size="sm" variant="outline" onClick={() => setDetailId(r.id)}>تفصیل</Button>
-                        {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, r.is_available ? "offline" : "online")}>{r.is_available ? "آف لائن" : "آن لائن"}</Button>}
-                        {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px] text-destructive" onClick={() => setRiderState(r.id, "suspend")}>معطل کریں</Button>}
-                        {hasRole && r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "restore")}>بحال کریں</Button>}
-                        {isAdmin && hasRole && <Button size="sm" variant="destructive" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "remove_role")}>رول ہٹائیں</Button>}
+                        <Button size="sm" variant="outline" onClick={() => setDetailId(r.id)}>{tr("Details", "تفصیل")}</Button>
+                        {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, r.is_available ? "offline" : "online")}>{r.is_available ? tr("Offline", "آف لائن") : tr("Online", "آن لائن")}</Button>}
+                        {hasRole && !r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px] text-destructive" onClick={() => setRiderState(r.id, "suspend")}>{tr("Suspend", "معطل کریں")}</Button>}
+                        {hasRole && r.is_suspended && <Button size="sm" variant="outline" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "restore")}>{tr("Restore", "بحال کریں")}</Button>}
+                        {isAdmin && hasRole && <Button size="sm" variant="destructive" disabled={workingId === r.id} className="h-7 text-[11px]" onClick={() => setRiderState(r.id, "remove_role")}>{tr("Remove Role", "رول ہٹائیں")}</Button>}
                       </div>
                     </TableCell>
                   </TableRow>
                 );
               })}
-              {riders.length === 0 && <TableRow><TableCell data-label="ID" colSpan={8} className="text-center text-muted-foreground">کوئی رائیڈر نہیں</TableCell></TableRow>}
+              {riders.length === 0 && <TableRow><TableCell data-label="ID" colSpan={8} className="text-center text-muted-foreground">{tr("No riders", "کوئی رائیڈر نہیں")}</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
@@ -1051,7 +1052,7 @@ const CitiesTab = () => {
     if (!newName.trim()) return;
     const { error } = await supabase.from("cities").insert({ name: newName, delivery_fee: Number(newFee) || 0 });
     if (error) { toast.error(error.message); return; }
-    toast.success("شہر شامل ہو گیا");
+    toast.success(tr("City added", "شہر شامل ہو گیا"));
     setNewName("");
     setNewFee("");
     fetchCities();
@@ -1059,10 +1060,10 @@ const CitiesTab = () => {
 
   const updateFee = async (id: string) => {
     const fee = Number(editFee);
-    if (isNaN(fee) || fee < 0) { toast.error("درست فیس درج کریں"); return; }
+    if (isNaN(fee) || fee < 0) { toast.error(tr("Enter a valid fee", "درست فیس درج کریں")); return; }
     const { error } = await supabase.from("cities").update({ delivery_fee: fee }).eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("ڈلیوری فیس اپڈیٹ ہو گئی ✅");
+    toast.success(tr("Delivery fee updated ✅", "ڈلیوری فیس اپڈیٹ ہو گئی ✅"));
     setEditingId(null);
     fetchCities();
   };
@@ -1073,38 +1074,38 @@ const CitiesTab = () => {
   };
 
   const deleteCity = async (id: string) => {
-    if (!window.confirm("کیا آپ واقعی یہ شہر حذف کرنا چاہتے ہیں؟")) return;
+    if (!window.confirm(tr("Are you sure you want to delete this city?", "کیا آپ واقعی یہ شہر حذف کرنا چاہتے ہیں؟"))) return;
     const { error } = await supabase.from("cities").delete().eq("id", id);
     if (error) {
       if (error.code === "23503") {
-        toast.error("یہ شہر حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز یا ریسٹورنٹس منسلک ہیں");
+        toast.error(tr("Cannot delete this city because it has linked orders or restaurants", "یہ شہر حذف نہیں ہو سکتا کیونکہ اس سے آرڈرز یا ریسٹورنٹس منسلک ہیں"));
       } else {
         toast.error(error.message);
       }
       return;
     }
-    toast.success("شہر حذف ہو گیا");
+    toast.success(tr("City deleted", "شہر حذف ہو گیا"));
     fetchCities();
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>شہر</CardTitle>
+        <CardTitle>{tr("City", "شہر")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
-          <Input placeholder="شہر کا نام" value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <Input placeholder="ڈلیوری فیس" type="number" value={newFee} onChange={(e) => setNewFee(e.target.value)} className="max-w-[120px]" />
-          <Button onClick={addCity}><Plus className="h-4 w-4 mr-1" /> شامل</Button>
+          <Input placeholder={tr("City name", "شہر کا نام")} value={newName} onChange={(e) => setNewName(e.target.value)} />
+          <Input placeholder={tr("Delivery Fee", "ڈلیوری فیس")} type="number" value={newFee} onChange={(e) => setNewFee(e.target.value)} className="max-w-[120px]" />
+          <Button onClick={addCity}><Plus className="h-4 w-4 mr-1" /> {tr("Add", "شامل")}</Button>
         </div>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : (
+        {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>شہر</TableHead>
-                <TableHead>ڈلیوری فیس</TableHead>
-                <TableHead>ایکشنز</TableHead>
+                <TableHead>{tr("City", "شہر")}</TableHead>
+                <TableHead>{tr("Delivery Fee", "ڈلیوری فیس")}</TableHead>
+                <TableHead>{tr("Actions", "ایکشنز")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1142,7 +1143,7 @@ const CitiesTab = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {cities.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">کوئی شہر نہیں</TableCell></TableRow>}
+              {cities.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">{tr("No cities", "کوئی شہر نہیں")}</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}

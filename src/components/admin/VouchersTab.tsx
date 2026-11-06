@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +11,10 @@ import { toast } from "sonner";
 import { Plus, Trash2, RefreshCw, Ticket, Eye, EyeOff } from "lucide-react";
 
 const SCOPE_LABELS: Record<string, string> = {
-  all: "🌐 ہر جگہ",
-  food: "🍔 فوڈ",
-  grocery: "🛒 گروسری",
-  wholesale: "📦 بازار",
+  all: tr("🌐 Everywhere", "🌐 ہر جگہ"),
+  food: tr("🍔 Food", "🍔 فوڈ"),
+  grocery: tr("🛒 Grocery", "🛒 گروسری"),
+  wholesale: tr("📦 Marketplace", "📦 بازار"),
 };
 
 const VouchersTab = () => {
@@ -53,7 +54,7 @@ const VouchersTab = () => {
 
   const saveVoucher = async () => {
     if (!code.trim() || !title.trim() || !discountValue) {
-      toast.error("کوڈ، ٹائٹل اور رعایت کی قیمت ضروری ہے");
+      toast.error(tr("Code, title, and discount value are required", "کوڈ، ٹائٹل اور رعایت کی قیمت ضروری ہے"));
       return;
     }
     const payload: any = {
@@ -76,7 +77,7 @@ const VouchersTab = () => {
       ({ error } = await (supabase.from("vouchers" as any).insert(payload) as any));
     }
     if (error) { toast.error(error.message); return; }
-    toast.success(editId ? "واؤچر اپڈیٹ ہو گیا!" : "نیا واؤچر بن گیا! 🎟️");
+    toast.success(editId ? tr("Voucher updated!", "واؤچر اپڈیٹ ہو گیا!") : tr("New voucher created! 🎟️", "نیا واؤچر بن گیا! 🎟️"));
     resetForm();
     setDialogOpen(false);
     fetchData();
@@ -94,88 +95,88 @@ const VouchersTab = () => {
 
   const toggleActive = async (id: string, current: boolean) => {
     await (supabase.from("vouchers" as any).update({ is_active: !current }).eq("id", id) as any);
-    toast.success(!current ? "واؤچر فعال" : "واؤچر غیر فعال");
+    toast.success(!current ? tr("Voucher Active", "واؤچر فعال") : tr("Voucher Inactive", "واؤچر غیر فعال"));
     fetchData();
   };
 
   const deleteVoucher = async (id: string) => {
-    if (!confirm("کیا آپ واقعی یہ واؤچر حذف کرنا چاہتے ہیں؟")) return;
+    if (!confirm(tr("Are you sure you want to delete this voucher?", "کیا آپ واقعی یہ واؤچر حذف کرنا چاہتے ہیں؟"))) return;
     await (supabase.from("vouchers" as any).delete().eq("id", id) as any);
-    toast.success("واؤچر حذف ہو گیا");
+    toast.success(tr("Voucher deleted", "واؤچر حذف ہو گیا"));
     fetchData();
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2"><Ticket className="w-5 h-5" /> واؤچرز اور ڈیلز</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Ticket className="w-5 h-5" /> {tr("Vouchers & Deals", "واؤچرز اور ڈیلز")}</CardTitle>
         <div className="flex gap-2">
           <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> نیا واؤچر</Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {tr("New Voucher", "نیا واؤچر")}</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editId ? "واؤچر ایڈٹ کریں" : "نیا واؤچر بنائیں"}</DialogTitle>
+                <DialogTitle>{editId ? tr("Edit Voucher", "واؤچر ایڈٹ کریں") : tr("Create New Voucher", "نیا واؤچر بنائیں")}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <Input placeholder="کوڈ * (مثلاً BAZAR10)" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
-                  <Input placeholder="ٹرٹل * (English)" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Input placeholder={tr("Code * (e.g. BAZAR10)", "کوڈ * (مثلاً BAZAR10)")} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
+                  <Input placeholder={tr("Title * (English)", "ٹرٹل * (English)")} value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
-                <Input placeholder="اردو ٹائٹل (مثلاً بازار پر 10% رعایت)" value={titleUr} onChange={(e) => setTitleUr(e.target.value)} />
-                <Input placeholder="تفصیل (اختیاری)" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Input placeholder={tr("Urdu Title (e.g. 10% off on Bazar)", "اردو ٹائٹل (مثلاً بازار پر 10% رعایت)")} value={titleUr} onChange={(e) => setTitleUr(e.target.value)} />
+                <Input placeholder={tr("Description (Optional)", "تفصیل (اختیاری)")} value={description} onChange={(e) => setDescription(e.target.value)} />
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-muted-foreground">رعایت کی قسم</label>
+                    <label className="text-xs text-muted-foreground">{tr("Discount Type", "رعایت کی قسم")}</label>
                     <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={discountType} onChange={(e) => setDiscountType(e.target.value)}>
-                      <option value="percent">فیصد (%)</option>
-                      <option value="flat">فکیسڈ رقم (Rs)</option>
+                      <option value="percent">{tr("Percentage (%)", "فیصد (%)")}</option>
+                      <option value="flat">{tr("Fixed Amount (Rs)", "فکیسڈ رقم (Rs)")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">رعایت کی قیمت *</label>
+                    <label className="text-xs text-muted-foreground">{tr("Discount Value *", "رعایت کی قیمت *")}</label>
                     <Input type="number" placeholder="10" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-muted-foreground">زیادہ سے زیادہ رعایت (Rs)</label>
-                    <Input type="number" placeholder="بغیر حد" value={maxDiscount} onChange={(e) => setMaxDiscount(e.target.value)} />
+                    <label className="text-xs text-muted-foreground">{tr("Max discount (Rs)", "زیادہ سے زیادہ رعایت (Rs)")}</label>
+                    <Input type="number" placeholder={tr("No limit", "بغیر حد")} value={maxDiscount} onChange={(e) => setMaxDiscount(e.target.value)} />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">کم از کم آرڈر (Rs)</label>
+                    <label className="text-xs text-muted-foreground">{tr("Min order (Rs)", "کم از کم آرڈر (Rs)")}</label>
                     <Input type="number" placeholder="0" value={minOrder} onChange={(e) => setMinOrder(e.target.value)} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-muted-foreground">کہاں لاگو ہوگا</label>
+                    <label className="text-xs text-muted-foreground">{tr("Applicable on", "کہاں لاگو ہوگا")}</label>
                     <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={scope} onChange={(e) => setScope(e.target.value)}>
                       {Object.entries(SCOPE_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">میعاد ختم (تاریخ)</label>
+                    <label className="text-xs text-muted-foreground">{tr("Expiry date", "میعاد ختم (تاریخ)")}</label>
                     <Input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-muted-foreground">استعمال کی حد (کل)</label>
-                    <Input type="number" placeholder="لامحدود" value={usageLimit} onChange={(e) => setUsageLimit(e.target.value)} />
+                    <label className="text-xs text-muted-foreground">{tr("Usage limit (total)", "استعمال کی حد (کل)")}</label>
+                    <Input type="number" placeholder={tr("Unlimited", "لامحدود")} value={usageLimit} onChange={(e) => setUsageLimit(e.target.value)} />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">ترتیب (Sort)</label>
+                    <label className="text-xs text-muted-foreground">{tr("Sort", "ترتیب (Sort)")}</label>
                     <Input type="number" placeholder="0" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
                   </div>
                 </div>
 
-                <Button className="w-full" onClick={saveVoucher}>{editId ? "اپڈیٹ کریں" : "بنائیں"}</Button>
+                <Button className="w-full" onClick={saveVoucher}>{editId ? tr("Update", "اپڈیٹ کریں") : tr("Create", "بنائیں")}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -183,21 +184,21 @@ const VouchersTab = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {loading ? <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p> : vouchers.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">کوئی واؤچر نہیں — اوپر "نیا واؤچر" سے بنائیں</p>
+        {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : vouchers.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">{tr("No vouchers — create one via \"New Voucher\" above", "کوئی واؤچر نہیں — اوپر \"نیا واؤچر\" سے بنائیں")}</p>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>کوڈ</TableHead>
-                  <TableHead>رعایت</TableHead>
-                  <TableHead>سیکشن</TableHead>
-                  <TableHead>کم از کم</TableHead>
-                  <TableHead>استعمال</TableHead>
-                  <TableHead>میعاد</TableHead>
-                  <TableHead>سٹیٹس</TableHead>
-                  <TableHead>ایکشنز</TableHead>
+                  <TableHead>{tr("Code", "کوڈ")}</TableHead>
+                  <TableHead>{tr("Discount", "رعایت")}</TableHead>
+                  <TableHead>{tr("Section", "سیکشن")}</TableHead>
+                  <TableHead>{tr("Min", "کم از کم")}</TableHead>
+                  <TableHead>{tr("Usage", "استعمال")}</TableHead>
+                  <TableHead>{tr("Expiry", "میعاد")}</TableHead>
+                  <TableHead>{tr("Status", "سٹیٹس")}</TableHead>
+                  <TableHead>{tr("Actions", "ایکشنز")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -217,7 +218,7 @@ const VouchersTab = () => {
                     <TableCell className="text-xs">{v.valid_until ? v.valid_until.split("T")[0] : "—"}</TableCell>
                     <TableCell>
                       <Badge className={v.is_active ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}>
-                        {v.is_active ? "فعال" : "غیر فعال"}
+                        {v.is_active ? tr("Active", "فعال") : tr("Inactive", "غیر فعال")}
                       </Badge>
                     </TableCell>
                     <TableCell>

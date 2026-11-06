@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,14 +100,14 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
       _kind: kind, _order_id: order.id, _rider_id: riderId, _delivery_fee: fee,
     });
     if (error) { toast.error(error.message); return; }
-    toast.success("رائیڈر کو آفر بھیج دی گئی — قبولیت کا انتظار ہے 🏍️");
+    toast.success(tr("Offer sent to rider — awaiting acceptance 🏍️", "رائیڈر کو آفر بھیج دی گئی — قبولیت کا انتظار ہے 🏍️"));
     fetchAll();
   };
 
   const confirmForShop = async (table: "grocery_cart_orders" | "grocery_list_orders", orderId: string) => {
     const { error } = await supabase.from(table).update({ status: "confirmed" }).eq("id", orderId);
     if (error) { toast.error(error.message); return; }
-    toast.success("آرڈر قبول کر لیا گیا — پہلے دکان سامان تیار کرے گی");
+    toast.success(tr("Order accepted — store will prepare items first", "آرڈر قبول کر لیا گیا — پہلے دکان سامان تیار کرے گی"));
     fetchAll();
   };
 
@@ -116,28 +117,28 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
     <div key={o.id} className="border rounded-lg px-3 py-2 space-y-2">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>{expanded === o.id ? "بند" : "تفصیل"}</Button>
+          <Button size="sm" variant="outline" onClick={() => setExpanded(expanded === o.id ? null : o.id)}>{expanded === o.id ? tr("Closed", "بند") : tr("Details", "تفصیل")}</Button>
           <span className="font-mono text-xs text-muted-foreground">#{o.id.slice(0, 8)}</span>
           <span className="ml-3 font-bold">Rs {o.total_amount ?? "—"}</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px]">{label}</Badge>
           <Badge className="text-[10px]">{o.status}</Badge>
-          {!o.rider_id && o.dispatch_state === "searching" && <Badge variant="outline" className="text-[10px]">آفر بھیجی گئی</Badge>}
-          {!o.rider_id && o.dispatch_state === "stuck" && <Badge variant="destructive" className="text-[10px]">توجہ درکار</Badge>}
+          {!o.rider_id && o.dispatch_state === "searching" && <Badge variant="outline" className="text-[10px]">{tr("Offer sent", "آفر بھیجی گئی")}</Badge>}
+          {!o.rider_id && o.dispatch_state === "stuck" && <Badge variant="destructive" className="text-[10px]">{tr("Action required", "توجہ درکار")}</Badge>}
         </div>
       </div>
       <div className="grid gap-1 text-xs text-muted-foreground">
-        <p>🏪 Pickup: <span className="font-bold text-foreground">{o.grocery_stores?.name || "اسٹور"}</span></p>
-        <p>📍 Dropoff: {o.delivery_address || "پتہ نہیں"}</p>
+        <p>🏪 Pickup: <span className="font-bold text-foreground">{o.grocery_stores?.name || tr("Store", "اسٹور")}</span></p>
+        <p>📍 Dropoff: {o.delivery_address || tr("Unknown", "پتہ نہیں")}</p>
       </div>
 
       {expanded === o.id && <>
       {o.status === "pending" && (
         <div className="flex items-center justify-between gap-2 rounded-lg border bg-warning/10 px-3 py-2">
-          <p className="text-xs text-warning font-bold">⏳ دکاندار نے ابھی قبول نہیں کیا</p>
+          <p className="text-xs text-warning font-bold">{tr("⏳ Not accepted by store yet", "⏳ دکاندار نے ابھی قبول نہیں کیا")}</p>
           <Button size="sm" className="h-7 text-xs" onClick={() => confirmForShop(table, o.id)}>
-            ایڈمن قبول کرے
+            {tr("Admin approval needed", "ایڈمن قبول کرے")}
           </Button>
         </div>
       )}
@@ -145,30 +146,30 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
       {table === "grocery_cart_orders" && (
         <div className="rounded-lg border bg-background px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
           <div className="text-xs">
-            <p className="font-bold">🚚 کورئیر شپمنٹ</p>
+            <p className="font-bold">{tr("🚚 Courier shipment", "🚚 کورئیر شپمنٹ")}</p>
             {o.tracking_number ? (
               <p className="text-muted-foreground">
-                {o.courier_name} · {o.tracking_number} · {o.shipment_status || "—"} · {o.courier_payment_type === "cod" ? "COD" : "ایڈوانس"}
+                {o.courier_name} · {o.tracking_number} · {o.shipment_status || "—"} · {o.courier_payment_type === "cod" ? "COD" : tr("Advance", "ایڈوانس")}
               </p>
             ) : (
-              <p className="text-muted-foreground">ابھی کوئی شپمنٹ نہیں بنی</p>
+              <p className="text-muted-foreground">{tr("No shipments created yet", "ابھی کوئی شپمنٹ نہیں بنی")}</p>
             )}
           </div>
           <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setShipOrder(o)}>
-            <Truck className="h-3 w-3" /> {o.tracking_number ? "اپڈیٹ" : "شپمنٹ بنائیں"}
+            <Truck className="h-3 w-3" /> {o.tracking_number ? tr("Update", "اپڈیٹ") : tr("Create Shipment", "شپمنٹ بنائیں")}
           </Button>
         </div>
       )}
 
       {o.rider_id ? (
         <p className="text-xs text-muted-foreground">
-          🏍️ رائیڈر: <span className="font-bold">{riderName(o.rider_id)}</span>
-          {riderPhone(o.rider_id) && ` · 📞 ${riderPhone(o.rider_id)}`} · ڈلیوری فیس Rs {o.delivery_fee || 0}
+          {tr("🏍️ Rider:", "🏍️ رائیڈر:")} <span className="font-bold">{riderName(o.rider_id)}</span>
+          {riderPhone(o.rider_id) && ` · 📞 ${riderPhone(o.rider_id)}`} {tr("· Delivery Fee Rs", "· ڈلیوری فیس Rs")} {o.delivery_fee || 0}
         </p>
       ) : (
         <div className="bg-secondary/20 rounded-lg p-3 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold">ڈلیوری فیس:</span>
+            <span className="text-xs font-bold">{tr("Delivery Fee:", "ڈلیوری فیس:")}</span>
             <Input
               type="number"
               className="h-7 w-24 text-xs"
@@ -177,9 +178,9 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
               onChange={(e) => setFees((f) => ({ ...f, [o.id]: e.target.value }))}
             />
           </div>
-          <p className="text-xs font-bold text-foreground">{groceryReady(o.status) ? "🏍️ تازہ دستیاب رائیڈرز" : "سامان تیار ہونے تک آفر بند"}</p>
+          <p className="text-xs font-bold text-foreground">{groceryReady(o.status) ? tr("🏍️ Recently Available Riders", "🏍️ تازہ دستیاب رائیڈرز") : tr("Offers paused until order is ready", "سامان تیار ہونے تک آفر بند")}</p>
           {nearest(o).length === 0 ? (
-            <p className="text-xs text-muted-foreground">کوئی آن لائن رائیڈر نہیں</p>
+            <p className="text-xs text-muted-foreground">{tr("No riders online", "کوئی آن لائن رائیڈر نہیں")}</p>
           ) : (
             nearest(o).map((r: any) => (
               <div key={r.id} className="flex items-center justify-between bg-background rounded-lg px-3 py-2 border">
@@ -187,10 +188,10 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
                   <p className="text-sm font-bold truncate">{riderName(r.id)}</p>
                   <p className="text-[10px] text-muted-foreground">
                     {riderPhone(r.id) && `📞 ${riderPhone(r.id)} · `}
-                    {r.distance != null ? `📍 ${r.distance.toFixed(1)} km دور` : "📍 فاصلہ نامعلوم"}
+                    {r.distance != null ? `📍 ${r.distance.toFixed(1)} ${tr("km away", "km دور")}` : tr("📍 Distance unknown", "📍 فاصلہ نامعلوم")}
                   </p>
                 </div>
-                <Button size="sm" className="h-7 text-xs ml-2" disabled={!groceryReady(o.status)} onClick={() => assign(table, o, r.id)}>آفر بھیجیں</Button>
+                <Button size="sm" className="h-7 text-xs ml-2" disabled={!groceryReady(o.status)} onClick={() => assign(table, o, r.id)}>{tr("Send Offer", "آفر بھیجیں")}</Button>
               </div>
             ))
           )}
@@ -206,19 +207,19 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>گروسری / بازار ڈسپیچ</CardTitle>
+        <CardTitle>{tr("Grocery / Bazaar Dispatch", "گروسری / بازار ڈسپیچ")}</CardTitle>
         <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent className="space-y-3">
         <AdminListTools query={query} onQuery={setQuery} count={filteredCart.length + filteredList.length} />
         {loading ? (
-          <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p>
+          <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p>
         ) : cartOrders.length === 0 && listOrders.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">کوئی کھلا گروسری آرڈر نہیں</p>
+          <p className="text-center text-muted-foreground py-8">{tr("No open grocery orders", "کوئی کھلا گروسری آرڈر نہیں")}</p>
         ) : (
           <>
-            {filteredCart.map((o) => renderOrder(o, "grocery_cart_orders", "گروسری کارٹ"))}
-            {filteredList.map((o) => renderOrder(o, "grocery_list_orders", "لسٹ/فوٹو آرڈر"))}
+            {filteredCart.map((o) => renderOrder(o, "grocery_cart_orders", tr("Grocery Cart", "گروسری کارٹ")))}
+            {filteredList.map((o) => renderOrder(o, "grocery_list_orders", tr("List/Photo Order", "لسٹ/فوٹو آرڈر")))}
           </>
         )}
       </CardContent>

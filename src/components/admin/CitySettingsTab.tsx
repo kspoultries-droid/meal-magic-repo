@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,20 +48,20 @@ const CitySettingsTab = () => {
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...values } : r)));
     const { error } = await supabase.from("cities").update(values as any).eq("id", id);
     if (error) { toast.error(error.message); fetchAll(); return; }
-    toast.success("سیٹنگ محفوظ ہو گئی ✅");
+    toast.success(tr("Settings saved ✅", "سیٹنگ محفوظ ہو گئی ✅"));
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>شہر سیٹنگز — سروسز اور کورئیر</CardTitle>
+        <CardTitle>{tr("City Settings — Services & Courier", "شہر سیٹنگز — سروسز اور کورئیر")}</CardTitle>
         <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (
-          <p className="text-muted-foreground">لوڈ ہو رہا ہے...</p>
+          <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p>
         ) : rows.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">کوئی شہر نہیں</p>
+          <p className="text-center text-muted-foreground py-8">{tr("No cities", "کوئی شہر نہیں")}</p>
         ) : (
           rows.map((c) => {
             const hidden = c.auto_hide_without_rider && c.rider_count === 0;
@@ -69,17 +70,17 @@ const CitySettingsTab = () => {
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <p className="font-extrabold">{c.name}</p>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px]">🏍️ رائیڈرز: {c.rider_count}</Badge>
-                    {hidden && <Badge variant="destructive" className="text-[10px]">فوڈ/گروسری خودکار بند</Badge>}
+                    <Badge variant="outline" className="text-[10px]">{tr("🏍️ Riders:", "🏍️ رائیڈرز:")} {c.rider_count}</Badge>
+                    {hidden && <Badge variant="destructive" className="text-[10px]">{tr("Auto-Close Food/Grocery", "فوڈ/گروسری خودکار بند")}</Badge>}
                   </div>
                 </div>
 
                 <div className="grid gap-2 sm:grid-cols-2">
                   {([
-                    ["food_enabled", "🍔 فوڈ"],
-                    ["grocery_enabled", "🛒 گروسری"],
-                    ["wholesale_enabled", "📦 بازار (کورئیر)"],
-                    ["auto_hide_without_rider", "رائیڈر نہ ہو تو خودکار چھپائیں"],
+                    ["food_enabled", tr("🍔 Food", "🍔 فوڈ")],
+                    ["grocery_enabled", tr("🛒 Grocery", "🛒 گروسری")],
+                    ["wholesale_enabled", tr("📦 Bazaar (Courier)", "📦 بازار (کورئیر)")],
+                    ["auto_hide_without_rider", tr("Auto-hide if no riders", "رائیڈر نہ ہو تو خودکار چھپائیں")],
                   ] as const).map(([key, label]) => (
                     <label key={key} className="flex items-center justify-between rounded-lg bg-secondary/20 px-3 py-2">
                       <span className="text-xs font-bold">{label}</span>
@@ -94,23 +95,23 @@ const CitySettingsTab = () => {
                 {/* Auto rider dispatch settings */}
                 <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
                   <label className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-primary">🤖 خودکار رائیڈر اسائنمنٹ (Auto Dispatch)</span>
+                    <span className="text-xs font-extrabold text-primary">{tr("🤖 Auto Rider Assignment (Auto Dispatch)", "🤖 خودکار رائیڈر اسائنمنٹ (Auto Dispatch)")}</span>
                     <Switch checked={!!c.auto_dispatch} onCheckedChange={(v) => patch(c.id, { auto_dispatch: v })} />
                   </label>
                   {c.auto_dispatch && (
                     <div className="grid gap-2 sm:grid-cols-3">
                       <div>
-                        <label className="text-[11px] font-bold text-muted-foreground">آفر ٹائم آؤٹ (سیکنڈ)</label>
+                        <label className="text-[11px] font-bold text-muted-foreground">{tr("Offer Timeout (Seconds)", "آفر ٹائم آؤٹ (سیکنڈ)")}</label>
                         <Input type="number" className="h-8 text-xs" defaultValue={String(c.offer_timeout_seconds ?? 40)}
                           onBlur={(e) => { const v = Number(e.target.value) || 40; if (v !== c.offer_timeout_seconds) patch(c.id, { offer_timeout_seconds: v }); }} />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-muted-foreground">زیادہ سے زیادہ فاصلہ (KM)</label>
+                        <label className="text-[11px] font-bold text-muted-foreground">{tr("Max Distance (KM)", "زیادہ سے زیادہ فاصلہ (KM)")}</label>
                         <Input type="number" step="0.5" className="h-8 text-xs" defaultValue={String(c.max_dispatch_km ?? 5)}
                           onBlur={(e) => { const v = Number(e.target.value) || 5; if (v !== c.max_dispatch_km) patch(c.id, { max_dispatch_km: v }); }} />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-muted-foreground">کتنی آفرز کے بعد Stuck</label>
+                        <label className="text-[11px] font-bold text-muted-foreground">{tr("Stuck after offers", "کتنی آفرز کے بعد Stuck")}</label>
                         <Input type="number" className="h-8 text-xs" defaultValue={String(c.max_offers_before_stuck ?? 5)}
                           onBlur={(e) => { const v = Number(e.target.value) || 5; if (v !== c.max_offers_before_stuck) patch(c.id, { max_offers_before_stuck: v }); }} />
                       </div>
@@ -120,7 +121,7 @@ const CitySettingsTab = () => {
 
                 <div className="grid gap-2 sm:grid-cols-3">
                   <div>
-                    <label className="text-[11px] font-bold text-muted-foreground">ڈیفالٹ کورئیر</label>
+                    <label className="text-[11px] font-bold text-muted-foreground">{tr("Default Courier", "ڈیفالٹ کورئیر")}</label>
                     <Input
                       className="h-8 text-xs"
                       placeholder="TCS / Leopards / M&P"
@@ -129,19 +130,19 @@ const CitySettingsTab = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-muted-foreground">ادائیگی ڈیفالٹ</label>
+                    <label className="text-[11px] font-bold text-muted-foreground">{tr("Default Payment", "ادائیگی ڈیفالٹ")}</label>
                     <select
                       className="h-8 w-full rounded-md border bg-background px-2 text-xs"
                       value={c.courier_payment_default || "cod"}
                       onChange={(e) => patch(c.id, { courier_payment_default: e.target.value })}
                     >
-                      <option value="cod">COD (ڈلیوری پر ادائیگی)</option>
-                      <option value="advance">ایڈوانس</option>
-                      <option value="partial">جزوی ایڈوانس</option>
+                      <option value="cod">{tr("COD (Cash on Delivery)", "COD (ڈلیوری پر ادائیگی)")}</option>
+                      <option value="advance">{tr("Advance", "ایڈوانس")}</option>
+                      <option value="partial">{tr("Partial Advance", "جزوی ایڈوانس")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-muted-foreground">ایڈوانس %</label>
+                    <label className="text-[11px] font-bold text-muted-foreground">{tr("Advance %", "ایڈوانس %")}</label>
                     <Input
                       type="number"
                       className="h-8 text-xs"

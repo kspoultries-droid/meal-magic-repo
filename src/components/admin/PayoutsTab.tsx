@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,13 +11,13 @@ import { loadVendorEarnings, periodStart, type Period, type VendorRow } from "@/
 import { useAuth } from "@/hooks/useAuth";
 
 const PERIODS: { key: Period; label: string }[] = [
-  { key: "week", label: "ہفتہ وار (7 دن)" },
-  { key: "fortnight", label: "15 دن" },
-  { key: "month", label: "ماہانہ (30 دن)" },
+  { key: "week", label: tr("Weekly (7 days)", "ہفتہ وار (7 دن)") },
+  { key: "fortnight", label: tr("15 days", "15 دن") },
+  { key: "month", label: tr("Monthly (30 days)", "ماہانہ (30 دن)") },
 ];
 
 const SCHEDULE_DAYS: Record<string, number> = { daily: 1, weekly: 7, fortnightly: 15, biweekly: 15, monthly: 30 };
-const SCHEDULE_LABEL: Record<string, string> = { daily: "روزانہ", weekly: "ہفتہ وار", fortnightly: "15 دن", biweekly: "15 دن", monthly: "ماہانہ" };
+const SCHEDULE_LABEL: Record<string, string> = { daily: tr("Daily", "روزانہ"), weekly: tr("Weekly", "ہفتہ وار"), fortnightly: tr("15 days", "15 دن"), biweekly: tr("15 days", "15 دن"), monthly: tr("Monthly", "ماہانہ") };
 
 const PayoutsTab = () => {
   const { isAdmin } = useAuth();
@@ -99,30 +100,30 @@ const PayoutsTab = () => {
 
   const pay = async (row: VendorRow, silent = false) => {
     const draft = drafts[row.vendorId];
-    if (!isAdmin && !draft) { toast.error("پہلے عین ادائیگی کی منظوری مانگیں"); return false; }
+    if (!isAdmin && !draft) { toast.error(tr("Request exact payment approval first", "پہلے عین ادائیگی کی منظوری مانگیں")); return false; }
     const amount = draft?.amount ?? Number(amounts[row.vendorId] || row.pending);
     const source = draft?.from_account_id || fromAcc[row.vendorId] || accounts[0]?.id;
     const dest = draft?.vendor_account_id || toAcc[row.vendorId];
-    if (!amount || amount <= 0) { if (!silent) toast.error("رقم درست نہیں"); return false; }
-    if (!source) { if (!silent) toast.error("EasyLife اکاؤنٹ منتخب کریں"); return false; }
-    if (!dest) { if (!silent) toast.error("اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا"); return false; }
+    if (!amount || amount <= 0) { if (!silent) toast.error(tr("Invalid amount", "رقم درست نہیں")); return false; }
+    if (!source) { if (!silent) toast.error(tr("Select EasyLife account", "EasyLife اکاؤنٹ منتخب کریں")); return false; }
+    if (!dest) { if (!silent) toast.error(tr("This vendor hasn't added a bank account yet", "اس وینڈر نے ابھی اپنا بینک اکاؤنٹ شامل نہیں کیا")); return false; }
     if (!silent) setBusy(row.vendorId);
     const receipt = receipts[row.vendorId];
     let receiptPath: string | null = null;
     if (receipt) {
       if (!receipt.type.startsWith("image/") && receipt.type !== "application/pdf") {
-        if (!silent) { setBusy(null); toast.error("رسید تصویر یا PDF ہونی چاہیے"); }
+        if (!silent) { setBusy(null); toast.error(tr("Receipt must be an image or PDF", "رسید تصویر یا PDF ہونی چاہیے")); }
         return false;
       }
       if (receipt.size > 10 * 1024 * 1024) {
-        if (!silent) { setBusy(null); toast.error("رسید 10MB سے کم ہونی چاہیے"); }
+        if (!silent) { setBusy(null); toast.error(tr("Receipt must be under 10MB", "رسید 10MB سے کم ہونی چاہیے")); }
         return false;
       }
       const ext = (receipt.name.split(".").pop() || "jpg").toLowerCase();
       receiptPath = `${row.vendorId}/${crypto.randomUUID()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("payout-receipts").upload(receiptPath, receipt);
       if (uploadError) {
-        if (!silent) { setBusy(null); toast.error("رسید اپلوڈ نہیں ہوئی: " + uploadError.message); }
+        if (!silent) { setBusy(null); toast.error(tr("Receipt not uploaded: ", "رسید اپلوڈ نہیں ہوئی: ") + uploadError.message); }
         return false;
       }
     }
@@ -143,13 +144,13 @@ const PayoutsTab = () => {
       const { error: receiptError } = await supabase.from("payouts").update({ receipt_path: receiptPath }).eq("id", payoutId);
       if (receiptError) {
         await supabase.storage.from("payout-receipts").remove([receiptPath]);
-        if (!silent) { setBusy(null); toast.error("ادائیگی درج ہوئی مگر رسید منسلک نہیں ہوئی"); }
+        if (!silent) { setBusy(null); toast.error(tr("Payment recorded, but receipt not attached", "ادائیگی درج ہوئی مگر رسید منسلک نہیں ہوئی")); }
       }
     }
     if (!silent) setBusy(null);
     if (error) { if (!silent) toast.error(error.message); return false; }
     if (!silent) {
-      toast.success("ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓");
+      toast.success(tr("Payment successful — Bank statement updated ✓", "ادائیگی ہو گئی — بینک اسٹیٹمنٹ اپڈیٹ ✓"));
       setDrafts(current => { const next = { ...current }; delete next[row.vendorId]; return next; });
       setAmounts({ ...amounts, [row.vendorId]: "" });
       setRefs({ ...refs, [row.vendorId]: "" });
@@ -164,7 +165,7 @@ const PayoutsTab = () => {
   const requestPayment = async (row: VendorRow) => {
     const draft = { amount: Number(amounts[row.vendorId] || row.pending), from_account_id: fromAcc[row.vendorId] || accounts[0]?.id || "", vendor_account_id: toAcc[row.vendorId] || "", period_start: from.toISOString().slice(0,10), period_end: new Date().toISOString().slice(0,10), reference_no: refs[row.vendorId]?.trim() || null };
     const { error } = await supabase.rpc("request_secure_approval", { _kind: "payout", _reference_id: row.vendorId, _amount: draft.amount, _note: `${row.shopNames.join(", ")} — وینڈر ادائیگی`, _payload: { vendor_id: row.vendorId, ...draft } });
-    if (error) toast.error(error.message); else { setDrafts(current => ({ ...current, [row.vendorId]: draft })); toast.success("عین ادائیگی کی منظوری بھیج دی گئی"); }
+    if (error) toast.error(error.message); else { setDrafts(current => ({ ...current, [row.vendorId]: draft })); toast.success(tr("Exact payment approval sent", "عین ادائیگی کی منظوری بھیج دی گئی")); }
   };
 
   const copyPayLine = (r: VendorRow) => {
@@ -173,12 +174,12 @@ const PayoutsTab = () => {
     const amount = amounts[r.vendorId] || String(r.pending);
     const text = [
       `${r.shopNames.join(", ")} — ${names[r.vendorId] || ""}`,
-      acc ? `${acc.bank_name || acc.method} | ${acc.account_title || ""} | ${acc.account_number}` : "بینک اکاؤنٹ موجود نہیں",
-      `رقم: Rs ${amount}`,
+      acc ? `${acc.bank_name || acc.method} | ${acc.account_title || ""} | ${acc.account_number}` : tr("Bank account not found", "بینک اکاؤنٹ موجود نہیں"),
+      `${tr("Amount: Rs", "رقم: Rs")} ${amount}`,
     ].join("\n");
     navigator.clipboard.writeText(text)
-      .then(() => toast.success("پیمنٹ تفصیل کاپی ہو گئی — بینک ایپ میں پیسٹ کریں"))
-      .catch(() => toast.error("کاپی نہیں ہوئی"));
+      .then(() => toast.success(tr("Payment details copied — paste in bank app", "پیمنٹ تفصیل کاپی ہو گئی — بینک ایپ میں پیسٹ کریں")))
+      .catch(() => toast.error(tr("Failed to copy", "کاپی نہیں ہوئی")));
   };
 
 
@@ -187,7 +188,7 @@ const PayoutsTab = () => {
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-base"><Wallet className="h-4 w-4" /> وینڈر پیمنٹس / کمیشن</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base"><Wallet className="h-4 w-4" /> {tr("Vendor Payments / Commission", "وینڈر پیمنٹس / کمیشن")}</CardTitle>
           <Button size="sm" variant="outline" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -203,22 +204,22 @@ const PayoutsTab = () => {
           <div className="rounded-xl border bg-secondary/40 p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-bold">
-                پیمنٹ لسٹ — آج واجب الادا: <span className="text-primary">{dueRows.length}</span> وینڈر
-                {dueRows.length > 0 && <> • کل Rs {dueRows.reduce((s, r) => s + r.pending, 0)}</>}
+                {tr("Payment List — Due Today:", "پیمنٹ لسٹ — آج واجب الادا:")} <span className="text-primary">{dueRows.length}</span> {tr("Vendor", "وینڈر")}
+                {dueRows.length > 0 && <> {tr("• Total Rs", "• کل Rs")} {dueRows.reduce((s, r) => s + r.pending, 0)}</>}
               </p>
               <button onClick={() => setOnlyDue(!onlyDue)}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${onlyDue ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>
-                {onlyDue ? "سب دکھائیں" : "صرف واجب الادا"}
+                {onlyDue ? tr("Show all", "سب دکھائیں") : tr("Due Only", "صرف واجب الادا")}
               </button>
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              یہ لسٹ کھولیں، بینک ایپ میں باری باری ہر وینڈر کو پیمنٹ کریں، پھر یہاں ریفرنس نمبر لکھ کر "ادائیگی درج کریں" دبائیں — ریکارڈ اور بینک اسٹیٹمنٹ خودکار اپڈیٹ ہو جائیں گی۔
+              {tr("Open this list, pay each vendor one by one via your bank app, then enter the reference number here and tap \"Record Payment\" — records and bank statements will update automatically.", "یہ لسٹ کھولیں، بینک ایپ میں باری باری ہر وینڈر کو پیمنٹ کریں، پھر یہاں ریفرنس نمبر لکھ کر \"ادائیگی درج کریں\" دبائیں — ریکارڈ اور بینک اسٹیٹمنٹ خودکار اپڈیٹ ہو جائیں گی۔")}
             </p>
           </div>
 
 
-          {loading && <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>}
-          {!loading && rows.length === 0 && <p className="text-sm text-muted-foreground">اس عرصے میں کوئی مکمل آرڈر نہیں</p>}
+          {loading && <p className="text-sm text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>}
+          {!loading && rows.length === 0 && <p className="text-sm text-muted-foreground">{tr("No completed orders in this period", "اس عرصے میں کوئی مکمل آرڈر نہیں")}</p>}
 
           {(onlyDue ? dueRows : rows).map((r) => (
             <div key={r.vendorId} className="border rounded-xl p-3 space-y-2">
@@ -228,30 +229,30 @@ const PayoutsTab = () => {
                   <p className="text-[11px] text-muted-foreground truncate">{names[r.vendorId] || r.vendorId.slice(0, 8)}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
-                  <Badge variant="secondary">{r.orders} آرڈرز</Badge>
+                  <Badge variant="secondary">{r.orders} {tr("Orders", "آرڈرز")}</Badge>
                   <Badge variant={dueInfo(r.vendorId).overdue ? "default" : "outline"} className="text-[10px]">
-                    {SCHEDULE_LABEL[dueInfo(r.vendorId).sched] || "ہفتہ وار"} •{" "}
-                    {dueInfo(r.vendorId).overdue ? "واجب الادا" : `${dueInfo(r.vendorId).days} دن بعد`}
+                    {SCHEDULE_LABEL[dueInfo(r.vendorId).sched] || tr("Weekly", "ہفتہ وار")} •{" "}
+                    {dueInfo(r.vendorId).overdue ? tr("Payable", "واجب الادا") : `${dueInfo(r.vendorId).days} ${tr("days later", "دن بعد")}`}
                   </Badge>
                 </div>
               </div>
 
               <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
-                <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">سیل</p><p className="font-extrabold">Rs {r.gross}</p></div>
-                <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">کمیشن {r.commissionRate}%</p><p className="font-extrabold text-destructive">− {r.commission}</p></div>
-                <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">ادا شدہ</p><p className="font-extrabold">Rs {r.paid}</p></div>
-                <div className="bg-primary/10 rounded-lg py-1.5"><p className="text-muted-foreground">باقی</p><p className="font-extrabold text-primary">Rs {r.pending}</p></div>
+                <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">{tr("Sale", "سیل")}</p><p className="font-extrabold">Rs {r.gross}</p></div>
+                <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">{tr("Commission", "کمیشن")} {r.commissionRate}%</p><p className="font-extrabold text-destructive">− {r.commission}</p></div>
+                <div className="bg-secondary/50 rounded-lg py-1.5"><p className="text-muted-foreground">{tr("Paid", "ادا شدہ")}</p><p className="font-extrabold">Rs {r.paid}</p></div>
+                <div className="bg-primary/10 rounded-lg py-1.5"><p className="text-muted-foreground">{tr("Remaining", "باقی")}</p><p className="font-extrabold text-primary">Rs {r.pending}</p></div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <select value={fromAcc[r.vendorId] || accounts[0]?.id || ""} onChange={(e) => setFromAcc({ ...fromAcc, [r.vendorId]: e.target.value })}
                   className="h-9 rounded-md border bg-background px-2 text-xs">
-                  {accounts.length === 0 && <option value="">کوئی EasyLife اکاؤنٹ نہیں</option>}
+                  {accounts.length === 0 && <option value="">{tr("No EasyLife account", "کوئی EasyLife اکاؤنٹ نہیں")}</option>}
                   {accounts.map((a) => <option key={a.id} value={a.id}>{a.label}{isAdmin ? ` (Rs ${Math.round(Number(a.balance || 0))})` : ""}</option>)}
                 </select>
                 <select value={toAcc[r.vendorId] || ""} onChange={(e) => setToAcc({ ...toAcc, [r.vendorId]: e.target.value })}
                   className="h-9 rounded-md border bg-background px-2 text-xs">
-                  {(vendorAccounts[r.vendorId] || []).length === 0 && <option value="">وینڈر اکاؤنٹ موجود نہیں</option>}
+                  {(vendorAccounts[r.vendorId] || []).length === 0 && <option value="">{tr("Vendor account does not exist", "وینڈر اکاؤنٹ موجود نہیں")}</option>}
                   {(vendorAccounts[r.vendorId] || []).map((a) => <option key={a.id} value={a.id}>{a.bank_name || a.method} • {a.account_number}</option>)}
                 </select>
               </div>
@@ -259,21 +260,21 @@ const PayoutsTab = () => {
               <div className="flex gap-2">
                 <Input type="number" placeholder={`Rs ${r.pending}`} value={amounts[r.vendorId] || ""}
                   onChange={(e) => setAmounts({ ...amounts, [r.vendorId]: e.target.value })} className="h-9" />
-                <Input placeholder="ریفرنس نمبر (بینک ٹرانزیکشن)" value={refs[r.vendorId] || ""}
+                <Input placeholder={tr("Reference Number (Bank Transaction)", "ریفرنس نمبر (بینک ٹرانزیکشن)")} value={refs[r.vendorId] || ""}
                   onChange={(e) => setRefs({ ...refs, [r.vendorId]: e.target.value })} className="h-9" />
-                <Button size="sm" variant="outline" className="h-9 shrink-0" title="بینک تفصیل کاپی کریں"
+                <Button size="sm" variant="outline" className="h-9 shrink-0" title={tr("Copy bank details", "بینک تفصیل کاپی کریں")}
                   onClick={() => copyPayLine(r)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
               <label className="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed bg-secondary/30 px-3 text-xs font-bold text-muted-foreground">
                 <Paperclip className="h-3.5 w-3.5" />
-                {receipts[r.vendorId]?.name || "بینک رسید منسلک کریں (تصویر یا PDF)"}
+                {receipts[r.vendorId]?.name || tr("Attach bank receipt (Image or PDF)", "بینک رسید منسلک کریں (تصویر یا PDF)")}
                 <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setReceipts({ ...receipts, [r.vendorId]: e.target.files?.[0] })} />
               </label>
-              {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r)}>عین ادائیگی کی منظوری مانگیں</Button>}
-              <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => { if (window.confirm(`Rs ${drafts[r.vendorId]?.amount ?? (amounts[r.vendorId] || r.pending)} کی ادائیگی درج کریں؟`)) void pay(r); }}>
-                {busy === r.vendorId ? "درج ہو رہا ہے…" : "ادائیگی درج کریں (بینک سے ادا کرنے کے بعد)"}
+              {!isAdmin && <Button size="sm" variant="outline" className="w-full" onClick={() => void requestPayment(r)}>{tr("Request exact payment approval", "عین ادائیگی کی منظوری مانگیں")}</Button>}
+              <Button size="sm" className="w-full h-9 font-bold" disabled={r.pending <= 0 || busy === r.vendorId} onClick={() => { if (window.confirm(`Rs ${drafts[r.vendorId]?.amount ?? (amounts[r.vendorId] || r.pending)} ${tr("Record payment of?", "کی ادائیگی درج کریں؟")}`)) void pay(r); }}>
+                {busy === r.vendorId ? tr("Submitting…", "درج ہو رہا ہے…") : tr("Record payment (after paying via bank)", "ادائیگی درج کریں (بینک سے ادا کرنے کے بعد)")}
               </Button>
 
             </div>
@@ -282,9 +283,9 @@ const PayoutsTab = () => {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">حالیہ ادائیگیاں</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{tr("Recent payments", "حالیہ ادائیگیاں")}</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          {history.length === 0 && <p className="text-sm text-muted-foreground">ابھی کوئی ادائیگی نہیں</p>}
+          {history.length === 0 && <p className="text-sm text-muted-foreground">{tr("No payments yet", "ابھی کوئی ادائیگی نہیں")}</p>}
           {history.map((h) => (
             <div key={h.id} className="flex items-center justify-between gap-2 text-xs border-b pb-1.5">
               <span className="truncate pr-2">{h.notes || h.vendor_id.slice(0, 8)}{h.reference_no ? ` • ${h.reference_no}` : ""}</span>

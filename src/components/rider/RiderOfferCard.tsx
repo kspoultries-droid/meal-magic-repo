@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,12 +27,12 @@ interface Props {
 }
 
 const kindLabel: Record<string, string> = {
-  food: "فوڈ آرڈر",
-  grocery_cart: "گروسری آرڈر",
-  grocery_list: "لسٹ آرڈر",
+  food: tr("Food order", "فوڈ آرڈر"),
+  grocery_cart: tr("Grocery order", "گروسری آرڈر"),
+  grocery_list: tr("Order List", "لسٹ آرڈر"),
 };
 
-const DECLINE_REASONS = ["بہت دور ہے", "بائیک خراب ہے", "پہلے سے مصروف ہوں", "ایمرجنسی", "کوئی اور وجہ"];
+const DECLINE_REASONS = [tr("Too far", "بہت دور ہے"), tr("Bike broken down", "بائیک خراب ہے"), tr("Already busy", "پہلے سے مصروف ہوں"), tr("Emergency", "ایمرجنسی"), tr("Other reason", "کوئی اور وجہ")];
 
 const beep = () => {
   try {
@@ -111,7 +112,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
   useEffect(() => {
     if (offer && secondsLeft === 0) {
       setOffer(null);
-      toast.warning("آفر کا وقت ختم — مسلسل 3 آفر چھوٹنے پر 5 منٹ کا وقفہ لگ جاتا ہے");
+      toast.warning(tr("Offer expired — Missing 3 consecutive offers results in a 5-minute pause", "آفر کا وقت ختم — مسلسل 3 آفر چھوٹنے پر 5 منٹ کا وقفہ لگ جاتا ہے"));
       onChangedRef.current();
       fetchOffer();
     }
@@ -121,7 +122,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
     if (!offer || busy) return;
     setBusy(true);
     const { error } = await supabase.rpc("accept_delivery_offer", { _offer_id: offer.id });
-    if (error) toast.error(error.message); else toast.success("آرڈر آپ کو مل گیا ✅ — پک اَپ کی طرف روانہ ہوں");
+    if (error) toast.error(error.message); else toast.success(tr("Order assigned to you ✅ — Head to pickup", "آرڈر آپ کو مل گیا ✅ — پک اَپ کی طرف روانہ ہوں"));
     setOffer(null); setBusy(false);
     onChangedRef.current(); fetchOffer();
   };
@@ -130,7 +131,7 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
     if (!offer || busy) return;
     setBusy(true);
     const { error } = await (supabase.rpc as any)("decline_delivery_offer", { _offer_id: offer.id, _reason: reason });
-    if (error) toast.error(error.message); else toast.success("آفر چھوڑ دی گئی");
+    if (error) toast.error(error.message); else toast.success(tr("Offer skipped", "آفر چھوڑ دی گئی"));
     setOffer(null); setBusy(false); setAskReason(false);
     onChangedRef.current(); fetchOffer();
   };
@@ -146,11 +147,11 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
     <div className="fixed inset-0 z-[100] flex flex-col bg-background/95 backdrop-blur-sm">
       <div className="flex items-center gap-2 bg-primary px-4 py-3 text-primary-foreground">
         <PackageCheck className="h-5 w-5" />
-        <p className="font-extrabold">نیا آرڈر — {kindLabel[offer.order_kind] || "ڈیلیوری"}</p>
+        <p className="font-extrabold">{tr("New order —", "نیا آرڈر —")} {kindLabel[offer.order_kind] || tr("Delivery", "ڈیلیوری")}</p>
       </div>
       {offer.is_batch && (
         <div className="bg-accent px-4 py-2 text-center text-xs font-extrabold text-accent-foreground">
-          📦📦 ایک ساتھ پک اَپ — اسی ریسٹورنٹ سے آپ کا دوسرا آرڈر، قریبی پتہ۔ کوئی اضافی چکر نہیں
+          {tr("📦📦 Batch pickup — Your second order from this restaurant, nearby address. No extra trips", "📦📦 ایک ساتھ پک اَپ — اسی ریسٹورنٹ سے آپ کا دوسرا آرڈر، قریبی پتہ۔ کوئی اضافی چکر نہیں")}
         </div>
       )}
 
@@ -162,37 +163,37 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-3xl font-black">{secondsLeft}</span>
-            <span className="text-[10px] text-muted-foreground">سیکنڈ</span>
+            <span className="text-[10px] text-muted-foreground">{tr("sec", "سیکنڈ")}</span>
           </div>
         </div>
 
         <div className="grid w-full max-w-md grid-cols-2 gap-2">
           <div className="rounded-xl border bg-primary/10 p-3 text-center">
             <Wallet className="mx-auto h-5 w-5 text-primary" />
-            <p className="mt-1 text-[11px] text-muted-foreground">آپ کی کمائی</p>
-            <p className="text-xl font-black text-primary">{earning == null ? "حساب زیرِتصدیق" : `Rs ${earning}`}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{tr("Your earnings", "آپ کی کمائی")}</p>
+            <p className="text-xl font-black text-primary">{earning == null ? tr("Settlement pending", "حساب زیرِتصدیق") : `Rs ${earning}`}</p>
           </div>
           <div className="rounded-xl border bg-card p-3 text-center">
             <Banknote className="mx-auto h-5 w-5" />
-            <p className="mt-1 text-[11px] text-muted-foreground">کسٹمر سے وصولی</p>
-            <p className="text-xl font-black">{offer.cash_to_collect == null ? "وصولی زیرِتصدیق" : `Rs ${Number(offer.cash_to_collect)}`}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{tr("Collect from customer", "کسٹمر سے وصولی")}</p>
+            <p className="text-xl font-black">{offer.cash_to_collect == null ? tr("Collection pending", "وصولی زیرِتصدیق") : `Rs ${Number(offer.cash_to_collect)}`}</p>
           </div>
         </div>
 
         <div className="w-full max-w-md space-y-2">
           <div className="rounded-xl border bg-card p-3">
-            <p className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground"><Store className="h-3.5 w-3.5" /> پک اَپ · {offer.distance_km == null ? "فاصلہ نامعلوم" : `${Number(offer.distance_km).toFixed(1)} کلومیٹر دور`}</p>
-            <p className="mt-1 font-extrabold">{offer.pickup_name || "دکان / ریسٹورنٹ"}</p>
+            <p className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground"><Store className="h-3.5 w-3.5" /> {tr("Pick up ·", "پک اَپ ·")} {offer.distance_km == null ? tr("Distance unknown", "فاصلہ نامعلوم") : `${Number(offer.distance_km).toFixed(1)} ${tr("km away", "کلومیٹر دور")}`}</p>
+            <p className="mt-1 font-extrabold">{offer.pickup_name || tr("Store / Restaurant", "دکان / ریسٹورنٹ")}</p>
           </div>
           <div className="rounded-xl border bg-card p-3">
-            <p className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground"><MapPin className="h-3.5 w-3.5" /> ڈراپ آف</p>
-            <p className="mt-1 font-bold">{offer.dropoff_address || "پتہ دستیاب نہیں"}</p>
+            <p className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground"><MapPin className="h-3.5 w-3.5" /> {tr("Drop-off", "ڈراپ آف")}</p>
+            <p className="mt-1 font-bold">{offer.dropoff_address || tr("Address not available", "پتہ دستیاب نہیں")}</p>
           </div>
         </div>
 
         {askReason && (
           <div className="w-full max-w-md space-y-2 rounded-xl border bg-card p-3">
-            <p className="text-sm font-extrabold">چھوڑنے کی وجہ؟</p>
+            <p className="text-sm font-extrabold">{tr("Reason for drop?", "چھوڑنے کی وجہ؟")}</p>
             <div className="grid grid-cols-2 gap-2">
               {DECLINE_REASONS.map((r) => (
                 <Button key={r} variant="outline" size="sm" disabled={busy} onClick={() => decline(r)} className="text-xs">{r}</Button>
@@ -204,9 +205,9 @@ const RiderOfferCard = ({ riderId, onChanged }: Props) => {
 
       <div className="grid grid-cols-3 gap-2 border-t bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <Button variant="outline" disabled={busy} onClick={() => setAskReason((v) => !v)} className="h-14 font-extrabold">
-          <X className="h-4 w-4" /> چھوڑیں
+          <X className="h-4 w-4" /> {tr("Skip", "چھوڑیں")}
         </Button>
-        <Button disabled={busy} onClick={accept} className="col-span-2 h-14 text-lg font-black">قبول کریں</Button>
+        <Button disabled={busy} onClick={accept} className="col-span-2 h-14 text-lg font-black">{tr("Accept", "قبول کریں")}</Button>
       </div>
     </div>
   );

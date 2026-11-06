@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export interface TrendPoint {
@@ -14,9 +15,9 @@ interface Props {
   prefix?: string;
 }
 
-const TrendChart = ({ data, height = 160, valueLabel = "سیل", secondaryLabel, prefix = "Rs " }: Props) => {
+const TrendChart = ({ data, height = 160, valueLabel = tr("Sale", "سیل"), secondaryLabel, prefix = "Rs " }: Props) => {
   if (!data.length) {
-    return <p className="py-6 text-center text-xs text-muted-foreground">ابھی کوئی ڈیٹا نہیں</p>;
+    return <p className="py-6 text-center text-xs text-muted-foreground">{tr("No data yet", "ابھی کوئی ڈیٹا نہیں")}</p>;
   }
   return (
     <div style={{ height }} className="w-full" dir="ltr">

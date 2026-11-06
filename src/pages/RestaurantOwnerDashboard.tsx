@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import NotificationBell from "@/components/common/NotificationBell";
@@ -179,7 +180,7 @@ const MyRestaurantTab = () => {
     const address = newForm.address.trim();
     const phone = newForm.phone.trim();
     if (name.length < 2 || !newForm.city || address.length < 8 || !/^\+?[0-9]{10,15}$/.test(phone)) {
-      toast.error("نام، شہر، مکمل پتہ اور درست فون نمبر درج کریں");
+      toast.error(tr("Enter name, city, full address, and valid phone number", "نام، شہر، مکمل پتہ اور درست فون نمبر درج کریں"));
       return;
     }
     setCreating(true);
@@ -188,7 +189,7 @@ const MyRestaurantTab = () => {
     });
     setCreating(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("نیا ریستورنٹ بن گیا — تفصیل مکمل کرنے تک یہ بند رہے گا");
+    toast.success(tr("New restaurant created — it will remain closed until details are completed", "نیا ریستورنٹ بن گیا — تفصیل مکمل کرنے تک یہ بند رہے گا"));
     setShowNew(false);
     setNewForm({ name: "", city: "", address: "", phone: "" });
     fetchAll();
@@ -197,7 +198,7 @@ const MyRestaurantTab = () => {
   const deleteRestaurant = async (id: string) => {
     const { error } = await supabase.from("restaurants").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
-    toast.success("ریسٹورنٹ حذف ہو گیا!");
+    toast.success(tr("Restaurant deleted!", "ریسٹورنٹ حذف ہو گیا!"));
     fetchAll();
   };
 
@@ -206,12 +207,12 @@ const MyRestaurantTab = () => {
     const ext = (file.name.split(".").pop() || "webp").toLowerCase();
     const path = `restaurants/${restaurantId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file);
-    if (error) { setUploading(false); toast.error("اپلوڈ ناکام: " + error.message); return; }
+    if (error) { setUploading(false); toast.error(tr("Upload failed: ", "اپلوڈ ناکام: ") + error.message); return; }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     const { error: updErr } = await supabase.from("restaurants").update({ image_url: data.publicUrl }).eq("id", restaurantId);
     setUploading(false);
     if (updErr) { toast.error(updErr.message); return; }
-    toast.success("ریسٹورنٹ کی تصویر اپڈیٹ ہو گئی");
+    toast.success(tr("Restaurant photo updated", "ریسٹورنٹ کی تصویر اپڈیٹ ہو گئی"));
     fetchAll();
   };
 
@@ -223,19 +224,19 @@ const MyRestaurantTab = () => {
           {isAdmin && (
             <Dialog open={showNew} onOpenChange={setShowNew}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="gap-1"><Plus className="h-4 w-4" /> نیا ریستورنٹ</Button>
+                <Button size="sm" variant="outline" className="gap-1"><Plus className="h-4 w-4" /> {tr("New Restaurant", "نیا ریستورنٹ")}</Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>نیا ریستورنٹ بنائیں</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>{tr("Add New Restaurant", "نیا ریستورنٹ بنائیں")}</DialogTitle></DialogHeader>
                 <div className="space-y-3">
-                  <Input placeholder="ریسٹورنٹ کا نام" maxLength={150} value={newForm.name} onChange={(e) => setNewForm({ ...newForm, name: e.target.value })} />
+                  <Input placeholder={tr("Restaurant Name", "ریسٹورنٹ کا نام")} maxLength={150} value={newForm.name} onChange={(e) => setNewForm({ ...newForm, name: e.target.value })} />
                   <select className="w-full rounded-md border bg-background p-2 text-sm" value={newForm.city} onChange={(e) => setNewForm({ ...newForm, city: e.target.value })}>
-                    <option value="">شہر منتخب کریں</option>
+                    <option value="">{tr("Select City", "شہر منتخب کریں")}</option>
                     {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
-                  <Input placeholder="مکمل پتہ" maxLength={500} value={newForm.address} onChange={(e) => setNewForm({ ...newForm, address: e.target.value })} />
-                  <Input placeholder="رابطہ فون (مثلاً 03001234567)" maxLength={16} value={newForm.phone} onChange={(e) => setNewForm({ ...newForm, phone: e.target.value })} />
-                  <Button className="w-full" disabled={creating} onClick={createRestaurant}>{creating ? "بن رہا ہے…" : "ریسٹورنٹ بنائیں"}</Button>
+                  <Input placeholder={tr("Full Address", "مکمل پتہ")} maxLength={500} value={newForm.address} onChange={(e) => setNewForm({ ...newForm, address: e.target.value })} />
+                  <Input placeholder={tr("Contact phone (e.g. 03001234567)", "رابطہ فون (مثلاً 03001234567)")} maxLength={16} value={newForm.phone} onChange={(e) => setNewForm({ ...newForm, phone: e.target.value })} />
+                  <Button className="w-full" disabled={creating} onClick={createRestaurant}>{creating ? tr("Creating…", "بن رہا ہے…") : tr("Create Restaurant", "ریسٹورنٹ بنائیں")}</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -288,7 +289,7 @@ const MyRestaurantTab = () => {
                       defaultValue={(r as any).opening_time || "08:00"}
                       onChange={async (e) => {
                         await supabase.from("restaurants").update({ opening_time: e.target.value } as any).eq("id", r.id);
-                        toast.success("ٹائمنگ اپڈیٹ"); fetchAll();
+                        toast.success(tr("Timing updated", "ٹائمنگ اپڈیٹ")); fetchAll();
                       }}
                     />
                     <span className="text-xs text-muted-foreground">{t("rest.to")}</span>
@@ -298,13 +299,13 @@ const MyRestaurantTab = () => {
                       defaultValue={(r as any).closing_time || "22:00"}
                       onChange={async (e) => {
                         await supabase.from("restaurants").update({ closing_time: e.target.value } as any).eq("id", r.id);
-                        toast.success("ٹائمنگ اپڈیٹ"); fetchAll();
+                        toast.success(tr("Timing updated", "ٹائمنگ اپڈیٹ")); fetchAll();
                       }}
                     />
                     <button
                       onClick={async () => {
                         await supabase.from("restaurants").update({ is_active: !r.is_active }).eq("id", r.id);
-                        toast.success(r.is_active ? "بند ہو گیا" : "کھل گیا"); fetchAll();
+                        toast.success(r.is_active ? tr("Closed", "بند ہو گیا") : tr("Opened", "کھل گیا")); fetchAll();
                       }}
                       className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
                         r.is_active
@@ -321,13 +322,13 @@ const MyRestaurantTab = () => {
                     <label className="flex items-center gap-1.5 font-bold">
                       <input type="checkbox" defaultChecked={!!r.auto_print} onChange={async (e) => {
                         await supabase.from("restaurants").update({ auto_print: e.target.checked } as any).eq("id", r.id);
-                        toast.success(e.target.checked ? "آرڈر قبول کرتے ہی کچن سلپ پرنٹ ہوگی" : "خودکار پرنٹ بند");
+                        toast.success(e.target.checked ? tr("Kitchen slip will print upon order acceptance", "آرڈر قبول کرتے ہی کچن سلپ پرنٹ ہوگی") : tr("Auto-print Off", "خودکار پرنٹ بند"));
                       }} />
-                      🖨️ خودکار پرنٹ
+                      {tr("🖨️ Auto Print", "🖨️ خودکار پرنٹ")}
                     </label>
                     <input placeholder="NTN" defaultValue={r.ntn || ""} className="h-7 w-28 border rounded-md px-2 bg-background"
                       onBlur={async (e) => { await supabase.from("restaurants").update({ ntn: e.target.value.trim() || null } as any).eq("id", r.id); }} />
-                    <input type="number" min={0} max={30} placeholder="ٹیکس %" defaultValue={r.tax_percent || ""} className="h-7 w-20 border rounded-md px-2 bg-background"
+                    <input type="number" min={0} max={30} placeholder={tr("Tax %", "ٹیکس %")} defaultValue={r.tax_percent || ""} className="h-7 w-20 border rounded-md px-2 bg-background"
                       onBlur={async (e) => { await supabase.from("restaurants").update({ tax_percent: Math.min(30, Math.max(0, Number(e.target.value) || 0)) } as any).eq("id", r.id); }} />
                   </div>
 
@@ -342,7 +343,7 @@ const MyRestaurantTab = () => {
                           const until = new Date(Date.now() + mins * 60000).toISOString();
                           const { error } = await supabase.from("restaurants").update({ busy_until: until } as any).eq("id", r.id);
                           if (error) { toast.error(error.message); return; }
-                          toast.success(`${mins} منٹ کے لیے مصروف`); fetchAll();
+                          toast.success(`${mins} ${tr("mins busy", "منٹ کے لیے مصروف")}`); fetchAll();
                         }}
                         className="rounded-full border bg-background px-2.5 py-1 text-[11px] font-semibold hover:bg-muted"
                       >
@@ -357,7 +358,7 @@ const MyRestaurantTab = () => {
                         <button
                           onClick={async () => {
                             await supabase.from("restaurants").update({ busy_until: null } as any).eq("id", r.id);
-                            toast.success("مصروف موڈ ختم"); fetchAll();
+                            toast.success(tr("Busy mode off", "مصروف موڈ ختم")); fetchAll();
                           }}
                           className="text-[11px] font-semibold text-primary underline"
                         >
@@ -377,7 +378,7 @@ const MyRestaurantTab = () => {
                       value={(r as any).delivery_mode || "platform"}
                       onChange={async (e) => {
                         await supabase.from("restaurants").update({ delivery_mode: e.target.value } as any).eq("id", r.id);
-                        toast.success("ڈلیوری موڈ اپڈیٹ"); fetchAll();
+                        toast.success(tr("Update Delivery Mode", "ڈلیوری موڈ اپڈیٹ")); fetchAll();
                       }}
                     >
                       <option value="platform">{t("rest.modePlatform")}</option>
@@ -397,7 +398,7 @@ const MyRestaurantTab = () => {
                       className={`h-7 shrink-0 rounded-full px-3 text-[11px] font-bold ${(r as any).pays_delivery_fee ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
                       onClick={async () => {
                         await supabase.from("restaurants").update({ pays_delivery_fee: !(r as any).pays_delivery_fee } as any).eq("id", r.id);
-                        toast.success("اپڈیٹ ہو گیا"); fetchAll();
+                        toast.success(tr("Updated", "اپڈیٹ ہو گیا")); fetchAll();
                       }}
                     >
                       {(r as any).pays_delivery_fee ? t("rest.on") : t("rest.off")}
@@ -416,7 +417,7 @@ const MyRestaurantTab = () => {
                       onBlur={async (e) => {
                         if (e.target.value === ((r as any).pickup_address || "")) return;
                         await supabase.from("restaurants").update({ pickup_address: e.target.value } as any).eq("id", r.id);
-                        toast.success("پک اپ ایڈریس اپڈیٹ"); fetchAll();
+                        toast.success(tr("Update Pickup Address", "پک اپ ایڈریس اپڈیٹ")); fetchAll();
                       }}
                     />
                     <div className="flex items-center gap-2 flex-wrap">
@@ -424,14 +425,14 @@ const MyRestaurantTab = () => {
                         type="button"
                         className="h-7 px-2 text-xs font-bold rounded-md bg-primary text-primary-foreground hover:opacity-90"
                         onClick={() => {
-                          if (!navigator.geolocation) { toast.error("GPS دستیاب نہیں"); return; }
+                          if (!navigator.geolocation) { toast.error(tr("GPS Not Available", "GPS دستیاب نہیں")); return; }
                           navigator.geolocation.getCurrentPosition(async (pos) => {
                             await supabase.from("restaurants").update({
                               pickup_lat: pos.coords.latitude,
                               pickup_lng: pos.coords.longitude,
                             } as any).eq("id", r.id);
-                            toast.success("GPS محفوظ ہو گیا 📍"); fetchAll();
-                          }, () => toast.error("GPS نہیں مل سکا"), { enableHighAccuracy: true, timeout: 10000 });
+                            toast.success(tr("GPS Saved 📍", "GPS محفوظ ہو گیا 📍")); fetchAll();
+                          }, () => toast.error(tr("GPS Not Found", "GPS نہیں مل سکا")), { enableHighAccuracy: true, timeout: 10000 });
                         }}
                       >
                         {t("rest.saveGps")}
@@ -509,8 +510,8 @@ const MenuTab = () => {
 
   const toggleFeatured = async (item: any) => {
     if (savingFeatured) return;
-    if (!featured.includes(item.id) && !item.image_url) { toast.error("مرکزی ڈش کے لیے پہلے اصل تصویر لگائیں"); return; }
-    if (!featured.includes(item.id) && featured.length >= 4) { toast.error("زیادہ سے زیادہ 4 مرکزی ڈشیں منتخب کریں"); return; }
+    if (!featured.includes(item.id) && !item.image_url) { toast.error(tr("Add real photo for main dish first", "مرکزی ڈش کے لیے پہلے اصل تصویر لگائیں")); return; }
+    if (!featured.includes(item.id) && featured.length >= 4) { toast.error(tr("Select up to 4 main dishes", "زیادہ سے زیادہ 4 مرکزی ڈشیں منتخب کریں")); return; }
     const next = featured.includes(item.id) ? featured.filter(id => id !== item.id) : [...featured, item.id];
     setSavingFeatured(true);
     const { error } = await supabase.from("restaurants").update({ featured_menu_item_ids: next }).eq("id", selectedRest);
@@ -519,20 +520,20 @@ const MenuTab = () => {
     setFeatured(next);
     setRestaurants(previous => previous.map(r => r.id === selectedRest ? { ...r, featured_menu_item_ids: next } : r));
     void queryClient.invalidateQueries({ queryKey: ["food-restaurant-detail", selectedRest] });
-    toast.success("مرکزی ڈشیں محفوظ ہو گئیں");
+    toast.success(tr("Main dishes saved", "مرکزی ڈشیں محفوظ ہو گئیں"));
   };
 
   const uploadImage = async (file: File): Promise<string | null> => {
-    if (!selectedRest) { toast.error("پہلے ریسٹورنٹ منتخب کریں"); return null; }
-    if (file.size > 5 * 1024 * 1024) throw new Error("تصویر 5MB سے کم ہونی چاہیے");
+    if (!selectedRest) { toast.error(tr("Select restaurant first", "پہلے ریسٹورنٹ منتخب کریں")); return null; }
+    if (file.size > 5 * 1024 * 1024) throw new Error(tr("Image must be less than 5MB", "تصویر 5MB سے کم ہونی چاہیے"));
     setUploading(true);
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const path = `menu/${selectedRest}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file);
     setUploading(false);
-    if (error) throw new Error("اپلوڈ ناکام: " + error.message);
+    if (error) throw new Error(tr("Upload failed: ", "اپلوڈ ناکام: ") + error.message);
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-    toast.success("تصویر اپلوڈ ہو گئی");
+    toast.success(tr("Photo uploaded", "تصویر اپلوڈ ہو گئی"));
     return data.publicUrl;
   };
 
@@ -547,7 +548,7 @@ const MenuTab = () => {
   };
 
   const addItem = async () => {
-    if (!form.name || !form.price) { toast.error("نام اور قیمت درکار ہے"); return; }
+    if (!form.name || !form.price) { toast.error(tr("Name and price are required", "نام اور قیمت درکار ہے")); return; }
     const { error } = await supabase.from("menu_items").insert({
       restaurant_id: selectedRest,
       name: form.name,
@@ -559,7 +560,7 @@ const MenuTab = () => {
       option_groups: sanitizeGroups(formGroups) as any,
     } as any);
     if (error) { toast.error(error.message); return; }
-    toast.success("آئٹم شامل ہو گئی!");
+    toast.success(tr("Item added!", "آئٹم شامل ہو گئی!"));
     setShowAdd(false);
     setForm({ name: "", description: "", price: "", unit: "", category: "Main", image_url: "" });
     setFormVariants([]); setFormGroups([]);
@@ -568,13 +569,13 @@ const MenuTab = () => {
 
   const toggleAvailability = async (id: string, current: boolean) => {
     await supabase.from("menu_items").update({ is_available: !current }).eq("id", id);
-    toast.success("اپڈیٹ ہو گیا");
+    toast.success(tr("Updated", "اپڈیٹ ہو گیا"));
     fetchMenu();
   };
 
   const deleteItem = async (id: string) => {
     await supabase.from("menu_items").delete().eq("id", id);
-    toast.success("حذف ہو گیا");
+    toast.success(tr("Deleted", "حذف ہو گیا"));
     fetchMenu();
   };
 
@@ -593,7 +594,7 @@ const MenuTab = () => {
   };
 
   const saveEdit = async () => {
-    if (!editForm.name || !editForm.price) { toast.error("نام اور قیمت درکار ہے"); return; }
+    if (!editForm.name || !editForm.price) { toast.error(tr("Name and price are required", "نام اور قیمت درکار ہے")); return; }
     const { error } = await supabase.from("menu_items").update({
       name: editForm.name,
       description: editForm.description,
@@ -604,7 +605,7 @@ const MenuTab = () => {
       option_groups: sanitizeGroups(editGroups) as any,
     } as any).eq("id", editItem.id);
     if (error) { toast.error(error.message); return; }
-    toast.success("آئٹم اپڈیٹ ہو گئی!");
+    toast.success(tr("Item updated!", "آئٹم اپڈیٹ ہو گئی!"));
     setEditItem(null);
     fetchMenu();
   };
@@ -626,7 +627,7 @@ const MenuTab = () => {
     if (selected.length === 0) return;
     const { error } = await supabase.from("menu_items").update({ is_available: value }).in("id", selected);
     if (error) { toast.error(error.message); return; }
-    toast.success(`${selected.length} آئٹمز ${value ? "فعال" : "بند"} کر دی گئیں`);
+    toast.success(`${selected.length} ${tr("Items", "آئٹمز")} ${value ? "فعال" : "بند"} ${tr("Done", "کر دی گئیں")}`);
     setSelected([]);
     fetchMenu();
   };
@@ -692,7 +693,7 @@ const MenuTab = () => {
             {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
           <span className="text-[11px] text-muted-foreground">{visibleItems.length} {t("rest.items")}</span>
-          <span className="flex items-center gap-1 text-xs font-semibold text-primary"><Star className="h-3.5 w-3.5" />مرکزی ڈشیں {featured.length}/4</span>
+          <span className="flex items-center gap-1 text-xs font-semibold text-primary"><Star className="h-3.5 w-3.5" />{tr("Main dishes", "مرکزی ڈشیں")} {featured.length}/4</span>
           {selected.length > 0 && (
             <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-2 py-1">
               <span className="text-[11px]">{selected.length} {t("rest.selected")}</span>
@@ -731,7 +732,7 @@ const MenuTab = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="flex gap-1">
-                    <Button size="icon" variant={featured.includes(m.id) ? "default" : "outline"} className="h-7 w-7 shrink-0" disabled={savingFeatured} title="مرکزی ڈش" aria-label={`${m.name} مرکزی ڈش`} aria-pressed={featured.includes(m.id)} onClick={() => void toggleFeatured(m)}><Star className={`h-3.5 w-3.5 ${featured.includes(m.id) ? "fill-current" : ""}`} /></Button>
+                    <Button size="icon" variant={featured.includes(m.id) ? "default" : "outline"} className="h-7 w-7 shrink-0" disabled={savingFeatured} title={tr("Main dish", "مرکزی ڈش")} aria-label={`${m.name} ${tr("Main dish", "مرکزی ڈش")}`} aria-pressed={featured.includes(m.id)} onClick={() => void toggleFeatured(m)}><Star className={`h-3.5 w-3.5 ${featured.includes(m.id) ? "fill-current" : ""}`} /></Button>
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openEdit(m)}>
                       <Pencil className="h-3 w-3" />
                     </Button>
@@ -820,7 +821,7 @@ const OwnerOrdersTab = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
         fetchOrders();
         if (payload.eventType === 'INSERT') {
-          triggerAlert("نیا آرڈر آیا ہے — قبول کریں!");
+          triggerAlert(tr("New order received — Accept now!", "نیا آرڈر آیا ہے — قبول کریں!"));
         }
       })
       .subscribe();
@@ -840,8 +841,8 @@ const OwnerOrdersTab = () => {
       });
       if (due.length === 0) return;
       due.forEach((o) => { remindedRef.current[o.id] = now; });
-      triggerAlert(`${due.length} آرڈر ابھی تک قبول نہیں کیا گیا!`);
-      toast.warning(`⏰ ${due.length} آرڈر 5 منٹ سے زیادہ سے زیرِ التوا ہے — فوراً قبول کریں`, { id: "pending-reminder" });
+      triggerAlert(`${due.length} ${tr("Order not accepted yet!", "آرڈر ابھی تک قبول نہیں کیا گیا!")}`);
+      toast.warning(`⏰ ${due.length} ${tr("Order pending for over 5 mins — accept now", "آرڈر 5 منٹ سے زیادہ سے زیرِ التوا ہے — فوراً قبول کریں")}`, { id: "pending-reminder" });
     };
     check();
     const timer = setInterval(check, 30 * 1000);
@@ -850,7 +851,7 @@ const OwnerOrdersTab = () => {
 
   const updateStatus = async (order: any, status: string) => {
     if (["delivered", "completed", "cancelled"].includes(order.status)) {
-      toast.error("یہ آرڈر بند ہو چکا ہے — اسے واپس پچھلے مرحلے میں نہیں لے جا سکتے");
+      toast.error(tr("This order is closed — cannot move back to previous stage", "یہ آرڈر بند ہو چکا ہے — اسے واپس پچھلے مرحلے میں نہیں لے جا سکتے"));
       return;
     }
     const allowedNext: Record<string, string[]> = {
@@ -860,14 +861,14 @@ const OwnerOrdersTab = () => {
       delivering: ["delivered"],
     };
     if (!allowedNext[order.status]?.includes(status)) {
-      toast.error("سٹیٹس صرف اگلے مرحلے پر جا سکتا ہے");
+      toast.error(tr("Status can only move to the next stage", "سٹیٹس صرف اگلے مرحلے پر جا سکتا ہے"));
       return;
     }
 
     const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
     if (error) { toast.error(error.message); return; }
     if (status === "confirmed" && order.restaurants?.auto_print) printOrderReceipt(order, "kitchen");
-    toast.success("سٹیٹس اپڈیٹ ہو گئی");
+    toast.success(tr("Status updated", "سٹیٹس اپڈیٹ ہو گئی"));
     fetchOrders();
   };
 
@@ -927,7 +928,7 @@ const OwnerOrdersTab = () => {
 
         {o.delivery_address && <p className="text-[11px] text-muted-foreground line-clamp-1">📍 {o.delivery_address}</p>}
         {o.notes && <p className="text-[11px] text-muted-foreground line-clamp-1">📝 {o.notes}</p>}
-        {o.rider_id && ['assigned', 'arrived_pickup'].includes(o.delivery_stage || 'assigned') && <details className="text-xs"><summary className="cursor-pointer py-2 font-bold text-primary">رائیڈر کا مقام اور راستہ / Rider route</summary><LiveDeliveryRoute orderId={o.id} kind="food" stage={o.delivery_stage || 'assigned'} audience="owner" /><ReportProblemDialog orderId={o.id} orderKind="food" /></details>}
+        {o.rider_id && ['assigned', 'arrived_pickup'].includes(o.delivery_stage || 'assigned') && <details className="text-xs"><summary className="cursor-pointer py-2 font-bold text-primary">{tr("Rider Location & Route", "رائیڈر کا مقام اور راستہ / Rider route")}</summary><LiveDeliveryRoute orderId={o.id} kind="food" stage={o.delivery_stage || 'assigned'} audience="owner" /><ReportProblemDialog orderId={o.id} orderKind="food" /></details>}
 
         {!["delivering", "delivered", "completed", "cancelled"].includes(o.status) && (
           <div className="flex flex-wrap items-center gap-1.5 rounded-md bg-secondary/30 px-2 py-1.5">
@@ -938,7 +939,7 @@ const OwnerOrdersTab = () => {
                 onClick={async () => {
                   const { error } = await supabase.from("orders").update({ prep_minutes: mins } as any).eq("id", o.id);
                   if (error) { toast.error(error.message); return; }
-                  toast.success(`${mins} منٹ سیٹ ہو گئے`);
+                  toast.success(`${mins} ${tr("Minutes set", "منٹ سیٹ ہو گئے")}`);
                   fetchOrders();
                 }}
                 className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
@@ -991,13 +992,13 @@ const OwnerOrdersTab = () => {
             <p className="text-[11px] text-primary mt-2">{t("rest.handedToRider")}</p>
           )}
           <div className="mt-2 flex flex-wrap gap-1.5">
-            <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "kitchen")}>🖨️ کچن سلپ</Button>
-            <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "bill", { restaurantName: o.restaurants?.name, ntn: o.restaurants?.ntn, taxPercent: Number(o.restaurants?.tax_percent || 0) })}>🧾 بل</Button>
+            <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "kitchen")}>{tr("🖨️ Kitchen Slip", "🖨️ کچن سلپ")}</Button>
+            <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "bill", { restaurantName: o.restaurants?.name, ntn: o.restaurants?.ntn, taxPercent: Number(o.restaurants?.tax_percent || 0) })}>{tr("🧾 Bill", "🧾 بل")}</Button>
             {["confirmed", "preparing"].includes(o.status) && (
               <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={async () => {
                 const { error } = await (supabase.rpc as any)("restaurant_announce_delay", { _order_id: o.id, _minutes: 10 });
-                if (error) toast.error(error.message); else { toast.success("گاہک کو 10 منٹ تاخیر کی اطلاع دے دی گئی"); fetchOrders(); }
-              }}>⏱️ +10 منٹ تاخیر{o.delay_minutes ? ` (${o.delay_minutes})` : ""}</Button>
+                if (error) toast.error(error.message); else { toast.success(tr("Customer notified of 10-min delay", "گاہک کو 10 منٹ تاخیر کی اطلاع دے دی گئی")); fetchOrders(); }
+              }}>{tr("⏱️ +10 min delay", "⏱️ +10 منٹ تاخیر")}{o.delay_minutes ? ` (${o.delay_minutes})` : ""}</Button>
             )}
             {o.status !== "delivering" && (
               <Button size="sm" variant="ghost" className="h-7 text-[10px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -142,7 +143,7 @@ const SupportDashboard = () => {
 
         <Tabs defaultValue="food">
           <TabsList className="w-full grid grid-cols-4">
-            <TabsTrigger value="tickets" className="text-xs">🆘 شکایات</TabsTrigger>
+            <TabsTrigger value="tickets" className="text-xs">{tr("🆘 Complaints", "🆘 شکایات")}</TabsTrigger>
             <TabsTrigger value="food" className="text-xs">🍔 {t("sup.foodOrders")}</TabsTrigger>
             <TabsTrigger value="grocery" className="text-xs">🛒 {t("admin.grocery")}</TabsTrigger>
             <TabsTrigger value="services" className="text-xs">🔧 {t("admin.services")}</TabsTrigger>
@@ -274,7 +275,7 @@ const SupportDashboard = () => {
                 <img src={selectedOrder.image_url} alt="List" className="w-full rounded-xl border max-h-48 object-contain bg-secondary" />
               )}
 
-              {selectedType !== "service" && !["delivered", "completed", "cancelled", "delivering", "returned_to_store"].includes(selectedOrder.status) && <Button variant="destructive" size="sm" onClick={() => updateOrderStatus(selectedOrder.id, "cancelled", selectedType)}>ہنگامی منسوخی</Button>}
+              {selectedType !== "service" && !["delivered", "completed", "cancelled", "delivering", "returned_to_store"].includes(selectedOrder.status) && <Button variant="destructive" size="sm" onClick={() => updateOrderStatus(selectedOrder.id, "cancelled", selectedType)}>{tr("Emergency cancellation", "ہنگامی منسوخی")}</Button>}
             </div>
           )}
         </DialogContent>

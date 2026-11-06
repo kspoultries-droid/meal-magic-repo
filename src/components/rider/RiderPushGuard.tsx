@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { BellOff } from "lucide-react";
@@ -26,10 +27,10 @@ export default function RiderPushGuard({ userId }: { userId: string }) {
     setBusy(true);
     try {
       const r = Capacitor.isNativePlatform() ? await enableNativePush() : await enableWebPush(userId);
-      if (r === "registered") { setRegistered(true); toast.success("اطلاعات چالو ہو گئیں — اب بند ایپ پر بھی آفر آئے گی"); }
-      else toast.error("فون کی ترتیبات میں Easy Life کی اطلاعات (Notifications) کی اجازت دیں");
+      if (r === "registered") { setRegistered(true); toast.success(tr("Notifications enabled — you will now receive offers even when the app is closed", "اطلاعات چالو ہو گئیں — اب بند ایپ پر بھی آفر آئے گی")); }
+      else toast.error(tr("Allow Easy Life notifications in your phone settings", "فون کی ترتیبات میں Easy Life کی اطلاعات (Notifications) کی اجازت دیں"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "اطلاعات چالو نہیں ہو سکیں");
+      toast.error(e instanceof Error ? e.message : tr("Could not enable notifications", "اطلاعات چالو نہیں ہو سکیں"));
     } finally { setBusy(false); }
   };
 
@@ -38,9 +39,9 @@ export default function RiderPushGuard({ userId }: { userId: string }) {
       <div className="flex items-start gap-2">
         <BellOff className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-extrabold text-destructive">اس فون پر آرڈر کی اطلاع بند ہے</p>
-          <p className="mt-0.5 text-xs text-foreground">ایپ بند ہونے پر آپ کو نئی ڈیلیوری کی آفر نہیں ملے گی۔ نیچے والا بٹن دبائیں اور «Allow» کریں۔</p>
-          <Button size="sm" className="mt-2 w-full" onClick={enable} disabled={busy}>{busy ? "چالو ہو رہی ہیں..." : "اطلاعات چالو کریں"}</Button>
+          <p className="text-sm font-extrabold text-destructive">{tr("Order notifications are off on this phone", "اس فون پر آرڈر کی اطلاع بند ہے")}</p>
+          <p className="mt-0.5 text-xs text-foreground">{tr("You will not receive new delivery offers when the app is closed. Tap the button below and select «Allow».", "ایپ بند ہونے پر آپ کو نئی ڈیلیوری کی آفر نہیں ملے گی۔ نیچے والا بٹن دبائیں اور «Allow» کریں۔")}</p>
+          <Button size="sm" className="mt-2 w-full" onClick={enable} disabled={busy}>{busy ? tr("Enabling...", "چالو ہو رہی ہیں...") : tr("Turn on Notifications", "اطلاعات چالو کریں")}</Button>
         </div>
       </div>
     </div>

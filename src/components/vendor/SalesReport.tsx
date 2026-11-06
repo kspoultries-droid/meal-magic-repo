@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -192,7 +193,7 @@ const SalesReport = () => {
     });
     downloadCsv(
       `sales-report-${new Date().toISOString().slice(0, 10)}`,
-      ["تاریخ", "آرڈرز", "آئٹمز", "سیل"],
+      [tr("Date", "تاریخ"), tr("Orders", "آرڈرز"), tr("Items", "آئٹمز"), tr("Sale", "سیل")],
       Array.from(byDay.entries())
         .sort((a, b) => (a[0] < b[0] ? 1 : -1))
         .map(([k, v]) => [k, v.orders, v.qty, Math.round(v.gross)])
@@ -203,7 +204,7 @@ const SalesReport = () => {
     <div className="space-y-1.5">
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between px-3 py-2">
-          <CardTitle className="flex items-center gap-2 text-sm"><BarChart3 className="w-4 h-4" /> سیل رپورٹ</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-sm"><BarChart3 className="w-4 h-4" /> {tr("Sales Report", "سیل رپورٹ")}</CardTitle>
           <div className="flex gap-1">
             <Button size="sm" variant="outline" onClick={exportCsv} disabled={!orders.length}><Download className="w-4 h-4" /></Button>
             <Button size="sm" variant="outline" onClick={load}><RefreshCw className="w-4 h-4" /></Button>
@@ -211,42 +212,42 @@ const SalesReport = () => {
         </CardHeader>
         <CardContent className="space-y-1.5 px-3 pb-2">
           {loading ? (
-            <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
+            <p className="text-xs text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>
           ) : (
             <div className="grid grid-cols-3 gap-1.5 text-center">
               {([
-                { label: "آج", s: stats.today },
-                { label: "7 دن", s: stats.week },
-                { label: "30 دن", s: stats.month },
+                { label: tr("Today", "آج"), s: stats.today },
+                { label: tr("7 days", "7 دن"), s: stats.week },
+                { label: tr("30 Days", "30 دن"), s: stats.month },
               ] as const).map((b) => (
                 <div key={b.label} className="rounded-lg bg-secondary/50 px-1 py-1.5">
                   <p className="text-[11px] text-muted-foreground">{b.label}</p>
                   <p className="text-sm font-extrabold">Rs {b.s.gross}</p>
-                  <p className="text-[10px] text-muted-foreground">{b.s.orders} آرڈرز • اوسط Rs {b.s.avg}</p>
+                  <p className="text-[10px] text-muted-foreground">{b.s.orders} {tr("Orders • Avg Rs", "آرڈرز • اوسط Rs")} {b.s.avg}</p>
                 </div>
               ))}
             </div>
           )}
-          <p className="text-[11px] text-muted-foreground">نوٹ: ڈلیوری فیس شامل نہیں — یہ صرف آپ کے آئٹمز کی سیل ہے۔</p>
+          <p className="text-[11px] text-muted-foreground">{tr("Note: Delivery fee not included — this is only your item sales.", "نوٹ: ڈلیوری فیس شامل نہیں — یہ صرف آپ کے آئٹمز کی سیل ہے۔")}</p>
         </CardContent>
       </Card>
 
       {/* دن کے حساب سے */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="flex flex-col gap-1.5 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-sm">📅 دن کے حساب سے</CardTitle>
+          <CardTitle className="text-sm">{tr("📅 By Day", "📅 دن کے حساب سے")}</CardTitle>
           <DayNavigator date={day} onChange={setDay} />
         </CardHeader>
         <CardContent className="space-y-1.5 px-3 pb-2">
           <div className="grid grid-cols-2 gap-1.5 text-center text-[11px] sm:grid-cols-4">
-            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">کل آرڈرز</p><p className="text-xs font-extrabold">{dayStats.orders}</p></div>
-            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">کل آئٹمز</p><p className="text-xs font-extrabold">{dayStats.qty}</p></div>
-            <div className="rounded-lg bg-primary/10 py-1.5"><p className="text-muted-foreground">سیل</p><p className="text-xs font-extrabold text-primary">Rs {dayStats.gross}</p></div>
-            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">اوسط</p><p className="text-xs font-extrabold">Rs {dayStats.avg}</p></div>
+            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">{tr("Total Orders", "کل آرڈرز")}</p><p className="text-xs font-extrabold">{dayStats.orders}</p></div>
+            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">{tr("Total Items", "کل آئٹمز")}</p><p className="text-xs font-extrabold">{dayStats.qty}</p></div>
+            <div className="rounded-lg bg-primary/10 py-1.5"><p className="text-muted-foreground">{tr("Sale", "سیل")}</p><p className="text-xs font-extrabold text-primary">Rs {dayStats.gross}</p></div>
+            <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">{tr("Average", "اوسط")}</p><p className="text-xs font-extrabold">Rs {dayStats.avg}</p></div>
           </div>
 
           <div className="rounded-lg border p-1.5">
-            <p className="mb-1.5 text-[11px] font-bold text-muted-foreground">پچھلے 7 دن</p>
+            <p className="mb-1.5 text-[11px] font-bold text-muted-foreground">{tr("Last 7 Days", "پچھلے 7 دن")}</p>
             <div className="space-y-1">
               {last7.map((d) => (
                 <button
@@ -257,7 +258,7 @@ const SalesReport = () => {
                   }`}
                 >
                   <span>{d.label}</span>
-                  <span className="text-muted-foreground">{d.orders} آرڈرز • {d.qty} آئٹمز</span>
+                  <span className="text-muted-foreground">{d.orders} {tr("Orders •", "آرڈرز •")} {d.qty} {tr("Items", "آئٹمز")}</span>
                   <span className="font-extrabold">Rs {d.gross}</span>
                 </button>
               ))}
@@ -267,20 +268,20 @@ const SalesReport = () => {
       </Card>
 
       <Card className="border-border/60 shadow-sm">
-        <CardHeader className="px-3 py-2"><CardTitle className="text-sm">30 دن کا سیل رجحان</CardTitle></CardHeader>
-        <CardContent className="px-1 pb-2"><TrendChart data={trend30} valueLabel="سیل" height={170} /></CardContent>
+        <CardHeader className="px-3 py-2"><CardTitle className="text-sm">{tr("30-Day Sales Trend", "30 دن کا سیل رجحان")}</CardTitle></CardHeader>
+        <CardContent className="px-1 pb-2"><TrendChart data={trend30} valueLabel={tr("Sale", "سیل")} height={170} /></CardContent>
       </Card>
 
       {/* اس دن کی ڈش وائز رپورٹ */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="px-3 py-2">
           <CardTitle className="flex items-center gap-2 text-sm">
-            <ShoppingBag className="h-4 w-4" /> ڈش وائز (منتخب دن)
+            <ShoppingBag className="h-4 w-4" /> {tr("By Dish (Selected Day)", "ڈش وائز (منتخب دن)")}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-3 pb-2">
           {dayItems.length === 0 ? (
-            <p className="py-3 text-center text-xs text-muted-foreground">اس دن کوئی سیل نہیں</p>
+            <p className="py-3 text-center text-xs text-muted-foreground">{tr("No sales on this day", "اس دن کوئی سیل نہیں")}</p>
           ) : (
             <div className="space-y-1">
               {dayItems.map((i) => (
@@ -297,13 +298,13 @@ const SalesReport = () => {
 
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="px-3 py-2">
-          <CardTitle className="text-sm">آئٹم وائز سیل (30 دن)</CardTitle>
+          <CardTitle className="text-sm">{tr("Item-wise Sales (30 Days)", "آئٹم وائز سیل (30 دن)")}</CardTitle>
         </CardHeader>
         <CardContent className="px-3 pb-2">
           {loading ? (
-            <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
+            <p className="text-xs text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>
           ) : monthItems.length === 0 ? (
-            <p className="py-3 text-center text-xs text-muted-foreground">اس عرصے میں کوئی سیل نہیں</p>
+            <p className="py-3 text-center text-xs text-muted-foreground">{tr("No sales in this period", "اس عرصے میں کوئی سیل نہیں")}</p>
           ) : (
             <div className="space-y-1">
               {monthItems.map((i) => (

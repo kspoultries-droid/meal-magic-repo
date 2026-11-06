@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,14 +61,14 @@ const RiderInsights = ({ riderId }: { riderId: string }) => {
   const exportCsv = () =>
     downloadCsv(
       `rider-earnings-${new Date().toISOString().slice(0, 10)}`,
-      ["تاریخ", "قسم", "آرڈر", "فاصلہ (کلومیٹر)", "کمائی"],
+      [tr("Date", "تاریخ"), tr("Type", "قسم"), tr("Order", "آرڈر"), tr("Distance (km)", "فاصلہ (کلومیٹر)"), tr("Earnings", "کمائی")],
       rows.map((r) => [r.created_at.slice(0, 10), r.order_kind, r.order_id.slice(0, 8), Number(r.distance_km || 0), Math.round(Number(r.amount || 0))])
     );
 
   return (
     <Card className="border-border/60">
       <CardHeader className="flex flex-row items-center justify-between gap-2 px-3 py-2">
-        <CardTitle className="flex items-center gap-1.5 text-sm"><Target className="h-4 w-4" /> کارکردگی</CardTitle>
+        <CardTitle className="flex items-center gap-1.5 text-sm"><Target className="h-4 w-4" /> {tr("Performance", "کارکردگی")}</CardTitle>
         <div className="flex gap-1">
           <Button size="sm" variant="outline" className="h-7 px-2" onClick={exportCsv} disabled={!rows.length}><Download className="h-3.5 w-3.5" /></Button>
           <Button size="sm" variant="outline" className="h-7 px-2" onClick={load}><RefreshCw className="h-3.5 w-3.5" /></Button>
@@ -76,7 +77,7 @@ const RiderInsights = ({ riderId }: { riderId: string }) => {
       <CardContent className="space-y-2 px-3 pb-3">
         <div className="rounded-xl bg-secondary/50 px-3 py-2">
           <div className="mb-1 flex items-center justify-between text-[11px]">
-            <span className="text-muted-foreground">آج کا ہدف Rs {DAILY_GOAL}</span>
+            <span className="text-muted-foreground">{tr("Today's Target Rs", "آج کا ہدف Rs")} {DAILY_GOAL}</span>
             <span className="font-extrabold">Rs {today?.value || 0} ({progress}%)</span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-background">
@@ -85,15 +86,15 @@ const RiderInsights = ({ riderId }: { riderId: string }) => {
         </div>
 
         <div className="grid grid-cols-3 gap-1.5 text-center text-[11px]">
-          <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">فی آرڈر</p><p className="text-xs font-extrabold">Rs {perOrder}</p></div>
-          <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">فی کلومیٹر</p><p className="text-xs font-extrabold">Rs {perKm}</p></div>
-          <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">14 دن ڈلیوری</p><p className="text-xs font-extrabold">{rows.length}</p></div>
+          <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">{tr("Per Order", "فی آرڈر")}</p><p className="text-xs font-extrabold">Rs {perOrder}</p></div>
+          <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">{tr("Per km", "فی کلومیٹر")}</p><p className="text-xs font-extrabold">Rs {perKm}</p></div>
+          <div className="rounded-lg bg-secondary/50 py-1.5"><p className="text-muted-foreground">{tr("14 Days Delivery", "14 دن ڈلیوری")}</p><p className="text-xs font-extrabold">{rows.length}</p></div>
         </div>
 
         {loading ? (
-          <p className="text-xs text-muted-foreground">لوڈ ہو رہا ہے…</p>
+          <p className="text-xs text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>
         ) : (
-          <TrendChart data={daily} valueLabel="کمائی" height={150} />
+          <TrendChart data={daily} valueLabel={tr("Earnings", "کمائی")} height={150} />
         )}
       </CardContent>
     </Card>

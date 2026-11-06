@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { RotateCw } from "lucide-react";
@@ -66,7 +67,7 @@ export function PullToRefresh({ onRefresh = reloadPage }: { onRefresh?: () => vo
 
   if (distance === 0 && !refreshing) return null;
   return (
-    <div role="status" aria-label="صفحہ تازہ کریں" className="pointer-events-none fixed inset-x-0 top-[calc(var(--navbar-height)+0.75rem)] z-[60] flex justify-center">
+    <div role="status" aria-label={tr("Refresh page", "صفحہ تازہ کریں")} className="pointer-events-none fixed inset-x-0 top-[calc(var(--navbar-height)+0.75rem)] z-[60] flex justify-center">
       <span className="flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary shadow-card">
         <RotateCw className={`size-5 ${refreshing ? "animate-spin motion-reduce:animate-none" : distance >= REFRESH_DISTANCE ? "rotate-180" : ""}`} />
       </span>

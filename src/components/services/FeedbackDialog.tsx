@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,7 +23,7 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      toast.error("Please give a rating / ریٹنگ دیں");
+      toast.error(tr("Please give a rating", "Please give a rating / ریٹنگ دیں"));
       return;
     }
     setSubmitting(true);
@@ -34,13 +35,13 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
     setSubmitting(false);
     if (error) {
       if (error.code === "23505") {
-        toast.error("Already reviewed / آپ پہلے ہی فیڈبیک دے چکے ہیں");
+        toast.error(tr("Already reviewed", "Already reviewed / آپ پہلے ہی فیڈبیک دے چکے ہیں"));
       } else {
-        toast.error("Feedback failed / فیڈبیک میں مسئلہ آیا");
+        toast.error(tr("Feedback failed", "Feedback failed / فیڈبیک میں مسئلہ آیا"));
         console.error(error);
       }
     } else {
-      toast.success("Thanks for feedback! / فیڈبیک کا شکریہ! ⭐");
+      toast.success(tr("Thanks for feedback! ⭐", "Thanks for feedback! / فیڈبیک کا شکریہ! ⭐"));
       setRating(0);
       setComment("");
       onOpenChange(false);
@@ -52,8 +53,8 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm mx-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-extrabold">Give Feedback / فیڈبیک دیں ⭐</DialogTitle>
-          <DialogDescription>Rate your experience / اپنے تجربے کی ریٹنگ دیں</DialogDescription>
+          <DialogTitle className="text-lg font-extrabold">{tr("Give feedback ⭐", "Give Feedback / فیڈبیک دیں ⭐")}</DialogTitle>
+          <DialogDescription>{tr("Rate your experience", "Rate your experience / اپنے تجربے کی ریٹنگ دیں")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -78,17 +79,17 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
             ))}
           </div>
           <p className="text-center text-sm text-muted-foreground">
-            {rating === 0 ? "Tap a star / ستارے پر ٹیپ کریں" : 
-             rating <= 2 ? "😞 Needs improvement / بہتری کی ضرورت" : 
-             rating <= 3 ? "😐 Okay / ٹھیک ہے" : 
-             rating <= 4 ? "😊 Good experience / اچھا تجربہ" : "🤩 Excellent! / بہترین!"}
+            {rating === 0 ? tr("Tap a star", "Tap a star / ستارے پر ٹیپ کریں") : 
+             rating <= 2 ? tr("😞 Needs improvement", "😞 Needs improvement / بہتری کی ضرورت") : 
+             rating <= 3 ? tr("😐 Okay", "😐 Okay / ٹھیک ہے") : 
+             rating <= 4 ? tr("😊 Good experience", "😊 Good experience / اچھا تجربہ") : tr("🤩 Excellent!", "🤩 Excellent! / بہترین!")}
           </p>
 
           {/* Comment */}
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Write your review (optional) / اپنی رائے لکھیں (اختیاری)..."
+            placeholder={tr("Write your review (optional)...", "Write your review (optional) / اپنی رائے لکھیں (اختیاری)...")}
             rows={3}
             maxLength={500}
             className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-sm resize-none"
@@ -99,7 +100,7 @@ const FeedbackDialog = ({ open, onOpenChange, booking, onSuccess }: FeedbackDial
             onClick={handleSubmit}
             disabled={submitting || rating === 0}
           >
-            {submitting ? "Submitting... / بھیج رہے ہیں..." : "Submit Feedback / فیڈبیک بھیجیں"}
+            {submitting ? tr("Submitting...", "Submitting... / بھیج رہے ہیں...") : tr("Submit Feedback", "Submit Feedback / فیڈبیک بھیجیں")}
           </Button>
         </div>
       </DialogContent>

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +9,9 @@ import { ExternalLink, Wallet } from "lucide-react";
 import VendorBankAccounts from "./VendorBankAccounts";
 
 const PERIODS: { key: Period; label: string }[] = [
-  { key: "week", label: "7 دن" },
-  { key: "fortnight", label: "15 دن" },
-  { key: "month", label: "30 دن" },
+  { key: "week", label: tr("7 days", "7 دن") },
+  { key: "fortnight", label: tr("15 days", "15 دن") },
+  { key: "month", label: tr("30 Days", "30 دن") },
 ];
 
 const EarningsPanel = () => {
@@ -41,7 +42,7 @@ const EarningsPanel = () => {
   return (
     <div className="space-y-2.5">
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><Wallet className="h-4 w-4" /> میری کمائی</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><Wallet className="h-4 w-4" /> {tr("My Earnings", "میری کمائی")}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex gap-2">
             {PERIODS.map((p) => (
@@ -53,20 +54,20 @@ const EarningsPanel = () => {
           </div>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground">لوڈ ہو رہا ہے…</p>
+            <p className="text-sm text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p>
           ) : !row || row.orders === 0 ? (
-            <p className="text-sm text-muted-foreground">اس عرصے میں کوئی مکمل آرڈر نہیں</p>
+            <p className="text-sm text-muted-foreground">{tr("No completed orders in this period", "اس عرصے میں کوئی مکمل آرڈر نہیں")}</p>
           ) : (
             <div className="grid grid-cols-2 gap-2 text-center text-xs">
-              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">مکمل آرڈرز</p><p className="text-sm font-extrabold">{row.orders}</p></div>
-              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">کل سیل</p><p className="text-sm font-extrabold">Rs {row.gross}</p></div>
-              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">پلیٹ فارم کمیشن ({row.commissionRate}%)</p><p className="text-sm font-extrabold text-destructive">− Rs {row.commission}</p></div>
-              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">وصول شدہ ادائیگی</p><p className="text-sm font-extrabold text-success">Rs {row.paid}</p></div>
+              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">{tr("Completed Orders", "مکمل آرڈرز")}</p><p className="text-sm font-extrabold">{row.orders}</p></div>
+              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">{tr("Total Sales", "کل سیل")}</p><p className="text-sm font-extrabold">Rs {row.gross}</p></div>
+              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">{tr("Platform Commission (", "پلیٹ فارم کمیشن (")}{row.commissionRate}%)</p><p className="text-sm font-extrabold text-destructive">− Rs {row.commission}</p></div>
+              <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">{tr("Payment Received", "وصول شدہ ادائیگی")}</p><p className="text-sm font-extrabold text-success">Rs {row.paid}</p></div>
               <div className="col-span-2 bg-primary/10 rounded-xl py-2">
-                <p className="text-muted-foreground">باقی ملنا ہے</p>
+                <p className="text-muted-foreground">{tr("Pending Payout", "باقی ملنا ہے")}</p>
                 <p className="text-base font-extrabold text-primary">Rs {row.pending}</p>
                 {row.pending === 0 && row.paid > 0 && (
-                  <p className="text-[11px] text-success">✅ تمام ادائیگی ہو چکی ہے</p>
+                  <p className="text-[11px] text-success">{tr("✅ All payments completed", "✅ تمام ادائیگی ہو چکی ہے")}</p>
                 )}
               </div>
             </div>
@@ -77,9 +78,9 @@ const EarningsPanel = () => {
       <VendorBankAccounts />
 
       <Card>
-        <CardHeader><CardTitle className="text-sm">وصول شدہ ادائیگیاں</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm">{tr("Received Payments", "وصول شدہ ادائیگیاں")}</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          {payouts.length === 0 && <p className="text-sm text-muted-foreground">ابھی کوئی ادائیگی وصول نہیں ہوئی</p>}
+          {payouts.length === 0 && <p className="text-sm text-muted-foreground">{tr("No payments received yet", "ابھی کوئی ادائیگی وصول نہیں ہوئی")}</p>}
           {payouts.map((p) => (
             <div key={p.id} className="flex items-center justify-between gap-2 text-xs border-b pb-1.5">
               <span className="text-muted-foreground">
@@ -89,7 +90,7 @@ const EarningsPanel = () => {
               <span className="flex shrink-0 items-center gap-2 font-bold">
                 Rs {p.amount}
                 {p.receipt_path && (
-                  <Button type="button" size="icon" variant="outline" className="h-7 w-7" title="بینک رسید دیکھیں" onClick={() => viewReceipt(p.receipt_path)}>
+                  <Button type="button" size="icon" variant="outline" className="h-7 w-7" title={tr("View Bank Receipt", "بینک رسید دیکھیں")} onClick={() => viewReceipt(p.receipt_path)}>
                     <ExternalLink className="h-3.5 w-3.5" />
                   </Button>
                 )}

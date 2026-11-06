@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -48,7 +49,7 @@ const DayNavigator = ({ date, onChange, className }: Props) => {
         size="icon"
         variant="ghost"
         className="h-7 w-7 rounded-full"
-        aria-label="پچھلا دن"
+        aria-label={tr("Previous day", "پچھلا دن")}
         onClick={() => onChange(addDays(date, -1))}
       >
         <ChevronRight className="h-4 w-4" />
@@ -78,7 +79,7 @@ const DayNavigator = ({ date, onChange, className }: Props) => {
         size="icon"
         variant="ghost"
         className="h-7 w-7 rounded-full"
-        aria-label="اگلا دن"
+        aria-label={tr("Next day", "اگلا دن")}
         disabled={isToday}
         onClick={() => onChange(addDays(date, 1))}
       >

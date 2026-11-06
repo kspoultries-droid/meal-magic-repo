@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,8 +11,8 @@ import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { approvalUsable } from "@/lib/staffCases";
 import { Input } from "@/components/ui/input";
 
-const KIND: Record<string, string> = { refund: "ریفنڈ", payout: "وینڈر ادائیگی", other: "دیگر" };
-const STATUS: Record<string, string> = { pending: "زیر التوا", approved: "منظور", rejected: "مسترد" };
+const KIND: Record<string, string> = { refund: tr("Refund", "ریفنڈ"), payout: tr("Vendor Payment", "وینڈر ادائیگی"), other: tr("Other", "دیگر") };
+const STATUS: Record<string, string> = { pending: tr("Pending", "زیر التوا"), approved: tr("Approved", "منظور"), rejected: tr("Rejected", "مسترد") };
 
 const ApprovalsTab = () => {
   const db = supabase as any;
@@ -43,12 +44,12 @@ const ApprovalsTab = () => {
 
   const decide = async (id: string, approve: boolean) => {
     if (busy) return;
-    const n = approve ? "" : window.prompt("مسترد کرنے کی وجہ") || "";
+    const n = approve ? "" : window.prompt(tr("Rejection Reason", "مسترد کرنے کی وجہ")) || "";
     setBusy(true);
     const { error } = await db.rpc("decide_approval", { _id: id, _approve: approve, _note: n });
     setBusy(false);
-    if (error) return toast.error(error.message.includes("own") ? "اپنی درخواست خود منظور نہیں کر سکتے" : error.message);
-    toast.success(approve ? "منظور کر دیا" : "مسترد کر دیا");
+    if (error) return toast.error(error.message.includes("own") ? tr("Cannot approve your own request", "اپنی درخواست خود منظور نہیں کر سکتے") : error.message);
+    toast.success(approve ? tr("Approved", "منظور کر دیا") : tr("Rejected", "مسترد کر دیا"));
     await load();
   };
 
@@ -58,7 +59,7 @@ const ApprovalsTab = () => {
   const bulkApprove = async () => {
     if (busy) return;
     const targets = eligibleApprovals(rows.filter(r => approvalUsable(r)), selected, user?.id, canApprove);
-    if (!targets.length || !window.confirm(`${targets.length} درخواستوں کی منظوری کی تصدیق کریں؟`)) return;
+    if (!targets.length || !window.confirm(`${targets.length} ${tr("Confirm approval of requests?", "درخواستوں کی منظوری کی تصدیق کریں؟")}`)) return;
     setBusy(true);
     let approved = 0;
     try {
@@ -66,37 +67,37 @@ const ApprovalsTab = () => {
         const { error } = await db.rpc("decide_approval", { _id: row.id, _approve: true, _note: "" });
         if (!error) approved++;
       }
-      toast.info(`${approved} منظور؛ ${targets.length - approved} نامکمل`);
+      toast.info(`${approved} ${tr("Approved;", "منظور؛")} ${targets.length - approved} ${tr("Incomplete", "نامکمل")}`);
       setSelected([]); await load();
-    } catch { toast.error("منظوری مکمل نہیں ہوئی؛ فہرست دوبارہ تازہ کریں۔"); }
+    } catch { toast.error(tr("Approval not completed; refresh the list.", "منظوری مکمل نہیں ہوئی؛ فہرست دوبارہ تازہ کریں۔")); }
     finally { setBusy(false); }
   };
 
   return (
     <div className="space-y-4" dir="rtl">
-      {permissions.includes("support") && <section className="space-y-2 border-b pb-4"><h2 className="text-sm font-bold">عین رقم واپسی کی درخواست</h2><div className="grid grid-cols-2 gap-2"><select aria-label="آرڈر کی قسم" className="rounded-md border bg-background p-2 text-sm" value={refundKind} onChange={e => setRefundKind(e.target.value)}><option value="food">فوڈ</option><option value="grocery_cart">دکان</option><option value="grocery_list">فہرست</option><option value="service">خدمت</option></select><Input aria-label="ریفنڈ رقم" type="number" placeholder="رقم Rs" value={refundAmount} onChange={e => setRefundAmount(e.target.value)} /></div><Input aria-label="ریفنڈ آرڈر" placeholder="آرڈر کی مکمل آئی ڈی" value={refundOrder} onChange={e => setRefundOrder(e.target.value)} /><Input aria-label="ریفنڈ وجہ" placeholder="رقم واپسی کی وجہ" value={refundNote} onChange={e => setRefundNote(e.target.value)} /><Button onClick={async () => { const { error } = await supabase.rpc("staff_request_exact_refund", { _kind: refundKind, _order: refundOrder, _amount: Number(refundAmount), _type: "partial", _note: refundNote }); if (error) toast.error(error.message); else { toast.success("عین رقم واپسی کی درخواست محفوظ ہوئی"); await load(); } }}>جزوی رقم واپسی کی منظوری مانگیں</Button></section>}
+      {permissions.includes("support") && <section className="space-y-2 border-b pb-4"><h2 className="text-sm font-bold">{tr("Exact Refund Request", "عین رقم واپسی کی درخواست")}</h2><div className="grid grid-cols-2 gap-2"><select aria-label={tr("Order Type", "آرڈر کی قسم")} className="rounded-md border bg-background p-2 text-sm" value={refundKind} onChange={e => setRefundKind(e.target.value)}><option value="food">{tr("Food", "فوڈ")}</option><option value="grocery_cart">{tr("Shop", "دکان")}</option><option value="grocery_list">{tr("Menu", "فہرست")}</option><option value="service">{tr("Service", "خدمت")}</option></select><Input aria-label={tr("Refund Amount", "ریفنڈ رقم")} type="number" placeholder={tr("Amount Rs", "رقم Rs")} value={refundAmount} onChange={e => setRefundAmount(e.target.value)} /></div><Input aria-label={tr("Refund Order", "ریفنڈ آرڈر")} placeholder={tr("Full Order ID", "آرڈر کی مکمل آئی ڈی")} value={refundOrder} onChange={e => setRefundOrder(e.target.value)} /><Input aria-label={tr("Refund Reason", "ریفنڈ وجہ")} placeholder={tr("Reason for Refund", "رقم واپسی کی وجہ")} value={refundNote} onChange={e => setRefundNote(e.target.value)} /><Button onClick={async () => { const { error } = await supabase.rpc("staff_request_exact_refund", { _kind: refundKind, _order: refundOrder, _amount: Number(refundAmount), _type: "partial", _note: refundNote }); if (error) toast.error(error.message); else { toast.success(tr("Exact refund request saved", "عین رقم واپسی کی درخواست محفوظ ہوئی")); await load(); } }}>{tr("Request partial refund approval", "جزوی رقم واپسی کی منظوری مانگیں")}</Button></section>}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">درخواستیں</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-base">{tr("Requests", "درخواستیں")}</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); setSelected([]); }} count={count} />
-          {eligible.length > 0 && <div className="flex gap-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => setSelected(selected.length ? [] : eligible.map(r => r.id))}>{selected.length ? "غیر منتخب" : "سب منتخب"}</Button><Button size="sm" disabled={busy || selected.length === 0} onClick={() => void bulkApprove()}>{busy ? "منظوری جاری…" : `${selected.length} منظور کریں`}</Button></div>}
-          {rows.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">کوئی درخواست نہیں</p>}
+          {eligible.length > 0 && <div className="flex gap-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => setSelected(selected.length ? [] : eligible.map(r => r.id))}>{selected.length ? tr("Unselected", "غیر منتخب") : tr("Select all", "سب منتخب")}</Button><Button size="sm" disabled={busy || selected.length === 0} onClick={() => void bulkApprove()}>{busy ? tr("Approving…", "منظوری جاری…") : `${selected.length} ${tr("Approve", "منظور کریں")}`}</Button></div>}
+          {rows.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">{tr("No requests", "کوئی درخواست نہیں")}</p>}
           {filtered.map((r) => (
             <div key={r.id} className="rounded-xl border p-3">
               <div className="flex items-center justify-between">
-                {eligible.some(row => row.id === r.id) && <input type="checkbox" aria-label={`منتخب ${r.id}`} disabled={busy} checked={selected.includes(r.id)} onChange={e => setSelected(current => e.target.checked ? [...current, r.id] : current.filter(id => id !== r.id))} />}
+                {eligible.some(row => row.id === r.id) && <input type="checkbox" aria-label={`${tr("Selected", "منتخب")} ${r.id}`} disabled={busy} checked={selected.includes(r.id)} onChange={e => setSelected(current => e.target.checked ? [...current, r.id] : current.filter(id => id !== r.id))} />}
                 <span className="text-sm font-bold">{KIND[r.kind]} — Rs {Number(r.amount).toLocaleString()}</span>
                 <Badge variant={r.status === "pending" ? "default" : r.status === "approved" ? "secondary" : "destructive"}>{STATUS[r.status]}</Badge>
               </div>
               <p className="text-xs text-muted-foreground">{r.note}{r.reference_id ? ` · #${r.reference_id}` : ""}</p>
-              <p className="text-xs">میعاد: {new Date(r.expires_at).toLocaleString("en-PK")}{r.used_at ? " · استعمال شدہ" : new Date(r.expires_at).getTime() <= Date.now() ? " · ختم" : ""}</p>
-              <details className="text-xs"><summary className="cursor-pointer">عین منظور کی جانے والی تفصیل</summary><pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-muted p-2" dir="ltr">{JSON.stringify(r.payload, null, 2)}</pre></details>
-              <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString("en-PK")}{r.requested_by === user?.id ? " · آپ کی درخواست" : ""}</p>
-              {r.decision_note && <p className="text-xs">نوٹ: {r.decision_note}</p>}
+              <p className="text-xs">{tr("Expiry:", "میعاد:")} {new Date(r.expires_at).toLocaleString("en-PK")}{r.used_at ? tr(" · Used", " · استعمال شدہ") : new Date(r.expires_at).getTime() <= Date.now() ? tr(" · Ended", " · ختم") : ""}</p>
+              <details className="text-xs"><summary className="cursor-pointer">{tr("Exact details to be approved", "عین منظور کی جانے والی تفصیل")}</summary><pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-muted p-2" dir="ltr">{JSON.stringify(r.payload, null, 2)}</pre></details>
+              <p className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString("en-PK")}{r.requested_by === user?.id ? tr(" · Your request", " · آپ کی درخواست") : ""}</p>
+              {r.decision_note && <p className="text-xs">{tr("Note:", "نوٹ:")} {r.decision_note}</p>}
               {approvalUsable(r) && canApprove && r.requested_by !== user?.id && (
                 <div className="mt-2 flex gap-2">
-                  <Button size="sm" className="flex-1" onClick={() => decide(r.id, true)}>منظور</Button>
-                  <Button size="sm" variant="destructive" className="flex-1" onClick={() => decide(r.id, false)}>مسترد</Button>
+                  <Button size="sm" className="flex-1" onClick={() => decide(r.id, true)}>{tr("Approved", "منظور")}</Button>
+                  <Button size="sm" variant="destructive" className="flex-1" onClick={() => decide(r.id, false)}>{tr("Rejected", "مسترد")}</Button>
                 </div>
               )}
             </div>

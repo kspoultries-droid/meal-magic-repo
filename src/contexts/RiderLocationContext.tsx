@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +53,7 @@ export function RiderLocationProvider({ children }: { children: React.ReactNode 
     setState({ sharing: false, error: "", updatedAt: null });
     if (!enabled || !user || !isRider) return;
     const native = hasNativeRiderLocation();
-    if (!native && !navigator.geolocation) { setState(s => ({ ...s, error: "اس فون پر GPS دستیاب نہیں" })); return; }
+    if (!native && !navigator.geolocation) { setState(s => ({ ...s, error: tr("GPS unavailable on this phone", "اس فون پر GPS دستیاب نہیں") })); return; }
     let disposed = false;
     let busy = false;
     let previous: RiderFix | null = null;
@@ -60,11 +61,11 @@ export function RiderLocationProvider({ children }: { children: React.ReactNode 
     let stopNative: (() => Promise<void>) | undefined;
     const options = { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
     const failed = (error: GeolocationPositionError) => {
-      if (!disposed) setState(s => ({ ...s, sharing: false, error: error.code === 1 ? "GPS کی اجازت بند ہے — فون کی ترتیبات میں لوکیشن کی اجازت دیں" : "تازہ GPS نہیں مل رہا — لوکیشن اور انٹرنیٹ چیک کریں" }));
+      if (!disposed) setState(s => ({ ...s, sharing: false, error: error.code === 1 ? tr("GPS permission denied — enable location in phone settings", "GPS کی اجازت بند ہے — فون کی ترتیبات میں لوکیشن کی اجازت دیں") : tr("No fresh GPS — check location and internet", "تازہ GPS نہیں مل رہا — لوکیشن اور انٹرنیٹ چیک کریں") }));
     };
     const publishFix = async (fix: RiderFix) => {
       if (disposed || busy) return;
-      if (!validRiderFix(fix)) { setState(s => ({ ...s, sharing: false, error: "GPS غیر واضح ہے — بہتر سگنل کا انتظار ہے" })); return; }
+      if (!validRiderFix(fix)) { setState(s => ({ ...s, sharing: false, error: tr("Weak GPS accuracy — waiting for better signal", "GPS غیر واضح ہے — بہتر سگنل کا انتظار ہے") })); return; }
       if (!shouldPublishFix(fix, previous)) return;
       busy = true;
       try {
@@ -72,21 +73,21 @@ export function RiderLocationProvider({ children }: { children: React.ReactNode 
           ? { data: await publishNativeRiderFix(fix), error: null }
           : await supabase.rpc("publish_rider_location", { _lat: fix.lat, _lng: fix.lng, _accuracy: fix.accuracy });
         if (disposed) return;
-        if (error || !data) setState(s => ({ ...s, sharing: false, error: "لوکیشن محفوظ نہیں ہوئی — انٹرنیٹ چیک کریں؛ دوبارہ کوشش جاری ہے" }));
+        if (error || !data) setState(s => ({ ...s, sharing: false, error: tr("Location not saved — check internet; retrying", "لوکیشن محفوظ نہیں ہوئی — انٹرنیٹ چیک کریں؛ دوبارہ کوشش جاری ہے") }));
         else { previous = { ...fix, at: Date.now() }; setState({ sharing: true, error: "", updatedAt: data }); }
       } catch {
-        if (!disposed) setState(s => ({ ...s, sharing: false, error: "لوکیشن بھیجنے میں رابطہ ٹوٹ گیا" }));
+        if (!disposed) setState(s => ({ ...s, sharing: false, error: tr("Connection lost while sending location", "لوکیشن بھیجنے میں رابطہ ٹوٹ گیا") }));
       } finally { busy = false; }
     };
     const publish = (pos: GeolocationPosition) => { void publishFix({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, at: pos.timestamp }); };
     if (native) {
       void watchNativeRiderLocation(fix => { void publishFix(fix); }, denied => {
-        if (!disposed) setState(s => ({ ...s, sharing: false, error: denied ? "فون کی ترتیبات میں لوکیشن کی اجازت دیں" : "تازہ GPS نہیں مل رہا — لوکیشن چیک کریں" }));
+        if (!disposed) setState(s => ({ ...s, sharing: false, error: denied ? tr("Enable location in phone settings", "فون کی ترتیبات میں لوکیشن کی اجازت دیں") : tr("No fresh GPS — check location", "تازہ GPS نہیں مل رہا — لوکیشن چیک کریں") }));
       }).then(stop => {
         if (disposed) void stop();
         else stopNative = stop;
       }).catch(() => {
-        if (!disposed) setState(s => ({ ...s, sharing: false, error: "پس منظر لوکیشن شروع نہیں ہوئی — اجازتیں اور تازہ APK چیک کریں" }));
+        if (!disposed) setState(s => ({ ...s, sharing: false, error: tr("Background location failed to start — check permissions and update APK", "پس منظر لوکیشن شروع نہیں ہوئی — اجازتیں اور تازہ APK چیک کریں") }));
       });
       return () => { disposed = true; void stopNative?.(); };
     }
