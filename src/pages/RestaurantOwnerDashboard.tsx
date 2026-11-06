@@ -151,9 +151,14 @@ const RestaurantOwnerDashboard = () => {
 const MyRestaurantTab = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { isAdmin } = useAuth();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [cities, setCities] = useState<any[]>([]);
+  const [newForm, setNewForm] = useState({ name: "", city: "", address: "", phone: "" });
+  const [creating, setCreating] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -163,6 +168,31 @@ const MyRestaurantTab = () => {
   };
 
   useEffect(() => { fetchAll(); }, [user]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    supabase.from("cities").select("id,name").order("name").then(({ data }) => setCities(data || []));
+  }, [isAdmin]);
+
+  const createRestaurant = async () => {
+    const name = newForm.name.trim();
+    const address = newForm.address.trim();
+    const phone = newForm.phone.trim();
+    if (name.length < 2 || !newForm.city || address.length < 8 || !/^\+?[0-9]{10,15}$/.test(phone)) {
+      toast.error("نام، شہر، مکمل پتہ اور درست فون نمبر درج کریں");
+      return;
+    }
+    setCreating(true);
+    const { error } = await supabase.rpc("admin_create_own_business", {
+      _kind: "restaurant", _name: name, _city_id: newForm.city, _address: address, _phone: phone,
+    });
+    setCreating(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("نیا ریستورنٹ بن گیا — تفصیل مکمل کرنے تک یہ بند رہے گا");
+    setShowNew(false);
+    setNewForm({ name: "", city: "", address: "", phone: "" });
+    fetchAll();
+  };
 
   const deleteRestaurant = async (id: string) => {
     const { error } = await supabase.from("restaurants").delete().eq("id", id);
