@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -72,11 +73,11 @@ interface ServiceItem {
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "زیرِ التوا", color: "bg-warning text-warning-foreground" },
-  confirmed: { label: "تصدیق شدہ", color: "bg-primary text-primary-foreground" },
-  in_progress: { label: "جاری", color: "bg-accent text-accent-foreground" },
-  completed: { label: "مکمل", color: "bg-success text-success-foreground" },
-  cancelled: { label: "منسوخ", color: "bg-destructive text-destructive-foreground" },
+  pending: { label: tr("Pending", "زیرِ التوا"), color: "bg-warning text-warning-foreground" },
+  confirmed: { label: tr("Verified", "تصدیق شدہ"), color: "bg-primary text-primary-foreground" },
+  in_progress: { label: tr("Open", "جاری"), color: "bg-accent text-accent-foreground" },
+  completed: { label: tr("Completed", "مکمل"), color: "bg-success text-success-foreground" },
+  cancelled: { label: tr("Cancelled", "منسوخ"), color: "bg-destructive text-destructive-foreground" },
 };
 
 const ServiceManagerDashboard = () => {
@@ -199,9 +200,9 @@ const ServiceManagerDashboard = () => {
       .eq("id", id);
 
     if (error) {
-      toast.error("قیمت اپ ڈیٹ نہیں ہوئی");
+      toast.error(tr("Price not updated", "قیمت اپ ڈیٹ نہیں ہوئی"));
     } else {
-      toast.success("قیمت اپ ڈیٹ ہو گئی");
+      toast.success(tr("Price updated", "قیمت اپ ڈیٹ ہو گئی"));
       setServices((prev) => prev.map((s) => (s.id === id ? { ...s, price } : s)));
     }
   };
@@ -213,7 +214,7 @@ const ServiceManagerDashboard = () => {
       .eq("id", id);
 
     if (error) {
-      toast.error("تبدیلی نہیں ہوئی");
+      toast.error(tr("No changes made", "تبدیلی نہیں ہوئی"));
     } else {
       setProviders((prev) => prev.map((p) => (p.id === id ? { ...p, is_available: available } : p)));
     }
@@ -240,7 +241,7 @@ const ServiceManagerDashboard = () => {
     <div className="min-h-screen bg-background pb-20">
       <Navbar />
       <div className="container mx-auto px-3 py-4 max-w-3xl">
-        <h1 className="text-xl font-bold mb-1">سروس مینیجر ڈیش بورڈ</h1>
+        <h1 className="text-xl font-bold mb-1">{tr("Service Manager Dashboard", "سروس مینیجر ڈیش بورڈ")}</h1>
         <div className="flex flex-wrap gap-1.5 mb-4">
           {categories.map((c) => (
             <Badge key={c.id} variant="secondary" className="text-xs">{c.name}</Badge>
@@ -253,7 +254,7 @@ const ServiceManagerDashboard = () => {
             <div className="flex items-center gap-2">
               <ClipboardList className="w-4 h-4 text-warning" />
               <div>
-                <p className="text-xs text-muted-foreground">زیرِ التوا</p>
+                <p className="text-xs text-muted-foreground">{tr("Pending", "زیرِ التوا")}</p>
                 <p className="text-lg font-bold">{pendingBookings}</p>
               </div>
             </div>
@@ -262,7 +263,7 @@ const ServiceManagerDashboard = () => {
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
               <div>
-                <p className="text-xs text-muted-foreground">فعال ورکرز</p>
+                <p className="text-xs text-muted-foreground">{tr("Active workers", "فعال ورکرز")}</p>
                 <p className="text-lg font-bold">{activeProviders}/{providers.length}</p>
               </div>
             </div>
@@ -271,7 +272,7 @@ const ServiceManagerDashboard = () => {
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 text-warning" />
               <div>
-                <p className="text-xs text-muted-foreground">اوسط ریٹنگ</p>
+                <p className="text-xs text-muted-foreground">{tr("Average Rating", "اوسط ریٹنگ")}</p>
                 <p className="text-lg font-bold">{avgRating}</p>
               </div>
             </div>
@@ -280,7 +281,7 @@ const ServiceManagerDashboard = () => {
             <div className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-success" />
               <div>
-                <p className="text-xs text-muted-foreground">سروسز</p>
+                <p className="text-xs text-muted-foreground">{tr("Services", "سروسز")}</p>
                 <p className="text-lg font-bold">{services.length}</p>
               </div>
             </div>
@@ -289,18 +290,18 @@ const ServiceManagerDashboard = () => {
 
         <Tabs defaultValue="bookings">
           <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full h-auto">
-            <TabsTrigger value="bookings" className="text-xs">بکنگز</TabsTrigger>
-            <TabsTrigger value="workers" className="text-xs">ورکرز</TabsTrigger>
-            <TabsTrigger value="quality" className="text-xs">کوالٹی</TabsTrigger>
-            <TabsTrigger value="complaints" className="text-xs">شکایات</TabsTrigger>
-            <TabsTrigger value="checklists" className="text-xs">چیک لسٹ</TabsTrigger>
-            <TabsTrigger value="pricing" className="text-xs">قیمتیں</TabsTrigger>
+            <TabsTrigger value="bookings" className="text-xs">{tr("Bookings", "بکنگز")}</TabsTrigger>
+            <TabsTrigger value="workers" className="text-xs">{tr("Workers", "ورکرز")}</TabsTrigger>
+            <TabsTrigger value="quality" className="text-xs">{tr("Quality", "کوالٹی")}</TabsTrigger>
+            <TabsTrigger value="complaints" className="text-xs">{tr("Complaints", "شکایات")}</TabsTrigger>
+            <TabsTrigger value="checklists" className="text-xs">{tr("Checklist", "چیک لسٹ")}</TabsTrigger>
+            <TabsTrigger value="pricing" className="text-xs">{tr("Prices", "قیمتیں")}</TabsTrigger>
           </TabsList>
 
           {/* BOOKINGS TAB */}
           <TabsContent value="bookings" className="space-y-3 mt-3">
             {bookings.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">کوئی بکنگ نہیں</p>
+              <p className="text-center text-muted-foreground py-8">{tr("No bookings", "کوئی بکنگ نہیں")}</p>
             ) : (
               bookings.map((b) => (
                 <Card key={b.id}>
@@ -310,7 +311,7 @@ const ServiceManagerDashboard = () => {
                         <p className="font-semibold text-sm">{b.services?.name}</p>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <User className="w-3 h-3" />
-                          {b.customerProfile?.full_name || "نامعلوم"}
+                          {b.customerProfile?.full_name || tr("Unknown", "نامعلوم")}
                         </p>
                       </div>
                       <Badge className={`text-[10px] ${statusMap[b.status]?.color || ""}`}>
@@ -337,7 +338,7 @@ const ServiceManagerDashboard = () => {
                       </a>
                     )}
                     {b.notes && <p className="text-xs bg-secondary p-2 rounded">{b.notes}</p>}
-                    <Button size="sm" variant="outline" onClick={() => setSelectedBooking(b.id)}>تفصیل، کوٹیشن اور بل</Button>
+                    <Button size="sm" variant="outline" onClick={() => setSelectedBooking(b.id)}>{tr("Details, Quotation & Bill", "تفصیل، کوٹیشن اور بل")}</Button>
                   </CardContent>
                 </Card>
               ))
@@ -347,7 +348,7 @@ const ServiceManagerDashboard = () => {
           {/* WORKERS TAB */}
           <TabsContent value="workers" className="space-y-3 mt-3">
             {providers.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">کوئی ورکر نہیں</p>
+              <p className="text-center text-muted-foreground py-8">{tr("No Workers", "کوئی ورکر نہیں")}</p>
             ) : (
               providers.map((p) => (
                 <Card key={p.id}>
@@ -357,7 +358,7 @@ const ServiceManagerDashboard = () => {
                         <p className="font-semibold text-sm">{p.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {p.service_categories?.name} · ⭐ {Number(p.rating).toFixed(1)} ({p.total_reviews})
-                          <span className="block text-destructive">کھلی شکایات: {complaints.filter(c => c.service_provider_id === p.id && c.status === "open").length} · رویے کی شکایات: {complaints.filter(c => c.service_provider_id === p.id && c.category === "behaviour").length}</span>
+                          <span className="block text-destructive">{tr("Open Complaints:", "کھلی شکایات:")} {complaints.filter(c => c.service_provider_id === p.id && c.status === "open").length} {tr("· Conduct Complaints:", "· رویے کی شکایات:")} {complaints.filter(c => c.service_provider_id === p.id && c.category === "behaviour").length}</span>
                         </p>
                         {p.phone && (
                           <a href={`tel:${p.phone}`} className="text-xs text-primary flex items-center gap-1 mt-0.5">
@@ -376,7 +377,7 @@ const ServiceManagerDashboard = () => {
                         className="text-xs h-7"
                         onClick={() => toggleProviderAvailability(p.id, !p.is_available)}
                       >
-                        {p.is_available ? "فعال ✓" : "غیر فعال"}
+                        {p.is_available ? tr("Active ✓", "فعال ✓") : tr("Inactive", "غیر فعال")}
                       </Button>
                     </div>
                   </CardContent>
@@ -388,7 +389,7 @@ const ServiceManagerDashboard = () => {
           {/* QUALITY TAB */}
           <TabsContent value="quality" className="space-y-3 mt-3">
             {reviews.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">کوئی ریویو نہیں</p>
+              <p className="text-center text-muted-foreground py-8">{tr("No reviews", "کوئی ریویو نہیں")}</p>
             ) : (
               reviews.map((r) => (
                 <Card key={r.id}>
@@ -397,7 +398,7 @@ const ServiceManagerDashboard = () => {
                       <div>
                         <p className="text-sm font-medium">{r.services?.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {r.customerProfile?.full_name || "نامعلوم"} · {new Date(r.created_at).toLocaleDateString("en-GB")}
+                          {r.customerProfile?.full_name || tr("Unknown", "نامعلوم")} · {new Date(r.created_at).toLocaleDateString("en-GB")}
                         </p>
                       </div>
                       <div className="flex items-center gap-0.5">
@@ -412,7 +413,7 @@ const ServiceManagerDashboard = () => {
                     {r.comment && <p className="text-xs mt-2 bg-secondary p-2 rounded">{r.comment}</p>}
                     {r.rating <= 2 && (
                       <div className="flex items-center gap-1 mt-2 text-xs text-destructive">
-                        <AlertCircle className="w-3 h-3" /> کم ریٹنگ - توجہ درکار
+                        <AlertCircle className="w-3 h-3" /> {tr("Low Rating - Attention Needed", "کم ریٹنگ - توجہ درکار")}
                       </div>
                     )}
                   </CardContent>
@@ -455,7 +456,7 @@ const ServiceManagerDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-      <Dialog open={!!selectedBooking} onOpenChange={v => { if (!v) setSelectedBooking(null); }}><DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>بکنگ کی تفصیل</DialogTitle></DialogHeader>{bookings.find(b => b.id === selectedBooking) && <ServiceJobPanel booking={bookings.find(b => b.id === selectedBooking)} mode="staff" onChanged={() => void fetchAllData(categories.map(c => c.id))}/>}</DialogContent></Dialog>
+      <Dialog open={!!selectedBooking} onOpenChange={v => { if (!v) setSelectedBooking(null); }}><DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>{tr("Booking Details", "بکنگ کی تفصیل")}</DialogTitle></DialogHeader>{bookings.find(b => b.id === selectedBooking) && <ServiceJobPanel booking={bookings.find(b => b.id === selectedBooking)} mode="staff" onChanged={() => void fetchAllData(categories.map(c => c.id))}/>}</DialogContent></Dialog>
     </div>
   );
 };

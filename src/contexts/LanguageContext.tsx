@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { setTrLang } from "@/lib/i18n/tr";
 import { DEFAULT_LANG, LANGUAGES, LangCode, TranslationKey, translations } from "@/lib/i18n/translations";
 
 const STORAGE_KEY = "app:lang";
@@ -25,6 +26,7 @@ const readStored = (): LangCode => {
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
   const [lang, setLangState] = useState<LangCode>(readStored);
 
+  setTrLang(lang);
   const dir = useMemo(() => LANGUAGES.find((l) => l.code === lang)?.dir ?? "rtl", [lang]);
 
   useEffect(() => {

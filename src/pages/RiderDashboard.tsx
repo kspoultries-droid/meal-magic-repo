@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useState, useRef } from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import NotificationBell from "@/components/common/NotificationBell";
@@ -82,7 +83,7 @@ const RiderDashboard = () => {
     const { data, error } = await supabase.from("riders")
       .insert({ id: user.id, city_id: approvedApp?.city_id || null, is_available: false })
       .select("*").maybeSingle();
-    if (error) { toast.error("رائیڈر پروفائل نہیں بنی: " + error.message); return null; }
+    if (error) { toast.error(tr("Rider profile not created: ", "رائیڈر پروفائل نہیں بنی: ") + error.message); return null; }
     return data;
   };
 
@@ -155,17 +156,17 @@ const RiderDashboard = () => {
       .channel("rider-orders")
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `rider_id=eq.${user.id}` }, (p: any) => {
         fetchData(false);
-        if (assignedToMe(p.new || {}, p.old || {})) { triggerAlert(); vibrate(); toast.success("🏍️ نیا آرڈر آپ کو اسائن ہوا ہے!"); }
+        if (assignedToMe(p.new || {}, p.old || {})) { triggerAlert(); vibrate(); toast.success(tr("🏍️ New order assigned to you!", "🏍️ نیا آرڈر آپ کو اسائن ہوا ہے!")); }
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_cart_orders" }, (p: any) => {
         if (p.new?.rider_id !== user.id && p.old?.rider_id !== user.id) return;
         fetchData(false);
-        if (assignedToMe(p.new || {}, p.old || {})) { triggerAlert(); vibrate(); toast.success("🛒 نیا گروسری آرڈر آپ کو اسائن ہوا ہے!"); }
+        if (assignedToMe(p.new || {}, p.old || {})) { triggerAlert(); vibrate(); toast.success(tr("🛒 New grocery order assigned to you!", "🛒 نیا گروسری آرڈر آپ کو اسائن ہوا ہے!")); }
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "grocery_list_orders" }, (p: any) => {
         if (p.new?.rider_id !== user.id && p.old?.rider_id !== user.id) return;
         fetchData(false);
-        if (assignedToMe(p.new || {}, p.old || {})) { triggerAlert(); vibrate(); toast.success("🛒 نیا آرڈر آپ کو اسائن ہوا ہے!"); }
+        if (assignedToMe(p.new || {}, p.old || {})) { triggerAlert(); vibrate(); toast.success(tr("🛒 New order assigned to you!", "🛒 نیا آرڈر آپ کو اسائن ہوا ہے!")); }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -309,7 +310,7 @@ const RiderDashboard = () => {
           <div className="bg-warning/10 border border-warning/30 rounded-lg px-3 py-2 flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5 text-warning" />
             <span className="text-xs text-warning font-bold">{locationStatus}</span>
-            <Button variant="ghost" size="icon" aria-label="GPS دوبارہ تلاش کریں" onClick={retryLocation}><RefreshCw className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" aria-label={tr("Retry GPS", "GPS دوبارہ تلاش کریں")} onClick={retryLocation}><RefreshCw className="h-4 w-4" /></Button>
           </div>
         ) : locationOk ? (
           <p className="text-[10px] text-muted-foreground text-center">{t("rider.sharingLocation")}</p>
@@ -318,12 +319,12 @@ const RiderDashboard = () => {
         {riderData?.break_until && new Date(riderData.break_until).getTime() > Date.now() && (
           <div className="flex items-center justify-between gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2">
             <span className="text-xs font-bold text-warning">
-              ⏸ مسلسل 3 آفر چھوٹنے پر وقفہ — {new Date(riderData.break_until).toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" })} تک نئے آرڈر نہیں آئیں گے
+              {tr("⏸ Paused after missing 3 consecutive offers —", "⏸ مسلسل 3 آفر چھوٹنے پر وقفہ —")} {new Date(riderData.break_until).toLocaleTimeString("ur-PK", { hour: "2-digit", minute: "2-digit" })} {tr("No new orders until", "تک نئے آرڈر نہیں آئیں گے")}
             </span>
             <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={async () => {
               const { error } = await (supabase.rpc as any)("rider_end_break");
-              if (error) toast.error(error.message); else { toast.success("وقفہ ختم — آرڈر دوبارہ آئیں گے"); fetchData(false); }
-            }}>ابھی شروع کریں</Button>
+              if (error) toast.error(error.message); else { toast.success(tr("Break ended — orders resumed", "وقفہ ختم — آرڈر دوبارہ آئیں گے")); fetchData(false); }
+            }}>{tr("Start Now", "ابھی شروع کریں")}</Button>
           </div>
         )}
 
@@ -563,7 +564,7 @@ const RiderDashboard = () => {
             )}
 
             <Button className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-remit")}>
-              <Wallet className="w-4 h-4 mr-1.5" /> رقم جمع کرائیں
+              <Wallet className="w-4 h-4 mr-1.5" /> {tr("Deposit Amount", "رقم جمع کرائیں")}
             </Button>
             <Button variant="outline" className="w-full h-11 rounded-xl font-extrabold" onClick={() => navigate("/rider-payments")}>
               <Wallet className="w-4 h-4 mr-1.5" /> {t("rider.paymentsButton")}
