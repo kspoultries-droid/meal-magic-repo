@@ -149,12 +149,12 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
               <div key={item.id} className="space-y-2 rounded-xl border border-border/70 bg-card p-3">
                 <div className="grid grid-cols-2 gap-2">
                   <figure className="space-y-1">
-                    <img src={item.originalUrl} alt={tr("Original photo", "اصل تصویر")} className="aspect-square w-full rounded-lg object-cover" />
-                    <figcaption className="text-center text-[10px] font-semibold text-muted-foreground">{tr("Before", "پہلے / Before")}</figcaption>
+                    <img src={item.originalUrl} alt={tr("Original photo", "اصل تصویر")} onClick={() => setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, useOriginal: true } : i)))} className={`aspect-square w-full cursor-pointer rounded-lg object-cover ${item.useOriginal ? "ring-2 ring-primary" : ""}`} />
+                    <figcaption className={`text-center text-[10px] font-semibold ${item.useOriginal ? "text-primary" : "text-muted-foreground"}`}>{tr("Before", "پہلے / Before")}</figcaption>
                   </figure>
                   <figure className="space-y-1">
-                    <img src={item.enhancedUrl} alt={tr("Enhanced photo", "بہتر تصویر")} className="aspect-square w-full rounded-lg object-cover ring-2 ring-primary" />
-                    <figcaption className="text-center text-[10px] font-semibold text-primary">{tr("After", "بعد میں / After")}</figcaption>
+                    <img src={item.enhancedUrl} alt={tr("Enhanced photo", "بہتر تصویر")} onClick={() => setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, useOriginal: false } : i)))} className={`aspect-square w-full cursor-pointer rounded-lg object-cover ${item.useOriginal ? "" : "ring-2 ring-primary"}`} />
+                    <figcaption className={`text-center text-[10px] font-semibold ${item.useOriginal ? "text-muted-foreground" : "text-primary"}`}>{tr("After", "بعد میں / After")}</figcaption>
                   </figure>
                 </div>
 
