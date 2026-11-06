@@ -49,6 +49,7 @@ const Checkout = () => {
   const [isGift, setIsGift] = useState(false);
   const [receiverName, setReceiverName] = useState("");
   const [receiverPhone, setReceiverPhone] = useState("");
+  const [myPhone, setMyPhone] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -61,7 +62,8 @@ const Checkout = () => {
   // Auto-fill address and city from profile
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("address, city_id").eq("id", user.id).single().then(({ data }) => {
+    supabase.from("profiles").select("address, city_id, phone").eq("id", user.id).single().then(({ data }) => {
+      if (data?.phone) setMyPhone((p) => p || String(data.phone).replace(/\D/g, ""));
       if (data?.address) setAddress((a) => a || data.address);
       if (data?.city_id) setSelectedCity((c) => c || data.city_id);
     });
@@ -248,6 +250,12 @@ const Checkout = () => {
     if (isMixed) { toast.error("کارٹ میں مختلف شاپس کے آئٹمز ہیں — ایک شاپ کا آرڈر الگ سے دیں"); return; }
     if (!address.trim()) { toast.error("ڈلیوری ایڈریس درکار ہے"); return; }
     if (!selectedCity) { toast.error("ڈلیوری علاقہ دستیاب نہیں — تھوڑی دیر بعد کوشش کریں"); return; }
+    const cleanPhone = myPhone.replace(/\D/g, "");
+    if (!/^03\d{9}$/.test(cleanPhone)) { toast.error("درست 11 ہندسوں کا موبائل نمبر لکھیں (مثلاً 03001234567)"); return; }
+    if (user) {
+      const { error: phoneErr } = await supabase.from("profiles").update({ phone: cleanPhone }).eq("id", user.id);
+      if (phoneErr) { toast.error("فون نمبر محفوظ نہیں ہو سکا"); return; }
+    }
     if (isGift && !receiverPhone.trim()) { toast.error("وصول کنندہ کا فون نمبر درکار ہے"); return; }
     if ((isGroceryOrder || isRestaurantOrder) && (quoteLoading || quoteError || !deliveryQuote || deliveryQuote.needs_quote)) { toast.error(quoteError || "ڈیلیوری کی تصدیق درکار ہے"); return; }
     setSubmitting(true);
@@ -533,6 +541,16 @@ const Checkout = () => {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="glass rounded-2xl border border-border/50 shadow-card p-4 space-y-2">
+          <label htmlFor="my-phone" className="flex items-center gap-2 text-sm font-extrabold text-foreground">
+            <Phone className="w-4 h-4 text-primary" /> آپ کا موبائل نمبر / Your mobile
+          </label>
+          <Input id="my-phone" type="tel" inputMode="numeric" maxLength={11} placeholder="03001234567"
+            value={myPhone} onChange={(e) => setMyPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+            className="h-11 rounded-xl bg-background/80" />
+          <p className="text-[11px] text-muted-foreground">ایک وقت میں زیادہ سے زیادہ 2 آرڈر چل سکتے ہیں۔</p>
         </div>
 
         {/* Gift Delivery - Glass */}
