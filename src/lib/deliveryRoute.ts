@@ -11,5 +11,5 @@ export function routeNeedsRefresh(next: RoutePoint, previous: RoutePoint | null,
   if (!previous) return true;
   const dy = (next.lat - previous.lat) * 111320;
   const dx = (next.lng - previous.lng) * 111320 * Math.cos(next.lat * Math.PI / 180);
-  return elapsed >= 60000 && (Math.hypot(dx, dy) >= 150 || elapsed >= 180000);
+  return elapsed >= 12000 && (Math.hypot(dx, dy) >= 40 || elapsed >= 60000);
 }

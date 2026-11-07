@@ -24,6 +24,7 @@ import StoreInventoryTools from "@/components/grocery/StoreInventoryTools";
 import ShopQuestions from "@/components/grocery/ShopQuestions";
 import ShopOrderSettings from "@/components/grocery/ShopOrderSettings";
 import VendorReviewsPanel from "@/components/reviews/VendorReviewsPanel";
+import EarningsPanel from "@/components/vendor/EarningsPanel";
 import { availableShopQuantity } from "@/lib/shopOrders";
 
 import BottomTabBar from "@/components/BottomTabBar";
@@ -288,6 +289,7 @@ const GroceryStoreDetail = () => {
             {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 {L("Reels", "ریلز")}</TabsTrigger>}
             {isOwner && <TabsTrigger value="questions">{L("Questions", "سوالات")}</TabsTrigger>}
             {isOwner && <TabsTrigger value="reviews">{L("Reviews", "رائے")}</TabsTrigger>}
+            {isOwner && <TabsTrigger value="earnings">💰 {L("Accounts", "حساب")}</TabsTrigger>}
             {isOwner && <TabsTrigger value="settings">{L("Settings", "ترتیبات")}</TabsTrigger>}
           </TabsList>
 
@@ -467,6 +469,7 @@ const GroceryStoreDetail = () => {
           )}
           {isOwner && <TabsContent value="questions"><ShopQuestions storeId={store.id} /></TabsContent>}
           {isOwner && <TabsContent value="reviews"><VendorReviewsPanel kind="grocery" /></TabsContent>}
+          {isOwner && <TabsContent value="earnings"><EarningsPanel /></TabsContent>}
           {isOwner && <TabsContent value="settings"><ShopOrderSettings store={store} onChanged={fetchData} /></TabsContent>}
         </Tabs>
 

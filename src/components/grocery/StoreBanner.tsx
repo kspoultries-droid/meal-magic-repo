@@ -30,6 +30,25 @@ import fish from "@/assets/meat/fish.jpg";
 import eggs from "@/assets/meat/eggs.jpg";
 import ghee from "@/assets/grocery/ghee.jpg";
 import biscuits from "@/assets/grocery/biscuits.jpg";
+import bzElectronics from "@/assets/bazar/electronics.jpg";
+import bzMobiles from "@/assets/bazar/mobiles.jpg";
+import bzClothing from "@/assets/bazar/clothing.jpg";
+import bzShoes from "@/assets/bazar/shoes.jpg";
+import bzHardware from "@/assets/bazar/hardware.jpg";
+import bzBeauty from "@/assets/bazar/beauty.jpg";
+import bzGeneral from "@/assets/bazar/general.jpg";
+
+// Category photo for the Bazar auto banner
+const autoBannerPhoto = (cat: string) => {
+  const c = (cat || "").toLowerCase();
+  if (/mobile|tablet|laptop/.test(c)) return bzMobiles;
+  if (/electric|electronic|battery|solar/.test(c)) return bzElectronics;
+  if (/cloth|fashion|garment/.test(c)) return bzClothing;
+  if (/shoe/.test(c)) return bzShoes;
+  if (/tool|hardware|paint|sanitary/.test(c)) return bzHardware;
+  if (/cosmetic|beauty/.test(c)) return bzBeauty;
+  return bzGeneral;
+};
 
 const COLLAGE_SETS: Record<string, string[]> = {
   General: [attaRice, oil, dal, spices, tea, sugar, ghee, biscuits],
@@ -143,24 +162,22 @@ const StoreBanner = ({
         {store.image_url ? (
           <img src={img(store.image_url, 960)} alt={store.name} className="h-56 w-full object-cover sm:h-72" />
         ) : store.store_type === "wholesale" ? (() => { const Icon = autoBannerIcon(store.category); return (
-          <div className="relative h-56 w-full overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/70 sm:h-72">
-            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--primary-foreground)) 1px, transparent 0)", backgroundSize: "18px 18px" }} />
-            <div className="absolute -left-16 -top-16 size-56 rounded-full bg-primary-foreground/10 blur-2xl" />
-            <div className="absolute -bottom-20 right-10 size-64 rounded-full bg-accent/30 blur-3xl" />
-            <Icon className="absolute -right-8 -top-2 size-56 rotate-12 text-primary-foreground/10" strokeWidth={1} />
-            <div className="absolute right-6 top-8 grid size-20 place-items-center rounded-2xl bg-primary-foreground/20 shadow-elegant ring-1 ring-primary-foreground/30 backdrop-blur">
-              <Icon className="size-10 text-primary-foreground" />
+          <div className="relative h-56 w-full overflow-hidden bg-muted sm:h-72">
+            <img src={autoBannerPhoto(store.category)} alt="" width={1536} height={768} className="absolute inset-0 size-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/85 via-primary/40 to-transparent" />
+            <div className="absolute right-4 top-14 flex items-center gap-2 rounded-full bg-card/90 px-3 py-1.5 shadow-elegant backdrop-blur">
+              <Icon className="size-4 text-primary" />
+              <span className="max-w-[40vw] truncate text-[11px] font-extrabold text-foreground">{store.category}</span>
             </div>
-            <p className="absolute right-6 top-32 max-w-[45%] truncate text-right font-display text-sm font-extrabold uppercase tracking-widest text-primary-foreground/70">{store.category}</p>
           </div>); })()
         : (
           <div className="grid h-56 w-full grid-cols-4 grid-rows-2 sm:h-72">
             {collageImages.slice(0, 8).map((img, i) => <img key={i} src={img} alt="" className="h-full w-full object-cover" />)}
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-foreground/45 via-foreground/15 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-foreground/55 via-foreground/20 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
-          <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className="text-xl font-extrabold leading-tight break-words sm:text-3xl">{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p>{isOwner && store.image_url && store.store_type === "wholesale" && <button className="mt-2 rounded-full bg-card/90 px-3 py-1 text-[11px] font-bold text-foreground" onClick={() => { if (confirm("اپنی تصویر ہٹا کر خودکار بینر لگائیں؟ / Use auto banner?")) updateStore({ image_url: null }); }}>✨ خودکار بینر / Auto banner</button>}</div>
+          <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className={`${nameSize.className} ${nameStyle.className} leading-tight break-words sm:scale-110 sm:origin-bottom-left`} style={{ color: nameColor }}>{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p>{isOwner && store.image_url && store.store_type === "wholesale" && <button className="mt-2 rounded-full bg-card/90 px-3 py-1 text-[11px] font-bold text-foreground" onClick={() => { if (confirm("اپنی تصویر ہٹا کر خودکار بینر لگائیں؟ / Use auto banner?")) updateStore({ image_url: null }); }}>✨ خودکار بینر / Auto banner</button>}</div>
           {isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label="بینر تبدیل" onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${crypto.randomUUID()}/${storeId}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: false, contentType: photo.file.type }); if (upErr) throw new Error(upErr.message); const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: urlData.publicUrl }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || "بینر محفوظ نہیں ہو سکا"); toast.success("بینر تبدیل ہو گیا"); onRefresh(); }} /></div>}
         </div>
       </div>
