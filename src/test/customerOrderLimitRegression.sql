@@ -1,5 +1,6 @@
 -- Run with psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f this-file.
 -- Exercise the deployed trigger body with isolated temporary fixtures only.
+-- Substitute only auth.uid() with the test claim accessor for sandbox schema isolation.
 BEGIN;
 CREATE TEMP TABLE profiles (id uuid PRIMARY KEY, phone text);
 CREATE TEMP TABLE orders (customer_id uuid, status text);
@@ -13,6 +14,7 @@ BEGIN
   body := replace(body, 'FROM orders', 'FROM pg_temp.orders');
   body := replace(body, 'FROM grocery_cart_orders', 'FROM pg_temp.grocery_cart_orders');
   body := replace(body, 'JOIN profiles', 'JOIN pg_temp.profiles');
+  body := replace(body, 'auth.uid()', 'nullif(current_setting(''request.jwt.claim.sub'', true), '''')::uuid');
   EXECUTE body;
 END $$;
 CREATE TRIGGER test_limit BEFORE INSERT ON pg_temp.orders
