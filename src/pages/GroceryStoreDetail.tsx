@@ -298,7 +298,7 @@ const GroceryStoreDetail = () => {
             {filtered.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">{L("No products in this category", "اس کیٹیگری میں کوئی پروڈکٹ نہیں")}</p>
             ) : (
-              <div className="grid grid-cols-2 gap-3 pt-3">
+              <div className="grid grid-cols-2 gap-3 pt-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                 {filtered.map((product, idx) => {
                   const productVariants = getVariants(product);
                   const selectedKey = selectedVariants[product.id] || (productVariants[0] ? variantKey(productVariants[0], 0) : null);
