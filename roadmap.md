@@ -1,5 +1,8 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current QA fix — Returned shop orders
+- [x] Exclude returned-to-store orders from the existing active-order count; isolated database regression passes for both insert paths, 2-slot limit and same-phone cross-service counting.
+
 ## Current request — Grocery and Bazar orders
 - [x] Disable automatic acceptance without changing payment/cancellation rules.
 - [x] Correct all-unavailable item status and verify customer/shop readback.
