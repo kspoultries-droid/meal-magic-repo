@@ -1,9 +1,9 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
 ## Current request — Grocery and Bazar orders
-- [ ] Disable automatic acceptance without changing payment/cancellation rules.
-- [ ] Correct all-unavailable item status and verify customer/shop readback.
-- [ ] Add and run focused regression tests.
+- [x] Disable automatic acceptance without changing payment/cancellation rules.
+- [x] Correct all-unavailable item status and verify customer/shop readback.
+- [x] Add and run focused regression tests (retail/wholesale authenticated checks and 8 unit tests).
 
 ## Phase 1: Customer-facing core (this turn)
 - [x] Auth.tsx (login/signup) — verified: 0 Urdu strings in EN mode
