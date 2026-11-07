@@ -26,11 +26,32 @@ async def main():
       const revised=await act('revise',{_note:'Buy 3 of the 5 requested items'});if(revised.total_amount!==0||revised.status!=='pending')throw Error('revision total retained');
       const priced=await act('quote',{_amount:300,_weight:1,_note:'Final 3 items'});
       const stale=await s.rpc('list_order_action',{_order_id:o.id,_action:'accept',_version:priced.quote_version-1});if(!stale.error)throw Error('stale quote accepted');
-      const accepted=await act('accept',{_version:priced.quote_version});if(accepted.status!=='confirmed')throw Error('not confirmed');
-      const cancelled=await act('cancel');if(cancelled.status!=='cancelled')throw Error('not cancelled');
       return {id:o.id,photos:o.image_urls.length,subtotal:priced.items_subtotal,fee:priced.delivery_fee,total:priced.total_amount,version:priced.quote_version};
     }catch(e){await act('cancel').catch(()=>{});throw e;}
   }''')
-  print('PASS live: waiting limit, slip only, revision resets money, stale rejection, final acceptance, cancellation',result)
+  await page.evaluate('''async()=>{
+    const React=await import('/node_modules/.vite/deps/react.js');
+    const {createRoot}=await import('/node_modules/.vite/deps/react-dom_client.js');
+    const {QueryClient,QueryClientProvider}=await import('/node_modules/.vite/deps/@tanstack_react-query.js');
+    const {AuthProvider}=await import('/src/hooks/useAuth.tsx');
+    const {default:CustomerListOrders}=await import('/src/components/grocery/CustomerListOrders.tsx');
+    document.getElementById('root').remove();
+    const host=document.createElement('div');document.body.appendChild(host);
+    createRoot(host).render(React.createElement(QueryClientProvider,{client:new QueryClient()},React.createElement(AuthProvider,null,React.createElement(CustomerListOrders,{storeId:'01cc2099-1280-4dc7-97d2-aa004dac4b44'}))));
+  }''')
+  await page.get_by_role('button').filter(has_text='Rs 380').first.click()
+  await page.get_by_role('button',name='منظور / Accept',exact=True).click()
+  await page.get_by_text('تصدیق ہو گئی — ڈلیوری جلد ہوگی',exact=False).wait_for()
+  Path('/tmp/browser/ration').mkdir(parents=True,exist_ok=True)
+  await page.screenshot(path='/tmp/browser/ration/customer-approved.png')
+  await page.set_viewport_size({'width':390,'height':844})
+  await page.screenshot(path='/tmp/browser/ration/customer-mobile.png')
+  await page.evaluate('''async id=>{
+    const {supabase:s}=await import('/src/integrations/supabase/client.ts');
+    const {data:o}=await s.from('grocery_list_orders').select('status').eq('id',id).single();
+    if(o.status!=='confirmed')throw Error('UI acceptance did not persist');
+    const {error}=await s.rpc('list_order_action',{_order_id:id,_action:'cancel'});if(error)throw Error(error.message);
+  }''',result['id'])
+  print('PASS live: waiting limit, slip only, revision resets money, stale rejection, customer UI final acceptance and persisted readback, cancellation',result)
   await browser.close()
 asyncio.run(main())
