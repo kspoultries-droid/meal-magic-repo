@@ -680,6 +680,13 @@
       "when": 1794062274302,
       "tag": "0096_ration_list_owner_cancel_and_customer_receipt",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1794082705151,
+      "tag": "0097_list_first_receipt_after_acceptance",
+      "breakpoints": true
     }
   ]
 }
