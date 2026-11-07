@@ -659,6 +659,13 @@
       "when": 1794010752580,
       "tag": "0093_shop_manual_accept_and_empty_order_cancellation",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1794057565445,
+      "tag": "0094_exclude_returned_orders_from_customer_active_limit",
+      "breakpoints": true
     }
   ]
 }
