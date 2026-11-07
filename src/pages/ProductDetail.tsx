@@ -135,7 +135,7 @@ const ProductDetail = () => {
 
       <main className="mx-auto max-w-5xl">
         <section className="overflow-hidden bg-card border-b border-border/60 sm:mt-4 sm:rounded-3xl sm:border md:grid md:grid-cols-2 md:items-start">
-          <div className="mx-auto w-full max-w-[440px] md:max-w-none md:p-4"><div className="overflow-hidden md:rounded-2xl md:border md:border-border/60"><ProductGallery images={images} name={product.name} rating={reviewSummary.rating} /></div></div>
+          <div className="mx-auto w-full max-w-[440px] md:max-w-[380px] md:p-4"><div className="overflow-hidden md:rounded-2xl md:border md:border-border/60"><ProductGallery images={images} name={product.name} rating={reviewSummary.rating} /></div></div>
           <div className="p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
