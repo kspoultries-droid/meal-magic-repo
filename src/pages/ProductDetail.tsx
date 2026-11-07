@@ -134,8 +134,8 @@ const ProductDetail = () => {
       </header>
 
       <main className="mx-auto max-w-5xl">
-        <section className="overflow-hidden bg-card border-b border-border/60 sm:mt-4 sm:rounded-3xl sm:border">
-          <ProductGallery images={images} name={product.name} rating={0} soldCount={Number(product.sold_count || 0)} />
+        <section className="overflow-hidden bg-card border-b border-border/60 sm:mt-4 sm:rounded-3xl sm:border md:grid md:grid-cols-2 md:items-start">
+          <div className="mx-auto w-full max-w-[440px] md:max-w-[380px] md:p-4"><div className="overflow-hidden md:rounded-2xl md:border md:border-border/60"><ProductGallery images={images} name={product.name} rating={reviewSummary.rating} /></div></div>
           <div className="p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -154,6 +154,7 @@ const ProductDetail = () => {
               <span className="text-3xl font-black text-primary">Rs. {effectivePrice.toLocaleString()}</span>
               {hasDiscount && <span className="text-sm text-muted-foreground line-through">Rs. {Number(product.price).toLocaleString()}</span>}
             </div>
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Truck className="h-3.5 w-3.5 text-primary" />{product.delivery_days ? L(`Delivery: ${product.delivery_days}`, `ڈیلیوری: ${product.delivery_days}`) : store.ships_nationwide ? L("Courier delivery nationwide", "ملک بھر میں کورئیر ڈیلیوری") : L("Local rider delivery", "مقامی رائیڈر ڈیلیوری")}</p>
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">{L(`Minimum order: ${product.min_order_qty} pcs`, `کم از کم آرڈر: ${product.min_order_qty} عدد`)}</p>}
             {variants.length > 0 && (
               <div className="mt-4">
@@ -193,11 +194,6 @@ const ProductDetail = () => {
           <section className="mt-3 space-y-3 px-4">
             {activeTab === "overview" && (
               <>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <InfoTile icon={<Truck className="h-4 w-4" />} label={L("Delivery", "ڈیلیوری")} value={product.delivery_days || (store.ships_nationwide ? L("By courier", "کورئیر کے مطابق") : L("Local rider", "مقامی رائیڈر"))} />
-                  <InfoTile icon={<Clock3 className="h-4 w-4" />} label={L("Prep time", "تیاری")} value={store.delivery_time || L("As per shop", "دکان کے مطابق")} />
-                  <InfoTile icon={<ShoppingBag className="h-4 w-4" />} label={L("Sold", "فروخت")} value={String(product.sold_count || 0)} />
-                </div>
                 <div className="rounded-2xl border border-border bg-card p-4">
                   <h2 className="text-sm font-extrabold text-foreground">{L("About this product", "اس پروڈکٹ کے بارے میں")}</h2>
                   {product.description ? (
@@ -213,6 +209,7 @@ const ProductDetail = () => {
                   )}
                   {Array.isArray(product.tags) && product.tags.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{product.tags.map((tag: string) => <span key={tag} className="rounded-full bg-accent px-3 py-1 text-[10px] font-bold text-accent-foreground">{tag}</span>)}</div>}
                 </div>
+                <DetailsBlock specs={product.specs} sku={product.sku} brand={product.brand} weight={product.weight || (product.weight_kg ? `${product.weight_kg} kg` : undefined)} unit={product.unit} warranty={warrantyFrom(product.description)} />
               </>
             )}
              {activeTab === "details" && <DetailsBlock specs={product.specs} sku={product.sku} brand={product.brand} weight={product.weight} unit={product.unit} />}
@@ -222,10 +219,7 @@ const ProductDetail = () => {
         )}
 
         <section className="mx-4 mt-3 space-y-3">
-          <div className="rounded-2xl border border-primary/20 bg-accent/50 p-4">
-            <div className="flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Truck className="h-5 w-5" /></div><div><p className="text-sm font-extrabold text-foreground">{L("Delivery method", "ڈیلیوری کا طریقہ")}</p><p className="text-xs text-muted-foreground">{store.ships_nationwide ? L("Courier available nationwide", "ملک بھر میں کورئیر دستیاب") : L("Safe delivery via local rider", "مقامی رائیڈر کے ذریعے محفوظ ڈیلیوری")}</p></div></div>
-            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-accent-foreground"><span className="rounded-full bg-background px-3 py-1.5">{product.delivery_days || (store.ships_nationwide ? L("By courier", "کورئیر کے مطابق") : L("Local delivery", "مقامی ڈیلیوری"))}</span><span className="rounded-full bg-background px-3 py-1.5">{L("Safe packing", "محفوظ پیکنگ")}</span><span className="rounded-full bg-background px-3 py-1.5">{L("Order tracking", "آرڈر ٹریکنگ")}</span></div>
-          </div>
+
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary"><Store className="h-5 w-5" /></div><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-foreground">{store.name}</p><p className="text-xs text-muted-foreground">{store.rating ? `★ ${store.rating}` : L("New shop", "نئی دکان")} · {L("Verified shop", "تصدیق شدہ شاپ")}</p></div><Button variant="outline" size="sm" onClick={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)}>{L("View shop", "دکان دیکھیں")} <ChevronRight className="ms-1 h-3 w-3" /></Button></div>
           </div>
@@ -271,11 +265,14 @@ const ProductDetail = () => {
 
 const InfoTile = ({ icon, label, value }: { icon: ReactNode; label: string; value: string }) => <div className="rounded-xl border border-border bg-card p-3"><div className="flex items-center gap-1.5 text-primary">{icon}<span className="text-[10px] font-bold text-muted-foreground">{label}</span></div><p className="mt-1 text-xs font-extrabold text-foreground">{value}</p></div>;
 
- const DetailsBlock = ({ specs, sku, brand, weight, unit }: { specs: unknown; sku?: string; brand?: string; weight?: string; unit?: string }) => {
+const warrantyFrom = (text?: string | null) => { const m = String(text || "").match(/(\d+\s*(?:year|years|month|months|سال|ماہ)[^,\n]*warranty|warranty[^,\n]*)/i); return m ? m[0].trim() : undefined; };
+
+ const DetailsBlock = ({ specs, sku, brand, weight, unit, warranty }: { specs: unknown; sku?: string; brand?: string; weight?: string; unit?: string; warranty?: string }) => {
    const { lang } = useLanguage();
    const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
    const entries = specs && typeof specs === "object" && !Array.isArray(specs) ? Object.entries(specs as Record<string, unknown>) : [];
-   return <div className="rounded-2xl border border-border bg-card p-4"><h2 className="text-sm font-extrabold text-foreground">{L("Product details", "پروڈکٹ کی تفصیل")}</h2><div className="mt-3 divide-y divide-border">{[[L("Brand", "برانڈ"), brand], [L("Weight", "وزن"), weight], [L("Unit", "یونٹ"), unit], ["SKU", sku], ...entries.map(([key, value]) => [key, String(value)])].filter(([, value]) => value).map(([key, value]) => <div key={String(key)} className="flex items-center justify-between gap-4 py-2 text-xs"><span className="text-muted-foreground">{key}</span><span className="font-bold text-foreground">{value}</span></div>)}</div></div>;
+   const hasWarrantySpec = entries.some(([k]) => /warrant/i.test(k));
+   return <div className="rounded-2xl border border-border bg-card p-4"><h2 className="text-sm font-extrabold text-foreground">{L("Specifications", "خصوصیات")}</h2><div className="mt-3 divide-y divide-border">{[[L("Brand", "برانڈ"), brand], [L("Weight", "وزن"), weight], [L("Unit", "یونٹ"), unit], [L("Warranty", "وارنٹی"), hasWarrantySpec ? undefined : warranty], ["SKU", sku], ...entries.map(([key, value]) => [key, String(value)])].filter(([, value]) => value).map(([key, value]) => <div key={String(key)} className="flex items-center justify-between gap-4 py-2 text-xs"><span className="text-muted-foreground">{key}</span><span className="font-bold text-foreground">{value}</span></div>)}</div></div>;
  };
 
  const ReviewList = ({ reviews, store }: { reviews: any[]; store: any }) => {
