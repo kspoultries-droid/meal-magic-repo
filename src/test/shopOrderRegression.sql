@@ -6,7 +6,8 @@ DECLARE owner uuid:='52634431-32e8-4bd7-b171-d92c2add25ff'; source public.grocer
  shop uuid; p1 uuid; p2 uuid; ord uuid; i1 uuid; i2 uuid; kind text; fee numeric; result numeric;
 BEGIN
  PERFORM set_config('request.jwt.claim.sub',owner::text,true);
- PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',owner,'email',(SELECT email FROM auth.users WHERE id=owner))::text,true);
+ -- The runner supplies the authenticated owner's email without reading managed auth tables.
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',owner,'email',current_setting('qa.email'))::text,true);
  FOR kind IN SELECT unnest(ARRAY['retail','wholesale']) LOOP
   SELECT * INTO STRICT source FROM public.grocery_stores WHERE owner_id=owner AND store_type=kind AND pickup_lat IS NOT NULL LIMIT 1;
   shop:=gen_random_uuid(); p1:=gen_random_uuid(); p2:=gen_random_uuid();
