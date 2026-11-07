@@ -36,3 +36,10 @@
 
 ## Phase 4: Remaining
 - [ ] Partner.tsx, Services.tsx, Reels.tsx, Install.tsx, ResetPassword.tsx, StandaloneStore.tsx, CompanyInfo.tsx
+
+## Rider map, cards, shop accounts, banner (Nov 8)
+- [x] Two-wheeler route, faster redraw from rider GPS, dashed last leg to exact pin
+- [x] Lighter home banner shading
+- [x] Shop accounts tab (sales, commission, received, remaining, bank accounts)
+- [x] Bazar auto banner photos + name size/style/colour applied
+- [ ] Battery product weight (shop owner must set real kg; Rs 80 came from 0.5 kg default)
