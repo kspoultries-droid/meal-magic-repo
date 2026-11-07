@@ -39,7 +39,7 @@ async def main():
     const {default:CustomerListOrders}=await import('/src/components/grocery/CustomerListOrders.tsx');
     document.getElementById('root').remove();
     const host=document.createElement('div');document.body.appendChild(host);
-    ReactDOM.default.createRoot(host).render(React.createElement(QueryClientProvider,{client:new QueryClient()},React.createElement(AuthProvider,null,React.createElement(CustomerListOrders,{storeId:'01cc2099-1280-4dc7-97d2-aa004dac4b44'}))));
+    ReactDOM.default.createRoot(host).render(React.default.createElement(QueryClientProvider,{client:new QueryClient()},React.default.createElement(AuthProvider,null,React.default.createElement(CustomerListOrders,{storeId:'01cc2099-1280-4dc7-97d2-aa004dac4b44'}))));
   }''')
   await page.get_by_role('button').filter(has_text='Rs 380').first.click()
   await page.get_by_role('button',name='منظور / Accept',exact=True).click()
