@@ -666,6 +666,20 @@
       "when": 1794057565445,
       "tag": "0094_exclude_returned_orders_from_customer_active_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1794061987636,
+      "tag": "0095_ration_list_manual_quote_and_delivery_workflow",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1794062274302,
+      "tag": "0096_ration_list_owner_cancel_and_customer_receipt",
+      "breakpoints": true
     }
   ]
 }

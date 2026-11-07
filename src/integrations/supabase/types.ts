@@ -1033,6 +1033,7 @@ export type Database = {
       grocery_list_orders: {
         Row: {
           accepted_at: string | null
+          accepted_quote_version: number | null
           alternatives_note: string | null
           arrived_customer_at: string | null
           bill_image_url: string | null
@@ -1041,20 +1042,26 @@ export type Database = {
           cash_received_at: string | null
           created_at: string
           customer_id: string
+          customer_revision: string | null
           delivered_at: string | null
           delivery_address: string | null
           delivery_failure_reason: string | null
           delivery_fee: number
           delivery_lat: number | null
           delivery_lng: number | null
+          delivery_quote_snapshot: Json | null
           delivery_stage: string
+          delivery_weight_kg: number | null
           dispatch_state: string
           id: string
           image_url: string
+          image_urls: string[]
           is_gift: boolean | null
+          items_subtotal: number | null
           notes: string | null
           payment_method: string | null
           picked_up_at: string | null
+          quote_version: number
           ready_at: string | null
           receiver_name: string | null
           receiver_phone: string | null
@@ -1071,6 +1078,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          accepted_quote_version?: number | null
           alternatives_note?: string | null
           arrived_customer_at?: string | null
           bill_image_url?: string | null
@@ -1079,20 +1087,26 @@ export type Database = {
           cash_received_at?: string | null
           created_at?: string
           customer_id: string
+          customer_revision?: string | null
           delivered_at?: string | null
           delivery_address?: string | null
           delivery_failure_reason?: string | null
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_quote_snapshot?: Json | null
           delivery_stage?: string
+          delivery_weight_kg?: number | null
           dispatch_state?: string
           id?: string
           image_url: string
+          image_urls?: string[]
           is_gift?: boolean | null
+          items_subtotal?: number | null
           notes?: string | null
           payment_method?: string | null
           picked_up_at?: string | null
+          quote_version?: number
           ready_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
@@ -1109,6 +1123,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          accepted_quote_version?: number | null
           alternatives_note?: string | null
           arrived_customer_at?: string | null
           bill_image_url?: string | null
@@ -1117,20 +1132,26 @@ export type Database = {
           cash_received_at?: string | null
           created_at?: string
           customer_id?: string
+          customer_revision?: string | null
           delivered_at?: string | null
           delivery_address?: string | null
           delivery_failure_reason?: string | null
           delivery_fee?: number
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_quote_snapshot?: Json | null
           delivery_stage?: string
+          delivery_weight_kg?: number | null
           dispatch_state?: string
           id?: string
           image_url?: string
+          image_urls?: string[]
           is_gift?: boolean | null
+          items_subtotal?: number | null
           notes?: string | null
           payment_method?: string | null
           picked_up_at?: string | null
+          quote_version?: number
           ready_at?: string | null
           receiver_name?: string | null
           receiver_phone?: string | null
@@ -4140,6 +4161,35 @@ export type Database = {
           },
         ]
       }
+      shop_customer_blocks: {
+        Row: {
+          created_at: string
+          customer_id: string
+          reason: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          reason: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          reason?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_customer_blocks_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_audit_log: {
         Row: {
           action: string
@@ -5411,6 +5461,72 @@ export type Database = {
           label: string
           method: string
         }[]
+      }
+      list_order_action: {
+        Args: {
+          _action: string
+          _address?: string
+          _alternatives?: string
+          _amount?: number
+          _bill?: string
+          _lat?: number
+          _lng?: number
+          _note?: string
+          _order_id: string
+          _version?: number
+          _weight?: number
+        }
+        Returns: {
+          accepted_at: string | null
+          accepted_quote_version: number | null
+          alternatives_note: string | null
+          arrived_customer_at: string | null
+          bill_image_url: string | null
+          cancelled_at: string | null
+          cash_received: number | null
+          cash_received_at: string | null
+          created_at: string
+          customer_id: string
+          customer_revision: string | null
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_failure_reason: string | null
+          delivery_fee: number
+          delivery_lat: number | null
+          delivery_lng: number | null
+          delivery_quote_snapshot: Json | null
+          delivery_stage: string
+          delivery_weight_kg: number | null
+          dispatch_state: string
+          id: string
+          image_url: string
+          image_urls: string[]
+          is_gift: boolean | null
+          items_subtotal: number | null
+          notes: string | null
+          payment_method: string | null
+          picked_up_at: string | null
+          quote_version: number
+          ready_at: string | null
+          receiver_name: string | null
+          receiver_phone: string | null
+          return_requested_at: string | null
+          returned_at: string | null
+          rider_arrived_at: string | null
+          rider_assigned_at: string | null
+          rider_id: string | null
+          shopkeeper_notes: string | null
+          status: string
+          store_id: string
+          total_amount: number | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "grocery_list_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       list_public_service_providers: {
         Args: { _category_id?: string }

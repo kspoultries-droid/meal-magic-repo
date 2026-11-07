@@ -1,5 +1,13 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Ration photo orders
+- [x] Repair customer approval and safe slip/revised-selection workflow; actual customer control and persisted readback checked.
+- [x] Enforce one waiting list per customer and owner-scoped shop blocking; isolated database tests passed.
+- [x] Capture saved address/pin, support 1–4 photos and readable enlarged viewing.
+- [x] Compact desktop order grids and remembered A4/80mm system-print layouts.
+- [x] Verify quote/revision/acceptance and delivery readiness with database tests and 15 unit tests.
+- [ ] Physical A4/USB/Bluetooth output and supervised rider pickup/delivery — requires connected printers and a real rider/device; no direct Bluetooth driver or hardware result claimed.
+
 ## Current QA fix — Returned shop orders
 - [x] Exclude returned-to-store orders from the existing active-order count; isolated database regression passes for both insert paths, 2-slot limit and same-phone cross-service counting.
 

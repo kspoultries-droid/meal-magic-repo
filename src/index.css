@@ -340,3 +340,17 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
 .account-art-1 { background: linear-gradient(145deg,hsl(var(--warning) / .1),hsl(var(--warning) / .3)); color: hsl(var(--foreground)); }
 .account-art-2 { background: linear-gradient(145deg,hsl(var(--secondary)),hsl(var(--primary) / .18)); }
 .account-art-3 { background: linear-gradient(145deg,hsl(var(--destructive) / .05),hsl(var(--destructive) / .17)); color: hsl(var(--destructive)); }
+
+.ration-print-root { display: none; }
+@media print {
+  body:has(.ration-print-root) > :not(.ration-print-root) { display: none !important; }
+  .ration-print-root { display: block; color: hsl(var(--foreground)); background: hsl(var(--card)); }
+  .ration-print-a4 { width: 190mm; }
+  .ration-print-thermal { width: 72mm; }
+  .ration-print-root h1 { font-size: 16pt; }
+  .ration-print-root p { font-size: 10pt; overflow-wrap: anywhere; }
+  .ration-print-root img { width: 100%; height: auto; display: block; break-inside: avoid; margin-bottom: 5mm; }
+  @page { size: A4; margin: 4mm; }
+  @page ration-thermal { size: 80mm 297mm; margin: 4mm; }
+  body.ration-paper-thermal { page: ration-thermal; }
+}

@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Check, X, FileImage, MapPin, Clock, Receipt, AlertTriangle, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import ListOrderPhotos from "./ListOrderPhotos";
+import LocationSheet from "@/components/location/LocationSheet";
+import { listPhotos, canAcceptListQuote } from "@/lib/listOrders";
+import { tr } from "@/lib/i18n/tr";
 
 interface CustomerListOrdersProps {
   storeId: string;
@@ -26,6 +31,9 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [revision,setRevision]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [locOpen,setLocOpen]=useState(false);
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -69,22 +77,17 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
     return () => { supabase.removeChannel(channel); };
   }, [user, storeId]);
 
-  const respondToQuote = async (orderId: string, accept: boolean) => {
-    const { error } = await supabase.from("grocery_list_orders")
-      .update({ status: accept ? "confirmed" : "cancelled" })
-      .eq("id", orderId);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(accept ? "آرڈر تصدیق ہو گیا! / Order confirmed!" : "آرڈر منسوخ / Order cancelled");
-      setSelectedOrder(null);
-      fetchOrders();
-    }
+  const action=async (operation:string, extra:any={})=>{
+    if(!selectedOrder || busy)return;
+    setBusy(true);
+    const {data,error}=await supabase.rpc("list_order_action",{_order_id:selectedOrder.id,_action:operation,_version:selectedOrder.quote_version,...extra});
+    if(error)toast.error(error.message);else{setSelectedOrder(data);setRevision("");await fetchOrders();toast.success(tr("Saved","محفوظ ہو گیا"));}
+    setBusy(false);
   };
+  const respondToQuote = (_id:string,accept:boolean)=>action(accept?'accept':'cancel');
 
   const confirmReceived = async (orderId: string) => {
-    const { error } = await supabase.from("grocery_list_orders")
-      .update({ status: "completed" })
-      .eq("id", orderId);
+    const { error } = await supabase.rpc("list_order_action", {_order_id:orderId,_action:"receive"});
     if (error) toast.error(error.message);
     else {
       toast.success("✅ سامان مل گیا! شکریہ! / Order received! Thank you!");
@@ -105,26 +108,28 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
         {orders.map((order) => {
           const status = STATUS_LABELS[order.status] || STATUS_LABELS.pending;
           return (
-            <button
+            <Button variant="ghost"
               key={order.id}
-              onClick={() => setSelectedOrder(order)}
-              className="flex flex-col items-center gap-1 p-2 bg-secondary rounded-xl hover:bg-accent transition-colors shrink-0 min-w-[80px]"
+              onClick={() => {setSelectedOrder(order);setRevision("");}}
+              className="h-auto flex flex-col items-center gap-1 p-2 bg-secondary rounded-xl hover:bg-accent transition-colors shrink-0 min-w-[80px]"
             >
               <img src={order.image_url} alt="List" className="w-10 h-10 rounded-lg object-cover border" />
               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${status.color} whitespace-nowrap`}>{status.label}</span>
               {order.total_amount > 0 && <span className="text-[10px] font-bold text-primary">Rs {order.total_amount}</span>}
-            </button>
+            </Button>
           );
         })}
       </div>
 
       <Dialog open={!!selectedOrder} onOpenChange={(v) => !v && setSelectedOrder(null)}>
-        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>📋 آرڈر تفصیل</DialogTitle></DialogHeader>
           {selectedOrder && (
             <div className="space-y-3">
-              <img src={selectedOrder.image_url} alt="List" className="w-full rounded-xl border max-h-52 object-contain bg-secondary" />
+              <ListOrderPhotos urls={listPhotos(selectedOrder)} />
+              {["pending","quoted"].includes(selectedOrder.status) && <Button variant="outline" disabled={busy} onClick={()=>setLocOpen(true)} className="gap-2"><MapPin className="h-4 w-4"/>{tr("Change delivery location","ڈیلیوری مقام تبدیل کریں")}</Button>}
               <p className="text-sm flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedOrder.delivery_address}</p>
+              {selectedOrder.status === "pending" && <Button variant="destructive" disabled={busy} onClick={()=>action('cancel')}>{tr("Cancel list","لسٹ منسوخ کریں")}</Button>}
 
               {/* Shopkeeper notes */}
               {selectedOrder.shopkeeper_notes && (
@@ -145,7 +150,7 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
               {selectedOrder.bill_image_url && (
                 <div className="space-y-1">
                   <p className="text-xs font-bold flex items-center gap-1"><Receipt className="w-3 h-3" /> 🧾 بل / Bill:</p>
-                  <img src={selectedOrder.bill_image_url} alt="Bill" className="w-full rounded-xl border max-h-48 object-contain bg-secondary" />
+                  <ListOrderPhotos urls={[selectedOrder.bill_image_url]} />
                 </div>
               )}
 
@@ -154,13 +159,16 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
                 <div className="space-y-3">
                   <div className="text-center p-4 bg-primary/10 rounded-xl">
                     <p className="text-sm text-muted-foreground">دکاندار کی بتائی ہوئی قیمت</p>
-                    <p className="text-2xl font-extrabold text-primary">Rs {selectedOrder.total_amount}</p>
+                    <p className="text-2xl font-extrabold text-primary">{selectedOrder.total_amount>0?`Rs ${selectedOrder.total_amount}`:tr("Slip only — final price pending","صرف رسید — حتمی قیمت باقی ہے")}</p>
+                    {selectedOrder.items_subtotal!=null && <p className="text-xs mt-2">{tr("Items","اشیا")}: Rs {selectedOrder.items_subtotal} · {tr("Delivery","ڈیلیوری")}: Rs {selectedOrder.delivery_fee}</p>}
                   </div>
+                  <Textarea value={revision} onChange={e=>setRevision(e.target.value)} placeholder={tr("Which items do you want to buy?","کون سی اشیا خریدنا چاہتے ہیں؟")} />
+                  <Button variant="outline" disabled={busy||!revision.trim()} onClick={()=>action('revise',{_note:revision})}>{tr("Request revised final price","منتخب اشیا کی نئی حتمی قیمت منگوائیں")}</Button>
                   <div className="flex gap-2">
-                    <Button className="flex-1 gap-1" onClick={() => respondToQuote(selectedOrder.id, true)}>
+                    <Button disabled={busy || !canAcceptListQuote(selectedOrder)} className="flex-1 gap-1" onClick={() => respondToQuote(selectedOrder.id, true)}>
                       <Check className="w-4 h-4" /> منظور / Accept
                     </Button>
-                    <Button variant="destructive" className="flex-1 gap-1" onClick={() => respondToQuote(selectedOrder.id, false)}>
+                    <Button disabled={busy} variant="destructive" className="flex-1 gap-1" onClick={() => respondToQuote(selectedOrder.id, false)}>
                       <X className="w-4 h-4" /> رد / Reject
                     </Button>
                   </div>
@@ -191,6 +199,7 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
           )}
         </DialogContent>
       </Dialog>
+      <LocationSheet open={locOpen} onOpenChange={setLocOpen} onSelected={loc=>{action('location',{_address:loc.address,_lat:loc.lat,_lng:loc.lng});}} />
     </div>
   );
 };
