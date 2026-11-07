@@ -33,9 +33,13 @@ async def main():
     }catch(e){await act('cancel').catch(()=>{});throw e;}
   }''')
   await page.evaluate('''async()=>{
-    const React=await import('/node_modules/.vite/deps/react.js?v=2f5c481d');
-    const ReactDOM=await import('/node_modules/.vite/deps/react-dom_client.js?v=2f5c481d');
-    const {QueryClient,QueryClientProvider}=await import('/node_modules/.vite/deps/@tanstack_react-query.js?v=2f5c481d');
+    const source=await (await fetch('/src/hooks/useAuth.tsx')).text();
+    const dep=name=>{const match=source.match(new RegExp('"(/node_modules/\\\\.vite/deps/'+name+'[^" ]*)"'));if(!match)throw Error('Missing dependency '+name);return match[1];};
+    const React=await import(dep('react.js'));
+    const mainSource=await (await fetch('/src/main.tsx')).text();
+    const domPath=mainSource.match(/"([^" ]*react-dom_client.js[^" ]*)"/)[1];
+    const ReactDOM=await import(domPath);
+    const {QueryClient,QueryClientProvider}=await import(dep('@tanstack_react-query.js'));
     const {AuthProvider}=await import('/src/hooks/useAuth.tsx');
     const {default:CustomerListOrders}=await import('/src/components/grocery/CustomerListOrders.tsx');
     document.getElementById('root').remove();

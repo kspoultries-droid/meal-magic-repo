@@ -129,6 +129,7 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
               <ListOrderPhotos urls={listPhotos(selectedOrder)} />
               {["pending","quoted"].includes(selectedOrder.status) && <Button variant="outline" disabled={busy} onClick={()=>setLocOpen(true)} className="gap-2"><MapPin className="h-4 w-4"/>{tr("Change delivery location","ڈیلیوری مقام تبدیل کریں")}</Button>}
               <p className="text-sm flex items-center gap-1"><MapPin className="w-4 h-4" /> {selectedOrder.delivery_address}</p>
+              {selectedOrder.status === "pending" && <Button variant="destructive" disabled={busy} onClick={()=>action('cancel')}>{tr("Cancel list","لسٹ منسوخ کریں")}</Button>}
 
               {/* Shopkeeper notes */}
               {selectedOrder.shopkeeper_notes && (
