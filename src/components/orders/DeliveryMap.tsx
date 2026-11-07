@@ -41,14 +41,21 @@ export default function DeliveryMap({ destination, rider, pickup = null, custome
     marker(customer, customerMarker, "destination", "گاہک / Customer");
     marker(rider, riderMarker, "rider", "رائیڈر کا تازہ مقام / Rider GPS");
     routeLine.current?.remove();
-    routeLine.current = coordinates?.length ? L.polyline(coordinates.map(([lng, lat]) => [lat, lng] as [number, number]), { className: 'delivery-route-line', weight: 5, opacity: 1 }).addTo(instance) : null;
+    // Draw from the rider's live GPS so the line never starts from an old road.
+    const line = (coordinates || []).map(([lng, lat]) => [lat, lng] as [number, number]);
+    if (line.length && rider) line.unshift([rider.lat, rider.lng]);
+    routeLine.current = line.length ? L.polyline(line, { className: 'delivery-route-line', weight: 5, opacity: 1 }).addTo(instance) : null;
+    // Road data stops at the nearest street; show the last lane/gali leg to the exact pin.
+    lastMile.current?.remove(); lastMile.current = null;
+    const end = coordinates?.[coordinates.length - 1];
+    if (end && target && instance.distance([end[1], end[0]], [target.lat, target.lng]) > 10) lastMile.current = L.polyline([[end[1], end[0]], [target.lat, target.lng]], { className: 'delivery-route-line', weight: 4, dashArray: '6 8', opacity: 0.9 }).addTo(instance);
     const points = [destination, rider, ...(coordinates || []).map(([lng,lat]) => ({lat,lng}))].filter((p): p is Point => p !== null);
     if (points.length && (!initialFit.current || (rider && !instance.getBounds().contains([rider.lat, rider.lng])))) {
       instance.fitBounds(L.latLngBounds(points.map(p => [p.lat, p.lng] as [number, number])), { padding: [40, 40], maxZoom: 16 });
       initialFit.current = true;
     }
     if (follow && rider && initialFit.current) instance.panTo([rider.lat, rider.lng], { animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches });
-  }, [destination?.lat, destination?.lng, rider?.lat, rider?.lng, pickup?.lat, pickup?.lng, customer?.lat, customer?.lng, coordinates, follow]);
+  }, [destination?.lat, destination?.lng, rider?.lat, rider?.lng, pickup?.lat, pickup?.lng, customer?.lat, customer?.lng, coordinates, follow, target?.lat, target?.lng]);
 
   return <div ref={container} className="h-full w-full relative z-0" aria-label="ڈیلیوری اور رائیڈر کا نقشہ" />;
 }
