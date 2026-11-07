@@ -350,5 +350,7 @@ html.pull-refresh-enabled { overscroll-behavior-y: contain; }
   .ration-print-root h1 { font-size: 16pt; }
   .ration-print-root p { font-size: 10pt; overflow-wrap: anywhere; }
   .ration-print-root img { width: 100%; height: auto; display: block; break-inside: avoid; margin-bottom: 5mm; }
-  @page { margin: 4mm; }
+  @page { size: A4; margin: 4mm; }
+  @page ration-thermal { size: 80mm 297mm; margin: 4mm; }
+  body.ration-paper-thermal { page: ration-thermal; }
 }

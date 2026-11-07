@@ -18,7 +18,9 @@ export default function ListOrderPrint({ order, storeId }: { order: any; storeId
     await new Promise(resolve => setTimeout(resolve,100));
     const images = Array.from(document.querySelectorAll<HTMLImageElement>('.ration-print-root img'));
     await Promise.all(images.map(img => img.decode().catch(() => undefined)));
+    document.body.classList.toggle('ration-paper-thermal', printer !== 'a4');
     window.print();
+    document.body.classList.remove('ration-paper-thermal');
     setPrinting(false);
   };
   return <>

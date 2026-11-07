@@ -87,9 +87,7 @@ const CustomerListOrders = ({ storeId }: CustomerListOrdersProps) => {
   const respondToQuote = (_id:string,accept:boolean)=>action(accept?'accept':'cancel');
 
   const confirmReceived = async (orderId: string) => {
-    const { error } = await supabase.from("grocery_list_orders")
-      .update({ status: "completed" })
-      .eq("id", orderId);
+    const { error } = await supabase.rpc("list_order_action", {_order_id:orderId,_action:"receive"});
     if (error) toast.error(error.message);
     else {
       toast.success("✅ سامان مل گیا! شکریہ! / Order received! Thank you!");
