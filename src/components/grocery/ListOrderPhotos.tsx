@@ -8,7 +8,7 @@ export default function ListOrderPhotos({ urls }: { urls: string[] }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   return <>
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className={`grid gap-3 ${urls.length > 1 ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
       {urls.map((url, i) => <Button key={`${url}-${i}`} variant="outline" className="relative h-auto w-full p-1" onClick={() => { setSelected(url); setZoom(1); }} aria-label={tr(`Open photo ${i+1}`, `تصویر ${i+1} کھولیں`)}>
         <img src={url} alt={tr(`List photo ${i+1}`, `لسٹ تصویر ${i+1}`)} className="max-h-96 w-full object-contain bg-secondary" />
         <ZoomIn className="absolute end-3 bottom-3 h-5 w-5 text-primary" />
