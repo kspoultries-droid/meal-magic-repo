@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { RefreshCw, FileImage, MapPin, Eye } from "lucide-react";
 import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { toast } from "sonner";
+import ListOrderPhotos from "@/components/grocery/ListOrderPhotos";
+import { listPhotos } from "@/lib/listOrders";
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending: { label: tr("New / Pending", "نئی / Pending"), color: "bg-yellow-100 text-yellow-800" },
@@ -127,7 +129,7 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
           {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : filtered.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">{tr("No orders", "کوئی آرڈر نہیں")}</p>
           ) : (
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 gap-2">
               {filtered.slice((page - 1) * 20, page * 20).map(order => {
                 const status = STATUS_MAP[order.status] || STATUS_MAP.pending;
                 return (
@@ -157,11 +159,11 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={v => !v && setSelectedOrder(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{tr("📋 Order Details", "📋 آرڈر تفصیل")}</DialogTitle></DialogHeader>
           {selectedOrder && (
             <div className="space-y-3">
-              <img src={selectedOrder.image_url} alt="Ration list" className="w-full rounded-xl border max-h-64 object-contain bg-secondary" />
+              <ListOrderPhotos urls={listPhotos(selectedOrder)} />
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div><span className="text-muted-foreground">{tr("Store:", "اسٹور:")}</span> <strong>{getStoreName(selectedOrder.store_id)}</strong></div>
                 <div><span className="text-muted-foreground">{tr("Status:", "سٹیٹس:")}</span> <Badge className={STATUS_MAP[selectedOrder.status]?.color}>{STATUS_MAP[selectedOrder.status]?.label}</Badge></div>

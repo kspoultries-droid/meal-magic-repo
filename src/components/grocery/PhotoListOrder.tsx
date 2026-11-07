@@ -1,161 +1,67 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Camera, FileImage, Send, Loader2 } from "lucide-react";
+import LocationSheet from "@/components/location/LocationSheet";
+import { Camera, FileImage, Send, Loader2, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
+import { tr } from "@/lib/i18n/tr";
+import { MAX_LIST_PHOTOS, validListPin } from "@/lib/listOrders";
 
-interface PhotoListOrderProps {
-  storeId: string;
-  storeName: string;
-  advancePercent?: number;
-}
-
-const PhotoListOrder = ({ storeId, storeName, advancePercent = 0 }: PhotoListOrderProps) => {
-  const { user } = useAuth();
-  const [open, setOpen] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [notes, setNotes] = useState("");
-  const [address, setAddress] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    // Reset input so same file can be re-selected
-    e.target.value = "";
-    if (!file) return;
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
+interface PhotoListOrderProps { storeId: string; storeName: string; advancePercent?: number; }
+export default function PhotoListOrder({storeId, storeName}: PhotoListOrderProps) {
+  const {user} = useAuth();
+  const {location, saved, saveNew} = useDeliveryLocation();
+  const [open,setOpen]=useState(false);
+  const [files,setFiles]=useState<File[]>([]);
+  const [previews,setPreviews]=useState<string[]>([]);
+  const [notes,setNotes]=useState("");
+  const [address,setAddress]=useState("");
+  const [coords,setCoords]=useState<{lat:number;lng:number}|null>(null);
+  const [locOpen,setLocOpen]=useState(false);
+  const [submitting,setSubmitting]=useState(false);
+  const camera=useRef<HTMLInputElement>(null), gallery=useRef<HTMLInputElement>(null);
+  useEffect(()=>{if(location){setAddress(location.address);setCoords(validListPin(location.lat,location.lng)?{lat:Number(location.lat),lng:Number(location.lng)}:null);}},[location]);
+  useEffect(()=>{const urls=files.map(f=>URL.createObjectURL(f));setPreviews(urls);return ()=>urls.forEach(URL.revokeObjectURL);},[files]);
+  const addFiles=(e:React.ChangeEvent<HTMLInputElement>)=>{
+    const incoming=Array.from(e.target.files||[]); e.target.value="";
+    if(incoming.some(f=>!f.type.startsWith('image/')||f.size>10*1024*1024)){toast.error(tr("Images must be smaller than 10MB", "تصویر 10MB سے چھوٹی ہونی چاہیے"));return;}
+    if(files.length+incoming.length>MAX_LIST_PHOTOS){toast.error(tr("Maximum 4 photos", "زیادہ سے زیادہ 4 تصاویر"));return;}
+    setFiles(prev=>[...prev,...incoming]);
   };
-
-  const handleSubmit = async () => {
-    if (!user) { toast.error("پہلے لاگ ان کریں / Please login first"); return; }
-    if (!imageFile) { toast.error("راشن لسٹ کی تصویر ڈالیں / Upload your list photo"); return; }
-    if (!address.trim()) { toast.error("پتہ درج کریں / Enter delivery address"); return; }
-
+  const submit=async()=>{
+    if(!user){toast.error(tr("Please sign in", "پہلے لاگ ان کریں"));return;}
+    if(!files.length||!address.trim()||!coords){toast.error(tr("Photo, address and location are required", "تصویر، پتہ اور مقام درکار ہیں"));return;}
     setSubmitting(true);
-    try {
-      const ext = imageFile.name.split('.').pop();
-      const path = `list-orders/${user.id}/${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from("product-images").upload(path, imageFile);
-      if (uploadErr) throw uploadErr;
-
-      const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-
-      const { error } = await supabase.from("grocery_list_orders").insert({
-        customer_id: user.id,
-        store_id: storeId,
-        image_url: urlData.publicUrl,
-        notes: notes.trim() || null,
-        delivery_address: address.trim(),
-      });
-      if (error) throw error;
-
-      toast.success("راشن لسٹ بھیج دی گئی! دکاندار جلد جواب دے گا\nList sent! Shopkeeper will respond soon");
-      setOpen(false);
-      setImageFile(null);
-      setImagePreview(null);
-      setNotes("");
-      setAddress("");
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
-    }
+    const paths:string[]=[];
+    try{
+      const urls:string[]=[];
+      for(const file of files){
+        const path=`list-orders/${user.id}/${crypto.randomUUID()}.${file.name.split('.').pop()||'jpg'}`;
+        const {error}=await supabase.storage.from('product-images').upload(path,file);if(error)throw error;
+        paths.push(path);urls.push(supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl);
+      }
+      const {error}=await supabase.from('grocery_list_orders').insert({customer_id:user.id,store_id:storeId,image_url:urls[0],image_urls:urls,notes:notes.trim()||null,delivery_address:address.trim(),delivery_lat:coords.lat,delivery_lng:coords.lng});
+      if(error)throw error;
+      if(!saved.some(a=>a.address===address.trim()&&a.lat===coords.lat&&a.lng===coords.lng)) await saveNew({label:tr("My address","میرا پتہ"),address:address.trim(),lat:coords.lat,lng:coords.lng});
+      toast.success(tr("List sent", "راشن لسٹ بھیج دی گئی"));setOpen(false);setFiles([]);setNotes("");
+    }catch(err:any){if(paths.length)await supabase.storage.from('product-images').remove(paths);toast.error(err.message);}finally{setSubmitting(false);}
   };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full gap-2 bg-gradient-to-r from-primary to-emerald-600 text-primary-foreground font-bold text-xs py-3 rounded-xl shadow">
-          <FileImage className="w-4 h-4" />
-          📸 راشن لسٹ بھیجیں / Send List Photo
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="text-center">
-            📋 راشن لسٹ بھیجیں
-            <br />
-            <span className="text-xs text-muted-foreground font-normal">Send your ration list to {storeName}</span>
-          </DialogTitle>
-        </DialogHeader>
-
-        {/* Hidden file inputs - kept outside label to avoid Safari/mobile issues */}
-        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
-        <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-
-        <div className="space-y-4">
-          {imagePreview ? (
-            <div className="relative rounded-xl overflow-hidden border-2 border-primary/30">
-              <img src={imagePreview} alt="List preview" className="w-full max-h-52 object-contain bg-secondary" />
-              <button
-                className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
-                onClick={() => { setImageFile(null); setImagePreview(null); }}
-              >✕</button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                className="flex flex-col items-center gap-2 p-6 bg-secondary rounded-xl cursor-pointer border-2 border-dashed border-primary/30 hover:border-primary transition-colors"
-                onClick={() => { if (cameraInputRef.current) { cameraInputRef.current.value = ""; cameraInputRef.current.click(); } }}
-              >
-                <Camera className="w-8 h-8 text-primary" />
-                <span className="text-xs font-bold text-foreground">کیمرہ / Camera</span>
-              </button>
-              <button
-                type="button"
-                className="flex flex-col items-center gap-2 p-6 bg-secondary rounded-xl cursor-pointer border-2 border-dashed border-primary/30 hover:border-primary transition-colors"
-                onClick={() => { if (galleryInputRef.current) { galleryInputRef.current.value = ""; galleryInputRef.current.click(); } }}
-              >
-                <FileImage className="w-8 h-8 text-primary" />
-                <span className="text-xs font-bold text-foreground">گیلری / Gallery</span>
-              </button>
-            </div>
-          )}
-
-          <Input
-            placeholder="ڈلیوری ایڈریس / Delivery Address *"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-          <Input
-            placeholder="کوئی ہدایات (اختیاری) / Notes (optional)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-
-          <p className="text-xs text-muted-foreground text-center bg-accent/50 p-2 rounded-lg">
-            💡 دکاندار آپ کی لسٹ دیکھ کر قیمت بتائے گا، پھر آپ تصدیق کریں گے
-            <br />
-            Shopkeeper will review & quote price, then you confirm
-          </p>
-
-          {advancePercent > 0 && (
-            <div className="text-xs text-center bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-2.5 rounded-lg">
-              <p className="font-bold text-yellow-700 dark:text-yellow-400">⚠️ ایڈوانس فیس: {advancePercent}%</p>
-              <p className="text-yellow-600 dark:text-yellow-500 mt-0.5">
-                نئے کسٹمرز کو کل رقم کا {advancePercent}% ایڈوانس دینا ہوگا
-              </p>
-            </div>
-          )}
-
-          <Button onClick={handleSubmit} disabled={submitting || !imageFile} className="w-full gap-2">
-            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            {submitting ? "بھیج رہے ہیں..." : "بھیجیں / Send"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export default PhotoListOrder;
+  return <><Dialog open={open} onOpenChange={setOpen}>
+    <DialogTrigger asChild><Button className="w-full gap-2"><FileImage className="h-4 w-4"/>{tr("Send list photo","راشن لسٹ بھیجیں")}</Button></DialogTrigger>
+    <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>{tr("Ration list","راشن لسٹ")} — {storeName}</DialogTitle></DialogHeader>
+      <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" onChange={addFiles}/>
+      <input ref={gallery} type="file" accept="image/*" multiple className="hidden" onChange={addFiles}/>
+      <div className="grid grid-cols-2 gap-2">{previews.map((url,i)=><div key={url} className="relative"><img src={url} alt={`List ${i+1}`} className="w-full h-44 object-contain bg-secondary border rounded-lg"/><Button size="icon" variant="destructive" className="absolute top-1 end-1 h-7 w-7" aria-label={tr("Remove photo","تصویر ہٹائیں")} onClick={()=>setFiles(f=>f.filter((_,n)=>n!==i))}><X className="h-4 w-4"/></Button></div>)}</div>
+      <div className="flex gap-2"><Button variant="outline" disabled={files.length>=4} onClick={()=>camera.current?.click()} className="flex-1 gap-2"><Camera className="h-4 w-4"/>{tr("Camera","کیمرہ")}</Button><Button variant="outline" disabled={files.length>=4} onClick={()=>gallery.current?.click()} className="flex-1 gap-2"><FileImage className="h-4 w-4"/>{tr("Gallery","گیلری")} ({files.length}/4)</Button></div>
+      <Input aria-label={tr("Delivery address","ڈیلیوری پتہ")} value={address} placeholder={tr("Delivery address","ڈیلیوری پتہ")} onChange={e=>setAddress(e.target.value)}/>
+      <Button variant="outline" onClick={()=>setLocOpen(true)} className="gap-2"><MapPin className="h-4 w-4"/>{coords?tr("Change location","مقام تبدیل کریں"):tr("Choose location","مقام منتخب کریں")}</Button>
+      {coords&&<p className="text-xs text-primary">GPS: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</p>}
+      <Input placeholder={tr("Notes (optional)","ہدایات (اختیاری)")} value={notes} onChange={e=>setNotes(e.target.value)}/>
+      <Button onClick={submit} disabled={submitting||!files.length||!coords} className="gap-2">{submitting?<Loader2 className="h-4 w-4 animate-spin"/>:<Send className="h-4 w-4"/>}{tr("Send","بھیجیں")}</Button>
+    </DialogContent>
+  </Dialog><LocationSheet open={locOpen} onOpenChange={setLocOpen} onSelected={loc=>{setAddress(loc.address);setCoords(validListPin(loc.lat,loc.lng)?{lat:Number(loc.lat),lng:Number(loc.lng)}:null);}}/></>;
+}
