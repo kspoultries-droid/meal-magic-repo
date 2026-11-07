@@ -12,7 +12,7 @@
 - [x] Exclude returned-to-store orders from the existing active-order count; isolated database regression passes for both insert paths, 2-slot limit and same-phone cross-service counting.
 
 ## Current QA fix — Receipt after list acceptance
-- [ ] Allow the shop's first receipt attachment after acceptance without changing approved amounts, versions or delivery state; verify upload and customer readback.
+- [x] Allow the shop's first receipt attachment after acceptance without changing approved amounts, versions or delivery state; isolated regression and authenticated shop gallery upload/customer receipt readback passed.
 
 ## Current request — Grocery and Bazar orders
 - [x] Disable automatic acceptance without changing payment/cancellation rules.
