@@ -37,14 +37,15 @@ Deno.serve(async req => {
     if (!point(target.lat, target.lng)) return reply({ unavailable: 'missing_destination', phase });
     const age = Date.now() - Date.parse(rider?.location_updated_at || '');
     if (!rider || !point(rider.lat, rider.lng) || !Number.isFinite(age) || age < -5000 || age > 90000) return reply({ unavailable: 'stale_gps', phase });
-    const key = `${kind}:${orderId}:${c.rider_id}:${phase}:${target.lat}:${target.lng}:${rider.lat.toFixed(3)}:${rider.lng.toFixed(3)}`;
+    const key = `${kind}:${orderId}:${c.rider_id}:${phase}:${target.lat}:${target.lng}:${rider.lat.toFixed(4)}:${rider.lng.toFixed(4)}`;
     const cached = cache.get(key);
-    if (cached && Date.now() - cached.at < 60000) return reply(cached.data);
+    if (cached && Date.now() - cached.at < 15000) return reply(cached.data);
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
     const connectionKey = Deno.env.get('UDC_OPENROUTESERVICE_API_KEY');
     if (!apiKey || !connectionKey) return reply({ error: 'Routing service is not configured' }, 503);
+    // Riders use motorcycles: the two-wheeler profile takes lanes, galis and shortcuts that car routing avoids.
     const query = new URLSearchParams({ start: `${rider.lng},${rider.lat}`, end: `${target.lng},${target.lat}` });
-    const response = await fetch(`https://connector-gateway.lovable.dev/udc_openrouteservice/v2/directions/driving-car?${query}`, {
+    const response = await fetch(`https://connector-gateway.lovable.dev/udc_openrouteservice/v2/directions/cycling-regular?${query}`, {
       headers: { Authorization: `Bearer ${apiKey}`, 'X-Connection-Api-Key': connectionKey }, signal: AbortSignal.timeout(15000),
     });
     if (!response.ok) {
@@ -56,7 +57,7 @@ Deno.serve(async req => {
     const coordinates = route?.geometry?.coordinates;
     const summary = route?.properties?.summary;
     if (!Array.isArray(coordinates) || coordinates.length < 2 || coordinates.length > 20000 || !coordinates.every((p: unknown[]) => Array.isArray(p) && point(p[1], p[0])) || !Number.isFinite(summary?.distance) || !Number.isFinite(summary?.duration)) return reply({ error: 'Invalid route returned' }, 502);
-    const data = { phase, coordinates, distance: summary.distance, duration: summary.duration, calculatedAt: new Date().toISOString(), steps: route.properties.segments?.flatMap((s: { steps?: unknown[] }) => s.steps || []) || [] };
+    const data = { phase, coordinates, distance: summary.distance, duration: Math.max(60, summary.distance / (25000 / 3600)), calculatedAt: new Date().toISOString(), steps: route.properties.segments?.flatMap((s: { steps?: unknown[] }) => s.steps || []) || [] };
     if (cache.size > 200) cache.clear();
     cache.set(key, { at: Date.now(), data });
     return reply(data);

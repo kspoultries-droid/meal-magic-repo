@@ -23,7 +23,7 @@ export default function DeliveryMap({ destination, rider, pickup = null, custome
     map.current = instance;
     const observer = new ResizeObserver(() => instance.invalidateSize());
     observer.observe(container.current);
-    return () => { observer.disconnect(); instance.remove(); map.current = null; riderMarker.current = null; destinationMarker.current = null; pickupMarker.current = null; customerMarker.current = null; routeLine.current = null; initialFit.current = false; };
+    return () => { observer.disconnect(); instance.remove(); map.current = null; riderMarker.current = null; destinationMarker.current = null; pickupMarker.current = null; customerMarker.current = null; routeLine.current = null; lastMile.current = null; initialFit.current = false; };
   }, []);
 
   useEffect(() => {
