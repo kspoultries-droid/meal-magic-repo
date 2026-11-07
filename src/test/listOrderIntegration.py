@@ -5,6 +5,7 @@ async def main():
  async with async_playwright() as p:
   browser=await p.chromium.launch(headless=True)
   page=await browser.new_page(viewport={'width':1280,'height':1800})
+  page.on('pageerror',lambda e: print('page error:',str(e)))
   minted=json.loads(Path.home().joinpath('.cache/lovable-auth/session.json').read_text())
   await page.goto('http://localhost:8080')
   await page.evaluate('([k,v])=>localStorage.setItem(k,v)',[minted['storage_key'],json.dumps(minted['session'])])
@@ -41,6 +42,8 @@ async def main():
     const host=document.createElement('div');document.body.appendChild(host);
     ReactDOM.default.createRoot(host).render(React.default.createElement(QueryClientProvider,{client:new QueryClient()},React.default.createElement(AuthProvider,null,React.default.createElement(CustomerListOrders,{storeId:'01cc2099-1280-4dc7-97d2-aa004dac4b44'}))));
   }''')
+  await page.wait_for_timeout(4000)
+  print('customer view:',(await page.locator('body').inner_text())[-1000:])
   await page.get_by_role('button').filter(has_text='Rs 380').first.click()
   await page.get_by_role('button',name='منظور / Accept',exact=True).click()
   await page.get_by_text('تصدیق ہو گئی — ڈلیوری جلد ہوگی',exact=False).wait_for()
