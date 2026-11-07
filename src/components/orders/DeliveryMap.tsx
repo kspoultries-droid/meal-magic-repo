@@ -3,7 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 type Point = { lat: number; lng: number };
-export default function DeliveryMap({ destination, rider, pickup = null, customer = null, coordinates, follow = false }: { destination: Point | null; rider: Point | null; pickup?: Point | null; customer?: Point | null; coordinates?: [number, number][]; follow?: boolean }) {
+export default function DeliveryMap({ destination, rider, pickup = null, customer = null, coordinates, follow = false, target = null }: { target?: Point | null; destination: Point | null; rider: Point | null; pickup?: Point | null; customer?: Point | null; coordinates?: [number, number][]; follow?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const riderMarker = useRef<L.Marker | null>(null);
@@ -12,6 +12,7 @@ export default function DeliveryMap({ destination, rider, pickup = null, custome
   const pickupMarker = useRef<L.Marker | null>(null);
   const customerMarker = useRef<L.Marker | null>(null);
   const routeLine = useRef<L.Polyline | null>(null);
+  const lastMile = useRef<L.Polyline | null>(null);
 
   useEffect(() => {
     if (!container.current) return;

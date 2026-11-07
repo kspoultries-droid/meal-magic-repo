@@ -67,14 +67,14 @@ export default function LiveDeliveryRoute({ orderId, kind, stage = 'assigned', a
     };
     refreshRef.current = () => void refresh();
     void refresh();
-    const timer = window.setInterval(refresh, 10000);
+    const timer = window.setInterval(refresh, 5000);
     document.addEventListener('visibilitychange', refresh);
     return () => { disposed = true; clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
   }, [orderId, kind, stage, retry]);
 
   const target = phase === 'pickup' ? pickup : customer;
   const title = phase === 'pickup' ? 'ریسٹورنٹ / دکان کی طرف · To pickup' : 'گاہک کی طرف · To customer';
-  const map = <DeliveryMap destination={target} rider={rider} pickup={pickup} customer={customer} coordinates={route?.coordinates} follow={audience === 'rider'} />;
+  const map = <DeliveryMap destination={target} rider={rider} pickup={pickup} customer={customer} coordinates={route?.coordinates} target={target} follow={audience === 'rider'} />;
   return <section className="min-w-0 space-y-2" aria-label="جاری ڈیلیوری کا راستہ">
     <div className="flex items-center justify-between gap-2">
       <p className="text-xs font-bold flex items-center gap-1"><Navigation className="h-4 w-4 text-primary" />{title}</p>
