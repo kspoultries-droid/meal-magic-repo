@@ -33,9 +33,9 @@ async def main():
     }catch(e){await act('cancel').catch(()=>{});throw e;}
   }''')
   await page.evaluate('''async()=>{
-    const React=await import('/node_modules/.vite/deps/react.js');
-    const ReactDOM=await import('/node_modules/.vite/deps/react-dom_client.js');
-    const {QueryClient,QueryClientProvider}=await import('/node_modules/.vite/deps/@tanstack_react-query.js');
+    const React=await import('/node_modules/.vite/deps/react.js?v=2f5c481d');
+    const ReactDOM=await import('/node_modules/.vite/deps/react-dom_client.js?v=2f5c481d');
+    const {QueryClient,QueryClientProvider}=await import('/node_modules/.vite/deps/@tanstack_react-query.js?v=2f5c481d');
     const {AuthProvider}=await import('/src/hooks/useAuth.tsx');
     const {default:CustomerListOrders}=await import('/src/components/grocery/CustomerListOrders.tsx');
     document.getElementById('root').remove();
