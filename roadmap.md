@@ -1,5 +1,12 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Ration photo orders
+- [ ] Repair customer approval and safe slip/revised-selection workflow.
+- [ ] Enforce one waiting list per customer and owner-scoped shop blocking.
+- [ ] Capture saved address/pin, support 1–4 photos and readable photo viewing.
+- [ ] Compact desktop order grids and remembered A4/80mm printing.
+- [ ] Verify customer/vendor workflow and delivery readiness with regression checks.
+
 ## Current QA fix — Returned shop orders
 - [x] Exclude returned-to-store orders from the existing active-order count; isolated database regression passes for both insert paths, 2-slot limit and same-phone cross-service counting.
 
