@@ -652,6 +652,13 @@
       "when": 1793971828618,
       "tag": "0092_tighten_catalog_and_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1794010752580,
+      "tag": "0093_shop_manual_accept_and_empty_order_cancellation",
+      "breakpoints": true
     }
   ]
 }
