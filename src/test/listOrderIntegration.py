@@ -13,6 +13,8 @@ async def main():
     const {supabase:s}=await import('/src/integrations/supabase/client.ts');
     const {data:{user}}=await s.auth.getUser(); if(!user)throw Error('signed out');
     const store='01cc2099-1280-4dc7-97d2-aa004dac4b44';
+    const {data:leftovers}=await s.from('grocery_list_orders').select('id').eq('customer_id',user.id).eq('notes','QA disposable list').in('status',['pending','quoted','confirmed']);
+    for(const item of leftovers||[])await s.rpc('list_order_action',{_order_id:item.id,_action:'cancel'});
     const {data:shop}=await s.from('grocery_stores').select('pickup_lat,pickup_lng').eq('id',store).single();
     const {data:sample}=await s.from('grocery_list_orders').select('image_url').eq('store_id',store).limit(1).single();
     const input={customer_id:user.id,store_id:store,image_url:sample.image_url,image_urls:[sample.image_url,sample.image_url],delivery_address:'QA disposable list',notes:'QA disposable list',delivery_lat:shop.pickup_lat,delivery_lng:shop.pickup_lng};
@@ -31,13 +33,13 @@ async def main():
   }''')
   await page.evaluate('''async()=>{
     const React=await import('/node_modules/.vite/deps/react.js');
-    const {createRoot}=await import('/node_modules/.vite/deps/react-dom_client.js');
+    const ReactDOM=await import('/node_modules/.vite/deps/react-dom_client.js');
     const {QueryClient,QueryClientProvider}=await import('/node_modules/.vite/deps/@tanstack_react-query.js');
     const {AuthProvider}=await import('/src/hooks/useAuth.tsx');
     const {default:CustomerListOrders}=await import('/src/components/grocery/CustomerListOrders.tsx');
     document.getElementById('root').remove();
     const host=document.createElement('div');document.body.appendChild(host);
-    createRoot(host).render(React.createElement(QueryClientProvider,{client:new QueryClient()},React.createElement(AuthProvider,null,React.createElement(CustomerListOrders,{storeId:'01cc2099-1280-4dc7-97d2-aa004dac4b44'}))));
+    ReactDOM.default.createRoot(host).render(React.createElement(QueryClientProvider,{client:new QueryClient()},React.createElement(AuthProvider,null,React.createElement(CustomerListOrders,{storeId:'01cc2099-1280-4dc7-97d2-aa004dac4b44'}))));
   }''')
   await page.get_by_role('button').filter(has_text='Rs 380').first.click()
   await page.get_by_role('button',name='منظور / Accept',exact=True).click()
