@@ -14,6 +14,8 @@ import AppShareButton from "@/components/AppShareButton";
 import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
+import { filterStoresByReach } from "@/lib/groceryReach";
 
 
 const groceryCategories = [
@@ -56,6 +58,15 @@ const Grocery = () => {
   const { t, lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const navigate = useNavigate();
+  const { location: deliveryLoc } = useDeliveryLocation();
+  const [cityLimits, setCityLimits] = useState<Record<string, number>>({});
+  useEffect(() => {
+    supabase.from("cities").select("id, grocery_max_km").then(({ data }) => {
+      const m: Record<string, number> = {};
+      (data || []).forEach((c: any) => { m[c.id] = Number(c.grocery_max_km) || 6; });
+      setCityLimits(m);
+    });
+  }, []);
 
   useEffect(() => {
     supabase.from("cities").select("id, name").then(({ data }) => setCities(data || []));
@@ -92,7 +103,7 @@ const Grocery = () => {
       setLoading(true);
       let query = supabase
         .from("grocery_stores")
-        .select("id, name, category, image_url, rating, delivery_time, minimum_order, is_active")
+        .select("id, name, category, image_url, rating, delivery_time, minimum_order, is_active, pickup_lat, pickup_lng, city_id")
         .neq("subscription_status", "paused")
         .or("store_type.is.null,store_type.eq.retail");
       if (activeCategory) query = query.eq("category", activeCategory);
@@ -113,8 +124,9 @@ const Grocery = () => {
     fetchStores();
   }, [activeCategory, selectedCity, sortBy]);
 
-  const storeIds = new Set(stores.map((x) => x.id));
-  const shownStores = debounced ? stores.filter((x) => matchesSearch(debounced, x.name, x.category)) : stores.slice(0, 40);
+  const reachable = filterStoresByReach(stores, deliveryLoc, cityLimits, sortBy === "default");
+  const storeIds = new Set(reachable.map((x) => x.id));
+  const shownStores = debounced ? reachable.filter((x) => matchesSearch(debounced, x.name, x.category)) : reachable.slice(0, 40);
   const productHits = debounced ? allProducts.filter((p) => storeIds.has(p.store_id) && matchesSearch(debounced, p.name, p.category)).slice(0, 40) : [];
   const storeCount = shownStores.length;
 
