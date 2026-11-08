@@ -359,6 +359,7 @@ export type Database = {
           delivery_fee: number | null
           food_enabled: boolean
           grocery_enabled: boolean
+          grocery_max_km: number
           id: string
           max_dispatch_km: number
           max_offers_before_stuck: number
@@ -376,6 +377,7 @@ export type Database = {
           delivery_fee?: number | null
           food_enabled?: boolean
           grocery_enabled?: boolean
+          grocery_max_km?: number
           id?: string
           max_dispatch_km?: number
           max_offers_before_stuck?: number
@@ -393,6 +395,7 @@ export type Database = {
           delivery_fee?: number | null
           food_enabled?: boolean
           grocery_enabled?: boolean
+          grocery_max_km?: number
           id?: string
           max_dispatch_km?: number
           max_offers_before_stuck?: number
