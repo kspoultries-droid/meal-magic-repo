@@ -92,6 +92,13 @@ const CitySettingsTab = () => {
                   ))}
                 </div>
 
+                <div className="rounded-lg bg-secondary/20 p-3">
+                  <label className="text-[11px] font-bold text-muted-foreground">{tr("🛒 Grocery delivery limit (KM from shop)", "🛒 گروسری ڈیلیوری حد (دکان سے کلومیٹر)")}</label>
+                  <Input type="number" step="0.5" min="1" className="mt-1 h-8 text-xs" defaultValue={String((c as any).grocery_max_km ?? 6)}
+                    onBlur={(e) => { const v = Number(e.target.value); if (v > 0 && v !== (c as any).grocery_max_km) patch(c.id, { grocery_max_km: v }); }} />
+                  <p className="mt-1 text-[10px] text-muted-foreground">{tr("Customers farther than this cannot order from this city's grocery shops. Old orders are not affected.", "اس سے زیادہ دور کا گاہک اس شہر کی گروسری دکانوں سے آرڈر نہیں کر سکے گا۔ پرانے آرڈرز پر اثر نہیں پڑے گا۔")}</p>
+                </div>
+
                 {/* Auto rider dispatch settings */}
                 <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
                   <label className="flex items-center justify-between">

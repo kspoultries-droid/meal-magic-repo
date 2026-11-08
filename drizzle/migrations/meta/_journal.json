@@ -687,6 +687,20 @@
       "when": 1794082705151,
       "tag": "0097_list_first_receipt_after_acceptance",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1794178691848,
+      "tag": "0098_city_grocery_max_km",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1794178711722,
+      "tag": "0099_fix_grocery_limit_message",
+      "breakpoints": true
     }
   ]
 }
