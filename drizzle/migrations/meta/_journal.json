@@ -694,6 +694,13 @@
       "when": 1794178691848,
       "tag": "0098_city_grocery_max_km",
       "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1794178711722,
+      "tag": "0099_fix_grocery_limit_message",
+      "breakpoints": true
     }
   ]
 }
