@@ -40,13 +40,13 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
     const [{ data: cart }, { data: list }, { data: ridersData }] = await Promise.all([
       supabase
         .from("grocery_cart_orders")
-        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,delivery_method,dispatch_state,city_id,courier_name,tracking_number,courier_tracking_url,courier_payment_type,shipment_status,created_at,grocery_stores(name)")
+        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,delivery_method,dispatch_state,city_id,courier_name,tracking_number,courier_tracking_url,courier_payment_type,shipment_status,created_at,picked_up_at,delivery_stage,grocery_stores(name)")
         .in("status", OPEN_STATUSES)
         .order("created_at", { ascending: false })
         .limit(40),
       supabase
         .from("grocery_list_orders")
-        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,dispatch_state,created_at,grocery_stores(name)")
+        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,dispatch_state,created_at,picked_up_at,delivery_stage,grocery_stores(name)")
         .in("status", OPEN_STATUSES)
         .order("created_at", { ascending: false })
         .limit(40),
@@ -113,6 +113,27 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
 
 
 
+  const kindOf = (table: string) => table === "grocery_cart_orders" ? "grocery_cart" : "grocery_list";
+  const isStale = (o: any) => Date.now() - new Date(o.created_at).getTime() > 2 * 60 * 60 * 1000;
+
+  const cancelOrder = async (table: "grocery_cart_orders" | "grocery_list_orders", o: any) => {
+    const note = window.prompt(tr("Cancellation reason (e.g. test order, customer refused)", "منسوخی کی وجہ (مثلاً ٹیسٹ آرڈر، گاہک نے انکار کیا)"));
+    if (!note || note.trim().length < 3) return;
+    const { error } = await (supabase.rpc as any)("staff_cancel_order", { _kind: kindOf(table), _order_id: o.id, _note: note });
+    if (error) { toast.error(error.message); return; }
+    toast.success(tr("Order cancelled", "آرڈر منسوخ ہو گیا"));
+    fetchAll();
+  };
+
+  const forceDeliver = async (table: "grocery_cart_orders" | "grocery_list_orders", o: any) => {
+    const note = window.prompt(tr("Confirm delivery note (e.g. rider called, phone was off)", "تصدیق کا نوٹ (مثلاً رائیڈر نے فون پر بتایا)"));
+    if (!note || note.trim().length < 3) return;
+    const { error } = await (supabase.rpc as any)("staff_force_deliver", { _kind: kindOf(table), _order_id: o.id, _note: note });
+    if (error) { toast.error(error.message); return; }
+    toast.success(tr("Marked as delivered", "ڈیلیور شدہ درج ہو گیا"));
+    fetchAll();
+  };
+
   const renderOrder = (o: any, table: "grocery_cart_orders" | "grocery_list_orders", label: string) => (
     <div key={o.id} className="border rounded-lg px-3 py-2 space-y-2">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -124,6 +145,7 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px]">{label}</Badge>
           <Badge className="text-[10px]">{o.status}</Badge>
+          {isStale(o) && <Badge variant="destructive" className="text-[10px]">{tr("⚠️ Over 2 hours", "⚠️ 2 گھنٹے سے زائد")}</Badge>}
           {!o.rider_id && o.dispatch_state === "searching" && <Badge variant="outline" className="text-[10px]">{tr("Offer sent", "آفر بھیجی گئی")}</Badge>}
           {!o.rider_id && o.dispatch_state === "stuck" && <Badge variant="destructive" className="text-[10px]">{tr("Action required", "توجہ درکار")}</Badge>}
         </div>
@@ -131,6 +153,15 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
       <div className="grid gap-1 text-xs text-muted-foreground">
         <p>🏪 Pickup: <span className="font-bold text-foreground">{o.grocery_stores?.name || tr("Store", "اسٹور")}</span></p>
         <p>📍 Dropoff: {o.delivery_address || tr("Unknown", "پتہ نہیں")}</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {o.picked_up_at && o.delivery_stage !== "return_pending" ? (
+          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => forceDeliver(table, o)}>{tr("Mark delivered", "ڈیلیور ہو گیا")}</Button>
+        ) : !o.picked_up_at ? (
+          <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => cancelOrder(table, o)}>{tr("Cancel order", "آرڈر منسوخ کریں")}</Button>
+        ) : (
+          <p className="text-xs text-warning">{tr("Return in progress — confirm in Rider Operations", "واپسی جاری — رائیڈر آپریشنز میں تصدیق کریں")}</p>
+        )}
       </div>
 
       {expanded === o.id && <>

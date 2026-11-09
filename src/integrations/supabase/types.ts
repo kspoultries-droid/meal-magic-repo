@@ -6003,6 +6003,10 @@ export type Database = {
         Args: { _j: Json; _table: string }
         Returns: Json
       }
+      staff_force_deliver: {
+        Args: { _kind: string; _note: string; _order_id: string }
+        Returns: undefined
+      }
       staff_list_services: { Args: never; Returns: boolean }
       staff_log_report_access: {
         Args: { _count: number; _report: string }

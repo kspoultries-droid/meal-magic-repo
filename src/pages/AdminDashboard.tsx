@@ -558,9 +558,20 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       toast.error(tr("Admin will only assign rider or emergency cancel; status will be managed by restaurant/rider", "ایڈمن صرف rider assign یا emergency cancel کرے گا؛ status ریسٹورنٹ/رائیڈر چلائیں گے"));
       return;
     }
-    const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: "food", _order_id: order.id, _note: "ہنگامی منسوخی" });
+    const note = window.prompt(tr("Cancellation reason (e.g. test order, customer refused)", "منسوخی کی وجہ (مثلاً ٹیسٹ آرڈر، گاہک نے انکار کیا)"));
+    if (!note || note.trim().length < 3) return;
+    const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: "food", _order_id: order.id, _note: note });
     if (error) { toast.error(error.message); return; }
     toast.success(tr("Status updated", "سٹیٹس اپڈیٹ ہو گئی"));
+    fetchOrders();
+  };
+
+  const forceDeliver = async (order: any) => {
+    const note = window.prompt(tr("Confirm delivery note (e.g. rider called, phone was off)", "تصدیق کا نوٹ (مثلاً رائیڈر نے فون پر بتایا)"));
+    if (!note || note.trim().length < 3) return;
+    const { error } = await (supabase as any).rpc("staff_force_deliver", { _kind: "food", _order_id: order.id, _note: note });
+    if (error) { toast.error(error.message); return; }
+    toast.success(tr("Marked as delivered", "ڈیلیور شدہ درج ہو گیا"));
     fetchOrders();
   };
 
@@ -720,8 +731,12 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         {canDispatch && !o.rider_id && o.dispatch_state === "stuck" && (
                           <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => retryDispatch(o.id)}>{tr("Redispatch", "دوبارہ ڈسپیچ")}</Button>
                         )}
-                        {canCancel && !isClosed && o.status !== "delivering" && (
-                          <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>Emergency cancel</Button>
+                        {!isClosed && Date.now() - new Date(o.created_at).getTime() > 2 * 60 * 60 * 1000 && <Badge variant="destructive" className="h-6 text-[10px]">{tr("⚠️ Over 2 hours", "⚠️ 2 گھنٹے سے زائد")}</Badge>}
+                        {canDispatch && !isClosed && o.picked_up_at && o.delivery_stage !== "return_pending" && (
+                          <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => forceDeliver(o)}>{tr("Mark delivered", "ڈیلیور ہو گیا")}</Button>
+                        )}
+                        {canCancel && !isClosed && !o.picked_up_at && o.status !== "delivering" && (
+                          <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>{tr("Cancel order", "آرڈر منسوخ کریں")}</Button>
                         )}
                       </div>
                     </div>
