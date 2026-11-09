@@ -181,6 +181,32 @@ const RiderRemittancesTab = () => {
                   </button>
                 )}
 
+                {(() => {
+                  const c = r.slip_check;
+                  const FLAG: Record<string, string> = {
+                    amount_mismatch: tr("Amount on slip differs", "رسید کی رقم مختلف ہے"),
+                    account_mismatch: tr("Unknown receiving account", "نامعلوم وصول کنندہ اکاؤنٹ"),
+                    reference_mismatch: tr("Trx ID differs from slip", "Trx ID رسید سے مختلف"),
+                    duplicate_reference: tr("Duplicate Trx ID", "ڈپلیکیٹ Trx ID"),
+                    not_a_receipt: tr("Not a real receipt", "اصل رسید نہیں لگتی"),
+                    date_suspicious: tr("Old/odd date", "پرانی یا مشکوک تاریخ"),
+                    receipt_unreadable: tr("Receipt unreadable", "رسید پڑھی نہیں جا سکی"),
+                    receipt_too_large: tr("Receipt too large", "رسید بہت بڑی ہے"),
+                    ai_unavailable: tr("Auto-check unavailable", "خودکار جانچ دستیاب نہیں"),
+                  };
+                  const cls = !c ? "bg-muted text-muted-foreground" : c.status === "green" ? "bg-success/15 text-success" : c.status === "red" ? "bg-destructive/15 text-destructive" : "bg-warning/15 text-warning";
+                  return (
+                    <div className={`rounded-lg px-2 py-1.5 text-[11px] font-bold ${cls}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span>{!c ? tr("Slip check pending", "سلپ جانچ باقی") : c.status === "green" ? tr("🟢 Slip matches", "🟢 رسید میچ ہو گئی") : c.status === "red" ? tr("🔴 Red alert — verify first", "🔴 ریڈ الرٹ — پہلے تصدیق کریں") : tr("🟡 Check manually", "🟡 خود جانچ کریں")}</span>
+                        {r.status === "pending" && <button type="button" className="underline" onClick={async () => { const { error } = await supabase.functions.invoke("remittance-slip-check", { body: { id: r.id } }); if (error) toast.error(error.message); else load(); }}>{tr("Recheck", "دوبارہ جانچ")}</button>}
+                      </div>
+                      {c?.flags?.length > 0 && <p className="mt-1 font-normal">{c.flags.map((f: string) => FLAG[f] || f).join(" • ")}</p>}
+                      {c?.extracted && <p className="mt-1 font-normal text-foreground/70">{tr("Slip:", "رسید:")} Rs {c.extracted.amount} • {c.extracted.reference || "—"} • {c.extracted.recipient_account || "—"}</p>}
+                    </div>
+                  );
+                })()}
+
                 {r.status === "pending" && (
                   <div className="space-y-2">
                     <Input

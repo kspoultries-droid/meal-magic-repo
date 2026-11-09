@@ -3274,6 +3274,7 @@ export type Database = {
           reviewed_by: string | null
           rider_id: string
           shortage_amount: number | null
+          slip_check: Json | null
           status: string
           updated_at: string
         }
@@ -3294,6 +3295,7 @@ export type Database = {
           reviewed_by?: string | null
           rider_id: string
           shortage_amount?: number | null
+          slip_check?: Json | null
           status?: string
           updated_at?: string
         }
@@ -3314,6 +3316,7 @@ export type Database = {
           reviewed_by?: string | null
           rider_id?: string
           shortage_amount?: number | null
+          slip_check?: Json | null
           status?: string
           updated_at?: string
         }

@@ -59,17 +59,16 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
     if (!accountId) { toast.error(tr("Select EasyLife account", "EasyLife اکاؤنٹ منتخب کریں")); return; }
     if (amt > cashDue) { toast.error(`${tr("Amount due Rs", "واجب الادا رقم Rs")} ${Math.round(cashDue)} ${tr("Cannot deposit more than", "سے زیادہ جمع نہیں کرا سکتے")}`); return; }
     if (pendingExists) { toast.error(tr("One of your requests is already under review", "آپ کی ایک درخواست پہلے سے زیرِ تصدیق ہے")); return; }
+    if (reference.trim().length < 6) { toast.error(tr("Enter the transaction ID (min 6 characters)", "ٹرانزیکشن ID درج کریں (کم از کم 6 حروف)")); return; }
+    if (!file || !file.type.startsWith("image/") || file.size > 5_000_000) { toast.error(tr("Attach receipt photo (up to 5 MB)", "رسید کی تصویر لگائیں (5 MB تک)")); return; }
     setBusy(true);
     try {
-      let receipt_url: string | null = null;
-      if (file) {
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${user.id}/remittance-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("partner-documents").upload(path, file);
-        if (upErr) throw upErr;
-        receipt_url = path; // store the storage path; viewers get a short-lived signed link
-      }
-      const { error } = await supabase.from("rider_remittances").insert({
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/remittance-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("partner-documents").upload(path, file);
+      if (upErr) throw upErr;
+      const receipt_url = path; // storage path; viewers get a short-lived signed link
+      const { data: inserted, error } = await supabase.from("rider_remittances").insert({
         rider_id: user.id,
         amount: amt,
         method: selected?.method || "cash",
@@ -77,8 +76,9 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
         reference_no: reference.trim() || null,
         note: note.trim() || null,
         receipt_url,
-      });
+      }).select("id").single();
       if (error) throw error;
+      if (inserted?.id) void supabase.functions.invoke("remittance-slip-check", { body: { id: inserted.id } });
       toast.success(tr("Deposit request submitted — Admin will verify", "رقم جمع کرانے کی درخواست بھیج دی گئی — ایڈمن تصدیق کرے گا"));
       setAmount(""); setNote(""); setReference(""); setFile(null);
       if (fileRef.current) fileRef.current.value = "";
@@ -127,16 +127,16 @@ const RiderRemittance = ({ cashDue, onSubmitted }: Props) => {
         )}
 
         <Input type="number" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={tr("Amount (Rs)", "رقم (Rs)")} className="h-10 text-sm" />
-        <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder={tr("Transaction / Reference No. (Unique)", "ٹرانزیکشن / ریفرنس نمبر (منفرد)")} className="h-10 text-sm" />
+        <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder={tr("Transaction / Reference No. (Unique)", "ٹرانزیکشن ID (لازمی)")} className="h-10 text-sm" />
         <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (Optional)", "نوٹ (اختیاری)")} className="h-10 text-sm" />
 
         <label className="flex items-center gap-2 rounded-xl border border-dashed px-3 py-2.5 cursor-pointer text-xs font-bold text-muted-foreground">
           <Upload className="w-4 h-4" />
-          {file ? file.name : tr("Attach Receipt / Screenshot", "رسید / اسکرین شاٹ اٹیچ کریں")}
+          {file ? file.name : tr("Attach Receipt / Screenshot (required)", "رسید / اسکرین شاٹ لگائیں (لازمی)")}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
         </label>
 
-        <Button className="w-full h-11 font-extrabold" onClick={submit} disabled={busy || pendingExists || accounts.length === 0}>
+        <Button className="w-full h-11 font-extrabold" onClick={submit} disabled={busy || pendingExists || accounts.length === 0 || !file || reference.trim().length < 6}>
           {busy ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {tr("Sending…", "بھیجا جا رہا ہے…")}</> : tr("Deposit Amount", "رقم جمع کرائیں")}
         </Button>
 
