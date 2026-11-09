@@ -16,6 +16,10 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
 import { filterStoresByReach } from "@/lib/groceryReach";
+import { useCart } from "@/contexts/CartContext";
+import { availableShopQuantity } from "@/lib/shopOrders";
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
 
 
 const groceryCategories = [
@@ -44,7 +48,7 @@ const Grocery = () => {
   useEffect(() => { const id = setTimeout(() => setDebounced(searchQuery.trim()), 300); return () => clearTimeout(id); }, [searchQuery]);
   useEffect(() => {
     if (!debounced || allProducts.length) return;
-    supabase.from("grocery_products").select("id, name, price, discount_price, image_url, unit, store_id, category, grocery_stores!inner(store_type)").or("store_type.is.null,store_type.eq.retail", { referencedTable: "grocery_stores" }).eq("is_available", true).limit(3000).then(({ data }) => setAllProducts(data || []));
+    supabase.from("grocery_products").select("id, name, price, discount_price, image_url, unit, store_id, category, weight_kg, weight, variants, stock_qty, grocery_stores!inner(store_type)").or("store_type.is.null,store_type.eq.retail", { referencedTable: "grocery_stores" }).eq("is_available", true).limit(3000).then(({ data }) => setAllProducts(data || []));
   }, [debounced, allProducts.length]);
   const [stores, setStores] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
@@ -55,6 +59,14 @@ const Grocery = () => {
   const [sortBy, setSortBy] = useState("default");
   const [openOnly, setOpenOnly] = useState(false);
   const [topRated, setTopRated] = useState(false);
+  const [offersOnly, setOffersOnly] = useState(false);
+  const [offerStoreIds, setOfferStoreIds] = useState<Set<string> | null>(null);
+  const { addItem, items: cartItems } = useCart();
+  useEffect(() => {
+    if (!offersOnly || offerStoreIds) return;
+    supabase.from("grocery_products").select("store_id").eq("is_available", true).not("discount_price", "is", null).limit(3000)
+      .then(({ data }) => setOfferStoreIds(new Set((data || []).map((r: any) => r.store_id))));
+  }, [offersOnly, offerStoreIds]);
   const [loading, setLoading] = useState(true);
   const { groceryLive, city, cities: liveCities, setCityId } = useCityServices();
   const { t, lang } = useLanguage();
@@ -127,13 +139,20 @@ const Grocery = () => {
   }, [activeCategory, selectedCity, sortBy]);
 
   const reachableAll = filterStoresByReach(stores, deliveryLoc, cityLimits, sortBy === "default");
-  const reachable = reachableAll.filter((x) => (!openOnly || x.is_active) && (!topRated || Number(x.rating) >= 4.5));
+  const reachable = reachableAll.filter((x) => (!openOnly || x.is_active) && (!topRated || Number(x.rating) >= 4.5) && (!offersOnly || !offerStoreIds || offerStoreIds.has(x.id)));
   const storeIds = new Set(reachable.map((x) => x.id));
   const storeName = new Map(reachable.map((x) => [x.id, x.name]));
   const productHits = debounced ? allProducts.filter((p) => storeIds.has(p.store_id) && matchesSearch(debounced, p.name, p.category)).slice(0, 40) : [];
   const hitStoreIds = new Set(productHits.map((p) => p.store_id));
   const shownStores = debounced ? reachable.filter((x) => hitStoreIds.has(x.id) || matchesSearch(debounced, x.name, x.category)) : reachable.slice(0, 40);
   const storeCount = shownStores.length;
+  const quickAdd = (p: any) => {
+    if (Array.isArray(p.variants) && p.variants.some((v: any) => v && (v.label || v.name))) { navigate(`/product/${p.id}`); return; }
+    const stock = availableShopQuantity(p);
+    const inCart = cartItems.find((i) => i.menu_item_id === p.id && !i.variant_id)?.quantity || 0;
+    if (stock !== null && inCart >= stock) { toast.error(L("No more stock available", "مزید مقدار دستیاب نہیں")); return; }
+    addItem({ id: p.id, name: p.name, restaurant: storeName.get(p.store_id) || "Grocery", price: Number(p.discount_price || p.price), image: p.image_url || "", source: "grocery", sourceId: p.store_id, weight_kg: p.weight_kg, weight: p.weight, unit: p.unit });
+  };
   const pill = (on: boolean) => `h-9 shrink-0 rounded-full px-3.5 text-xs font-bold transition-all ${on ? "bg-gradient-primary text-primary-foreground shadow-glow" : "border border-border bg-card text-foreground shadow-soft hover:bg-card"}`;
 
   return (
@@ -179,10 +198,13 @@ const Grocery = () => {
           {productHits.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {productHits.map((p) => (
-                <Button variant="ghost" key={p.id} onClick={() => navigate(`/product/${p.id}`)} className="block h-auto overflow-hidden whitespace-normal rounded-xl border bg-card p-0 text-right shadow-soft hover:bg-card">
+                <div key={p.id} className="relative">
+                <Button variant="ghost" onClick={() => navigate(`/product/${p.id}`)} className="block h-auto overflow-hidden whitespace-normal rounded-xl border bg-card p-0 text-right shadow-soft hover:bg-card">
                   <div className="grid h-28 place-items-center bg-secondary">{p.image_url ? <img src={img(p.image_url, 320)} alt={p.name} loading="lazy" className="size-full object-cover" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
                   <div className="p-2"><p className="truncate text-xs font-bold">{p.name}</p><p className="truncate text-[10px] text-muted-foreground">{storeName.get(p.store_id)}</p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price} <span className="text-[10px] font-normal text-muted-foreground">{p.unit}</span></p></div>
                 </Button>
+                <Button size="icon" aria-label={L("Add to cart", "ٹوکری میں ڈالیں")} onClick={() => quickAdd(p)} className="absolute right-2 top-[5.5rem] size-8 rounded-full bg-gradient-primary text-primary-foreground shadow-glow"><Plus className="size-4" /></Button>
+                </div>
               ))}
             </div>
           ) : <p className="rounded-xl border bg-card py-6 text-center text-xs text-muted-foreground">{L("Nothing found — try another name in English or Urdu", "کوئی چیز نہیں ملی — اردو یا انگریزی میں دوسرا نام لکھیں")}</p>}
@@ -323,6 +345,7 @@ const Grocery = () => {
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           <Button variant="ghost" onClick={() => setSortBy("default")} className={pill(sortBy === "default")}><MapPin className="size-3.5" /> {L("Nearest", "قریب ترین")}</Button>
           <Button variant="ghost" onClick={() => setOpenOnly((v) => !v)} className={pill(openOnly)}><Clock className="size-3.5" /> {L("Open now", "ابھی کھلی")}</Button>
+          <Button variant="ghost" onClick={() => setOffersOnly((v) => !v)} className={pill(offersOnly)}><Percent className="size-3.5" /> {L("Offers", "آفرز")}</Button>
           <Button variant="ghost" onClick={() => setTopRated((v) => !v)} className={pill(topRated)}><Star className="size-3.5" /> {L("Rated 4.5+", "4.5+ ریٹنگ")}</Button>
           <Button variant="ghost" onClick={() => setSortBy("rating")} className={pill(sortBy === "rating")}><TrendingUp className="size-3.5" /> {L("Top rated first", "بہترین پہلے")}</Button>
           <Button variant="ghost" onClick={() => setSortBy("newest")} className={pill(sortBy === "newest")}><ArrowUpDown className="size-3.5" /> {L("Newest", "نئی دکانیں")}</Button>
@@ -340,7 +363,7 @@ const Grocery = () => {
         {loading ? (
           <StoreGridSkeleton count={6} />
         ) : shownStores.length === 0 ? (
-          debounced || openOnly || topRated ? (
+          debounced || openOnly || topRated || offersOnly ? (
             <div className="rounded-xl border bg-card py-6 text-center text-xs text-muted-foreground">{L("No shop matches — clear search or filters", "کوئی دکان نہیں ملی — تلاش یا فلٹر ہٹائیں")}</div>
           ) : (
           <div className="rounded-lg bg-gradient-primary p-6 text-center shadow-glow">
