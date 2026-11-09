@@ -318,43 +318,14 @@ const Grocery = () => {
 
 
 
-      {/* Filters Row: City + Sort */}
+      {/* Filter pills */}
       <div className="container mx-auto px-4 pb-3">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          {cities.length > 0 && (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-              <select
-                value={selectedCity || ""}
-                onChange={(e) => setSelectedCity(e.target.value || null)}
-                className="h-10 bg-card border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">{t("grocery.allCities")}</option>
-                {cities.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-            <div className="flex gap-1">
-              {sortOptions.map((opt) => (
-                <Button variant="ghost"
-                  key={opt.value}
-                  onClick={() => setSortBy(opt.value)}
-                  className={`h-10 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                    sortBy === opt.value
-                      ? "bg-gradient-primary text-primary-foreground shadow-glow"
-                      : "bg-card border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {t(opt.key)}
-                </Button>
-              ))}
-            </div>
-          </div>
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <Button variant="ghost" onClick={() => setSortBy("default")} className={pill(sortBy === "default")}><MapPin className="size-3.5" /> {L("Nearest", "قریب ترین")}</Button>
+          <Button variant="ghost" onClick={() => setOpenOnly((v) => !v)} className={pill(openOnly)}><Clock className="size-3.5" /> {L("Open now", "ابھی کھلی")}</Button>
+          <Button variant="ghost" onClick={() => setTopRated((v) => !v)} className={pill(topRated)}><Star className="size-3.5" /> {L("Rated 4.5+", "4.5+ ریٹنگ")}</Button>
+          <Button variant="ghost" onClick={() => setSortBy("rating")} className={pill(sortBy === "rating")}><TrendingUp className="size-3.5" /> {L("Top rated first", "بہترین پہلے")}</Button>
+          <Button variant="ghost" onClick={() => setSortBy("newest")} className={pill(sortBy === "newest")}><ArrowUpDown className="size-3.5" /> {L("Newest", "نئی دکانیں")}</Button>
         </div>
       </div>
 
@@ -369,11 +340,15 @@ const Grocery = () => {
         {loading ? (
           <StoreGridSkeleton count={6} />
         ) : shownStores.length === 0 ? (
+          debounced || openOnly || topRated ? (
+            <div className="rounded-xl border bg-card py-6 text-center text-xs text-muted-foreground">{L("No shop matches — clear search or filters", "کوئی دکان نہیں ملی — تلاش یا فلٹر ہٹائیں")}</div>
+          ) : (
           <div className="rounded-lg bg-gradient-primary p-6 text-center shadow-glow">
             <ShoppingBasket className="w-10 h-10 text-primary-foreground mx-auto mb-2" />
             <h3 className="text-lg font-extrabold text-primary-foreground mb-1">{t("grocery.comingSoon")}</h3>
             <p className="text-primary-foreground/80 text-xs">{t("grocery.noStores")}</p>
           </div>
+          )
         ) : (
           <div className="space-y-3">
             {shownStores.map((store, i) => (
@@ -412,6 +387,11 @@ const Grocery = () => {
                     {store.minimum_order > 0 && (
                       <span className="text-[10px] font-semibold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
                         {t("grocery.min")} Rs {store.minimum_order}
+                      </span>
+                    )}
+                    {store._km != null && (
+                      <span className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                        <MapPin className="w-3 h-3" /> <bdi>{store._km.toFixed(1)} km</bdi>
                       </span>
                     )}
                   </div>
