@@ -708,6 +708,13 @@
       "when": 1794214863115,
       "tag": "0100_staff_force_deliver",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1794219653703,
+      "tag": "0101_rider_remittance_slip_check",
+      "breakpoints": true
     }
   ]
 }
