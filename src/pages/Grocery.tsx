@@ -53,6 +53,8 @@ const Grocery = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("default");
+  const [openOnly, setOpenOnly] = useState(false);
+  const [topRated, setTopRated] = useState(false);
   const [loading, setLoading] = useState(true);
   const { groceryLive, city, cities: liveCities, setCityId } = useCityServices();
   const { t, lang } = useLanguage();
@@ -124,11 +126,15 @@ const Grocery = () => {
     fetchStores();
   }, [activeCategory, selectedCity, sortBy]);
 
-  const reachable = filterStoresByReach(stores, deliveryLoc, cityLimits, sortBy === "default");
+  const reachableAll = filterStoresByReach(stores, deliveryLoc, cityLimits, sortBy === "default");
+  const reachable = reachableAll.filter((x) => (!openOnly || x.is_active) && (!topRated || Number(x.rating) >= 4.5));
   const storeIds = new Set(reachable.map((x) => x.id));
-  const shownStores = debounced ? reachable.filter((x) => matchesSearch(debounced, x.name, x.category)) : reachable.slice(0, 40);
+  const storeName = new Map(reachable.map((x) => [x.id, x.name]));
   const productHits = debounced ? allProducts.filter((p) => storeIds.has(p.store_id) && matchesSearch(debounced, p.name, p.category)).slice(0, 40) : [];
+  const hitStoreIds = new Set(productHits.map((p) => p.store_id));
+  const shownStores = debounced ? reachable.filter((x) => hitStoreIds.has(x.id) || matchesSearch(debounced, x.name, x.category)) : reachable.slice(0, 40);
   const storeCount = shownStores.length;
+  const pill = (on: boolean) => `h-9 shrink-0 rounded-full px-3.5 text-xs font-bold transition-all ${on ? "bg-gradient-primary text-primary-foreground shadow-glow" : "border border-border bg-card text-foreground shadow-soft hover:bg-card"}`;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -142,9 +148,9 @@ const Grocery = () => {
             <div className="min-w-0">
               <p className="text-[11px] font-semibold opacity-90">{t("grocery.eyebrow")}</p>
               <h1 className="mt-0.5 text-2xl font-extrabold leading-tight">{t("grocery.title")}</h1>
-              <p className="mt-1 text-xs opacity-90">{L("Fresh vegetables, fruits and daily essentials — at your doorstep", "تازہ سبزی، پھل اور روزمرہ سامان — گھر کی دہلیز پر")}</p>
+              <p className="mt-1 text-xs opacity-90">{L("Delivered to your doorstep", "گھر کی دہلیز پر")}</p>
             </div>
-            <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary-foreground/15 text-3xl backdrop-blur">🛒</span>
+            <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary-foreground/15 backdrop-blur"><ShoppingBasket className="size-7" /></span>
           </div>
           <label className="relative mt-4 flex h-12 items-center gap-2.5 rounded-xl bg-card px-3.5 text-card-foreground shadow-soft focus-within:ring-2 focus-within:ring-ring">
             <Search className="size-5 shrink-0 text-primary" />
@@ -169,13 +175,13 @@ const Grocery = () => {
 
       {debounced && (
         <section className="container mx-auto px-4 pt-4">
-          <h2 className="mb-2 text-base font-extrabold">«{debounced}» — {productHits.length} {L("items", "اشیاء")}</h2>
+          <h2 className="mb-2 text-base font-extrabold"><bdi>{productHits.length}</bdi> {L("items for", "اشیاء برائے")} <bdi>“{debounced}”</bdi></h2>
           {productHits.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {productHits.map((p) => (
                 <Button variant="ghost" key={p.id} onClick={() => navigate(`/product/${p.id}`)} className="block h-auto overflow-hidden whitespace-normal rounded-xl border bg-card p-0 text-right shadow-soft hover:bg-card">
                   <div className="grid h-28 place-items-center bg-secondary">{p.image_url ? <img src={img(p.image_url, 320)} alt={p.name} loading="lazy" className="size-full object-cover" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
-                  <div className="p-2"><p className="truncate text-xs font-bold">{p.name}</p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price} <span className="text-[10px] font-normal text-muted-foreground">{p.unit}</span></p></div>
+                  <div className="p-2"><p className="truncate text-xs font-bold">{p.name}</p><p className="truncate text-[10px] text-muted-foreground">{storeName.get(p.store_id)}</p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price} <span className="text-[10px] font-normal text-muted-foreground">{p.unit}</span></p></div>
                 </Button>
               ))}
             </div>
@@ -312,43 +318,14 @@ const Grocery = () => {
 
 
 
-      {/* Filters Row: City + Sort */}
+      {/* Filter pills */}
       <div className="container mx-auto px-4 pb-3">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          {cities.length > 0 && (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-              <select
-                value={selectedCity || ""}
-                onChange={(e) => setSelectedCity(e.target.value || null)}
-                className="h-10 bg-card border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">{t("grocery.allCities")}</option>
-                {cities.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-            <div className="flex gap-1">
-              {sortOptions.map((opt) => (
-                <Button variant="ghost"
-                  key={opt.value}
-                  onClick={() => setSortBy(opt.value)}
-                  className={`h-10 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                    sortBy === opt.value
-                      ? "bg-gradient-primary text-primary-foreground shadow-glow"
-                      : "bg-card border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {t(opt.key)}
-                </Button>
-              ))}
-            </div>
-          </div>
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <Button variant="ghost" onClick={() => setSortBy("default")} className={pill(sortBy === "default")}><MapPin className="size-3.5" /> {L("Nearest", "قریب ترین")}</Button>
+          <Button variant="ghost" onClick={() => setOpenOnly((v) => !v)} className={pill(openOnly)}><Clock className="size-3.5" /> {L("Open now", "ابھی کھلی")}</Button>
+          <Button variant="ghost" onClick={() => setTopRated((v) => !v)} className={pill(topRated)}><Star className="size-3.5" /> {L("Rated 4.5+", "4.5+ ریٹنگ")}</Button>
+          <Button variant="ghost" onClick={() => setSortBy("rating")} className={pill(sortBy === "rating")}><TrendingUp className="size-3.5" /> {L("Top rated first", "بہترین پہلے")}</Button>
+          <Button variant="ghost" onClick={() => setSortBy("newest")} className={pill(sortBy === "newest")}><ArrowUpDown className="size-3.5" /> {L("Newest", "نئی دکانیں")}</Button>
         </div>
       </div>
 
@@ -363,11 +340,15 @@ const Grocery = () => {
         {loading ? (
           <StoreGridSkeleton count={6} />
         ) : shownStores.length === 0 ? (
+          debounced || openOnly || topRated ? (
+            <div className="rounded-xl border bg-card py-6 text-center text-xs text-muted-foreground">{L("No shop matches — clear search or filters", "کوئی دکان نہیں ملی — تلاش یا فلٹر ہٹائیں")}</div>
+          ) : (
           <div className="rounded-lg bg-gradient-primary p-6 text-center shadow-glow">
             <ShoppingBasket className="w-10 h-10 text-primary-foreground mx-auto mb-2" />
             <h3 className="text-lg font-extrabold text-primary-foreground mb-1">{t("grocery.comingSoon")}</h3>
             <p className="text-primary-foreground/80 text-xs">{t("grocery.noStores")}</p>
           </div>
+          )
         ) : (
           <div className="space-y-3">
             {shownStores.map((store, i) => (
@@ -406,6 +387,11 @@ const Grocery = () => {
                     {store.minimum_order > 0 && (
                       <span className="text-[10px] font-semibold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
                         {t("grocery.min")} Rs {store.minimum_order}
+                      </span>
+                    )}
+                    {store._km != null && (
+                      <span className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                        <MapPin className="w-3 h-3" /> <bdi>{store._km.toFixed(1)} km</bdi>
                       </span>
                     )}
                   </div>
