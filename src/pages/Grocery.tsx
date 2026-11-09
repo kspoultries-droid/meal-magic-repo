@@ -140,8 +140,8 @@ const Grocery = () => {
 
   const reachableAll = filterStoresByReach(stores, deliveryLoc, cityLimits, sortBy === "default");
   const reachable = reachableAll.filter((x) => (!openOnly || x.is_active) && (!topRated || Number(x.rating) >= 4.5) && (!offersOnly || !offerStoreIds || offerStoreIds.has(x.id)));
-  const storeIds = new Set(reachable.map((x) => x.id));
-  const storeName = new Map(reachable.map((x) => [x.id, x.name]));
+  const storeIds = new Set(reachableAll.map((x) => x.id));
+  const storeName = new Map(reachableAll.map((x) => [x.id, x.name]));
   const productHits = debounced ? allProducts.filter((p) => storeIds.has(p.store_id) && matchesSearch(debounced, p.name, p.category)).slice(0, 40) : [];
   const hitStoreIds = new Set(productHits.map((p) => p.store_id));
   const shownStores = debounced ? reachable.filter((x) => hitStoreIds.has(x.id) || matchesSearch(debounced, x.name, x.category)) : reachable.slice(0, 40);
