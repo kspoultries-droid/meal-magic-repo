@@ -36,7 +36,7 @@ const AppShareButton = ({ section = "general" }: AppShareButtonProps) => {
     <Button
       onClick={handleShare}
       size="sm"
-      className="fixed bottom-24 right-4 z-40 rounded-full h-12 w-12 p-0 bg-success hover:bg-success/90 text-success-foreground shadow-lg"
+      className="fixed bottom-24 left-3 z-40 rounded-full h-11 w-11 opacity-90 p-0 bg-success hover:bg-success/90 text-success-foreground shadow-lg"
       title="ایپ لنک شیئر کریں"
     >
       <MessageCircle className="h-5 w-5" />
