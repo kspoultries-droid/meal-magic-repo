@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import ServiceChecklistEditor from "@/components/services/ServiceChecklistEditor";
+import BusinessLocationDialog from "@/components/admin/BusinessLocationDialog";
 import TicketsQueue from "@/components/support/TicketsQueue";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -356,6 +357,7 @@ const ServiceManagerDashboard = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-sm">{p.name}</p>
+                        <BusinessLocationDialog business={p} kind="service_provider" onChanged={() => void fetchAllData(categories.map(c => c.id))} />
                         <p className="text-xs text-muted-foreground">
                           {p.service_categories?.name} · ⭐ {Number(p.rating).toFixed(1)} ({p.total_reviews})
                           <span className="block text-destructive">{tr("Open Complaints:", "کھلی شکایات:")} {complaints.filter(c => c.service_provider_id === p.id && c.status === "open").length} {tr("· Conduct Complaints:", "· رویے کی شکایات:")} {complaints.filter(c => c.service_provider_id === p.id && c.category === "behaviour").length}</span>

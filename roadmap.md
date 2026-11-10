@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Location privacy and shopping access
+- [x] Clear personal delivery locations and cart on logout/account switching.
+- [x] Require sign-in before adding items; resume selection and show a quiet guest reminder.
+- [x] Lock business locations for partners, preserve registration pins, and provide an admin-only relocation action; requests reuse the existing support queue.
+- [x] 10 privacy/cart tests and isolated database regressions passed; authenticated cart continuation, logout, mobile reminder and admin unchanged-location save/readback verified.
+
 ## Current request — English shopping screens and home scrolling
 - [x] Translate remaining food/Bazar banners, category labels and known service content without modifying vendor records.
 - [x] Keep ordinary touch scrolling passive; 7 refresh tests and mobile touch scroll passed. Physical Android smoothness still needs device verification.

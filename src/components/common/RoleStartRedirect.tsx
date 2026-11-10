@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { getSavedMode, startPath } from "@/lib/appMode";
+import { pendingShopping } from "@/lib/shoppingAccess";
 
 /** On app open at "/", approved riders/restaurants land on their dashboard once per launch. */
 export function RoleStartRedirect() {
@@ -14,6 +15,7 @@ export function RoleStartRedirect() {
     if (done.current || loading) return;
     if (!user) return;
     done.current = true;
+    if (pendingShopping()) return;
     if (location.pathname !== "/") return;
     const saved = getSavedMode();
     const target = saved === "customer" || isAdmin ? null : isStaff ? "/admin" : isServiceManager ? "/service-manager-dashboard" : startPath(saved, { isRider, isRestaurantOwner });

@@ -14,6 +14,7 @@ import PromotionalAds from "@/components/PromotionalAds";
 import LocationSheet from "@/components/location/LocationSheet";
 import BoughtTogether from "@/components/checkout/BoughtTogether";
 import { setStoredLocation } from "@/hooks/useDeliveryLocation";
+import { readDeliveryLocation } from "@/lib/deliveryLocationStorage";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Checkout = () => {
@@ -72,15 +73,12 @@ const Checkout = () => {
       .order("is_default", { ascending: false }).limit(6)
       .then(({ data }) => {
         setSavedAddresses(data || []);
-        let stored: any = null;
-        try {
-          stored = JSON.parse(localStorage.getItem("easylife:delivery-location") || "null");
-        } catch { /* ignore */ }
+        const stored = readDeliveryLocation(user.id);
         const def = stored || (data || []).find((a: any) => a.is_default) || (data || [])[0];
         if (def) {
           setAddress(def.address || "");
           setCoords(def.lat != null && def.lng != null ? { lat: def.lat, lng: def.lng } : null);
-          if (!stored) setStoredLocation({ label: def.label || L("Address", "پتہ"), address: def.address, lat: def.lat, lng: def.lng });
+          if (!stored) setStoredLocation({ label: def.label || L("Address", "پتہ"), address: def.address, lat: def.lat, lng: def.lng }, user.id);
         }
       });
   }, [user]);

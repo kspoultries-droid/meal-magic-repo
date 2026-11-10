@@ -1,5 +1,6 @@
 import { tr } from "@/lib/i18n/tr";
 import TicketsQueue from "@/components/support/TicketsQueue";
+import BusinessLocationDialog from "@/components/admin/BusinessLocationDialog";
 import { staffWorkspace, staffLanding } from "@/lib/staffAccess";
 import CompanySettingsTab from "@/components/admin/CompanySettingsTab";
 import MyBusinessesTab from "@/components/admin/MyBusinessesTab";
@@ -887,6 +888,7 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                     </Badge>
                   </TableCell>
                   <TableCell data-label={tr("Actions", "ایکشنز")} className="flex flex-wrap gap-1">
+                    <BusinessLocationDialog business={r} kind="restaurant" onChanged={fetchRests} />
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(r.id, r.is_active)}>
                       {r.is_active ? <><Ban className="me-1 h-3 w-3" />{tr("Inactive", "غیر فعال")}</> : <><RotateCcw className="me-1 h-3 w-3" />{tr("Active", "فعال")}</>}
                     </Button>

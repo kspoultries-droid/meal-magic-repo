@@ -31,6 +31,7 @@ import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, t
 import { printOrderReceipt } from "@/lib/receiptPrint";
 import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
 import { useQueryClient } from "@tanstack/react-query";
+import BusinessLocationRequest from "@/components/vendor/BusinessLocationRequest";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut } = useAuth();
@@ -410,34 +411,9 @@ const MyRestaurantTab = () => {
                   {/* Pickup Address (for riders) */}
                   <div className="mt-2 bg-secondary/40 border border-border/60 rounded-lg px-3 py-2 space-y-2">
                     <p className="text-xs font-bold text-muted-foreground">{t("rest.pickupTitle")}</p>
-                    <input
-                      type="text"
-                      placeholder={t("rest.pickupPlaceholder")}
-                      className="w-full h-8 text-xs border rounded-md px-2 bg-background text-foreground"
-                      defaultValue={(r as any).pickup_address || ""}
-                      onBlur={async (e) => {
-                        if (e.target.value === ((r as any).pickup_address || "")) return;
-                        await supabase.from("restaurants").update({ pickup_address: e.target.value } as any).eq("id", r.id);
-                        toast.success(tr("Update Pickup Address", "پک اپ ایڈریس اپڈیٹ")); fetchAll();
-                      }}
-                    />
+                    <p className="text-xs">{(r as any).pickup_address || tr("Location confirmation required", "مقام کی تصدیق درکار ہے")}</p>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <button
-                        type="button"
-                        className="h-7 px-2 text-xs font-bold rounded-md bg-primary text-primary-foreground hover:opacity-90"
-                        onClick={() => {
-                          if (!navigator.geolocation) { toast.error(tr("GPS Not Available", "GPS دستیاب نہیں")); return; }
-                          navigator.geolocation.getCurrentPosition(async (pos) => {
-                            await supabase.from("restaurants").update({
-                              pickup_lat: pos.coords.latitude,
-                              pickup_lng: pos.coords.longitude,
-                            } as any).eq("id", r.id);
-                            toast.success(tr("GPS Saved 📍", "GPS محفوظ ہو گیا 📍")); fetchAll();
-                          }, () => toast.error(tr("GPS Not Found", "GPS نہیں مل سکا")), { enableHighAccuracy: true, timeout: 10000 });
-                        }}
-                      >
-                        {t("rest.saveGps")}
-                      </button>
+                      <BusinessLocationRequest id={r.id} name={r.name} kind="restaurant" />
                       {(r as any).pickup_lat && (r as any).pickup_lng && (
                         <span className="text-[10px] text-primary font-semibold">
                           GPS: {Number((r as any).pickup_lat).toFixed(4)}, {Number((r as any).pickup_lng).toFixed(4)}

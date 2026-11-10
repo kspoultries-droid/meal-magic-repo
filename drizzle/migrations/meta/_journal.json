@@ -715,6 +715,20 @@
       "when": 1794219653703,
       "tag": "0101_rider_remittance_slip_check",
       "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1794300320563,
+      "tag": "0102_lock_partner_business_locations",
+      "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1794300555771,
+      "tag": "0103_fix_business_location_guard_record_fields",
+      "breakpoints": true
     }
   ]
 }
