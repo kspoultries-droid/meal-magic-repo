@@ -722,6 +722,13 @@
       "when": 1794300320563,
       "tag": "0102_lock_partner_business_locations",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1794300555771,
+      "tag": "0103_fix_business_location_guard_record_fields",
+      "breakpoints": true
     }
   ]
 }
