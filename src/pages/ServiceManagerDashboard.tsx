@@ -357,7 +357,7 @@ const ServiceManagerDashboard = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-sm">{p.name}</p>
-                        <BusinessLocationDialog business={p} kind="service_provider" onChanged={fetchData} />
+                        <BusinessLocationDialog business={p} kind="service_provider" onChanged={() => void fetchAllData(categories.map(c => c.id))} />
                         <p className="text-xs text-muted-foreground">
                           {p.service_categories?.name} · ⭐ {Number(p.rating).toFixed(1)} ({p.total_reviews})
                           <span className="block text-destructive">{tr("Open Complaints:", "کھلی شکایات:")} {complaints.filter(c => c.service_provider_id === p.id && c.status === "open").length} {tr("· Conduct Complaints:", "· رویے کی شکایات:")} {complaints.filter(c => c.service_provider_id === p.id && c.category === "behaviour").length}</span>
