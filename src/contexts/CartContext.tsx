@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, useLayoutEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { rememberShopping, SHOPPING_LOGIN_EVENT } from "@/lib/shoppingAccess";
@@ -74,7 +74,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   itemsRef.current = items;
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (account.current !== user?.id) {
       itemsRef.current = [];
       setItems([]); setVoucher(null); setIsOpen(false);
