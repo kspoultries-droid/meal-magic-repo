@@ -47,7 +47,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const autoplay = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
-  const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
+  const rtl = tr("ltr", "rtl") === "rtl";
 
   const [reload, setReload] = useState(0);
   useEffect(() => {

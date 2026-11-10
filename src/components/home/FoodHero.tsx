@@ -45,7 +45,7 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const closeCards = () => { setClosed(true); try { localStorage.setItem("easylife:food-hero-closed", "1"); } catch { /* ignore */ } };
   const openCards = () => { setClosed(false); try { localStorage.removeItem("easylife:food-hero-closed"); } catch { /* ignore */ } };
   const autoplay = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
-  const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
+  const rtl = tr("ltr", "rtl") === "rtl";
 
   useEffect(() => {
     supabase.from("promotional_ads").select("*").eq("is_active", true).order("sort_order").then(({ data }) => {

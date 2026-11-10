@@ -1,3 +1,4 @@
+import { displayText } from "@/lib/i18n/displayText";
 import { img } from "@/lib/imageUrl";
 import { Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -173,7 +174,7 @@ const Grocery = () => {
           </div>
           <label className="relative mt-4 flex h-12 items-center gap-2.5 rounded-xl bg-card px-3.5 text-card-foreground shadow-soft focus-within:ring-2 focus-within:ring-ring">
             <Search className="size-5 shrink-0 text-primary" />
-            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={L("Search a shop or item (English / اردو)", "دکان یا چیز تلاش کریں (اردو / English)")} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={L("Search a shop or item (English / Urdu)", "دکان یا چیز تلاش کریں (اردو / English)")} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
             {searchQuery && <button type="button" aria-label={L("Clear", "صاف کریں")} onClick={() => setSearchQuery("")} className="grid size-7 place-items-center rounded-full bg-muted"><X className="size-3.5" /></button>}
           </label>
           <div className="relative mt-3 grid grid-cols-3 gap-2 text-[10px] font-bold">
@@ -200,8 +201,8 @@ const Grocery = () => {
               {productHits.map((p) => (
                 <div key={p.id} className="relative">
                 <Button variant="ghost" onClick={() => navigate(`/product/${p.id}`)} className="block h-auto overflow-hidden whitespace-normal rounded-xl border bg-card p-0 text-right shadow-soft hover:bg-card">
-                  <div className="grid h-28 place-items-center bg-secondary">{p.image_url ? <img src={img(p.image_url, 320)} alt={p.name} loading="lazy" className="size-full object-cover" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
-                  <div className="p-2"><p className="truncate text-xs font-bold">{p.name}</p><p className="truncate text-[10px] text-muted-foreground">{storeName.get(p.store_id)}</p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price} <span className="text-[10px] font-normal text-muted-foreground">{p.unit}</span></p></div>
+                  <div className="grid h-28 place-items-center bg-secondary">{p.image_url ? <img src={img(p.image_url, 320)} alt={displayText(p.name)} loading="lazy" className="size-full object-cover" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
+                  <div className="p-2"><p className="truncate text-xs font-bold">{displayText(p.name)}</p><p className="truncate text-[10px] text-muted-foreground">{storeName.get(p.store_id)}</p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price} <span className="text-[10px] font-normal text-muted-foreground">{p.unit}</span></p></div>
                 </Button>
                 <Button size="icon" aria-label={L("Add to cart", "ٹوکری میں ڈالیں")} onClick={() => quickAdd(p)} className="absolute right-2 top-[5.5rem] size-8 rounded-full bg-gradient-primary text-primary-foreground shadow-glow"><Plus className="size-4" /></Button>
                 </div>
@@ -274,7 +275,7 @@ const Grocery = () => {
                 >
                   <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
                     {p.image_url ? (
-                      <img src={img(p.image_url, 360)} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                      <img src={img(p.image_url, 360)} alt={displayText(p.name)} loading="lazy" className="w-full h-full object-cover" />
                     ) : (
                       <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
                     )}
@@ -285,7 +286,7 @@ const Grocery = () => {
                     )}
                   </div>
                   <div className="p-2.5">
-                    <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+                    <p className="text-xs font-bold text-foreground truncate">{displayText(p.name)}</p>
                     <div className="flex flex-wrap items-baseline gap-1.5 mt-1">
                       <span className="text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</span>
                       {p.discount_price && (
@@ -319,7 +320,7 @@ const Grocery = () => {
               >
                 <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
                   {p.image_url ? (
-                    <img src={img(p.image_url, 360)} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                    <img src={img(p.image_url, 360)} alt={displayText(p.name)} loading="lazy" className="w-full h-full object-cover" />
                   ) : (
                     <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
                   )}
@@ -328,7 +329,7 @@ const Grocery = () => {
                   </span>
                 </div>
                 <div className="p-2.5">
-                  <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+                  <p className="text-xs font-bold text-foreground truncate">{displayText(p.name)}</p>
                   <div className="flex flex-wrap items-baseline gap-1.5 mt-1">
                     <span className="text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</span>
                     {p.discount_price && (
