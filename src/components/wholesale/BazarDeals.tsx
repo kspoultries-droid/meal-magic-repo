@@ -115,7 +115,7 @@ const BazarDeals = () => {
         <h2 className="flex items-center gap-1.5 text-sm font-extrabold text-foreground"><Ticket className="size-4 text-primary" /> {tr("Collect vouchers, save more", "واؤچر جمع کریں، بچت کریں")}</h2>
         {isAdmin && (
           <button onClick={() => setDialogOpen(true)} className="flex items-center gap-0.5 rounded-full border border-primary/40 px-2 py-0.5 text-[11px] font-bold text-primary">
-            <Plus className="size-3" /> نیا واؤچر
+            <Plus className="size-3" /> {tr("New voucher", "نیا واؤچر")}
           </button>
         )}
       </div>
