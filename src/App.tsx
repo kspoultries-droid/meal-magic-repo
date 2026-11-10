@@ -185,6 +185,7 @@ const App = () => (
             <CourierNotifications />
             <BrowserRouter>
               <RoutePrefetcher />
+              <ShoppingLogin />
               <PullToRefresh />
               <RoleStartRedirect />
               <CartDrawer />

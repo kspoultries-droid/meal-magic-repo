@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { rememberShopping, SHOPPING_LOGIN_EVENT } from "@/lib/shoppingAccess";
 
 export interface CartItemOption {
   group_id: string;
@@ -65,11 +67,20 @@ export const buildLineId = (item: AddItemInput) => {
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const account = useRef(user?.id);
   const [items, setItems] = useState<CartItem[]>([]);
   const itemsRef = useRef<CartItem[]>(items);
   itemsRef.current = items;
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  useEffect(() => {
+    if (account.current !== user?.id) {
+      itemsRef.current = [];
+      setItems([]); setVoucher(null); setIsOpen(false);
+      account.current = user?.id;
+    }
+  }, [user?.id]);
 
   const mergeItems = useCallback((previous: CartItem[], rawItems: AddItemInput[]) => {
     let next = [...previous];
@@ -100,6 +111,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const addItem = useCallback((raw: AddItemInput) => {
+    if (!user) {
+      rememberShopping([raw]);
+      window.dispatchEvent(new CustomEvent(SHOPPING_LOGIN_EVENT));
+      return false;
+    }
     const menuItemId = raw.menu_item_id || raw.id || "";
     const lineId = buildLineId({ ...raw, menu_item_id: menuItemId });
     const qty = raw.quantity ?? 1;
@@ -127,14 +143,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setItems((prev) => mergeItems(prev, [item]));
     toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 });
     return true;
-  }, [mergeItems]);
+  }, [mergeItems, user?.id]);
 
   const addItems = useCallback((rawItems: AddItemInput[]) => {
+    if (!user) {
+      rememberShopping(rawItems);
+      window.dispatchEvent(new CustomEvent(SHOPPING_LOGIN_EVENT));
+      return;
+    }
     const validItems = rawItems.filter((item) => (item.quantity ?? 0) > 0);
     if (validItems.length === 0) return;
     setItems((prev) => mergeItems(prev, validItems));
     toast.success(`${validItems.length} انتخاب کارٹ میں شامل ہو گئے ✓`, { id: "cart-add-batch", duration: 1600 });
-  }, [mergeItems]);
+  }, [mergeItems, user?.id]);
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));

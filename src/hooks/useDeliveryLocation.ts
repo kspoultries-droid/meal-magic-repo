@@ -1,36 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
-export interface DeliveryLocation {
-  id?: string;
-  label: string;
-  address: string;
-  lat?: number | null;
-  lng?: number | null;
-}
-
-const STORAGE_KEY = "easylife:delivery-location";
-const EVENT = "easylife:delivery-location-changed";
-
-const readStored = (): DeliveryLocation | null => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as DeliveryLocation) : null;
-  } catch {
-    return null;
-  }
-};
-
-export const setStoredLocation = (loc: DeliveryLocation | null) => {
-  try {
-    if (loc) localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
-    else localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    /* ignore */
-  }
-  window.dispatchEvent(new CustomEvent(EVENT));
-};
+import { readDeliveryLocation, writeDeliveryLocation, LOCATION_EVENT, type DeliveryLocation } from "@/lib/deliveryLocationStorage";
+export type { DeliveryLocation } from "@/lib/deliveryLocationStorage";
+export const setStoredLocation = writeDeliveryLocation;
 
 export const reverseGeocode = async (lat: number, lng: number) => {
   try {
@@ -46,19 +19,20 @@ export const reverseGeocode = async (lat: number, lng: number) => {
 
 export const useDeliveryLocation = () => {
   const { user } = useAuth();
-  const [location, setLocation] = useState<DeliveryLocation | null>(readStored);
+  const [location, setLocation] = useState<DeliveryLocation | null>(() => readDeliveryLocation(user?.id));
   const [saved, setSaved] = useState<DeliveryLocation[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const sync = () => setLocation(readStored());
-    window.addEventListener(EVENT, sync);
+    const sync = () => setLocation(readDeliveryLocation(user?.id));
+    sync();
+    window.addEventListener(LOCATION_EVENT, sync);
     window.addEventListener("storage", sync);
     return () => {
-      window.removeEventListener(EVENT, sync);
+      window.removeEventListener(LOCATION_EVENT, sync);
       window.removeEventListener("storage", sync);
     };
-  }, []);
+  }, [user?.id]);
 
   const loadSaved = useCallback(async () => {
     if (!user) {
@@ -71,6 +45,8 @@ export const useDeliveryLocation = () => {
       .eq("user_id", user.id)
       .order("is_default", { ascending: false })
       .limit(8);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user.id !== user.id) return;
     const list = (data || []).map((a: any) => ({
       id: a.id,
       label: a.label || "پتہ",
@@ -79,14 +55,14 @@ export const useDeliveryLocation = () => {
       lng: a.lng,
     }));
     setSaved(list);
-    if (!readStored() && list[0]) setStoredLocation(list[0]);
+    if (!readDeliveryLocation(user.id) && list[0]) setStoredLocation(list[0], user.id);
   }, [user]);
 
   useEffect(() => {
     loadSaved();
   }, [loadSaved]);
 
-  const select = useCallback((loc: DeliveryLocation) => setStoredLocation(loc), []);
+  const select = useCallback((loc: DeliveryLocation) => setStoredLocation(loc, user?.id), [user?.id]);
 
   const detect = useCallback(async () => {
     if (!navigator.geolocation) return null;
@@ -96,7 +72,7 @@ export const useDeliveryLocation = () => {
         async (pos) => {
           const { latitude, longitude } = pos.coords;
           const address = await reverseGeocode(latitude, longitude);
-          const loc: DeliveryLocation = { label: "موجودہ لوکیشن", address, lat: latitude, lng: longitude };
+          const loc: DeliveryLocation = { label: "موجودہ لوکیشن", address, lat: latitude, lng: longitude, source: "gps" };
           setStoredLocation(loc);
           setLoading(false);
           resolve(loc);
@@ -128,11 +104,12 @@ export const useDeliveryLocation = () => {
         if (data?.id) loc = { ...loc, id: data.id };
         await loadSaved();
       }
-      setStoredLocation(loc);
+      setStoredLocation(loc, user?.id);
       return loc;
     },
     [user, saved.length, loadSaved],
   );
 
-  return { location, saved, loading, select, detect, saveNew, refresh: loadSaved };
+  const visibleLocation = location?.ownerId && location.ownerId !== user?.id ? null : location;
+  return { location: visibleLocation, saved: user ? saved : [], loading, select, detect, saveNew, refresh: loadSaved };
 };

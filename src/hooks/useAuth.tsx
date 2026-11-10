@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, createContext, useContext } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { writeDeliveryLocation } from "@/lib/deliveryLocationStorage";
+import { clearPendingShopping } from "@/lib/shoppingAccess";
 
 interface AuthContextType {
   user: User | null;
@@ -112,6 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (_event === "SIGNED_OUT") { writeDeliveryLocation(null); clearPendingShopping(); queryClient.clear(); }
       syncAuthState(nextSession);
     });
 
@@ -155,6 +158,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user?.id]);
 
   const signOut = async () => {
+    writeDeliveryLocation(null);
+    clearPendingShopping();
+    queryClient.clear();
     await supabase.auth.signOut();
   };
 
