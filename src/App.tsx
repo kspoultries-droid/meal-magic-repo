@@ -18,6 +18,7 @@ import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { ApkUpdateNotice } from "@/components/common/ApkUpdateNotice";
 import { RoleStartRedirect } from "@/components/common/RoleStartRedirect";
 import { RiderLocationProvider } from "@/contexts/RiderLocationContext";
+import ShoppingLogin from "@/components/common/ShoppingLogin";
 
 
 // Auto-reload once when a lazy chunk fails to load (typically after a redeploy

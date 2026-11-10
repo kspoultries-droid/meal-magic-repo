@@ -11,6 +11,7 @@ import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XI
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { useAuth } from "@/hooks/useAuth";
+import BusinessLocationDialog from "./BusinessLocationDialog";
 
 const GROCERY_CATEGORIES = [
   "General", "Fruits", "Vegetables", "Dairy", "Eggs & Meat", "Atta & Rice",
@@ -378,6 +379,7 @@ ${tr("Share this link with your customers!", "یہ لنک اپنے کسٹمرز 
                     </TableCell>
                     <TableCell data-label={tr("Actions", "ایکشنز")}>
                       <div className="flex gap-1 flex-wrap">
+                        <BusinessLocationDialog business={s} kind="grocery" onChanged={fetchData} />
                         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setSelectedStore(selectedStore === s.id ? null : s.id)}>
                           <Eye className="h-3 w-3 mr-1" /> {tr("Products", "پروڈکٹس")}
                         </Button>
