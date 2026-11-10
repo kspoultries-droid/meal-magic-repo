@@ -63,9 +63,9 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
         />
 
         {!isActive && (
-          <div className="absolute inset-0 bg-foreground/50 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="absolute inset-0 bg-foreground/50  flex items-center justify-center">
             <span className="bg-destructive text-destructive-foreground text-xs font-bold px-4 py-2 rounded-full shadow-card">
-              بند ہے / Closed
+              {L("Closed", "بند ہے")}
             </span>
           </div>
         )}
@@ -80,18 +80,18 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
         {/* Favourite */}
         <Button variant="ghost"
           onClick={(e) => { e.stopPropagation(); setFav((v) => !v); }}
-          aria-label="پسندیدہ"
-          className="absolute top-3 right-3 p-0 w-9 h-9 rounded-full bg-card/85 backdrop-blur-md flex items-center justify-center shadow-soft active:scale-90 transition-transform"
+          aria-label={L("Favourite", "پسندیدہ")}
+          className="absolute top-3 right-3 p-0 w-9 h-9 rounded-full bg-card/85  flex items-center justify-center shadow-soft active:scale-90 transition-transform"
         >
           <Heart className={`w-4 h-4 ${fav ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
         </Button>
 
         {/* Rating pill on image */}
-        <span className="absolute bottom-2.5 left-3 flex items-center gap-1 text-[11px] font-bold text-primary-foreground bg-foreground/50 backdrop-blur-md rounded-full px-2.5 py-1">
+        <span className="absolute bottom-2.5 left-3 flex items-center gap-1 text-[11px] font-bold text-primary-foreground bg-foreground/50  rounded-full px-2.5 py-1">
           <Star className="w-3 h-3 fill-current text-warning" />
           {rating || "New"}
         </span>
-        <span className="absolute bottom-2.5 right-3 flex items-center gap-1 text-[11px] font-semibold text-primary-foreground bg-foreground/50 backdrop-blur-md rounded-full px-2.5 py-1">
+        <span className="absolute bottom-2.5 right-3 flex items-center gap-1 text-[11px] font-semibold text-primary-foreground bg-foreground/50  rounded-full px-2.5 py-1">
           <Clock className="w-3 h-3" />
           {deliveryTime}
         </span>
@@ -171,7 +171,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
             onClick={(e) => { e.stopPropagation(); navigate(`/restaurant/${restaurantId}`); }}
             className="h-10 w-full mt-1 rounded-lg bg-secondary py-2 text-xs font-bold text-primary active:scale-95 transition-transform"
           >
-            پورا مینو دیکھیں →
+            {L("View full menu →", "پورا مینو دیکھیں →")}
           </Button>
         </div>
       )}

@@ -1,3 +1,5 @@
+import { tr } from "@/lib/i18n/tr";
+import { displayText } from "@/lib/i18n/displayText";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
@@ -23,12 +25,12 @@ interface Props {
 const MAX_SLIDES = 15;
 
 type Feature = { key: string; icon: LucideIcon; eyebrow: string; title: string; cta: string; link: string };
-const FEATURES: Feature[] = [
-  { key: "f-deals", icon: Gift, eyebrow: "EasyLife آفرز", title: "واؤچر جمع کریں، زیادہ بچت کریں", cta: "واؤچر دیکھیں", link: "#bazar-deals" },
-  { key: "f-ship", icon: Truck, eyebrow: "ملک بھر میں ڈیلیوری", title: "کراچی کی ہول سیل مارکیٹ اب آپ کے شہر میں", cta: "ابھی خریدیں", link: "#bazar-shops" },
-  { key: "f-verified", icon: BadgeCheck, eyebrow: "تصدیق شدہ دکاندار", title: "براہِ راست دکان سے، بہتر قیمت پر", cta: "دکانیں دیکھیں", link: "#bazar-shops" },
-  { key: "f-sell", icon: Store, eyebrow: "اپنی دکان لگائیں", title: "EasyLife بازار پر اپنا مال بیچیں", cta: "رجسٹر کریں", link: "/partner" },
-  { key: "f-reels", icon: Video, eyebrow: "نئی ویڈیوز", title: "دکانوں کی ریلز دیکھ کر خریداری کریں", cta: "ریلز دیکھیں", link: "/reels" },
+const getFeatures = (): Feature[] => [
+  { key: "f-deals", icon: Gift, eyebrow: tr("EasyLife offers", "EasyLife آفرز"), title: tr("Collect vouchers, save more", "واؤچر جمع کریں، زیادہ بچت کریں"), cta: tr("View vouchers", "واؤچر دیکھیں"), link: "#bazar-deals" },
+  { key: "f-ship", icon: Truck, eyebrow: tr("Nationwide delivery", "ملک بھر میں ڈیلیوری"), title: tr("Karachi wholesale market, in your city", "کراچی کی ہول سیل مارکیٹ اب آپ کے شہر میں"), cta: tr("Shop now", "ابھی خریدیں"), link: "#bazar-shops" },
+  { key: "f-verified", icon: BadgeCheck, eyebrow: tr("Verified sellers", "تصدیق شدہ دکاندار"), title: tr("Direct from shops, at better prices", "براہِ راست دکان سے، بہتر قیمت پر"), cta: tr("View shops", "دکانیں دیکھیں"), link: "#bazar-shops" },
+  { key: "f-sell", icon: Store, eyebrow: tr("Open your shop", "اپنی دکان لگائیں"), title: tr("Sell your products on EasyLife Bazar", "EasyLife بازار پر اپنا مال بیچیں"), cta: tr("Register", "رجسٹر کریں"), link: "/partner" },
+  { key: "f-reels", icon: Video, eyebrow: tr("New videos", "نئی ویڈیوز"), title: tr("Discover shops through reels", "دکانوں کی ریلز دیکھ کر خریداری کریں"), cta: tr("Watch reels", "ریلز دیکھیں"), link: "/reels" },
 ];
 
 const seen = new Set<string>();
@@ -45,7 +47,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const autoplay = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
-  const rtl = typeof document !== "undefined" && getComputedStyle(document.documentElement).direction === "rtl";
+  const rtl = tr("ltr", "rtl") === "rtl";
 
   const [reload, setReload] = useState(0);
   useEffect(() => {
@@ -63,7 +65,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
     return () => { api.off("select", onSelect); };
   }, [api]);
 
-  const features = FEATURES.slice(0, Math.max(0, MAX_SLIDES - ads.length));
+  const features = getFeatures().slice(0, Math.max(0, MAX_SLIDES - ads.length));
   const total = ads.length + features.length;
   useEffect(() => { const ad = ads[current]; if (ad) track(ad.id, "view"); }, [current, ads]);
 
@@ -75,19 +77,19 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   };
   const openAd = (ad: Ad) => {
     track(ad.id, "click");
-    if (ad.promo_code) navigator.clipboard?.writeText(ad.promo_code).then(() => toast.success(`کوڈ ${ad.promo_code} کاپی ہو گیا`)).catch(() => {});
+    if (ad.promo_code) navigator.clipboard?.writeText(ad.promo_code).then(() => toast.success(tr(`Code ${ad.promo_code} copied`, `کوڈ ${ad.promo_code} کاپی ہو گیا`))).catch(() => {});
     go(ad.link_url);
   };
 
-  if (!loaded) return <header aria-busy="true" aria-label="بازار" className="h-[calc(15rem+env(safe-area-inset-top,0px))] bg-muted" />;
+  if (!loaded) return <header aria-busy="true" aria-label={tr("Bazar", "بازار")} className="h-[calc(15rem+env(safe-area-inset-top,0px))] bg-muted" />;
 
   const searchBar = (
     <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 px-3 pb-2 pt-[calc(env(safe-area-inset-top,0px)+0.5rem)]">
       <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border-2 border-primary bg-card ps-3 shadow-elegant">
         <Search className="size-5 shrink-0 text-muted-foreground" />
-        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={config.searchPlaceholder} enterKeyHint="search" className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
-        {searchQuery && <button type="button" aria-label="صاف کریں" onClick={() => onSearchChange("")} className="grid size-8 place-items-center text-muted-foreground"><X className="size-4" /></button>}
-        <span className="m-1 grid h-8 place-items-center rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground">تلاش</span>
+        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={displayText(config.searchPlaceholder)} enterKeyHint="search" className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
+        {searchQuery && <button type="button" aria-label={tr("Clear", "صاف کریں")} onClick={() => onSearchChange("")} className="grid size-8 place-items-center text-muted-foreground"><X className="size-4" /></button>}
+        <span className="m-1 grid h-8 place-items-center rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground">{tr("Search", "تلاش")}</span>
       </label>
       {isAdmin && <BazarSlidesManager onChanged={() => setReload((n) => n + 1)} extra={<HeroEditor config={config} defaults={bazarHeroDefaults} onSave={save} />} />}
     </div>
@@ -115,7 +117,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
                     {ad.offer_badge && <span className="mb-1 inline-block rounded-full bg-destructive px-2.5 py-0.5 text-xs font-extrabold text-destructive-foreground">{ad.offer_badge}</span>}
                     <p className="text-[11px] font-semibold opacity-90">{ad.brand_name}</p>
                     <p className="line-clamp-2 text-xl font-extrabold leading-tight">{ad.title}</p>
-                    <span className="mt-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || "ابھی دیکھیں"}</span>
+                    <span className="mt-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || tr("View now", "ابھی دیکھیں")}</span>
                   </div>
                 </>}
                 <span className="absolute bottom-3 start-3 rounded bg-foreground/50 px-1.5 py-0.5 text-[9px] font-medium text-background">AD</span>
@@ -141,9 +143,9 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
       </div>
       {config.showBadges && (
         <div className="flex h-9 items-center justify-around bg-foreground/85 px-2 text-[11px] font-semibold text-background">
-          <span className="flex items-center gap-1"><ShieldCheck className="size-3.5" /> {config.badge1}</span>
-          <span className="flex items-center gap-1"><Truck className="size-3.5" /> {config.badge2}</span>
-          <span className="flex items-center gap-1"><BadgeCheck className="size-3.5" /> {config.badge3}</span>
+          <span className="flex items-center gap-1"><ShieldCheck className="size-3.5" /> {displayText(config.badge1)}</span>
+          <span className="flex items-center gap-1"><Truck className="size-3.5" /> {displayText(config.badge2)}</span>
+          <span className="flex items-center gap-1"><BadgeCheck className="size-3.5" /> {displayText(config.badge3)}</span>
         </div>
       )}
     </header>
