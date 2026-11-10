@@ -12,6 +12,7 @@ import { startAuthentication } from "@simplewebauthn/browser";
 import { lovable } from "@/integrations/lovable/index";
 import { Capacitor } from "@capacitor/core";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pendingShopping } from "@/lib/shoppingAccess";
 
 const Auth = () => {
   const { t } = useLanguage();
@@ -37,7 +38,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success(t("auth.loginSuccess"));
-        navigate("/");
+        navigate(pendingShopping()?.path || "/");
       } else {
         const domain = email.trim().toLowerCase().split("@")[1] || "";
         const typos: Record<string, string> = { "gmial.com": "gmail.com", "gmai.com": "gmail.com", "gmail.co": "gmail.com", "gmal.com": "gmail.com", "gmail.con": "gmail.com", "gamil.com": "gmail.com", "yahoo.co": "yahoo.com", "yaho.com": "yahoo.com", "hotmial.com": "hotmail.com", "outlok.com": "outlook.com" };
@@ -62,7 +63,7 @@ const Auth = () => {
         if (error) throw error;
         if (data.session) {
           toast.success(t("auth.accountCreated"));
-          navigate("/");
+          navigate(pendingShopping()?.path || "/");
         } else {
           setSignupNotice(t("auth.checkEmail"));
         }
@@ -128,7 +129,7 @@ const Auth = () => {
       if (error) throw error;
 
       toast.success(t("auth.biometricSuccess"));
-      navigate("/");
+      navigate(pendingShopping()?.path || "/");
     } catch (error: any) {
       if (error.name === "NotAllowedError") {
         toast.error(t("auth.biometricCancelled"));
