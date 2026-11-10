@@ -40,4 +40,17 @@ describe("mobile pull to refresh", () => {
     const refresh = setup(); touch("touchstart", 100); touch("touchmove", 280); touch("touchcancel", 280); touch("touchend", 280);
     expect(refresh).not.toHaveBeenCalled();
   });
+  it("does not register a blocking move listener while scrolling below the top", () => {
+    const spy = vi.spyOn(document, "addEventListener");
+    setup(); vi.stubGlobal("scrollY", 300); touch("touchstart", 100);
+    expect(spy.mock.calls.filter(([name]) => name === "touchmove")).toHaveLength(0);
+    spy.mockRestore();
+  });
+  it("releases the blocking listener when an upward scroll starts", () => {
+    setup(); touch("touchstart", 100);
+    const spy = vi.spyOn(document, "removeEventListener");
+    touch("touchmove", 50);
+    expect(spy.mock.calls.some(([name]) => name === "touchmove")).toBe(true);
+    spy.mockRestore();
+  });
 });

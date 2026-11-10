@@ -1,5 +1,10 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — English shopping screens and home scrolling
+- [ ] Translate remaining food/Bazar banners, category labels and known service content without modifying vendor records.
+- [ ] Keep ordinary touch scrolling passive; verify refresh and mobile home scrolling.
+- [ ] Check English shopping screens at mobile and desktop sizes.
+
 ## Current request — Ration photo orders
 - [x] Repair customer approval and safe slip/revised-selection workflow; actual customer control and persisted readback checked.
 - [x] Enforce one waiting list per customer and owner-scoped shop blocking; isolated database tests passed.

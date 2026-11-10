@@ -17,8 +17,12 @@ export function PullToRefresh({ onRefresh = reloadPage }: { onRefresh?: () => vo
     let start: { x: number; y: number } | null = null;
     let pull = 0;
     let busy = false;
-    const reset = () => { start = null; pull = 0; setDistance(0); };
+    const reset = () => {
+      document.removeEventListener("touchmove", move);
+      start = null; pull = 0; setDistance(0);
+    };
     const begin = (event: TouchEvent) => {
+      reset();
       const touch = event.touches[0];
       if (!touch || event.touches.length !== 1 || window.scrollY > 0 || busy) return;
       if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
@@ -27,9 +31,11 @@ export function PullToRefresh({ onRefresh = reloadPage }: { onRefresh?: () => vo
       while (element && element !== document.body) {
         const style = getComputedStyle(element);
         if (/auto|scroll/.test(style.overflowY) && element.scrollHeight > element.clientHeight) return;
+        if (/auto|scroll/.test(style.overflowX) && element.scrollWidth > element.clientWidth) return;
         element = element.parentElement;
       }
       start = { x: touch.clientX, y: touch.clientY };
+      document.addEventListener("touchmove", move, { passive: false });
     };
     const move = (event: TouchEvent) => {
       const touch = event.touches[0];
@@ -53,7 +59,6 @@ export function PullToRefresh({ onRefresh = reloadPage }: { onRefresh?: () => vo
     };
     document.documentElement.classList.add("pull-refresh-enabled");
     document.addEventListener("touchstart", begin, { passive: true });
-    document.addEventListener("touchmove", move, { passive: false });
     document.addEventListener("touchend", finish);
     document.addEventListener("touchcancel", reset);
     return () => {
