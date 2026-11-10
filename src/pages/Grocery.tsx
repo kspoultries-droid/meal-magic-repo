@@ -23,17 +23,27 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
 
+import catAll from "@/assets/grocery/cat-all.jpg";
+import catGrocery from "@/assets/grocery/atta-rice.jpg";
+import catMeat from "@/assets/meat/mutton.jpg";
+import catVeg from "@/assets/grocery/vegetables.jpg";
+import catFruit from "@/assets/grocery/fruits.jpg";
+import catDairy from "@/assets/grocery/milk.jpg";
+import catAtta from "@/assets/grocery/atta-10kg.jpg";
+import catCake from "@/assets/grocery/cat-cake.jpg";
+import catFlowers from "@/assets/grocery/cat-flowers.jpg";
+import catGifts from "@/assets/grocery/cat-gifts.jpg";
 const groceryCategories = [
-  { key: "grocery.cat.all", name: "All", icon: ShoppingBasket, filter: null },
-  { key: "grocery.cat.grocery", name: "Grocery", icon: ShoppingBasket, filter: "General" },
-  { key: "grocery.cat.meat", name: "Meat", icon: Drumstick, filter: "Eggs & Meat" },
-  { key: "grocery.cat.vegetables", name: "Vegetables", icon: Carrot, filter: "Vegetables" },
-  { key: "grocery.cat.fruits", name: "Fruits", icon: Apple, filter: "Fruits" },
-  { key: "grocery.cat.dairy", name: "Dairy", icon: Milk, filter: "Dairy" },
-  { key: "grocery.cat.attaRice", name: "Atta/Rice", icon: Wheat, filter: "Atta & Rice" },
-  { key: "grocery.cat.cake", name: "Cake", icon: Cake, filter: "Cake" },
-  { key: "grocery.cat.flowers", name: "Flowers", icon: Flower2, filter: "Flowers" },
-  { key: "grocery.cat.gifts", name: "Gifts", icon: Gift, filter: "Gift" },
+  { key: "grocery.cat.all", name: "All", image: catAll, icon: ShoppingBasket, filter: null },
+  { key: "grocery.cat.grocery", name: "Grocery", image: catGrocery, icon: ShoppingBasket, filter: "General" },
+  { key: "grocery.cat.meat", name: "Meat", image: catMeat, icon: Drumstick, filter: "Eggs & Meat" },
+  { key: "grocery.cat.vegetables", name: "Vegetables", image: catVeg, icon: Carrot, filter: "Vegetables" },
+  { key: "grocery.cat.fruits", name: "Fruits", image: catFruit, icon: Apple, filter: "Fruits" },
+  { key: "grocery.cat.dairy", name: "Dairy", image: catDairy, icon: Milk, filter: "Dairy" },
+  { key: "grocery.cat.attaRice", name: "Atta/Rice", image: catAtta, icon: Wheat, filter: "Atta & Rice" },
+  { key: "grocery.cat.cake", name: "Cake", image: catCake, icon: Cake, filter: "Cake" },
+  { key: "grocery.cat.flowers", name: "Flowers", image: catFlowers, icon: Flower2, filter: "Flowers" },
+  { key: "grocery.cat.gifts", name: "Gifts", image: catGifts, icon: Gift, filter: "Gift" },
 ] as const;
 
 const sortOptions = [
@@ -218,9 +228,8 @@ const Grocery = () => {
           <h2 className="text-lg font-extrabold text-foreground">{t("grocery.category")}</h2>
           <span className="text-xs text-muted-foreground">{t("grocery.shopByCategory")}</span>
         </div>
-        <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-3 pt-1 scrollbar-hide snap-x">
+        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x">
           {groceryCategories.map((cat) => {
-            const Icon = cat.icon;
             const isActive = activeCategory === cat.filter;
             return (
               <button
@@ -228,23 +237,12 @@ const Grocery = () => {
                 key={cat.name}
                 aria-pressed={isActive}
                 onClick={() => setActiveCategory(isActive ? null : cat.filter)}
-                className={`group relative flex shrink-0 snap-start flex-col items-center gap-2 rounded-2xl px-2 pb-2.5 pt-3 w-[78px] transition-all duration-300 active:scale-95 ${
-                  isActive
-                    ? "bg-gradient-primary text-primary-foreground shadow-glow -translate-y-0.5"
-                    : "bg-card border border-border/50 text-foreground shadow-soft hover:border-primary/40 hover:-translate-y-0.5"
-                }`}
+                className="group flex w-[78px] shrink-0 snap-start flex-col items-center gap-1.5 active:scale-95 transition-transform"
               >
-                <span
-                  className={`flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? "bg-primary-foreground/20 ring-1 ring-primary-foreground/30"
-                      : "bg-gradient-to-br from-primary/15 to-primary/5 text-primary group-hover:scale-110"
-                  }`}
-                >
-                  <Icon className="h-6 w-6" strokeWidth={2.2} />
+                <span className={`relative h-[78px] w-[78px] overflow-hidden rounded-lg border bg-muted ${isActive ? "border-primary ring-2 ring-primary" : "border-border"}`}>
+                  <img src={cat.image} alt={cat.name} loading="lazy" width={78} height={78} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 </span>
-                <span className="line-clamp-1 text-[11px] font-bold leading-tight">{t(cat.key)}</span>
-                {isActive && <span className="absolute -bottom-1 h-1.5 w-6 rounded-full bg-primary" />}
+                <span className={`w-full truncate text-center text-[11px] font-bold ${isActive ? "text-primary" : "text-foreground"}`}>{t(cat.key)}</span>
               </button>
             );
           })}
