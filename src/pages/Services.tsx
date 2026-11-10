@@ -1,3 +1,4 @@
+import { displayText } from "@/lib/i18n/displayText";
 import { tr } from "@/lib/i18n/tr";
 import { img } from "@/lib/imageUrl";
 import { useState, useEffect, useRef } from "react";
@@ -296,9 +297,9 @@ const Services = () => {
             </div>
           )}
           <div style={{ textAlign: heroConfig.align }}>
-            <p className="text-[11px] font-bold mb-0.5" style={{ color: heroConfig.accentColor }}>{heroConfig.eyebrow}</p>
-            <h1 className="break-words font-extrabold leading-snug" style={{ fontSize: heroConfig.titleSize }}>{heroConfig.title}</h1>
-            <p className="text-xs opacity-80 mb-3">{heroConfig.subtitle}</p>
+            <p className="text-[11px] font-bold mb-0.5" style={{ color: heroConfig.accentColor }}>{displayText(heroConfig.eyebrow)}</p>
+            <h1 className="break-words font-extrabold leading-snug" style={{ fontSize: heroConfig.titleSize }}>{displayText(heroConfig.title)}</h1>
+            <p className="text-xs opacity-80 mb-3">{displayText(heroConfig.subtitle)}</p>
           </div>
           <div className="flex h-12 min-w-0 items-center gap-3 rounded-lg border border-border bg-card px-4 shadow-soft focus-within:ring-2 focus-within:ring-ring">
             <Search className="w-5 h-5 text-primary shrink-0" />
@@ -306,14 +307,14 @@ const Services = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={heroConfig.searchPlaceholder}
+              placeholder={displayText(heroConfig.searchPlaceholder)}
               className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
             />
           </div>
           {heroConfig.showBadges && (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-bold">
               {[heroConfig.badge1, heroConfig.badge2, heroConfig.badge3].filter(Boolean).map((badge) => (
-                <span key={badge} className="rounded-full bg-card/85 px-2.5 py-1 text-foreground shadow-sm">{badge}</span>
+                <span key={displayText(badge)} className="rounded-full bg-card/85 px-2.5 py-1 text-foreground shadow-sm">{displayText(badge)}</span>
               ))}
             </div>
           )}
@@ -360,11 +361,11 @@ const Services = () => {
                   className="flex flex-col items-center gap-0.5 p-1.5 rounded-lg border bg-card hover:shadow-sm transition-all"
                 >
               {cat.image_url ? (
-                    <img src={img(cat.image_url, 360)} alt={cat.name} className="w-5 h-5 object-cover rounded" />
+                    <img src={img(cat.image_url, 360)} alt={displayText(cat.name)} className="w-5 h-5 object-cover rounded" />
                   ) : (
                     <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                   )}
-                  <span className="w-full line-clamp-2 text-[10px] font-semibold text-muted-foreground text-center leading-5">{cat.name}</span>
+                  <span className="w-full line-clamp-2 text-[10px] font-semibold text-muted-foreground text-center leading-5">{displayText(cat.name)}</span>
                 </button>
               );
             }
@@ -388,12 +389,12 @@ const Services = () => {
               >
               <div className={`w-9 h-9 rounded-xl ${cat.color} flex items-center justify-center overflow-hidden`}>
                   {cat.image_url ? (
-                    <img src={img(cat.image_url, 360)} alt={cat.name} className={`w-full h-full object-cover ${!cat.is_active ? "grayscale" : ""}`} />
+                    <img src={img(cat.image_url, 360)} alt={displayText(cat.name)} className={`w-full h-full object-cover ${!cat.is_active ? "grayscale" : ""}`} />
                   ) : (
                     <Icon className="w-4 h-4" />
                   )}
                 </div>
-                <span className="w-full break-words text-[10px] font-bold text-foreground text-center leading-5">{cat.name}</span>
+                <span className="w-full break-words text-[10px] font-bold text-foreground text-center leading-5">{displayText(cat.name)}</span>
                 {!cat.is_active && (
                   <span className="text-[7px] font-bold text-muted-foreground">{tr("Coming Soon", "جلد آ رہا ہے")}</span>
                 )}
@@ -407,7 +408,7 @@ const Services = () => {
       <div className="container mx-auto px-4 pb-4">
         <h2 ref={servicesRef} className="text-lg font-extrabold text-foreground mb-3 scroll-mt-24">
           {activeCategory
-            ? `${categories.find((c) => c.id === activeCategory)?.name || ""} Services / سروسز`
+            ? `${displayText(categories.find((c) => c.id === activeCategory)?.name)} ${tr("Services", "سروسز")}`
             : t("services.all")}
         </h2>
         {loading ? (
@@ -432,7 +433,7 @@ const Services = () => {
                 <div key={service.id}>
                   {showCategoryHeader && categoryName && (
                     <div className="flex items-center gap-2 pt-3 pb-1 first:pt-0">
-                      <h3 className="text-sm font-extrabold text-primary">{categoryName}</h3>
+                      <h3 className="text-sm font-extrabold text-primary">{displayText(categoryName)}</h3>
                       <div className="flex-1 h-px bg-border" />
                     </div>
                   )}
@@ -449,14 +450,14 @@ const Services = () => {
                     effectivelyActive ? "bg-secondary" : "bg-muted"
                   }`}>
                     {service.image_url ? (
-                      <img src={img(service.image_url, 360)} alt={service.name} className={`w-full h-full object-cover ${!effectivelyActive ? "grayscale" : ""}`} />
+                      <img loading="lazy" decoding="async" src={img(service.image_url, 160)} alt={displayText(service.name)} className={`w-full h-full object-cover ${!effectivelyActive ? "grayscale" : ""}`} />
                     ) : (
                       <Wrench className="w-8 h-8 text-muted-foreground" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="break-words font-bold text-foreground">{service.name}</h3>
+                      <h3 className="break-words font-bold text-foreground">{displayText(service.name)}</h3>
                       {!effectivelyActive && (
                         <span className="shrink-0 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
                           {tr("🔄 Coming Soon", "🔄 جلد آ رہا ہے")}
@@ -465,7 +466,7 @@ const Services = () => {
                     </div>
                     {effectivelyActive ? (
                       service.description && (
-                        <p className="text-xs text-muted-foreground truncate">{service.description}</p>
+                        <p className="text-xs text-muted-foreground truncate">{displayText(service.description)}</p>
                       )
                     ) : (
                       <p className="text-xs text-muted-foreground">{tr("Coming Soon — Updating ⏳", "Coming Soon — اپ ڈیٹ ہو رہی ہے ⏳")}</p>
@@ -475,7 +476,7 @@ const Services = () => {
                         <Star className="w-3 h-3 text-warning" /> {service.rating || t("services.new")}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {service.duration}
+                        <Clock className="w-3 h-3" /> {displayText(service.duration)}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 mt-2">

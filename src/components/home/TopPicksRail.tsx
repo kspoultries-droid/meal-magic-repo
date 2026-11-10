@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { img } from "@/lib/imageUrl";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -58,7 +59,7 @@ const TopPicksRail = () => {
         <div className="w-7 h-7 shrink-0 rounded-lg bg-accent flex items-center justify-center">
           <Crown className="w-4 h-4 text-primary" />
         </div>
-        <h2 className="text-lg font-extrabold text-foreground">بہترین انتخاب</h2>
+        <h2 className="text-lg font-extrabold text-foreground">{tr("Top picks", "بہترین انتخاب")}</h2>
         <span className="min-w-0 text-[11px] text-muted-foreground">Top picks for you</span>
       </div>
 

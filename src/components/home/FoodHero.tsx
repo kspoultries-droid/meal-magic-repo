@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
@@ -19,12 +20,12 @@ interface Props {
 
 /** Food page top banner (Bazar style): search sits on the rotating cards; paid "home" ads first, then EasyLife slides. */
 const MAX_SLIDES = 8;
-const SLIDES = [
-  { key: "s1", eyebrow: "آج ہی آرڈر کریں", title: "پہلے آرڈر پر مفت ڈیلیوری", cta: "ابھی حاصل کریں", to: "/category/biryani", image: foodBiryani },
-  { key: "s2", eyebrow: "منتخب ریسٹورنٹس پر", title: "روزانہ نئی ڈیلز اور رعایت", cta: "ڈیلز دیکھیں", to: "/category/burgers", image: foodKarahi },
-  { key: "s3", eyebrow: "آپ کے قریب", title: "30 منٹ میں تیز ڈیلیوری", cta: "آرڈر کریں", to: "/category/pizza", image: foodBbq },
+const getSlides = () => [
+  { key: "s1", eyebrow: tr("Order today", "آج ہی آرڈر کریں"), title: tr("Free delivery on your first order", "پہلے آرڈر پر مفت ڈیلیوری"), cta: tr("Get it now", "ابھی حاصل کریں"), to: "/category/biryani", image: foodBiryani },
+  { key: "s2", eyebrow: tr("At selected restaurants", "منتخب ریسٹورنٹس پر"), title: tr("New deals and discounts daily", "روزانہ نئی ڈیلز اور رعایت"), cta: tr("View deals", "ڈیلز دیکھیں"), to: "/category/burgers", image: foodKarahi },
+  { key: "s3", eyebrow: tr("Near you", "آپ کے قریب"), title: tr("Fast delivery in 30 minutes", "30 منٹ میں تیز ڈیلیوری"), cta: tr("Order now", "آرڈر کریں"), to: "/category/pizza", image: foodBbq },
 ];
-const PLACEHOLDERS = ["آج کیا کھانے کا دل ہے؟", "بریانی، پیزا یا برگر؟", "قریبی ریسٹورنٹس تلاش کریں…"];
+const getPlaceholders = () => [tr("What would you like to eat?", "آج کیا کھانے کا دل ہے؟"), tr("Biryani, pizza or burgers?", "بریانی، پیزا یا برگر؟"), tr("Find nearby restaurants…", "قریبی ریسٹورنٹس تلاش کریں…")];
 
 const seen = new Set<string>();
 const track = (id: string, kind: "view" | "click") => {
@@ -34,6 +35,8 @@ const track = (id: string, kind: "view" | "click") => {
 
 const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const navigate = useNavigate();
+  const SLIDES = getSlides();
+  const PLACEHOLDERS = getPlaceholders();
   const [ads, setAds] = useState<Ad[]>([]);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -42,7 +45,7 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const closeCards = () => { setClosed(true); try { localStorage.setItem("easylife:food-hero-closed", "1"); } catch { /* ignore */ } };
   const openCards = () => { setClosed(false); try { localStorage.removeItem("easylife:food-hero-closed"); } catch { /* ignore */ } };
   const autoplay = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
-  const rtl = typeof document !== "undefined" && getComputedStyle(document.documentElement).direction === "rtl";
+  const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
 
   useEffect(() => {
     supabase.from("promotional_ads").select("*").eq("is_active", true).order("sort_order").then(({ data }) => {
@@ -69,7 +72,7 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   };
   const openAd = (ad: Ad) => {
     track(ad.id, "click");
-    if (ad.promo_code) navigator.clipboard?.writeText(ad.promo_code).then(() => toast.success(`کوڈ ${ad.promo_code} کاپی ہو گیا`)).catch(() => {});
+    if (ad.promo_code) navigator.clipboard?.writeText(ad.promo_code).then(() => toast.success(tr(`Code ${ad.promo_code} copied`, `کوڈ ${ad.promo_code} کاپی ہو گیا`))).catch(() => {});
     go(ad.link_url);
   };
 
@@ -77,22 +80,22 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
     <div className="absolute inset-x-0 top-0 z-20 px-3 pt-3">
       <label className="flex h-11 items-center gap-2 rounded-xl border-2 border-primary bg-card ps-3 shadow-elegant">
         <Search className="size-5 shrink-0 text-muted-foreground" />
-        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={PLACEHOLDERS[ph]} enterKeyHint="search" aria-label="کھانا تلاش کریں" className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
-        {searchQuery && <button type="button" aria-label="صاف کریں" onClick={() => onSearchChange("")} className="grid size-8 place-items-center text-muted-foreground"><X className="size-4" /></button>}
-        <span className="m-1 grid h-8 place-items-center rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground">تلاش</span>
+        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={PLACEHOLDERS[ph]} enterKeyHint="search" aria-label={tr("Search food", "کھانا تلاش کریں")} className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
+        {searchQuery && <button type="button" aria-label={tr("Clear", "صاف کریں")} onClick={() => onSearchChange("")} className="grid size-8 place-items-center text-muted-foreground"><X className="size-4" /></button>}
+        <span className="m-1 grid h-8 place-items-center rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground">{tr("Search", "تلاش")}</span>
       </label>
     </div>
   );
 
   if (hideAds) return <header className="relative h-[4.25rem] bg-gradient-hero">{searchBar}</header>;
-  if (closed) return <header className="relative h-[5.75rem] bg-gradient-hero">{searchBar}<button type="button" onClick={openCards} className="absolute bottom-1.5 start-3 text-[11px] font-bold text-primary-foreground underline">آفرز دوبارہ دکھائیں</button></header>;
+  if (closed) return <header className="relative h-[5.75rem] bg-gradient-hero">{searchBar}<button type="button" onClick={openCards} className="absolute bottom-1.5 start-3 text-[11px] font-bold text-primary-foreground underline">{tr("Show offers again", "آفرز دوبارہ دکھائیں")}</button></header>;
 
   const H = "h-56 sm:h-72";
   return (
     <header className="relative isolate">
       {searchBar}
       <div className="relative">
-        <button type="button" onClick={closeCards} aria-label="کارڈز بند کریں" className="absolute end-3 top-16 z-20 grid size-7 place-items-center rounded-full bg-foreground/55 text-background"><X className="size-4" /></button>
+        <button type="button" onClick={closeCards} aria-label={tr("Close cards", "کارڈز بند کریں")} className="absolute end-3 top-16 z-20 grid size-7 place-items-center rounded-full bg-foreground/55 text-background"><X className="size-4" /></button>
         <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 ? [autoplay.current] : []} className="w-full">
           <CarouselContent className="ml-0">
             {ads.map((ad, i) => (
@@ -106,7 +109,7 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
                       {ad.offer_badge && <span className="mb-1 inline-block rounded-full bg-destructive px-2.5 py-0.5 text-xs font-extrabold text-destructive-foreground">{ad.offer_badge}</span>}
                       <p className="text-[11px] font-semibold opacity-90">{ad.brand_name}</p>
                       <p className="line-clamp-2 text-xl font-extrabold leading-tight">{ad.title}</p>
-                      <span className="mt-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || "ابھی دیکھیں"}</span>
+                      <span className="mt-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || tr("View now", "ابھی دیکھیں")}</span>
                     </div>
                   </>}
                   <span className="absolute bottom-3 start-3 rounded bg-foreground/50 px-1.5 py-0.5 text-[9px] font-medium text-background">AD</span>
@@ -132,10 +135,10 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
         {total > 1 && <span dir="ltr" className="absolute bottom-3 end-3 z-10 rounded-full bg-foreground/50 px-2 py-0.5 text-[11px] font-bold text-background">{current + 1}/{total}</span>}
       </div>
       <div className="flex h-9 items-center justify-around bg-primary px-2 text-[11px] font-semibold text-primary-foreground">
-        <span className="flex items-center gap-1"><Bike className="size-3.5" /> تیز ڈیلیوری</span>
-        <span className="flex items-center gap-1"><Timer className="size-3.5" /> 30 منٹ</span>
-        <span className="flex items-center gap-1"><Flame className="size-3.5" /> روزانہ ڈیلز</span>
-        <span className="flex items-center gap-1"><Star className="size-3.5" /> ٹاپ ریٹڈ</span>
+        <span className="flex items-center gap-1"><Bike className="size-3.5" /> {tr("Fast delivery", "تیز ڈیلیوری")}</span>
+        <span className="flex items-center gap-1"><Timer className="size-3.5" /> {tr("30 min", "30 منٹ")}</span>
+        <span className="flex items-center gap-1"><Flame className="size-3.5" /> {tr("Daily deals", "روزانہ ڈیلز")}</span>
+        <span className="flex items-center gap-1"><Star className="size-3.5" /> {tr("Top rated", "ٹاپ ریٹڈ")}</span>
       </div>
     </header>
   );

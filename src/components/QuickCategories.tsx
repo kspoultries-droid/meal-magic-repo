@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { Percent, Sparkles, ShoppingBag, ChefHat, Award } from "lucide-react";
 
 export type QuickFilter = "offers" | "new" | "pickup" | "homechefs" | "top-rated" | null;
@@ -38,7 +39,7 @@ const QuickCategories = ({ active, onChange }: Props) => {
                   <Icon className="w-6 h-6" />
                 </div>
                 <span className={`text-[11px] font-bold text-center leading-tight ${isActive ? "text-primary" : "text-foreground"}`}>
-                  {cat.ur}
+                  {tr(cat.name, cat.ur)}
                 </span>
               </button>
             );
