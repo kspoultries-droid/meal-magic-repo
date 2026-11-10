@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useRef, useLay
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { rememberShopping, SHOPPING_LOGIN_EVENT } from "@/lib/shoppingAccess";
+import { tr } from "@/lib/i18n/tr";
 
 export interface CartItemOption {
   group_id: string;
@@ -133,15 +134,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
       if (!sameSource || !sameShop) {
         // Never silently wipe a cart: ask first (one shop = one rider trip = one bill).
-        toast.warning(`آپ کے کارٹ میں «${first.restaurant}» کی اشیاء ہیں۔ ایک آرڈر میں ایک ہی دکان کی چیزیں آ سکتی ہیں۔`, {
+        toast.warning(tr(`Your cart contains items from ${first.restaurant}. One order can contain items from one shop only.`, `آپ کے کارٹ میں «${first.restaurant}» کی اشیاء ہیں۔ ایک آرڈر میں ایک ہی دکان کی چیزیں آ سکتی ہیں۔`), {
           id: "cart-swap", duration: 8000,
-          action: { label: "پرانا ہٹا کر شامل کریں", onClick: () => { setItems([item]); toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 }); } },
+          action: { label: tr("Replace cart", "پرانا ہٹا کر شامل کریں"), onClick: () => { setItems([item]); toast.success(tr(`${item.name} added to cart ✓`, `${item.name} کارٹ میں شامل ✓`), { id: "cart-add", duration: 1500 }); } },
         });
         return false;
       }
     }
     setItems((prev) => mergeItems(prev, [item]));
-    toast.success(`${item.name} کارٹ میں شامل ✓`, { id: "cart-add", duration: 1500 });
+    toast.success(tr(`${item.name} added to cart ✓`, `${item.name} کارٹ میں شامل ✓`), { id: "cart-add", duration: 1500 });
     return true;
   }, [mergeItems, user?.id]);
 
@@ -154,7 +155,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const validItems = rawItems.filter((item) => (item.quantity ?? 0) > 0);
     if (validItems.length === 0) return;
     setItems((prev) => mergeItems(prev, validItems));
-    toast.success(`${validItems.length} انتخاب کارٹ میں شامل ہو گئے ✓`, { id: "cart-add-batch", duration: 1600 });
+    toast.success(tr(`${validItems.length} selections added to cart ✓`, `${validItems.length} انتخاب کارٹ میں شامل ہو گئے ✓`), { id: "cart-add-batch", duration: 1600 });
   }, [mergeItems, user?.id]);
 
   const removeItem = useCallback((id: string) => {
