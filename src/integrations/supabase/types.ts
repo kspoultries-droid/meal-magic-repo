@@ -5188,6 +5188,18 @@ export type Database = {
         }
         Returns: string
       }
+      admin_relocate_business: {
+        Args: {
+          _address: string
+          _city_id: string
+          _id: string
+          _kind: string
+          _lat: number
+          _lng: number
+          _reason: string
+        }
+        Returns: undefined
+      }
       admin_set_rider_state: {
         Args: { _action: string; _reason?: string; _rider_id: string }
         Returns: undefined
