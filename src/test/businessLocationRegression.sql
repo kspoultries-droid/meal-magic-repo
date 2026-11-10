@@ -10,6 +10,7 @@ BEGIN
  definition:=pg_get_functiondef('public.guard_business_location()'::regprocedure);
  definition:=replace(definition,'FUNCTION public.guard_business_location()','FUNCTION pg_temp.registration_location_guard()');
  definition:=replace(definition,'FROM public.partner_applications','FROM pg_temp.partner_applications');
+ definition:=replace(definition,'auth.uid()', 'nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid');
  EXECUTE definition;
 END $$;
 CREATE TRIGGER location_guard BEFORE INSERT OR UPDATE ON pg_temp.restaurants FOR EACH ROW EXECUTE FUNCTION public.guard_business_location();
