@@ -103,7 +103,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (first) {
         const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
         const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
-        if (!sameSource || !sameShop) next = [];
+        const bothBazar = sameSource && Boolean(first.bazar) && Boolean(item.bazar);
+        if ((!sameSource || !sameShop) && !bothBazar) next = [];
       }
       const existing = next.find((value) => value.id === lineId);
       next = existing
