@@ -16,6 +16,7 @@ import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
+import groceryHero from "@/assets/grocery-hero.jpg";
 import { filterStoresByReach } from "@/lib/groceryReach";
 import { useCart } from "@/contexts/CartContext";
 import { availableShopQuantity } from "@/lib/shopOrders";
@@ -171,28 +172,19 @@ const Grocery = () => {
       <Navbar />
 
       <section className="px-3 pt-3">
-        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl bg-gradient-hero p-4 text-primary-foreground shadow-elegant">
-          <div className="pointer-events-none absolute -left-10 -top-10 size-40 rounded-full bg-primary-foreground/10" />
-          <div className="pointer-events-none absolute -bottom-12 left-16 size-32 rounded-full bg-primary-foreground/10" />
-          <div className="relative flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold opacity-90">{t("grocery.eyebrow")}</p>
-              <h1 className="mt-0.5 text-2xl font-extrabold leading-tight">{t("grocery.title")}</h1>
-              <p className="mt-1 text-xs opacity-90">{L("Delivered to your doorstep", "گھر کی دہلیز پر")}</p>
-            </div>
-            <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary-foreground/15 backdrop-blur"><ShoppingBasket className="size-7" /></span>
-          </div>
-          <label className="relative mt-4 flex h-12 items-center gap-2.5 rounded-xl bg-card px-3.5 text-card-foreground shadow-soft focus-within:ring-2 focus-within:ring-ring">
-            <Search className="size-5 shrink-0 text-primary" />
-            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={L("Search a shop or item (English / Urdu)", "دکان یا چیز تلاش کریں (اردو / English)")} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-            {searchQuery && <button type="button" aria-label={L("Clear", "صاف کریں")} onClick={() => setSearchQuery("")} className="grid size-7 place-items-center rounded-full bg-muted"><X className="size-3.5" /></button>}
-          </label>
-          <div className="relative mt-3 grid grid-cols-3 gap-2 text-[10px] font-bold">
-            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><BadgeCheck className="size-3.5" /> {L("Fresh daily", "روزانہ تازہ")}</span>
-            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Truck className="size-3.5" /> {L("Fast delivery", "تیز ڈیلیوری")}</span>
-            <span className="flex items-center justify-center gap-1 rounded-lg bg-primary-foreground/15 py-1.5"><Percent className="size-3.5" /> {L("Up to 30% off", "30% تک رعایت")}</span>
+        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl bg-card shadow-card">
+          <img src={groceryHero} alt="" width={1280} height={640} className="h-36 w-full object-cover sm:h-52" />
+          <div className="absolute start-3 top-1/2 max-w-[60%] -translate-y-1/2 rounded-2xl bg-card/85 p-3 text-foreground shadow-soft backdrop-blur-md">
+            <p className="text-[10px] font-bold text-primary">{t("grocery.eyebrow")}</p>
+            <h1 className="text-lg font-extrabold leading-tight sm:text-2xl">{t("grocery.title")}</h1>
+            <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-muted-foreground"><Truck className="size-3" /> {L("Cash on delivery", "ڈیلیوری پر ادائیگی")}</p>
           </div>
         </div>
+        <label className="mx-auto mt-3 flex h-12 max-w-3xl items-center gap-2.5 rounded-full border border-border bg-card px-4 text-card-foreground shadow-soft focus-within:ring-2 focus-within:ring-ring">
+          <Search className="size-5 shrink-0 text-primary" />
+          <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={L("Search a shop or item (English / Urdu)", "دکان یا چیز تلاش کریں (اردو / English)")} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+          {searchQuery && <button type="button" aria-label={L("Clear", "صاف کریں")} onClick={() => setSearchQuery("")} className="grid size-7 place-items-center rounded-full bg-muted"><X className="size-3.5" /></button>}
+        </label>
       </section>
 
 
@@ -239,7 +231,7 @@ const Grocery = () => {
                 onClick={() => setActiveCategory(isActive ? null : cat.filter)}
                 className="group flex w-[78px] shrink-0 snap-start flex-col items-center gap-1.5 active:scale-95 transition-transform"
               >
-                <span className={`relative h-[78px] w-[78px] overflow-hidden rounded-lg border bg-muted ${isActive ? "border-primary ring-2 ring-primary" : "border-border"}`}>
+                <span className={`relative h-[72px] w-[72px] overflow-hidden rounded-full border-2 bg-muted shadow-soft ${isActive ? "border-primary ring-2 ring-primary/40" : "border-card"}`}>
                   <img src={cat.image} alt={cat.name} loading="lazy" width={78} height={78} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 </span>
                 <span className={`w-full truncate text-center text-[11px] font-bold ${isActive ? "text-primary" : "text-foreground"}`}>{t(cat.key)}</span>
@@ -248,6 +240,18 @@ const Grocery = () => {
           })}
         </div>
       </section>
+
+      {/* Filter pills */}
+      <div className="container mx-auto px-4 pb-3">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <Button variant="ghost" onClick={() => setSortBy("default")} className={pill(sortBy === "default")}><MapPin className="size-3.5" /> {L("Nearest", "قریب ترین")}</Button>
+          <Button variant="ghost" onClick={() => setOpenOnly((v) => !v)} className={pill(openOnly)}><Clock className="size-3.5" /> {L("Open now", "ابھی کھلی")}</Button>
+          <Button variant="ghost" onClick={() => setOffersOnly((v) => !v)} className={pill(offersOnly)}><Percent className="size-3.5" /> {L("Offers", "آفرز")}</Button>
+          <Button variant="ghost" onClick={() => setTopRated((v) => !v)} className={pill(topRated)}><Star className="size-3.5" /> {L("Rated 4.5+", "4.5+ ریٹنگ")}</Button>
+          <Button variant="ghost" onClick={() => setSortBy("rating")} className={pill(sortBy === "rating")}><TrendingUp className="size-3.5" /> {L("Top rated first", "بہترین پہلے")}</Button>
+          <Button variant="ghost" onClick={() => setSortBy("newest")} className={pill(sortBy === "newest")}><ArrowUpDown className="size-3.5" /> {L("Newest", "نئی دکانیں")}</Button>
+        </div>
+      </div>
 
       {/* Deals / Top selling products rail */}
       {deals.length > 0 && !debounced && (
@@ -266,12 +270,12 @@ const Grocery = () => {
                 ? Math.round(((p.price - p.discount_price) / p.price) * 100)
                 : 0;
               return (
+                <div key={p.id} className="relative w-36 shrink-0">
                 <Button variant="ghost"
-                  key={p.id}
                   onClick={() => navigate(`/product/${p.id}`)}
-                  className="block h-auto whitespace-normal p-0 hover:bg-card w-36 shrink-0 bg-card rounded-lg border border-border shadow-soft overflow-hidden text-left active:scale-95 transition-transform"
+                  className="block h-auto w-full whitespace-normal p-0 hover:bg-card bg-card rounded-2xl border border-border shadow-soft overflow-hidden text-left active:scale-95 transition-transform"
                 >
-                  <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
+                  <div className="relative h-24 bg-card flex items-center justify-center overflow-hidden">
                     {p.image_url ? (
                       <img src={img(p.image_url, 360)} alt={displayText(p.name)} loading="lazy" className="w-full h-full object-cover" />
                     ) : (
@@ -294,6 +298,8 @@ const Grocery = () => {
                     <p className="text-[10px] text-muted-foreground">{p.unit}</p>
                   </div>
                 </Button>
+                <Button size="icon" aria-label={L("Add to cart", "ٹوکری میں ڈالیں")} onClick={() => quickAdd(p)} className="absolute end-2 top-[4.6rem] size-8 rounded-full bg-gradient-primary text-primary-foreground shadow-glow"><Plus className="size-4" /></Button>
+                </div>
               );
             })}
           </div>
@@ -316,7 +322,7 @@ const Grocery = () => {
                 onClick={() => navigate(`/product/${p.id}`)}
                 className="block h-auto whitespace-normal p-0 hover:bg-card w-36 shrink-0 bg-card rounded-lg border border-border shadow-soft overflow-hidden text-left active:scale-95 transition-transform"
               >
-                <div className="relative h-24 bg-secondary flex items-center justify-center overflow-hidden">
+                <div className="relative h-24 bg-card flex items-center justify-center overflow-hidden">
                   {p.image_url ? (
                     <img src={img(p.image_url, 360)} alt={displayText(p.name)} loading="lazy" className="w-full h-full object-cover" />
                   ) : (
@@ -343,18 +349,6 @@ const Grocery = () => {
       )}
 
 
-
-      {/* Filter pills */}
-      <div className="container mx-auto px-4 pb-3">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          <Button variant="ghost" onClick={() => setSortBy("default")} className={pill(sortBy === "default")}><MapPin className="size-3.5" /> {L("Nearest", "قریب ترین")}</Button>
-          <Button variant="ghost" onClick={() => setOpenOnly((v) => !v)} className={pill(openOnly)}><Clock className="size-3.5" /> {L("Open now", "ابھی کھلی")}</Button>
-          <Button variant="ghost" onClick={() => setOffersOnly((v) => !v)} className={pill(offersOnly)}><Percent className="size-3.5" /> {L("Offers", "آفرز")}</Button>
-          <Button variant="ghost" onClick={() => setTopRated((v) => !v)} className={pill(topRated)}><Star className="size-3.5" /> {L("Rated 4.5+", "4.5+ ریٹنگ")}</Button>
-          <Button variant="ghost" onClick={() => setSortBy("rating")} className={pill(sortBy === "rating")}><TrendingUp className="size-3.5" /> {L("Top rated first", "بہترین پہلے")}</Button>
-          <Button variant="ghost" onClick={() => setSortBy("newest")} className={pill(sortBy === "newest")}><ArrowUpDown className="size-3.5" /> {L("Newest", "نئی دکانیں")}</Button>
-        </div>
-      </div>
 
       {/* Stores List */}
       <div className="container mx-auto px-4 pb-6">
@@ -383,9 +377,9 @@ const Grocery = () => {
                 key={store.id}
                 onClick={() => navigate(`/grocery/${store.id}`)}
                 style={{ animationDelay: `${i * 50}ms` }}
-                className={`animate-fade-in-up h-auto whitespace-normal hover:bg-card [&_svg]:size-4 w-full flex gap-3 bg-card rounded-lg border border-border shadow-soft hover:shadow-card transition-all p-2.5 text-left ${!store.is_active ? "opacity-60 grayscale" : ""}`}
+                className={`animate-fade-in-up h-auto whitespace-normal hover:bg-card [&_svg]:size-4 w-full flex gap-3 bg-card rounded-2xl border border-border shadow-soft hover:shadow-card transition-all p-2.5 text-left ${!store.is_active ? "opacity-60 grayscale" : ""}`}
               >
-                <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
+                <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
                   {store.image_url ? (
                     <img src={img(store.image_url, 360)} alt={store.name} loading="lazy" className="w-full h-full object-cover" />
                   ) : (
