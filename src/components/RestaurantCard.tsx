@@ -62,7 +62,6 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-foreground/55 to-transparent" />
         {!isActive && (
           <div className="absolute inset-0 bg-foreground/50  flex items-center justify-center">
             <span className="bg-destructive text-destructive-foreground text-xs font-bold px-4 py-2 rounded-full shadow-card">
@@ -88,11 +87,11 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
         </Button>
 
         {/* Rating pill on image */}
-        <span className="absolute bottom-2.5 left-3 flex items-center gap-1 text-[11px] font-bold text-primary-foreground bg-foreground/50  rounded-full px-2.5 py-1">
+        <span className="absolute bottom-2.5 left-3 flex items-center gap-1 text-[11px] font-bold text-foreground bg-card/95 shadow-soft rounded-full px-2.5 py-1">
           <Star className="w-3 h-3 fill-current text-warning" />
           {rating || L("New", "نیا")}
         </span>
-        <span className="absolute bottom-2.5 right-3 flex items-center gap-1 text-[11px] font-semibold text-primary-foreground bg-foreground/50  rounded-full px-2.5 py-1">
+        <span className="absolute bottom-2.5 right-3 flex items-center gap-1 text-[11px] font-semibold text-foreground bg-card/95 shadow-soft rounded-full px-2.5 py-1">
           <Clock className="w-3 h-3" />
           {deliveryTime}
         </span>
