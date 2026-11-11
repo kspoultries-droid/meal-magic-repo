@@ -468,7 +468,18 @@ const Checkout = () => {
                 <span className="font-semibold">{quoteLoading ? t("checkout.calculating") : quoteError ? "—" : deliveryFee === 0 && (vendorPaysDelivery || restaurantDeliveryMode === "self") ? L("Free delivery", "مفت ڈیلیوری") : `Rs ${deliveryFee}`}</span>
               </div>
               {quoteError && <p role="alert" className="text-xs font-bold text-destructive">{quoteError}</p>}
-              {deliveryQuote && !isRestaurantOrder && (
+              {multiShop && packageQuotes.length > 0 && (
+                <div className="space-y-1.5 rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px]">
+                  <p className="font-bold text-foreground">{L(`${packageQuotes.length} packages — each shop sends its own parcel; pay each on arrival`, `${packageQuotes.length} پیکیجز — ہر دکان اپنا پارسل الگ بھیجے گی، ہر پارسل کی رقم اس کے پہنچنے پر`)}</p>
+                  {packageQuotes.map((q, i) => (
+                    <div key={q.storeId} className="flex justify-between gap-2 text-muted-foreground">
+                      <span className="min-w-0 truncate">{L("Package", "پیکیج")} {i + 1}: <b className="text-foreground">{q.name}</b> · {formatDeliveryMode(q.quote.mode)}</span>
+                      <span className="shrink-0 font-semibold text-foreground">Rs {q.subtotal} + {q.fee}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {deliveryQuote && !isRestaurantOrder && !multiShop && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-foreground">
                     <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5 text-primary" />{formatDeliveryMode(deliveryQuote.mode)}</span>
@@ -488,7 +499,7 @@ const Checkout = () => {
             </div>
 
             {/* Voucher input */}
-            {!voucher ? (
+            {multiShop ? <p className="mt-2.5 text-[11px] text-muted-foreground">{L("Vouchers apply to single-shop orders only.", "واؤچر صرف ایک دکان کے آرڈر پر لگتا ہے۔")}</p> : !voucher ? (
               <div className="flex gap-2 mt-2.5">
                 <div className="relative flex-1">
                   <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
