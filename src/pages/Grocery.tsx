@@ -344,7 +344,7 @@ const Grocery = () => {
 
 
       {/* Stores List */}
-      <div className="container mx-auto px-4 pb-6">
+      <div id="grocery-stores" className="container mx-auto scroll-mt-20 px-4 pb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-extrabold text-foreground">
             {activeCategory ? `${activeCategory}` : t("grocery.allStores")}

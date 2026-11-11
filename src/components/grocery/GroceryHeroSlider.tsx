@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
 import { ArrowRight } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
@@ -10,7 +9,6 @@ import meat from "@/assets/grocery-slide-meat.jpg";
 
 /** Grocery top slider: bright local photos with a slim glass label so the products stay visible. */
 const GroceryHeroSlider = () => {
-  const navigate = useNavigate();
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const autoplay = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
@@ -33,7 +31,7 @@ const GroceryHeroSlider = () => {
         <CarouselContent className="ms-0">
           {slides.map((s, i) => (
             <CarouselItem key={s.key} className="ps-0">
-              <button type="button" onClick={() => document.getElementById("grocery-stores")?.scrollIntoView({ behavior: "smooth" }) || navigate("/grocery")} className="relative block w-full text-start">
+              <button type="button" onClick={() => document.getElementById("grocery-stores")?.scrollIntoView({ behavior: "smooth" })} className="relative block w-full text-start">
                 <img src={s.image} alt={s.title} width={1280} height={640} loading={i === 0 ? "eager" : "lazy"} className={`h-40 w-full object-cover sm:h-60 ${s.pos}`} />
                 <span className="absolute bottom-6 start-3 flex max-w-[80%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-1 text-foreground shadow-card backdrop-blur-md">
                   <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">{s.badge}</span>
