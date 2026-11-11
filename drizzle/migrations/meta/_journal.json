@@ -736,6 +736,13 @@
       "when": 1794433821015,
       "tag": "0104_bazar_package_order_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1794434234701,
+      "tag": "0105_simplify_service_booking_flow",
+      "breakpoints": true
     }
   ]
 }
