@@ -103,6 +103,10 @@ export const useDeliveryLocation = () => {
           .maybeSingle();
         if (data?.id) loc = { ...loc, id: data.id };
         await loadSaved();
+      } else {
+        // Guest-typed addresses are browsing-only: keep them visible while signed
+        // out, but never carry them into an account or another visitor.
+        loc = { ...loc, source: "guest_address" };
       }
       setStoredLocation(loc, user?.id);
       return loc;
