@@ -1,3 +1,4 @@
+import GroceryHeroSlider from "@/components/grocery/GroceryHeroSlider";
 import { displayText } from "@/lib/i18n/displayText";
 import { img } from "@/lib/imageUrl";
 import { Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight, TrendingUp } from "lucide-react";
@@ -16,7 +17,6 @@ import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
-import groceryHero from "@/assets/grocery-hero.jpg";
 import { filterStoresByReach } from "@/lib/groceryReach";
 import { useCart } from "@/contexts/CartContext";
 import { availableShopQuantity } from "@/lib/shopOrders";
@@ -172,14 +172,7 @@ const Grocery = () => {
       <Navbar />
 
       <section className="px-3 pt-3">
-        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl bg-card shadow-card">
-          <img src={groceryHero} alt="" width={1280} height={640} className="h-36 w-full object-cover sm:h-52" />
-          <div className="absolute start-3 top-1/2 max-w-[60%] -translate-y-1/2 rounded-2xl bg-card/85 p-3 text-foreground shadow-soft backdrop-blur-md">
-            <p className="text-[10px] font-bold text-primary">{t("grocery.eyebrow")}</p>
-            <h1 className="text-lg font-extrabold leading-tight sm:text-2xl">{t("grocery.title")}</h1>
-            <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-muted-foreground"><Truck className="size-3" /> {L("Cash on delivery", "ڈیلیوری پر ادائیگی")}</p>
-          </div>
-        </div>
+        <GroceryHeroSlider />
         <label className="mx-auto mt-3 flex h-12 max-w-3xl items-center gap-2.5 rounded-full border border-border bg-card px-4 text-card-foreground shadow-soft focus-within:ring-2 focus-within:ring-ring">
           <Search className="size-5 shrink-0 text-primary" />
           <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={L("Search a shop or item (English / Urdu)", "دکان یا چیز تلاش کریں (اردو / English)")} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
@@ -351,7 +344,7 @@ const Grocery = () => {
 
 
       {/* Stores List */}
-      <div className="container mx-auto px-4 pb-6">
+      <div id="grocery-stores" className="container mx-auto scroll-mt-20 px-4 pb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-extrabold text-foreground">
             {activeCategory ? `${activeCategory}` : t("grocery.allStores")}
