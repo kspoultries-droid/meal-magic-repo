@@ -5,7 +5,7 @@ export const serviceStageLabels: Record<string, [string, string]> = {
 export function serviceActions(status: string, stage: string, approved: boolean, ownProvider: boolean) {
  if (status === "completed" || status === "cancelled") return [];
  if (status === "pending") return ["accept", ...(ownProvider ? ["reject"] : [])];
- if (status === "confirmed") return [...(stage === "accepted" || stage === "pending" ? ["en_route"] : []), ...(stage !== "inspecting" && stage !== "awaiting_quote" && stage !== "quote_approved" ? ["inspect"] : []), ...(approved ? ["start"] : [])];
+ if (status === "confirmed") return [...(stage === "accepted" || stage === "pending" ? ["en_route"] : []), ...(stage !== "inspecting" && stage !== "awaiting_quote" && stage !== "quote_approved" ? ["inspect"] : []), ...(stage !== "awaiting_quote" ? ["start"] : [])];
  return status === "in_progress" ? ["complete"] : [];
 }
 export function validQuote(labour: number, parts: number, other: number) {
