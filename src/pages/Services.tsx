@@ -28,6 +28,7 @@ import PromotionalAds from "@/components/PromotionalAds";
 import HeroEditor from "@/components/common/HeroEditor";
 import { useHeroSettings } from "@/hooks/useHeroSettings";
 import { servicesHeroDefaults, heroBackgroundStyle } from "@/lib/heroConfig";
+import { getStoredCityId } from "@/hooks/useCityServices";
 
 const iconMap: Record<string, any> = {
   AirVent, Wrench, Zap, Sparkles, Paintbrush, Hammer, Car,
@@ -88,6 +89,8 @@ const Services = () => {
     const fetchServices = async () => {
       setLoading(true);
       let query = supabase.from("services").select("*, service_categories(name, is_active)");
+      const cityId = getStoredCityId();
+      if (cityId) query = query.or(`city_id.eq.${cityId},city_id.is.null`);
       if (activeCategory) query = query.eq("category_id", activeCategory);
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       const { data } = await query.order("is_active", { ascending: false }).order("category_id").order("sort_order").order("created_at", { ascending: false });
@@ -185,7 +188,7 @@ const Services = () => {
     }
 
     let providers: any[] = rows
-      .filter((p: any) => p.is_available)
+      .filter((p: any) => p.is_available && (!getStoredCityId() || !p.city_id || p.city_id === getStoredCityId()))
       .slice(0, 20)
       .map((p: any) => ({ ...p, service_categories: { name: p.category_name } }));
 
@@ -287,8 +290,8 @@ const Services = () => {
 
       {/* Header - editable premium hero */}
       {!heroLoaded ? (
-        <div aria-busy="true" aria-label={tr("Home Services", "ہوم سروسز")} className="min-h-[210px] bg-muted" />
-      ) : <div className="relative overflow-hidden px-4" style={heroBackgroundStyle(heroConfig)}>
+        <div aria-busy="true" aria-label={tr("Home Services", "ہوم سروسز")} className="min-h-[150px] bg-muted" />
+      ) : <div className="relative overflow-hidden px-4 py-4 rounded-b-3xl" style={heroBackgroundStyle(heroConfig)}>
         <div className="relative">
           {isAdmin && (
             <div className="mb-2 flex justify-end">
@@ -300,16 +303,6 @@ const Services = () => {
             <h1 className="break-words font-extrabold leading-snug" style={{ fontSize: heroConfig.titleSize }}>{displayText(heroConfig.title)}</h1>
             <p className="text-xs opacity-80 mb-3">{displayText(heroConfig.subtitle)}</p>
           </div>
-          <div className="flex h-12 min-w-0 items-center gap-3 rounded-lg border border-border bg-card px-4 shadow-soft focus-within:ring-2 focus-within:ring-ring">
-            <Search className="w-5 h-5 text-primary shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={displayText(heroConfig.searchPlaceholder)}
-              className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-            />
-          </div>
           {heroConfig.showBadges && (
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-bold">
               {[heroConfig.badge1, heroConfig.badge2, heroConfig.badge3].filter(Boolean).map((badge) => (
@@ -319,6 +312,19 @@ const Services = () => {
           )}
         </div>
       </div>}
+
+      <div className="container mx-auto px-4 pt-3">
+          <div className="flex h-12 min-w-0 items-center gap-3 rounded-full border border-border bg-card px-4 shadow-soft focus-within:ring-2 focus-within:ring-ring">
+            <Search className="w-5 h-5 text-primary shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={displayText(heroConfig.searchPlaceholder)}
+              className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
+            />
+          </div>
+      </div>
 
       {/* Promotional Ads - hide when category selected */}
       {!activeCategory && <PromotionalAds placement="home" />}
@@ -378,7 +384,7 @@ const Services = () => {
                     setTimeout(() => servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
                   }
                 }}
-                className={`flex min-h-24 min-w-0 flex-col items-center gap-2 p-2.5 rounded-lg border transition-all ${
+                className={`flex min-h-24 min-w-0 flex-col items-center gap-2 p-2.5 rounded-2xl border transition-all ${
                   !cat.is_active
                     ? "bg-muted/50 opacity-60 grayscale cursor-default"
                     : isActive 
@@ -481,7 +487,7 @@ const Services = () => {
                     <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                       <span className={`text-sm font-extrabold ${effectivelyActive ? "text-primary" : "text-muted-foreground"}`}>Rs {service.price}</span>
                       {effectivelyActive && (
-                        <span className="px-3 py-1 rounded-md bg-primary text-primary-foreground text-[11px] font-bold">
+                        <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-bold">
                           {tr("Book Now →", "Book Now / بکنگ کریں →")}
                         </span>
                       )}
@@ -495,70 +501,25 @@ const Services = () => {
         )}
       </div>
 
-      {/* My Appointments / میری اپائنٹمنٹس */}
+      {/* My bookings shortcut — full details live in My Orders */}
       {user && allBookings.length > 0 && (
         <div className="container mx-auto px-4 pb-6">
-          <h2 className="text-lg font-extrabold text-foreground mb-3">{tr("📋 My Appointments", "📋 My Appointments / میری اپائنٹمنٹس")}</h2>
-          <div className="space-y-2">
-            {allBookings.map((b) => {
-              const statusMap: Record<string, { label: string; color: string; emoji: string }> = {
-                pending: { label: t("services.statusPending"), color: "text-yellow-600 bg-yellow-50", emoji: "⏳" },
-                confirmed: { label: t("services.statusConfirmed"), color: "text-green-600 bg-green-50", emoji: "✅" },
-                in_progress: { label: t("services.statusInProgress"), color: "text-blue-600 bg-blue-50", emoji: "🔧" },
-                completed: { label: t("services.statusCompleted"), color: "text-primary bg-primary/10", emoji: "🎉" },
-                cancelled: { label: t("services.statusCancelled"), color: "text-destructive bg-destructive/10", emoji: "❌" },
-              };
-              const st = statusMap[b.status] || statusMap.pending;
-              return (
-                <div key={b.id} className="bg-card rounded-2xl p-4 border space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-bold text-foreground text-sm">{b.services?.name || "Service"}</p>
-                      <p className="text-xs text-muted-foreground">📅 {b.scheduled_date} — 🕐 {b.scheduled_time}</p>
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${st.color}`}>
-                      {st.emoji} {st.label}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground">📍 {b.address}</span>
-                    <span className="font-extrabold text-primary">Rs {b.total_amount}</span>
-                  </div>
-                  {b.status === "confirmed" && (
-                    <div className="bg-green-50 rounded-lg p-2 text-xs text-green-700 font-bold">
-                      {tr("✅ Your booking is confirmed! The service provider will arrive on time.", "✅ آپ کی بکنگ تصدیق شدہ ہے! سروس پرووائیڈر مقررہ وقت پر آئے گا۔")}
-                    </div>
-                  )}
-                  {b.notes && (
-                    <p className="text-[10px] text-muted-foreground">📝 {b.notes}</p>
-                  )}
-                  <Button variant="outline" size="sm" onClick={() => setSelectedBookingId(b.id)}>{tr("Details, Quote & Bill", "تفصیل، کوٹیشن اور بل / Details, quote & bill")}</Button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* My Completed Bookings - Feedback */}
-      {user && myBookings.length > 0 && (
-        <div className="container mx-auto px-4 pb-6">
-          <h2 className="text-xl font-extrabold text-foreground mb-4">{tr("Give Feedback ⭐", "Give Feedback / فیڈبیک دیں ⭐")}</h2>
-          <div className="space-y-2">
-            {myBookings.map((b) => (
-              <button
-                key={b.id}
-                onClick={() => setFeedbackBooking(b)}
-                className="w-full flex items-center justify-between bg-card rounded-2xl p-4 border hover:shadow-md transition-shadow text-left"
-              >
-                <div>
-                  <p className="font-bold text-foreground text-sm">{b.services?.name || t("services.service")}</p>
-                  <p className="text-xs text-muted-foreground">{b.scheduled_date}</p>
-                </div>
-                <span className="text-xs font-bold text-primary">{tr("Rate Now →", "Rate Now / ریٹنگ دیں →")}</span>
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => navigate("/my-orders")}
+            className="w-full flex items-center gap-3 rounded-2xl border bg-card p-4 text-start shadow-soft"
+          >
+            <div className="w-11 h-11 rounded-xl bg-accent flex items-center justify-center shrink-0">
+              <Calendar className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-foreground text-sm">{tr("My bookings", "میری بکنگز")}</p>
+              <p className="text-xs text-muted-foreground">
+                {allBookings.filter(b => !["completed", "cancelled"].includes(b.status)).length} {tr("active", "جاری")}
+                {myBookings.length > 0 && ` · ${tr("rate completed work", "مکمل کام کی ریٹنگ دیں")}`}
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground rtl:rotate-180" />
+          </button>
         </div>
       )}
 
