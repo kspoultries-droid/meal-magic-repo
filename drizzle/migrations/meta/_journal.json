@@ -729,6 +729,13 @@
       "when": 1794300555771,
       "tag": "0103_fix_business_location_guard_record_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1794433821015,
+      "tag": "0104_bazar_package_order_limit",
+      "breakpoints": true
     }
   ]
 }
