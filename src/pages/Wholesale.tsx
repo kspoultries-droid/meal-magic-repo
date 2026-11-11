@@ -82,7 +82,7 @@ const Wholesale = () => {
   const { addItem } = useCart();
   const quickAdd = (p: BazarProduct & { variants?: unknown }) => {
     if (readVariants(p).length) { openProduct(p); return; }
-    addItem({ id: p.id, name: p.name, restaurant: p.storeName || "Bazar", price: Number(p.wholesale_price ?? p.discount_price ?? p.price), image: p.image_url || p.images?.[0] || "", source: "grocery", sourceId: p.store_id, unit: p.unit || undefined, quantity: Math.max(1, Number(p.min_order_qty) || 1) } as any);
+    addItem({ id: p.id, name: p.name, restaurant: p.storeName || "Bazar", price: Number(p.wholesale_price ?? p.discount_price ?? p.price), image: p.image_url || p.images?.[0] || "", source: "grocery", sourceId: p.store_id, bazar: true, unit: p.unit || undefined, quantity: Math.max(1, Number(p.min_order_qty) || 1) } as any);
   };
   const openProduct = (p: BazarProduct) => { pushRecent(p.id); navigate(`/product/${p.id}`); };
   const allCats = [...shopCategories, ...categories.filter((c) => c.name !== "All")];

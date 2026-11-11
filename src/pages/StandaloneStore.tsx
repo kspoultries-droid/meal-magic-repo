@@ -89,6 +89,7 @@ const StandaloneStore = () => {
       image: product.image_url || "",
       source: "grocery",
       sourceId: store?.id,
+      bazar: store?.store_type === "wholesale",
     });
   };
 

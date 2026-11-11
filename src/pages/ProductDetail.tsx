@@ -97,6 +97,7 @@ const ProductDetail = () => {
         image: product.image_url || images[0] || "",
         source: "grocery",
         sourceId: store.id,
+        bazar: store.store_type === "wholesale",
         weight_kg: product.weight_kg,
         weight: product.weight,
         unit: product.unit,

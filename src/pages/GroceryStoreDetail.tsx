@@ -123,6 +123,7 @@ const GroceryStoreDetail = () => {
       image: product.image_url || "",
       source: "grocery",
       sourceId: id,
+      bazar: store?.store_type === "wholesale",
       weight_kg: product.weight_kg,
       weight: product.weight,
       variant_id: variant?.id || variantLabel || null,

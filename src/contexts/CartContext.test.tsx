@@ -36,4 +36,19 @@ describe("sign in before cart", () => {
     auth.user = { id: "second" }; view.rerender(<CartProvider><Probe /></CartProvider>);
     expect(cart.totalItems).toBe(0);
   });
+});describe("bazar multi-shop cart", () => {
+  it("lets bazar items from two shops share one cart", () => {
+    auth.user = { id: "c" };
+    render(<CartProvider><Probe /></CartProvider>);
+    act(() => { cart.addItem({ ...item, sourceId: "a", bazar: true }); });
+    act(() => { expect(cart.addItem({ ...item, id: "kurta", sourceId: "b", bazar: true })).toBe(true); });
+    expect(cart.totalItems).toBe(2);
+  });
+  it("still keeps local grocery to one shop", () => {
+    auth.user = { id: "c" };
+    render(<CartProvider><Probe /></CartProvider>);
+    act(() => { cart.addItem({ ...item, sourceId: "a" }); });
+    act(() => { expect(cart.addItem({ ...item, id: "milk", sourceId: "b" })).toBe(false); });
+    expect(cart.totalItems).toBe(1);
+  });
 });
