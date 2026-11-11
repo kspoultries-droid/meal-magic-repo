@@ -71,7 +71,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
       {onToggleWishlist && <Button type="button" variant="secondary" size="icon" aria-label={isWishlisted ? tr("Remove from wishlist", "محفوظ فہرست سے ہٹائیں") : tr("Save", "محفوظ کریں")} onClick={onToggleWishlist} className="absolute right-1.5 top-1.5 size-7 rounded-full bg-card shadow-sm hover:bg-secondary">
         <Heart className={`size-3.5 ${isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}`} />
       </Button>}
-      {onQuickAdd && !list && <Button type="button" size="icon" aria-label={tr("Add to cart", "ٹوکری میں ڈالیں")} onClick={onQuickAdd} className={`absolute end-1.5 size-8 rounded-full bg-primary text-primary-foreground shadow-card ${compact ? "top-[5.5rem]" : "top-[calc(100%-6.5rem)]"}`}><Plus className="size-4" /></Button>}
+      {onQuickAdd && !list && <Button type="button" size="icon" aria-label={tr("Add to cart", "ٹوکری میں ڈالیں")} onClick={onQuickAdd} className={`absolute end-1.5 size-8 rounded-full bg-primary text-primary-foreground shadow-card bottom-2`}><Plus className="size-4" /></Button>}
     </article>
   );
 };
