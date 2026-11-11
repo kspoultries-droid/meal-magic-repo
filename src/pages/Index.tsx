@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import FoodHero from "@/components/home/FoodHero";
-import TopPicksRail from "@/components/home/TopPicksRail";
 import QuickCategories, { QuickFilter } from "@/components/QuickCategories";
 import CategoryRail from "@/components/home/CategoryRail";
 import RestaurantGrid from "@/components/RestaurantGrid";
@@ -37,12 +36,7 @@ const Index = () => {
         }}
       />
 
-      {!isSearching && !quickFilter && (
-        <>
-          <TopPicksRail />
-        </>
-      )}
-      <CategoryRail />
+      {!isSearching && !quickFilter && <CategoryRail />}
       <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} quickFilter={quickFilter} onClearQuickFilter={() => setQuickFilter(null)} />
       </>
       )}
