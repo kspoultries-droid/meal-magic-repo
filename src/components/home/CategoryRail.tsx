@@ -10,7 +10,6 @@ const CategoryRail = () => {
     <section className="pt-3 pb-1">
       <div className="container mx-auto flex items-baseline justify-between gap-2 px-4 pb-2">
         <h2 className="text-base font-extrabold text-foreground">{tr("What are you craving?", "آج کیا کھانا ہے؟")}</h2>
-        <span className="text-[11px] text-muted-foreground">What are you craving?</span>
       </div>
 
       <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
@@ -19,9 +18,9 @@ const CategoryRail = () => {
             key={cat.slug}
             onClick={() => navigate(`/category/${cat.slug}`)}
             style={{ animationDelay: `${i * 40}ms` }}
-            className="animate-fade-in group flex h-auto w-[78px] shrink-0 flex-col items-center gap-1.5 whitespace-normal p-0 hover:bg-transparent active:scale-95 transition-transform"
+            className="animate-fade-in group flex h-auto w-[76px] shrink-0 flex-col items-center gap-1.5 whitespace-normal p-0 hover:bg-transparent active:scale-95 transition-transform"
           >
-            <span className="relative h-[78px] w-[78px] overflow-hidden rounded-lg border border-border bg-muted">
+            <span className="relative size-[72px] overflow-hidden rounded-full bg-muted shadow-card ring-2 ring-card outline outline-1 outline-primary/25">
               <img
                 src={cat.image}
                 alt={cat.name}
