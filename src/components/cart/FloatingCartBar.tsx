@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShoppingBag, ChevronLeft } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { tr } from "@/lib/i18n/tr";
 
 // Routes where a floating cart would get in the way
 const HIDDEN_PREFIXES = [
@@ -48,28 +49,28 @@ const FloatingCartBar = () => {
           : "calc(0.75rem + env(safe-area-inset-bottom))",
       }}
     >
-      <div className="pointer-events-auto mx-auto max-w-md flex items-center gap-2 rounded-2xl bg-gradient-primary text-primary-foreground shadow-elegant ring-1 ring-white/15 p-2 pl-3">
+      <div className="pointer-events-auto mx-auto max-w-md flex items-center gap-2 rounded-2xl bg-gradient-primary text-primary-foreground shadow-elegant ring-1 ring-primary-foreground/15 p-2 pl-3">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-3 flex-1 min-w-0 text-left"
-          aria-label="کارٹ کھولیں"
+          className="flex items-center gap-3 flex-1 min-w-0 text-start"
+          aria-label={tr("Open cart", "کارٹ کھولیں")}
         >
-          <div className="relative w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+          <div className="relative w-10 h-10 rounded-xl bg-primary-foreground/15 flex items-center justify-center shrink-0">
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-background text-foreground text-[11px] font-extrabold flex items-center justify-center shadow-card">
+            <span className="absolute -top-1 -end-1 min-w-5 h-5 px-1 rounded-full bg-background text-foreground text-[11px] font-extrabold flex items-center justify-center shadow-card">
               {totalItems}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] opacity-90 truncate">{shopName || "آپ کا آرڈر"}</p>
-            <p className="text-sm font-extrabold leading-tight">Rs. {totalPrice}</p>
+            <p className="text-[11px] opacity-90 truncate">{shopName || tr("Your order", "آپ کا آرڈر")} · {totalItems} {tr("items", "اشیا")}</p>
+            <p className="text-sm font-extrabold leading-tight">Rs {totalPrice.toLocaleString()}</p>
           </div>
         </button>
         <button
           onClick={() => navigate("/checkout")}
           className="shrink-0 h-10 px-4 rounded-xl bg-background/95 text-foreground text-sm font-extrabold flex items-center gap-1 hover:scale-[1.03] active:scale-95 transition-transform"
         >
-          چیک آؤٹ
+          {tr("Checkout", "چیک آؤٹ")}
           <ChevronLeft className="w-4 h-4" />
         </button>
       </div>
