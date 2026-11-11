@@ -59,7 +59,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
           <p className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{displayText(product.name)}</p>
           <div className={`flex flex-wrap items-end justify-between gap-1 ${list ? "" : "min-h-[2.75rem]"}`}>
             <div><p className="font-display text-sm font-bold text-primary">Rs {effective.toLocaleString()}</p><p className="min-h-4 text-[9px] text-muted-foreground line-through">{hasDiscount ? `Rs ${product.price.toLocaleString()}` : "\u00a0"}</p></div>
-            {product.rating && <span className="flex items-center gap-0.5 text-[9px] font-semibold text-muted-foreground"><Star className="size-2.5 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
+            {!!product.rating && <span className="flex items-center gap-0.5 text-[9px] font-semibold text-muted-foreground"><Star className="size-2.5 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
           </div>
           <div className="min-w-0 text-[9px] text-muted-foreground">
             <p className="h-4 truncate">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
