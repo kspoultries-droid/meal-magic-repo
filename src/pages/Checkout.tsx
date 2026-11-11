@@ -617,7 +617,7 @@ const Checkout = () => {
           <Input id="my-phone" type="tel" inputMode="numeric" maxLength={11} placeholder="03001234567"
             value={myPhone} onChange={(e) => setMyPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
             className="h-11 rounded-xl bg-background/80" />
-          <p className="text-[11px] text-muted-foreground">{L("You can have at most 2 active orders at a time.", "ایک وقت میں زیادہ سے زیادہ 2 آرڈر چل سکتے ہیں۔")}</p>
+          <p className="text-[11px] text-muted-foreground">{multiShop ? L("Each shop sends its own parcel; pay each on arrival. Up to 10 Bazar packages can be active.", "ہر دکان کا پارسل الگ آئے گا، رقم ہر پارسل پہنچنے پر دیں۔ بازار کے 10 پیکیج تک ایک ساتھ چل سکتے ہیں۔") : L("You can have at most 2 active orders at a time.", "ایک وقت میں زیادہ سے زیادہ 2 آرڈر چل سکتے ہیں۔")}</p>
         </div>
 
         {/* Gift Delivery - Glass */}
