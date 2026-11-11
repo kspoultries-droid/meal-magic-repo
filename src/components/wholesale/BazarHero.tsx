@@ -3,7 +3,7 @@ import { displayText } from "@/lib/i18n/displayText";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
-import { BadgeCheck, Gift, Search, ShieldCheck, Store, Truck, Video, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, BadgeCheck, Gift, Search, ShieldCheck, Store, Truck, Video, X, type LucideIcon } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import HeroEditor from "@/components/common/HeroEditor";
 import BazarSlidesManager from "@/components/wholesale/BazarSlidesManager";
@@ -14,6 +14,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { img } from "@/lib/imageUrl";
 import { toast } from "sonner";
 import type { Ad } from "@/components/PromotionalAds";
+import slideElectronics from "@/assets/bazar-slide-electronics.jpg";
+import slideFashion from "@/assets/bazar-slide-fashion.jpg";
+import slideHome from "@/assets/bazar-slide-home.jpg";
 
 interface Props {
   searchQuery: string;
@@ -24,8 +27,11 @@ interface Props {
 /** Daraz-style top banner: up to 15 slides, paid "bazar_top" ads first, then EasyLife feature slides. */
 const MAX_SLIDES = 15;
 
-type Feature = { key: string; icon: LucideIcon; eyebrow: string; title: string; cta: string; link: string };
+type Feature = { key: string; icon: LucideIcon; eyebrow: string; title: string; cta: string; link: string; photo?: string };
 const getFeatures = (): Feature[] => [
+  { key: "p-elec", icon: Truck, eyebrow: "", title: tr("Mobiles, watches & gadgets", "موبائل، گھڑیاں اور گیجٹس"), cta: "", link: "#bazar-shops", photo: slideElectronics },
+  { key: "p-fashion", icon: Truck, eyebrow: "", title: tr("Kurtas, fabric & footwear", "کرتے، کپڑا اور جوتے"), cta: "", link: "#bazar-shops", photo: slideFashion },
+  { key: "p-home", icon: Truck, eyebrow: "", title: tr("Kitchen & home essentials", "کچن اور گھر کا سامان"), cta: "", link: "#bazar-shops", photo: slideHome },
   { key: "f-deals", icon: Gift, eyebrow: tr("EasyLife offers", "EasyLife آفرز"), title: tr("Collect vouchers, save more", "واؤچر جمع کریں، زیادہ بچت کریں"), cta: tr("View vouchers", "واؤچر دیکھیں"), link: "#bazar-deals" },
   { key: "f-ship", icon: Truck, eyebrow: tr("Nationwide delivery", "ملک بھر میں ڈیلیوری"), title: tr("Karachi wholesale market, in your city", "کراچی کی ہول سیل مارکیٹ اب آپ کے شہر میں"), cta: tr("Shop now", "ابھی خریدیں"), link: "#bazar-shops" },
   { key: "f-verified", icon: BadgeCheck, eyebrow: tr("Verified sellers", "تصدیق شدہ دکاندار"), title: tr("Direct from shops, at better prices", "براہِ راست دکان سے، بہتر قیمت پر"), cta: tr("View shops", "دکانیں دیکھیں"), link: "#bazar-shops" },
@@ -81,71 +87,59 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
     go(ad.link_url);
   };
 
-  if (!loaded) return <header aria-busy="true" aria-label={tr("Bazar", "بازار")} className="h-[calc(15rem+env(safe-area-inset-top,0px))] bg-muted" />;
+  if (!loaded) return <header aria-busy="true" aria-label={tr("Bazar", "بازار")} className="h-[calc(15rem+env(safe-area-inset-top,0px))] bg-background" />;
 
   const searchBar = (
-    <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 px-3 pb-2 pt-[calc(env(safe-area-inset-top,0px)+0.5rem)]">
-      <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl border-2 border-primary bg-card ps-3 shadow-elegant">
-        <Search className="size-5 shrink-0 text-muted-foreground" />
-        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={displayText(config.searchPlaceholder)} enterKeyHint="search" className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
-        {searchQuery && <button type="button" aria-label={tr("Clear", "صاف کریں")} onClick={() => onSearchChange("")} className="grid size-8 place-items-center text-muted-foreground"><X className="size-4" /></button>}
-        <span className="m-1 grid h-8 place-items-center rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground">{tr("Search", "تلاش")}</span>
+    <div className="flex items-center gap-2 px-3 pb-2 pt-[calc(env(safe-area-inset-top,0px)+0.5rem)] sm:px-6">
+      <label className="flex h-12 min-w-0 flex-1 items-center gap-2.5 rounded-full border border-border bg-card px-4 text-card-foreground shadow-soft focus-within:ring-2 focus-within:ring-ring">
+        <Search className="size-5 shrink-0 text-primary" />
+        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={displayText(config.searchPlaceholder)} enterKeyHint="search" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+        {searchQuery && <button type="button" aria-label={tr("Clear", "صاف کریں")} onClick={() => onSearchChange("")} className="grid size-7 place-items-center rounded-full bg-muted"><X className="size-3.5" /></button>}
       </label>
       {isAdmin && <BazarSlidesManager onChanged={() => setReload((n) => n + 1)} extra={<HeroEditor config={config} defaults={bazarHeroDefaults} onSave={save} />} />}
     </div>
   );
 
-  // While searching, keep only the search bar so results sit directly underneath.
-  if (hideAds) {
-    return <header className="relative h-[calc(3.75rem+env(safe-area-inset-top,0px))]" style={heroBackgroundStyle(config)}>{searchBar}</header>;
-  }
+  if (hideAds) return <header className="bg-background">{searchBar}</header>;
+
+  const pill = (title: string, badge?: string | null) => (
+    <span className="absolute bottom-6 start-3 flex max-w-[80%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-3 text-foreground shadow-card backdrop-blur-md">
+      {badge && <span className="shrink-0 rounded-full bg-destructive px-2 py-0.5 text-[10px] font-extrabold text-destructive-foreground">{badge}</span>}
+      <span className="truncate text-xs font-bold">{title}</span>
+      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"><ArrowRight className="size-3.5 rtl:rotate-180" /></span>
+    </span>
+  );
 
   return (
-    <header className="relative isolate">
+    <header className="bg-background">
       {searchBar}
-      <div className="relative">
-      <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 ? [autoplay.current] : []} className="w-full">
-        <CarouselContent className="ml-0">
-          {ads.map((ad, i) => (
-            <CarouselItem key={ad.id} className="basis-full pl-0">
-              <button type="button" onClick={() => openAd(ad)} className="relative block h-[calc(15rem+env(safe-area-inset-top,0px))] w-full overflow-hidden bg-muted text-start sm:h-80">
-                {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0" style={heroBackgroundStyle(config)} />}
-                <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-foreground/40 to-transparent" />
-                {ad.show_text !== false && <>
-                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-foreground/80 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-4 pb-5 text-background">
-                    {ad.offer_badge && <span className="mb-1 inline-block rounded-full bg-destructive px-2.5 py-0.5 text-xs font-extrabold text-destructive-foreground">{ad.offer_badge}</span>}
-                    <p className="text-[11px] font-semibold opacity-90">{ad.brand_name}</p>
-                    <p className="line-clamp-2 text-xl font-extrabold leading-tight">{ad.title}</p>
-                    <span className="mt-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || tr("View now", "ابھی دیکھیں")}</span>
-                  </div>
-                </>}
-                <span className="absolute bottom-3 start-3 rounded bg-foreground/50 px-1.5 py-0.5 text-[9px] font-medium text-background">AD</span>
-              </button>
-            </CarouselItem>
-          ))}
-          {features.map((f) => (
-            <CarouselItem key={f.key} className="basis-full pl-0">
-              <button type="button" onClick={() => go(f.link)} style={heroBackgroundStyle(config)} className="relative block h-[calc(15rem+env(safe-area-inset-top,0px))] w-full overflow-hidden text-start sm:h-80">
-                <span className="absolute -end-10 bottom-0 size-48 rounded-full bg-background/10" />
-                <span className="absolute end-6 bottom-8 grid size-24 place-items-center rounded-3xl bg-background/15 backdrop-blur-sm"><f.icon className="size-12" style={{ color: config.accentColor }} /></span>
-                <div className="absolute inset-x-0 bottom-0 max-w-[65%] p-4 pb-6">
-                  <p className="text-xs font-bold" style={{ color: config.accentColor }}>{f.eyebrow}</p>
-                  <p className="mt-1 font-display text-2xl font-extrabold leading-tight">{f.title}</p>
-                  <span className="mt-3 inline-block rounded-full px-4 py-1.5 text-xs font-bold text-foreground" style={{ background: config.accentColor }}>{f.cta}</span>
-                </div>
-              </button>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
-      {total > 1 && <span dir="ltr" className="absolute bottom-3 end-3 z-10 rounded-full bg-foreground/50 px-2 py-0.5 text-[11px] font-bold text-background">{current + 1}/{total}</span>}
+      <div className="relative mx-3 overflow-hidden rounded-2xl shadow-card sm:mx-6">
+        <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 ? [autoplay.current] : []} className="w-full">
+          <CarouselContent className="ml-0">
+            {ads.map((ad, i) => (
+              <CarouselItem key={ad.id} className="basis-full pl-0">
+                <button type="button" onClick={() => openAd(ad)} className="relative block aspect-[2/1] max-h-80 w-full overflow-hidden bg-muted text-start">
+                  {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0" style={heroBackgroundStyle(config)} />}
+                  {ad.show_text !== false && pill(ad.title, ad.offer_badge)}
+                  <span className="absolute end-2 top-2 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>
+                </button>
+              </CarouselItem>
+            ))}
+            {features.map((f, i) => (
+              <CarouselItem key={f.key} className="basis-full pl-0">
+                <button type="button" onClick={() => go(f.link)} style={f.photo ? undefined : heroBackgroundStyle(config)} className="relative block aspect-[2/1] max-h-80 w-full overflow-hidden bg-muted text-start">
+                  {f.photo ? <img src={f.photo} alt={f.title} width={1536} height={768} loading={i === 0 && !ads.length ? "eager" : "lazy"} className="absolute inset-0 size-full object-cover" /> : <span className="absolute end-6 top-1/2 grid size-20 -translate-y-1/2 place-items-center rounded-3xl bg-background/15"><f.icon className="size-10" style={{ color: config.accentColor }} /></span>}
+                  {pill(f.title, f.photo ? null : f.eyebrow)}
+                </button>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+        {total > 1 && <div dir="ltr" className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1">{Array.from({ length: total }).map((_, i) => <button type="button" key={i} aria-label={`${i + 1}`} onClick={() => api?.scrollTo(i)} className={`h-1.5 rounded-full transition-all ${i === current ? "w-4 bg-primary" : "w-1.5 bg-card/80"}`} />)}</div>}
       </div>
       {config.showBadges && (
-        <div className="flex h-9 items-center justify-around bg-foreground/85 px-2 text-[11px] font-semibold text-background">
-          <span className="flex items-center gap-1"><ShieldCheck className="size-3.5" /> {displayText(config.badge1)}</span>
-          <span className="flex items-center gap-1"><Truck className="size-3.5" /> {displayText(config.badge2)}</span>
-          <span className="flex items-center gap-1"><BadgeCheck className="size-3.5" /> {displayText(config.badge3)}</span>
+        <div className="no-scrollbar mx-3 mt-2 flex gap-2 overflow-x-auto text-[11px] font-semibold text-foreground sm:mx-6">
+          {[[ShieldCheck, config.badge1], [Truck, config.badge2], [BadgeCheck, config.badge3]].map(([Icon, label], i) => { const I = Icon as LucideIcon; return <span key={i} className="flex shrink-0 items-center gap-1 rounded-full bg-accent px-3 py-1.5"><I className="size-3.5 text-primary" /> {displayText(label as string)}</span>; })}
         </div>
       )}
     </header>

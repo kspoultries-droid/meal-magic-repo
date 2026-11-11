@@ -2,7 +2,7 @@ import { img } from "@/lib/imageUrl";
 import { tr } from "@/lib/i18n/tr";
 import { displayText } from "@/lib/i18n/displayText";
 import { useState } from "react";
-import { Heart, ImageOff, Package, Star } from "lucide-react";
+import { Heart, ImageOff, Package, Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface BazarProduct {
@@ -29,9 +29,10 @@ interface Props {
   list?: boolean;
   isWishlisted?: boolean;
   onToggleWishlist?: () => void;
+  onQuickAdd?: () => void;
 }
 
-const BazarProductCard = ({ product, onClick, compact, list = false, isWishlisted = false, onToggleWishlist }: Props) => {
+const BazarProductCard = ({ product, onClick, compact, list = false, isWishlisted = false, onToggleWishlist, onQuickAdd }: Props) => {
   const [imageFailed, setImageFailed] = useState(false);
   const effective = product.wholesale_price ?? product.discount_price ?? product.price;
   const hasDiscount = effective < product.price;
@@ -40,7 +41,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
   const showImage = Boolean(imageUrl) && !imageFailed;
 
   return (
-    <article className={`group relative h-full overflow-hidden rounded-lg border border-border bg-card shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card ${compact ? "w-[7.5rem] shrink-0" : ""}`}>
+    <article className={`group relative h-full overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card ${compact ? "w-[8.5rem] shrink-0" : ""}`}>
       <Button variant="ghost" onClick={onClick} className={list ? "flex h-auto w-full items-center justify-start gap-3 whitespace-normal p-2 text-start hover:bg-card" : "block h-auto w-full whitespace-normal p-0 text-start hover:bg-card"} aria-label={tr(`View ${displayText(product.name)}`, `${product.name} دیکھیں`)}>
         <div className={`relative shrink-0 overflow-hidden bg-accent ${list ? "size-24 rounded-md" : compact ? "h-28 w-full" : "aspect-square w-full"}`}>
           {showImage ? (
@@ -58,7 +59,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
           <p className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{displayText(product.name)}</p>
           <div className={`flex flex-wrap items-end justify-between gap-1 ${list ? "" : "min-h-[2.75rem]"}`}>
             <div><p className="font-display text-sm font-bold text-primary">Rs {effective.toLocaleString()}</p><p className="min-h-4 text-[9px] text-muted-foreground line-through">{hasDiscount ? `Rs ${product.price.toLocaleString()}` : "\u00a0"}</p></div>
-            {product.rating && <span className="flex items-center gap-0.5 text-[9px] font-semibold text-muted-foreground"><Star className="size-2.5 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
+            {!!product.rating && <span className="flex items-center gap-0.5 text-[9px] font-semibold text-muted-foreground"><Star className="size-2.5 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
           </div>
           <div className="min-w-0 text-[9px] text-muted-foreground">
             <p className="h-4 truncate">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
@@ -70,6 +71,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
       {onToggleWishlist && <Button type="button" variant="secondary" size="icon" aria-label={isWishlisted ? tr("Remove from wishlist", "محفوظ فہرست سے ہٹائیں") : tr("Save", "محفوظ کریں")} onClick={onToggleWishlist} className="absolute right-1.5 top-1.5 size-7 rounded-full bg-card shadow-sm hover:bg-secondary">
         <Heart className={`size-3.5 ${isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}`} />
       </Button>}
+      {onQuickAdd && !list && <Button type="button" size="icon" aria-label={tr("Add to cart", "ٹوکری میں ڈالیں")} onClick={onQuickAdd} className={`absolute end-1.5 size-8 rounded-full bg-primary text-primary-foreground shadow-card bottom-2`}><Plus className="size-4" /></Button>}
     </article>
   );
 };
