@@ -27,6 +27,8 @@ export interface CartItem {
   image: string;
   source?: "restaurant" | "grocery";
   sourceId?: string;
+  /** Bazar (wholesale) lines may combine shops; each shop becomes its own package at checkout. */
+  bazar?: boolean;
   weight_kg?: number | null;
   weight?: string | null;
   unit?: string | null;
@@ -132,7 +134,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (first) {
       const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
       const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
-      if (!sameSource || !sameShop) {
+      const bothBazar = Boolean(first.bazar) && Boolean(item.bazar) && sameSource;
+      if ((!sameSource || !sameShop) && !bothBazar) {
         // Never silently wipe a cart: ask first (one shop = one rider trip = one bill).
         toast.warning(tr(`Your cart contains items from ${first.restaurant}. One order can contain items from one shop only.`, `آپ کے کارٹ میں «${first.restaurant}» کی اشیاء ہیں۔ ایک آرڈر میں ایک ہی دکان کی چیزیں آ سکتی ہیں۔`), {
           id: "cart-swap", duration: 8000,
