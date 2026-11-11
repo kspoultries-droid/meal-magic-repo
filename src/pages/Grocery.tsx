@@ -17,7 +17,6 @@ import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
-import groceryHero from "@/assets/grocery-hero.jpg";
 import { filterStoresByReach } from "@/lib/groceryReach";
 import { useCart } from "@/contexts/CartContext";
 import { availableShopQuantity } from "@/lib/shopOrders";
