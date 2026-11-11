@@ -24,6 +24,9 @@ const HIDDEN_PREFIXES = [
 // Routes that render the BottomTabBar — cart bar must sit above it
 const TABBAR_PREFIXES = ["/", "/grocery", "/wholesale", "/services", "/search", "/profile"];
 
+export const isShopPage = (pathname: string) =>
+  /^\/(restaurant|grocery|bazar|store)\/[^/]+\/?$/.test(pathname) && !pathname.startsWith("/restaurant-dashboard");
+
 const FloatingCartBar = () => {
   const { items, totalItems, totalPrice, setIsOpen } = useCart();
   const { pathname } = useLocation();
@@ -31,6 +34,8 @@ const FloatingCartBar = () => {
 
   if (totalItems === 0) return null;
   if (HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))) return null;
+  // Show only inside a shop/restaurant page; elsewhere the Cart tab badge is enough.
+  if (!isShopPage(pathname)) return null;
 
   const hasTabBar =
     pathname === "/" ||
