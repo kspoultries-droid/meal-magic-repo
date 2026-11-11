@@ -110,12 +110,38 @@ const Checkout = () => {
 
 
   const [vendorPaysDelivery, setVendorPaysDelivery] = useState(false);
+  // Bazar carts may hold several shops; each shop becomes its own package with its own server quote.
+  const shopIds = Array.from(new Set(items.map((i) => i.sourceId).filter(Boolean))) as string[];
+  const multiShop = shopIds.length > 1 && items.every((i) => i.source === "grocery" && i.bazar);
+  const [packageQuotes, setPackageQuotes] = useState<{ storeId: string; name: string; subtotal: number; fee: number; quote: DeliveryQuote }[]>([]);
+
+  useEffect(() => {
+    if (!multiShop || !selectedCity) { setPackageQuotes([]); return; }
+    let cancelled = false;
+    setQuoteLoading(true); setQuoteError(""); setDeliveryQuote(null);
+    Promise.all(shopIds.map(async (storeId) => {
+      const lines = items.filter((i) => i.sourceId === storeId);
+      const subtotal = lines.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const { data, error } = await (supabase.rpc as any)("shop_delivery_quote", { _store_id: storeId, _city_id: selectedCity, _lat: coords?.lat ?? null, _lng: coords?.lng ?? null, _weight_kg: calculateCartWeight(lines), _subtotal: subtotal });
+      if (error || !data) throw new Error(`${lines[0]?.restaurant}: ${error?.message || L("delivery fee unavailable", "ڈیلیوری فیس نہیں مل سکی")}`);
+      const quote = data as DeliveryQuote;
+      return { storeId, name: lines[0]?.restaurant || "", subtotal, fee: Number(quote.customer_fee ?? quote.fee ?? 0), quote };
+    })).then((list) => {
+      if (cancelled) return;
+      setPackageQuotes(list);
+      setDeliveryFee(list.reduce((sum, q) => sum + q.fee, 0));
+      setDeliveryQuote({ ...list[0].quote, needs_quote: list.some((q) => q.quote.needs_quote) });
+      setVendorPaysDelivery(false);
+    }).catch((e) => { if (!cancelled) { setPackageQuotes([]); setDeliveryFee(0); setQuoteError(e.message); } })
+      .finally(() => { if (!cancelled) setQuoteLoading(false); });
+    return () => { cancelled = true; };
+  }, [items, selectedCity, coords, multiShop]);
 
   useEffect(() => {
     const sourceId = items[0]?.sourceId;
     const isFood = items.every((item) => (item.source || "restaurant") === "restaurant");
     const isGrocery = items.every((item) => item.source === "grocery");
-    if (!sourceId || !selectedCity || items.length === 0 || (!isFood && !isGrocery)) return;
+    if (!sourceId || !selectedCity || items.length === 0 || (!isFood && !isGrocery) || multiShop) return;
     let cancelled = false;
     const totalWeight = calculateCartWeight(items);
     setQuoteLoading(true);
@@ -143,7 +169,7 @@ const Checkout = () => {
       setQuoteLoading(false);
     });
     return () => { cancelled = true; };
-  }, [items, selectedCity, coords, cities, totalPrice, restaurantDeliveryMode, vendorPaysDelivery, voucher?.discount]);
+  }, [items, selectedCity, coords, cities, totalPrice, restaurantDeliveryMode, vendorPaysDelivery, voucher?.discount, multiShop]);
 
   // Detect restaurant delivery mode
   useEffect(() => {
@@ -280,7 +306,29 @@ const Checkout = () => {
     }
 
     try {
-      if (isGroceryOrder) {
+      if (multiShop) {
+        const placed: string[] = [];
+        for (const storeId of shopIds) {
+          const lines = items.filter((i) => i.sourceId === storeId);
+          const { error } = await supabase.rpc("create_shop_order", {
+            _store_id: storeId, _city_id: selectedCity, _delivery_address: address, _notes: notes || null,
+            _items: lines.map((item) => ({ id: item.menu_item_id, quantity: item.quantity, variant_id: item.variant_id || null, variant_label: item.variant_label || null })),
+            _receiver_name: isGift ? receiverName : null, _receiver_phone: isGift ? receiverPhone : null, _is_gift: isGift,
+            _delivery_lat: coords?.lat ?? null, _delivery_lng: coords?.lng ?? null, _voucher_code: null,
+          });
+          if (error) {
+            // Keep only the packages that were not placed, so the customer can retry them.
+            placed.forEach((id) => items.filter((i) => i.sourceId === id).forEach((i) => updateQuantity(i.id, 0)));
+            toast.error(L(`${placed.length} package(s) placed. ${lines[0]?.restaurant} failed: ${error.message}`, `${placed.length} پیکیج کا آرڈر ہو گیا۔ «${lines[0]?.restaurant}» کا آرڈر نہیں ہو سکا: ${error.message}`), { duration: 9000 });
+            setSubmitting(false);
+            return;
+          }
+          placed.push(storeId);
+        }
+        toast.success(L(`${placed.length} packages ordered — each shop sends its own parcel`, `${placed.length} پیکیجز کا آرڈر ہو گیا — ہر دکان اپنا پارسل الگ بھیجے گی`));
+        clearCart();
+        navigate("/my-orders");
+      } else if (isGroceryOrder) {
         const storeId = items[0]?.sourceId;
         if (!storeId) { toast.error(L("Store information not found", "اسٹور کی معلومات نہیں ملیں")); setSubmitting(false); return; }
         const orderItems = items.map(item => ({
