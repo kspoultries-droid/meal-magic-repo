@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,8 @@ const CartDrawer = () => {
       .then(({ data }) => setRecommended((data || []).filter((p: any) => !items.some((i) => i.menu_item_id === p.id))));
   }, [isOpen, items]);
 
-  const shop = items[0]?.restaurant;
+  // Bazar carts can hold several shops: show one package per shop.
+  const groups = Array.from(new Set(items.map((i) => i.sourceId || i.restaurant))).map((key) => items.filter((i) => (i.sourceId || i.restaurant) === key));
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -50,14 +52,15 @@ const CartDrawer = () => {
         ) : (
           <>
             <div className="flex-1 space-y-3 overflow-y-auto p-3">
-              <section className="overflow-hidden rounded-xl border bg-card">
+              {groups.map((groupItems, gi) => (
+              <section key={gi} className="overflow-hidden rounded-xl border bg-card">
                 <div className="flex items-center gap-2 border-b px-3 py-2.5">
                   <Store className="size-4 text-primary" />
-                  <p className="min-w-0 flex-1 truncate text-sm font-bold">{shop}</p>
-                  <button type="button" onClick={clearCart} className="text-xs font-semibold text-muted-foreground hover:text-destructive">{t("cart.clear")}</button>
+                  <p className="min-w-0 flex-1 truncate text-sm font-bold">{groups.length > 1 && <span className="me-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">{tr("Package", "پیکیج")} {gi + 1}</span>}{groupItems[0]?.restaurant}</p>
+                  {gi === 0 && <button type="button" onClick={clearCart} className="text-xs font-semibold text-muted-foreground hover:text-destructive">{t("cart.clear")}</button>}
                 </div>
                 <ul className="divide-y">
-                  {items.map((item) => (
+                  {groupItems.map((item) => (
                     <li key={item.id} className="flex gap-3 p-3">
                       <div className="size-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-muted">
                         {item.image ? <img src={img(item.image, 160)} alt={item.name} loading="lazy" className="size-full object-cover" /> : <Package className="m-auto mt-6 size-6 text-muted-foreground" />}
@@ -84,6 +87,8 @@ const CartDrawer = () => {
                   ))}
                 </ul>
               </section>
+              ))}
+              {groups.length > 1 && <p className="px-1 text-[11px] text-muted-foreground">{tr("Each shop sends its own parcel; pay each parcel when it arrives.", "ہر دکان اپنا پارسل الگ بھیجے گی؛ ہر پارسل کی رقم اس کے پہنچنے پر ادا کریں۔")}</p>}
 
               {recommended.length > 0 && (
                 <section className="rounded-xl border bg-card p-3">
