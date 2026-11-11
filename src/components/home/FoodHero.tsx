@@ -98,17 +98,15 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
               <CarouselItem key={ad.id} className="basis-full pl-0">
                 <button type="button" onClick={() => openAd(ad)} className={`relative block ${H} w-full overflow-hidden bg-muted text-start`}>
                   {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0 bg-gradient-hero" />}
-                  <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-foreground/15 to-transparent" />
                   {ad.show_text !== false && <>
-                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-foreground/45 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-4 pb-5 text-background [text-shadow:0_1px_3px_hsl(var(--foreground)/0.6)]">
+                    <div className="absolute bottom-4 start-3 max-w-[70%] rounded-2xl bg-card/90 p-3 text-foreground shadow-card">
                       {ad.offer_badge && <span className="mb-1 inline-block rounded-full bg-destructive px-2.5 py-0.5 text-xs font-extrabold text-destructive-foreground">{ad.offer_badge}</span>}
                       <p className="text-[11px] font-semibold opacity-90">{ad.brand_name}</p>
                       <p className="line-clamp-2 text-xl font-extrabold leading-tight">{ad.title}</p>
                       <span className="mt-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || tr("View now", "ابھی دیکھیں")}</span>
                     </div>
                   </>}
-                  <span className="absolute bottom-3 start-3 rounded bg-foreground/50 px-1.5 py-0.5 text-[9px] font-medium text-background">AD</span>
+                  <span className="absolute bottom-3 start-3 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>
                 </button>
               </CarouselItem>
             ))}
@@ -116,12 +114,10 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
               <CarouselItem key={s.key} className="basis-full pl-0">
                 <button type="button" onClick={() => go(s.to)} className={`relative block ${H} w-full overflow-hidden bg-muted text-start`}>
                   <img src={s.image} alt="" width={1024} height={640} loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
-                  <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-foreground/15 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-foreground/35 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 max-w-[75%] p-4 pb-6 text-background [text-shadow:0_1px_3px_hsl(var(--foreground)/0.6)]">
+                  <div className="absolute bottom-5 start-3 max-w-[70%] rounded-2xl bg-card/90 p-3 text-foreground shadow-card">
                     <p className="text-xs font-bold opacity-90">{s.eyebrow}</p>
                     <p className="mt-1 font-display text-xl sm:text-2xl font-extrabold leading-tight">{s.title}</p>
-                    <span className="mt-3 inline-block rounded-full bg-card px-4 py-1.5 text-xs font-bold text-primary">{s.cta}</span>
+                    <span className="mt-3 inline-block rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-primary-foreground">{s.cta}</span>
                   </div>
                 </button>
               </CarouselItem>
