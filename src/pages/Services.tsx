@@ -234,7 +234,6 @@ const Services = () => {
     fetchNearbyProviders(activeCategory);
   }, [activeCategory, userLocation]);
 
-  const advanceFee = selectedService ? Math.round(selectedService.price * 0.15) : 0;
 
   const isOilChange = selectedService?.name?.toLowerCase().includes("oil change") || selectedService?.name?.includes(tr("Oil Change", "آئل چینج"));
   const isCarService = categories.find(c => c.id === selectedService?.category_id)?.name?.toLowerCase().includes("car");
@@ -772,20 +771,13 @@ const Services = () => {
                 />
               </div>
 
-              {/* Advance Fee Info */}
-              <div className="bg-orange-50 rounded-xl p-3 text-sm">
-                <p className="font-bold text-orange-700 mb-1">{tr("⚡ Advance Fee (15%)", "⚡ Advance Fee / ایڈوانس فیس (15%)")}</p>
-                <div className="flex justify-between text-orange-600">
-                  <span>Advance: Rs {advanceFee}</span>
-                  <span>Remaining: Rs {selectedService.price - advanceFee}</span>
-                </div>
-                <p className="text-xs text-orange-500 mt-1">{tr("Remaining on completion", "Remaining on completion / باقی کام مکمل ہونے پر")}</p>
-              </div>
-
               {/* Payment Info */}
-              <div className="bg-secondary rounded-xl p-3 flex items-center gap-2 text-sm">
-                <CreditCard className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Advance: Wallet/JazzCash | Remaining: COD</span>
+              <div className="bg-secondary rounded-xl p-3 flex items-start gap-2 text-sm">
+                <CreditCard className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-bold text-foreground">{tr("No advance — pay after the work", "کوئی ایڈوانس نہیں — کام کے بعد ادائیگی")}</p>
+                  <p className="text-xs text-muted-foreground">{tr("Pay the helper in cash when the job is done. If extra parts are needed, you will get a price to approve first.", "کام مکمل ہونے پر کاریگر کو نقد ادائیگی کریں۔ اضافی سامان لگے تو پہلے آپ کو قیمت منظوری کے لیے بھیجی جائے گی۔")}</p>
+                </div>
               </div>
 
               {/* Book Button */}
@@ -794,7 +786,7 @@ const Services = () => {
                 onClick={handleBook}
                 disabled={submitting}
               >
-                {submitting ? t("services.booking") : `Book Now — Total Rs ${selectedService.price} (Advance Rs ${advanceFee})`}
+                {submitting ? t("services.booking") : `${tr("Confirm booking", "بکنگ کنفرم کریں")} — Rs ${selectedService.price}`}
               </Button>
             </div>
           )}
