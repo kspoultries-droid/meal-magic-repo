@@ -2,7 +2,7 @@ import { tr } from "@/lib/i18n/tr";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
-import { Search, X } from "lucide-react";
+import { ArrowRight, Search, X } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { img } from "@/lib/imageUrl";
@@ -99,14 +99,13 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
                 <button type="button" onClick={() => openAd(ad)} className={`relative block ${H} w-full overflow-hidden bg-muted text-start`}>
                   {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0 bg-gradient-hero" />}
                   {ad.show_text !== false && <>
-                    <div className="absolute bottom-4 start-3 max-w-[70%] rounded-2xl bg-card/90 p-3 text-foreground shadow-card">
-                      {ad.offer_badge && <span className="mb-1 inline-block rounded-full bg-destructive px-2.5 py-0.5 text-xs font-extrabold text-destructive-foreground">{ad.offer_badge}</span>}
-                      <p className="text-[11px] font-semibold opacity-90">{ad.brand_name}</p>
-                      <p className="line-clamp-2 text-xl font-extrabold leading-tight">{ad.title}</p>
-                      <span className="mt-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || tr("View now", "ابھی دیکھیں")}</span>
+                    <div className="absolute bottom-6 start-3 flex max-w-[78%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-3 text-foreground shadow-card backdrop-blur-md">
+                      {ad.offer_badge && <span className="shrink-0 rounded-full bg-destructive px-2 py-0.5 text-[10px] font-extrabold text-destructive-foreground">{ad.offer_badge}</span>}
+                      <span className="truncate text-xs font-bold">{ad.title}</span>
+                      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"><ArrowRight className="size-3.5 rtl:rotate-180" /></span>
                     </div>
                   </>}
-                  <span className="absolute bottom-3 start-3 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>
+                  <span className="absolute top-2 end-2 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>
                 </button>
               </CarouselItem>
             ))}
@@ -114,10 +113,9 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
               <CarouselItem key={s.key} className="basis-full pl-0">
                 <button type="button" onClick={() => go(s.to)} className={`relative block ${H} w-full overflow-hidden bg-muted text-start`}>
                   <img src={s.image} alt="" width={1024} height={640} loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
-                  <div className="absolute bottom-5 start-3 max-w-[70%] rounded-2xl bg-card/90 p-3 text-foreground shadow-card">
-                    <p className="text-xs font-bold opacity-90">{s.eyebrow}</p>
-                    <p className="mt-1 font-display text-xl sm:text-2xl font-extrabold leading-tight">{s.title}</p>
-                    <span className="mt-3 inline-block rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-primary-foreground">{s.cta}</span>
+                  <div className="absolute bottom-6 start-3 flex max-w-[78%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-3 text-foreground shadow-card backdrop-blur-md">
+                    <span className="truncate text-xs font-bold">{s.title}</span>
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"><ArrowRight className="size-3.5 rtl:rotate-180" /></span>
                   </div>
                 </button>
               </CarouselItem>
