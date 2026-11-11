@@ -21,6 +21,11 @@ describe("delivery address privacy", () => {
     writeDeliveryLocation({ source: "gps", label: "Current", address: "Public area", lat: 28, lng: 70 });
     expect(readDeliveryLocation()?.address).toBe("Public area");
   });
+  it("keeps a guest-typed address visible while signed out but never inside an account", () => {
+    writeDeliveryLocation({ source: "guest_address", label: "Office", address: "Guest typed address", lat: 28, lng: 70 });
+    expect(readDeliveryLocation()?.address).toBe("Guest typed address");
+    expect(readDeliveryLocation("any-user")).toBeNull();
+  });
 });
 describe("shopping login continuation", () => {
   it("preserves the selected item and quantity until sign-in", () => {
