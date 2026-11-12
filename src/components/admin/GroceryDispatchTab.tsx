@@ -154,12 +154,20 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
         <p>🏪 Pickup: <span className="font-bold text-foreground">{o.grocery_stores?.name || tr("Store", "اسٹور")}</span></p>
         <p>📍 Dropoff: {o.delivery_address || tr("Unknown", "پتہ نہیں")}</p>
       </div>
+      {!o.rider_id && o.dispatch_state === "stuck" && (
+        <p className="rounded-md bg-destructive/10 px-2 py-1 text-[11px] font-bold text-destructive">
+          {Number(o.total_amount) > 20000
+            ? tr("Auto-dispatch stopped: order cash is above the rider cash limit (Rs 20,000). Assign a trusted rider manually.", "خودکار رائیڈر رک گیا: آرڈر کی رقم رائیڈر کی کیش حد (Rs 20,000) سے زیادہ ہے۔ کسی بھروسہ مند رائیڈر کو خود مقرر کریں۔")
+            : tr("Auto-dispatch stopped: no rider accepted or no suitable vehicle online. Assign manually.", "خودکار رائیڈر رک گیا: کسی رائیڈر نے قبول نہیں کیا یا مناسب گاڑی آن لائن نہیں۔ خود مقرر کریں۔")}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {o.picked_up_at && o.delivery_stage !== "return_pending" ? (
           <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => forceDeliver(table, o)}>{tr("Mark delivered", "ڈیلیور ہو گیا")}</Button>
-        ) : !o.picked_up_at ? (
+        ) : !o.picked_up_at ? (<>
+          {!o.rider_id && expanded !== o.id && <Button size="sm" className="h-7 text-xs" onClick={() => setExpanded(o.id)}>{tr("Assign rider", "رائیڈر مقرر کریں")}</Button>}
           <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => cancelOrder(table, o)}>{tr("Cancel order", "آرڈر منسوخ کریں")}</Button>
-        ) : (
+        </>) : (
           <p className="text-xs text-warning">{tr("Return in progress — confirm in Rider Operations", "واپسی جاری — رائیڈر آپریشنز میں تصدیق کریں")}</p>
         )}
       </div>
