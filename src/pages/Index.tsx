@@ -41,7 +41,7 @@ const Index = () => {
       </>
       )}
       <Footer />
-      <AppShareButton section="food" />
+      <AppShareButton section="general" />
       <BottomTabBar />
     </div>
   );
