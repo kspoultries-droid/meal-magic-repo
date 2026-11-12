@@ -37,6 +37,7 @@ const SOURCE_BADGE: Record<string, string> = {
   wholesale: tr("📦 Market", "📦 بازار"),
 };
 
+const PAGE_SIZE = 8;
 const LIKED_KEY = "easylife:liked-reels";
 
 const REPORT_REASONS = [
@@ -70,23 +71,37 @@ const Reels = () => {
   const [reported, setReported] = useState<Set<string>>(new Set());
 
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await (supabase
-        .from("reels" as any)
-        .select("*")
-        .eq("is_active", true)
-        .eq("moderation_status", "approved")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false }) as any);
-
-      setReels(data || []);
-      setLoading(false);
-    };
-    load();
+  const [hasMore, setHasMore] = useState(true);
+  const loadingMoreRef = useRef(false);
+  const loadPage = useCallback(async (from: number) => {
+    if (loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+    const { data } = await (supabase
+      .from("reels" as any)
+      .select("id, source_type, source_id, source_name, title, caption, video_url, poster_url, price, views, likes")
+      .eq("is_active", true)
+      .eq("moderation_status", "approved")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false })
+      .range(from, from + PAGE_SIZE - 1) as any);
+    const rows = (data || []) as Reel[];
+    setReels((prev) => {
+      const seen = new Set(prev.map((r) => r.id));
+      return [...prev, ...rows.filter((r) => !seen.has(r.id))];
+    });
+    setHasMore(rows.length === PAGE_SIZE);
+    setLoading(false);
+    loadingMoreRef.current = false;
   }, []);
+  useEffect(() => { loadPage(0); }, [loadPage]);
 
   const filtered = filter === "all" ? reels : reels.filter((r) => r.source_type === filter);
+  const activeIndex = Math.max(0, filtered.findIndex((r) => r.id === activeId));
+
+  // Fetch the next page when the viewer nears the end
+  useEffect(() => {
+    if (!loading && hasMore && filtered.length - activeIndex <= 3) loadPage(reels.length);
+  }, [activeIndex, filtered.length, hasMore, loading, loadPage, reels.length]);
 
   // Track which reel is in view
   useEffect(() => {
@@ -232,12 +247,14 @@ const Reels = () => {
             <p>{tr("No reels available right now", "ابھی کوئی ریل دستیاب نہیں")}</p>
           </div>
         ) : (
-          filtered.map((reel) => {
+          filtered.map((reel, index) => {
+            // Only the current, previous and next reels keep a video element in memory
+            const inWindow = Math.abs(index - activeIndex) <= 1;
             const isLiked = liked.has(reel.id);
             const isActive = activeId === reel.id;
             return (
               <section key={reel.id} data-reel-id={reel.id} className="h-[100dvh] snap-start relative">
-                <video
+                {inWindow ? <video
                   ref={(el) => { if (el) videoRefs.current.set(reel.id, el); else videoRefs.current.delete(reel.id); }}
                   src={reel.video_url}
                   poster={reel.poster_url || undefined}
@@ -247,7 +264,7 @@ const Reels = () => {
                   playsInline
                   preload={isActive ? "auto" : "metadata"}
                   onClick={togglePlay}
-                />
+                /> : reel.poster_url ? <img src={reel.poster_url} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" /> : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
 
                 {/* Paused indicator */}

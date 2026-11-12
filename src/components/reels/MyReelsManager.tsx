@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getVideoDuration, isReelTooLong } from "@/lib/videoDuration";
 import { Plus, Trash2, Clapperboard, Eye, Heart, Upload, ShieldAlert } from "lucide-react";
 
 interface Entity { id: string; name: string; source_type: "restaurant" | "grocery" | "wholesale"; }
@@ -77,6 +78,7 @@ const MyReelsManager = ({ restrictSourceId }: Props) => {
   const uploadVideo = async (): Promise<string | null> => {
     const file = fileRef.current?.files?.[0];
     if (!file) return null;
+    try { if (isReelTooLong(await getVideoDuration(file))) { toast.error("ویڈیو 45 سیکنڈ سے لمبی ہے، براہ کرم چھوٹی ویڈیو منتخب کریں"); throw new Error("too long"); } } catch (e) { if ((e as Error).message === "too long") throw e; }
     if (file.size > 50 * 1024 * 1024) { toast.error("ویڈیو 50MB سے چھوٹی ہونی چاہیے"); throw new Error("too large"); }
     const { data: auth } = await supabase.auth.getUser();
     const uid = auth.user?.id;
@@ -156,8 +158,8 @@ const MyReelsManager = ({ restrictSourceId }: Props) => {
                 <Input placeholder="https://...video.mp4" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} dir="ltr" />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground flex items-center gap-1"><Upload className="w-3 h-3" /> ویڈیو اپلوڈ (زیادہ سے زیادہ 50MB)</label>
-                <input ref={fileRef} type="file" accept="video/mp4,video/webm" className="w-full text-sm border rounded-md p-2 bg-background" />
+                <label className="text-xs text-muted-foreground flex items-center gap-1"><Upload className="w-3 h-3" /> ویڈیو اپلوڈ — موبائل سیدھا رکھ کر بنائیں، زیادہ سے زیادہ 45 سیکنڈ</label>
+                <input ref={fileRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="w-full text-sm border rounded-md p-2 bg-background" />
               </div>
               <Input placeholder="پوسٹر تصویر لنک (اختیاری)" value={posterUrl} onChange={(e) => setPosterUrl(e.target.value)} dir="ltr" />
               <Input type="number" placeholder="قیمت (Rs، اختیاری)" value={price} onChange={(e) => setPrice(e.target.value)} />
