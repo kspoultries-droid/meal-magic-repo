@@ -25,6 +25,8 @@ import ShopQuestions from "@/components/grocery/ShopQuestions";
 import ShopOrderSettings from "@/components/grocery/ShopOrderSettings";
 import VendorReviewsPanel from "@/components/reviews/VendorReviewsPanel";
 import EarningsPanel from "@/components/vendor/EarningsPanel";
+import ShopSalesRecord from "@/components/vendor/ShopSalesRecord";
+import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import { availableShopQuantity } from "@/lib/shopOrders";
 
 import BottomTabBar from "@/components/BottomTabBar";
@@ -58,6 +60,9 @@ const GroceryStoreDetail = () => {
   const [editPrice, setEditPrice] = useState("");
   const [editDiscount, setEditDiscount] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editWeightKg, setEditWeightKg] = useState("");
+  const [pendingCount, setPendingCount] = useState(0);
+  const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
 
    const [showAddProduct, setShowAddProduct] = useState(false);
@@ -91,6 +96,23 @@ const GroceryStoreDetail = () => {
   useEffect(() => {
     if (id) fetchData();
   }, [id, user]);
+
+  // Owner: live new-order bell + count, whichever tab is open
+  useEffect(() => {
+    if (!isOwner || !id) return;
+    const loadCount = async () => {
+      const { count } = await supabase.from("grocery_cart_orders").select("id", { count: "exact", head: true })
+        .eq("store_id", id).in("status", ["pending", "accepted", "picking", "packed"]);
+      setPendingCount(count || 0);
+    };
+    loadCount();
+    const ch = supabase.channel(`shop-orders-${id}-${Math.random().toString(36).slice(2)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders", filter: `store_id=eq.${id}` }, (payload: any) => {
+        if (payload.eventType === "INSERT") triggerAlert(L("New order received!", "نیا آرڈر آیا ہے!"));
+        loadCount();
+      }).subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [isOwner, id]);
 
   const categories = ["All", "🔥 Special Offers", ...Array.from(new Set(products.map((p) => p.category || "General")))];
   const filtered = activeCategory === "All" ? products : activeCategory === "🔥 Special Offers" ? products.filter((p) => p.is_special_offer) : products.filter((p) => p.category === activeCategory);
@@ -138,6 +160,7 @@ const GroceryStoreDetail = () => {
     setEditPrice(String(product.price));
     setEditDiscount(product.discount_price ? String(product.discount_price) : "");
     setEditDescription(product.description || "");
+    setEditWeightKg(product.weight_kg != null ? String(product.weight_kg) : "");
   };
 
   const savePrice = async (productId: string) => {
@@ -145,6 +168,9 @@ const GroceryStoreDetail = () => {
     updates.discount_price = editDiscount ? Number(editDiscount) : null;
     updates.is_special_offer = !!editDiscount;
     updates.description = editDescription.trim() || null;
+    const w = Number(editWeightKg);
+    if (editWeightKg.trim() && (!Number.isFinite(w) || w <= 0 || w > 2000)) { toast.error(L("Enter a valid weight in kg", "درست وزن (کلو) لکھیں")); return; }
+    if (editWeightKg.trim()) updates.weight_kg = w;
     const { error } = await supabase.from("grocery_products").update(updates).eq("id", productId);
     if (error) { toast.error(error.message); return; }
     toast.success(L("Price updated", "قیمت اپڈیٹ ہو گئی"));
@@ -278,13 +304,18 @@ const GroceryStoreDetail = () => {
         </div>
       </div>
 
+      {isOwner && newOrderCount > 0 && (
+        <button onClick={dismissAlert} className="fixed inset-x-3 top-3 z-50 rounded-2xl bg-primary p-3 text-sm font-bold text-primary-foreground shadow-lg">
+          🔔 {L("New order received! Open the Orders tab.", "نیا آرڈر آیا ہے! آرڈرز والا ٹیب کھولیں۔")} ({newOrderCount})
+        </button>
+      )}
       {/* Tabs: Products & Orders */}
       <div className="container mx-auto px-4 pb-6">
         <Tabs defaultValue={new URLSearchParams(location.search).get("tab") || "products"} className="w-full">
           <TabsList className="w-full mb-3 justify-start overflow-x-auto">
             <TabsTrigger value="products" className="flex-1">🛒 {L("Products", "پروڈکٹس")}</TabsTrigger>
             {(!isBazar || isOwner) && (
-              <TabsTrigger value="orders" className="flex-1">📋 {L("Orders", "آرڈرز")}</TabsTrigger>
+              <TabsTrigger value="orders" className="flex-1">📋 {L("Orders", "آرڈرز")}{isOwner && pendingCount > 0 && <span className="ms-1 rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">{pendingCount}</span>}</TabsTrigger>
             )}
             {isOwner && <TabsTrigger value="stock" className="flex-1">📦 {L("Stock", "اسٹاک")}</TabsTrigger>}
             {isOwner && <TabsTrigger value="reels" className="flex-1">🎬 {L("Reels", "ریلز")}</TabsTrigger>}
@@ -366,6 +397,12 @@ const GroceryStoreDetail = () => {
                               <span className="text-[10px] text-muted-foreground w-12">{L("Discount:", "ڈسکاؤنٹ:")}</span>
                               <Input type="number" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} placeholder={L("empty = no discount", "خالی = بغیر ڈسکاؤنٹ")} className="h-7 text-xs" />
                             </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-muted-foreground w-12">{L("Weight:", "وزن:")}</span>
+                              <Input type="number" inputMode="decimal" value={editWeightKg} onChange={(e) => setEditWeightKg(e.target.value)} placeholder={L("kg with packing", "پیکنگ سمیت کلو")} className="h-7 text-xs" />
+                              <span className="text-[10px] text-muted-foreground">kg</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground">{L("Correct weight decides bike or loader and the delivery fare.", "درست وزن سے ہی بائیک یا لوڈر اور کرایہ طے ہوتا ہے۔")}</p>
                             <div>
                               <span className="text-[10px] text-muted-foreground">{L("Details:", "تفصیل:")}</span>
                               <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder={L("Write product details...", "پروڈکٹ کی تفصیل لکھیں...")} rows={3} className="mt-1 text-xs" />
@@ -470,7 +507,7 @@ const GroceryStoreDetail = () => {
           )}
           {isOwner && <TabsContent value="questions"><ShopQuestions storeId={store.id} /></TabsContent>}
           {isOwner && <TabsContent value="reviews"><VendorReviewsPanel kind="grocery" /></TabsContent>}
-          {isOwner && <TabsContent value="earnings"><EarningsPanel /></TabsContent>}
+          {isOwner && <TabsContent value="earnings"><div className="space-y-2.5"><ShopSalesRecord storeId={id!} /><EarningsPanel /></div></TabsContent>}
           {isOwner && <TabsContent value="settings"><ShopOrderSettings store={store} onChanged={fetchData} /></TabsContent>}
         </Tabs>
 
