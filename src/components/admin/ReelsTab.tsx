@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getVideoDuration, isReelTooLong } from "@/lib/videoDuration";
 import { Plus, Trash2, RefreshCw, Clapperboard, Eye, EyeOff, Heart, Upload, ShieldCheck, Ban } from "lucide-react";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -101,7 +102,8 @@ const ReelsTab = () => {
   const uploadVideo = async (): Promise<string | null> => {
     const file = fileRef.current?.files?.[0];
     if (!file) return null;
-    if (file.size > 50 * 1024 * 1024) { toast.error(tr("Video must be under 50MB", "ویڈیو 50MB سے چھوٹی ہونی چاہیے")); throw new Error("too large"); }
+    try { if (isReelTooLong(await getVideoDuration(file))) { toast.error(tr("Video must be 45 seconds or shorter", "ویڈیو 45 سیکنڈ سے لمبی ہے، چھوٹی ویڈیو منتخب کریں")); throw new Error("too long"); } } catch (e) { if ((e as Error).message === "too long") throw e; }
+    if (file.size > 80 * 1024 * 1024) { toast.error(tr("Video must be under 80MB", "ویڈیو 80MB سے چھوٹی ہونی چاہیے")); throw new Error("too large"); }
     const path = `reels/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file, { cacheControl: "3600", upsert: false });
     if (error) { toast.error(tr("Video upload failed: ", "ویڈیو اپلوڈ ناکام: ") + error.message); throw error; }
@@ -195,7 +197,7 @@ const ReelsTab = () => {
                   <Input placeholder="https://...video.mp4" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} dir="ltr" />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground flex items-center gap-1"><Upload className="w-3 h-3" /> {tr("Upload video file (max 50MB)", "ویڈیو فائل اپلوڈ (max 50MB)")}</label>
+                  <label className="text-xs text-muted-foreground flex items-center gap-1"><Upload className="w-3 h-3" /> {tr("Upload video file (max 80MB)", "ویڈیو فائل اپلوڈ (max 80MB)")}</label>
                   <input ref={fileRef} type="file" accept="video/mp4,video/webm" className="w-full text-sm border rounded-md p-2 bg-background" />
                 </div>
 
