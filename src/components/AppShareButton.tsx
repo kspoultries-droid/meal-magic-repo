@@ -5,14 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { shareLink } from "@/lib/referral";
 
 interface AppShareButtonProps {
-  section?: "food" | "grocery" | "services" | "general";
+  section?: "food" | "grocery" | "bazar" | "services" | "general";
 }
 
 const SECTION_MESSAGES: Record<string, string> = {
   food: "🍔 بہترین ریسٹورنٹس سے کھانا آرڈر کریں!\n\nEasy Life ایپ ڈاؤنلوڈ کریں:",
-  grocery: "🛒 گھر بیٹھے گروسری منگوائیں!\n\nEasy Life ایپ ڈاؤنلوڈ کریں:",
+  bazar: "🛍️ کپڑے، الیکٹرانکس اور گھریلو اشیاء — بازار سے سستے ریٹ پر منگوائیں!\n\nEasy Life ایپ ڈاؤنلوڈ کریں:",
+  grocery: "🛒 گھر بیٹھے راشن، سبزی اور گوشت منگوائیں!\n\nEasy Life ایپ ڈاؤنلوڈ کریں:",
   services: "🔧 AC ریپیئر، مستری، الیکٹریشن — سب ایک ایپ میں!\n\nEasy Life ایپ ڈاؤنلوڈ کریں:",
-  general: "📱 فوڈ، گروسری اور سروسز — سب ایک ایپ میں!\n\nEasy Life ایپ ڈاؤنلوڈ کریں:",
+  general: "📱 EasyLife — کھانا، گروسری، بازار اور ہوم سروسز، سب ایک ہی ایپ میں!\n\nEasy Life ایپ ڈاؤنلوڈ کریں:",
 };
 
 const AppShareButton = ({ section = "general" }: AppShareButtonProps) => {

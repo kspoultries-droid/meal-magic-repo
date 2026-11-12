@@ -146,7 +146,7 @@ const Wholesale = () => {
     <BazarFilterBar filters={filters} onChange={setFilters} resultCount={filteredProducts.length} grid={grid} onGridChange={setGrid} sizes={variantValues.sizes} colors={variantValues.colors} />
     <section className="w-full px-3 pt-5 sm:px-6"><div className="mb-3 flex items-center gap-2"><Flame className="size-4 text-destructive" /><h2 className="font-display text-xl font-bold">{t("bazar.justForYou")}</h2></div>{loading ? <StoreGridSkeleton count={6} /> : filteredProducts.length === 0 ? <div className="rounded-xl border bg-card py-12 text-center"><Package className="mx-auto mb-2 size-8 text-muted-foreground" /><p className="text-sm font-semibold">{t("bazar.noProducts")}</p><p className="mt-1 text-xs text-muted-foreground">{t("bazar.changeFilters")}</p></div> : <><div className={grid ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" : "space-y-2"}>{filteredProducts.slice(0, visible).map((p) => <BazarProductCard key={p.id} product={p} list={!grid} onClick={() => openProduct(p)} isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} onQuickAdd={() => quickAdd(p)} />)}</div>{(visible < filteredProducts.length || hasMore) && <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="mx-auto mt-5 flex">{loadingMore ? t("bazar.loading") : t("bazar.loadMore")}<ChevronRight className="size-4" /></Button>}</>}</section>
     </>}
-    <AppShareButton section="grocery" /><BottomTabBar />
+    <AppShareButton section="bazar" /><BottomTabBar />
   </div>;
 };
 export default Wholesale;
