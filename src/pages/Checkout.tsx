@@ -469,25 +469,21 @@ const Checkout = () => {
               </div>
               {quoteError && <p role="alert" className="text-xs font-bold text-destructive">{quoteError}</p>}
               {multiShop && packageQuotes.length > 0 && (
-                <div className="space-y-1.5 rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px]">
-                  <p className="font-bold text-foreground">{L(`${packageQuotes.length} packages — each shop sends its own parcel; pay each on arrival`, `${packageQuotes.length} پیکیجز — ہر دکان اپنا پارسل الگ بھیجے گی، ہر پارسل کی رقم اس کے پہنچنے پر`)}</p>
+                <div className="space-y-1 rounded-lg bg-primary/5 px-2.5 py-1.5 text-[11px]">
+                  <p className="font-bold text-foreground">{L(`${packageQuotes.length} parcels`, `${packageQuotes.length} پارسل`)}</p>
                   {packageQuotes.map((q, i) => (
                     <div key={q.storeId} className="flex justify-between gap-2 text-muted-foreground">
-                      <span className="min-w-0 truncate">{L("Package", "پیکیج")} {i + 1}: <b className="text-foreground">{q.name}</b> · {formatDeliveryMode(q.quote.mode)}</span>
+                      <span className="min-w-0 truncate"><b className="text-foreground">{q.name}</b></span>
                       <span className="shrink-0 font-semibold text-foreground">Rs {q.subtotal} + {q.fee}</span>
                     </div>
                   ))}
                 </div>
               )}
               {deliveryQuote && !isRestaurantOrder && !multiShop && (
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] text-muted-foreground">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-bold text-foreground">
-                    <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5 text-primary" />{formatDeliveryMode(deliveryQuote.mode)}</span>
-                    <span className="flex items-center gap-1"><Scale className="h-3.5 w-3.5 text-primary" />{deliveryQuote.weight_kg.toFixed(1)} {L("kg", "کلو")}</span>
-                    {deliveryQuote.distance_km > 0 && <span className="flex items-center gap-1"><Route className="h-3.5 w-3.5 text-primary" />{deliveryQuote.distance_km.toFixed(1)} {L("km", "کلومیٹر")}</span>}
-                  </div>
-                  <p className="mt-1">{formatFeeBreakdown(deliveryQuote)}{deliveryQuote.vehicle_name ? ` · ${L("Vehicle", "گاڑی")}: ${deliveryQuote.vehicle_name}` : ""}</p>
-                  {deliveryQuote.needs_quote && <p className="mt-1 font-bold text-destructive">{L("Final freight for this bulk order will be confirmed after vendor/admin approval.", "اس bulk آرڈر کے لیے حتمی کرایہ دکاندار/ایڈمن کی منظوری کے بعد آئے گا۔")}</p>}
+                <div className="flex items-center gap-1.5 rounded-lg bg-primary/5 px-2.5 py-1.5 text-[11px] font-bold text-foreground">
+                  <Truck className="h-3.5 w-3.5 shrink-0 text-primary" />
+                  <span>{deliveryQuote.mode === "courier" || deliveryQuote.mode === "intercity" ? L("Nationwide courier delivery", "ملک گیر کورئیر ڈیلیوری") : deliveryQuote.mode === "loader" ? L("Loader delivery", "لوڈر ڈیلیوری") : L("Express local delivery", "مقامی ایکسپریس ڈیلیوری")}</span>
+                  {deliveryQuote.needs_quote && <span className="text-destructive">· {L("final fare after approval", "حتمی کرایہ منظوری کے بعد")}</span>}
                 </div>
               )}
               {voucher && (
