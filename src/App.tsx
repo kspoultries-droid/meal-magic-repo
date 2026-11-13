@@ -79,6 +79,7 @@ const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const MyOrders = lazyWithRetry(() => import("./pages/MyOrders"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const Install = lazyWithRetry(() => import("./pages/Install"));
+const QrPoster = lazyWithRetry(() => import("./pages/QrPoster"));
 const Grocery = lazyWithRetry(() => import("./pages/Grocery"));
 const GroceryStoreDetail = lazyWithRetry(() => import("./pages/GroceryStoreDetail"));
 const OrderTracking = lazyWithRetry(() => import("./pages/OrderTracking"));
@@ -206,6 +207,7 @@ const App = () => (
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/my-orders" element={<MyOrders />} />
                   <Route path="/install" element={<Install />} />
+                  <Route path="/qr-poster" element={<QrPoster />} />
                   <Route path="/grocery" element={<Grocery />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/grocery/:id" element={<GroceryStoreDetail />} />
