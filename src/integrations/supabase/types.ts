@@ -2300,6 +2300,48 @@ export type Database = {
           },
         ]
       }
+      partner_delivery_jobs: {
+        Row: {
+          amount: number
+          cod: boolean
+          created_at: string
+          dropoff: Json
+          external_order_no: string
+          id: string
+          pickup: Json | null
+          rider_id: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          cod?: boolean
+          created_at?: string
+          dropoff: Json
+          external_order_no: string
+          id?: string
+          pickup?: Json | null
+          rider_id?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          cod?: boolean
+          created_at?: string
+          dropoff?: Json
+          external_order_no?: string
+          id?: string
+          pickup?: Json | null
+          rider_id?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partner_kyc_checks: {
         Row: {
           ai_score: number | null

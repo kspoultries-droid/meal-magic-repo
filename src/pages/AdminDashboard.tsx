@@ -31,6 +31,7 @@ import PhotoOrdersTab from "@/components/admin/PhotoOrdersTab";
 import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
 import ApplicationsTab from "@/components/admin/ApplicationsTab";
 import GroceryDispatchTab from "@/components/admin/GroceryDispatchTab";
+import PartnerDeliveryJobs from "@/components/admin/PartnerDeliveryJobs";
 import RiderOperationsPanel from "@/components/admin/RiderOperationsPanel";
 import { riderPresenceFresh } from "@/lib/riderOperations";
 import CitySettingsTab from "@/components/admin/CitySettingsTab";
@@ -157,7 +158,7 @@ const AdminDashboard = () => {
           {work.operations.length > 0 && <TabsContent value="operations" className="admin-compact">
             <Tabs value={opsTab} onValueChange={value => { setRecordQuery(""); setOpsTab(value); }}>
               <TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{work.operations.includes("orders") && <TabsTrigger value="orders">{t("common.orders")}</TabsTrigger>}{work.operations.includes("grocery-dispatch") && <TabsTrigger value="grocery-dispatch">{t("admin.dispatch")}</TabsTrigger>}{work.operations.includes("rider-supervision") && <TabsTrigger value="rider-supervision">{tr("Rider Monitoring", "رائیڈر نگرانی")}</TabsTrigger>}{work.operations.includes("photo-orders") && <TabsTrigger value="photo-orders">{t("admin.photoOrders")}</TabsTrigger>}{work.operations.includes("audit") && <TabsTrigger value="audit">{t("admin.auditLog")}</TabsTrigger>}{can("support") && <TabsTrigger value="support">{tr("Complaints", "شکایات")}</TabsTrigger>}</TabsList>
-              {work.operations.includes("orders") && <TabsContent value="orders"><OrdersTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("grocery-dispatch") && <TabsContent value="grocery-dispatch"><GroceryDispatchTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("rider-supervision") && <TabsContent value="rider-supervision"><RiderOperationsPanel /></TabsContent>}{work.operations.includes("photo-orders") && <TabsContent value="photo-orders"><PhotoOrdersTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("audit") && <TabsContent value="audit"><AuditLogTab /></TabsContent>}
+              {work.operations.includes("orders") && <TabsContent value="orders"><OrdersTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("grocery-dispatch") && <TabsContent value="grocery-dispatch"><PartnerDeliveryJobs /><GroceryDispatchTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("rider-supervision") && <TabsContent value="rider-supervision"><RiderOperationsPanel /></TabsContent>}{work.operations.includes("photo-orders") && <TabsContent value="photo-orders"><PhotoOrdersTab initialQuery={recordQuery} /></TabsContent>}{work.operations.includes("audit") && <TabsContent value="audit"><AuditLogTab /></TabsContent>}
               {can("support") && <TabsContent value="support"><TicketsQueue /></TabsContent>}
             </Tabs>
           </TabsContent>}
