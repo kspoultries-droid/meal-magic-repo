@@ -15,9 +15,10 @@ interface Props {
   sourceId?: string;
   source?: "restaurant" | "grocery";
   sourceName?: string;
+  bazar?: boolean;
 }
 
-const BoughtTogether = ({ sourceId, source = "restaurant", sourceName = "" }: Props) => {
+const BoughtTogether = ({ sourceId, source = "restaurant", sourceName = "", bazar }: Props) => {
   const { items, addItem } = useCart();
   const [list, setList] = useState<Suggestion[]>([]);
 
@@ -77,6 +78,7 @@ const BoughtTogether = ({ sourceId, source = "restaurant", sourceName = "" }: Pr
                     image: s.image || "",
                     source,
                     sourceId,
+                    bazar,
                   });
                   toast.success(`${s.name} شامل ہو گیا`);
                 }}
