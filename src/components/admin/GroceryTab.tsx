@@ -15,7 +15,7 @@ import BusinessLocationDialog from "./BusinessLocationDialog";
 
 const GROCERY_CATEGORIES = [
   "General", "Fruits", "Vegetables", "Dairy", "Eggs & Meat", "Atta & Rice",
-  "Beverages", "Snacks", "Bakery", "Frozen", "Cleaning", "Personal Care",
+  "Beverages", "Snacks", "Bakery", "Frozen", "Cleaning", "Personal Care", "Medical & Pharmacy",
 ];
 
 const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
