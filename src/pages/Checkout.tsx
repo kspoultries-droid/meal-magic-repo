@@ -530,6 +530,7 @@ const Checkout = () => {
           sourceId={items[0]?.sourceId}
           source={(items[0]?.source as "restaurant" | "grocery") || "restaurant"}
           sourceName={items[0]?.restaurant || ""}
+          bazar={items[0]?.bazar}
         />
 
         {/* Delivery Info - Glass */}
