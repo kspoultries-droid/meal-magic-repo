@@ -31,10 +31,14 @@ import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, t
 import { printOrderReceipt } from "@/lib/receiptPrint";
 import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
 import { useQueryClient } from "@tanstack/react-query";
+import RestaurantSelfSetup from "@/components/vendor/RestaurantSelfSetup";
 import BusinessLocationRequest from "@/components/vendor/BusinessLocationRequest";
 
 const RestaurantOwnerDashboard = () => {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, isRestaurantOwner } = useAuth();
+  const [restName, setRestName] = useState("");
+  const [restId, setRestId] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [hasRole, setHasRole] = useState<boolean | null>(null);
@@ -47,10 +51,10 @@ const RestaurantOwnerDashboard = () => {
     if (user) {
       // Access is decided by actually owning a restaurant, not by the shared vendor role
       // (grocery/wholesale partners hold the same role but must not see this dashboard).
-      supabase.from("restaurants").select("id").eq("owner_id", user.id).limit(1)
-        .then(({ data }) => setHasRole(!!data?.length));
+      supabase.from("restaurants").select("id,name").eq("owner_id", user.id).order("created_at").limit(1)
+        .then(({ data }) => { setHasRole(!!data?.length); setRestName(data?.[0]?.name || ""); setRestId(data?.[0]?.id || ""); });
     }
-  }, [user]);
+  }, [user, reloadKey]);
 
   // Live count of orders still waiting for the owner's acceptance
   const [pendingCount, setPendingCount] = useState(0);
@@ -81,6 +85,8 @@ const RestaurantOwnerDashboard = () => {
 
   if (loading || hasRole === null) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading")}</div>;
 
+  if (!hasRole && isRestaurantOwner && user) return <RestaurantSelfSetup userId={user.id} onCreated={() => setReloadKey((k) => k + 1)} />;
+
   if (!hasRole) return (
     <div className="min-h-screen flex items-center justify-center">
       <Card className="max-w-md">
@@ -101,11 +107,12 @@ const RestaurantOwnerDashboard = () => {
           <div className="flex min-w-0 items-center gap-1.5">
             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => navigate("/")}><ArrowLeft className="h-4 w-4" /></Button>
             <div className="min-w-0">
-              <h1 className="truncate text-sm font-extrabold text-primary sm:text-lg">{t("dash.restaurant")}</h1>
+              <h1 className="truncate text-sm font-extrabold text-primary sm:text-lg">{restName || t("dash.restaurant")}</h1>
               <p className="truncate text-[10px] text-muted-foreground sm:text-xs">{user?.email}</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+          {restId && <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => navigate(`/qr-poster?name=${encodeURIComponent(restName)}&path=${encodeURIComponent(`/restaurant/${restId}`)}`)}>QR</Button>}
           <NotificationBell />
           <LanguageSwitcher />
           <Button variant="outline" size="sm" className="h-8 shrink-0 px-2 text-xs" onClick={() => { signOut(); navigate("/"); }}>
