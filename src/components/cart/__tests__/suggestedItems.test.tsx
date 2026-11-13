@@ -36,11 +36,11 @@ describe("suggestions preserve Bazar packages", () => {
       cart.setIsOpen(true);
     });
     const suggestion = await screen.findByText("Suggested product");
-    const container = suggestion.parentElement;
+    const container = surface === "drawer" ? suggestion.closest("button")?.parentElement : suggestion.parentElement;
     if (!container) throw new Error("Suggestion missing");
     const addButton = container.querySelector("button");
     if (!addButton) throw new Error("Suggestion add button missing");
-    fireEvent.click(addButton);
+    await act(async () => { fireEvent.click(addButton); });
     expect(cart.totalItems).toBe(3);
     expect(cart.items.find((i) => i.menu_item_id === "suggestion")).toMatchObject({ sourceId: "shop-a", bazar: true });
     expect(new Set(cart.items.map((i) => i.sourceId)).size).toBe(2);
