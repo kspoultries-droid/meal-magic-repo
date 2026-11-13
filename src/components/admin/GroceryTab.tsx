@@ -20,6 +20,7 @@ const GROCERY_CATEGORIES = [
 
 const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [query, setQuery] = useState(initialQuery);
+  const [kind, setKind] = useState<"retail" | "wholesale">("retail");
   const [page, setPage] = useState(1);
   const [productQuery, setProductQuery] = useState("");
   const [productPage, setProductPage] = useState(1);
@@ -159,14 +160,20 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     fetchData();
   };
 
-  const filteredStores = stores.filter(s => `${s.id} ${s.name} ${s.category}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const filteredStores = stores.filter(s => (kind === "wholesale" ? s.store_type === "wholesale" : s.store_type !== "wholesale")).filter(s => `${s.id} ${s.name} ${s.category}`.toLowerCase().includes(query.trim().toLowerCase()));
   const filteredProducts = products.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(productQuery.trim().toLowerCase()));
   useEffect(() => { setProductPage(1); setProductQuery(""); }, [selectedStore]);
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{tr("Grocery Stores", "گروسری اسٹورز / Grocery Stores")}</CardTitle>
+          <div className="space-y-2">
+            <CardTitle>{kind === "wholesale" ? tr("City Bazar / Market", "سٹی بازار / مارکیٹ") : tr("Local Shops (Grocery, Medical)", "مقامی دکانیں (گروسری، میڈیکل)")}</CardTitle>
+            <div className="flex gap-1 rounded-md bg-muted p-1">
+              <Button size="sm" variant={kind === "retail" ? "default" : "ghost"} className="h-7 text-xs" onClick={() => { setKind("retail"); setPage(1); setSelectedStore(null); }}>{tr("Local Shops", "مقامی دکانیں")} ({stores.filter(s => s.store_type !== "wholesale").length})</Button>
+              <Button size="sm" variant={kind === "wholesale" ? "default" : "ghost"} className="h-7 text-xs" onClick={() => { setKind("wholesale"); setPage(1); setSelectedStore(null); }}>{tr("City Bazar", "سٹی بازار")} ({stores.filter(s => s.store_type === "wholesale").length})</Button>
+            </div>
+          </div>
           <div className="flex gap-2">
             <Dialog open={showAddStore} onOpenChange={setShowAddStore}>
               <DialogTrigger asChild>
