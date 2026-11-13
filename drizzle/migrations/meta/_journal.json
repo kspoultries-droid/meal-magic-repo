@@ -743,6 +743,13 @@
       "when": 1794434234701,
       "tag": "0105_simplify_service_booking_flow",
       "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1794546372980,
+      "tag": "0106_migration",
+      "breakpoints": true
     }
   ]
 }
