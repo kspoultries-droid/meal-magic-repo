@@ -304,6 +304,13 @@ const GroceryStoreDetail = () => {
         </div>
       </div>
 
+      {isOwner && store && (
+        <div className="px-4 pt-3">
+          <button onClick={() => navigate(`/qr-poster?name=${encodeURIComponent(store.name)}&path=${encodeURIComponent(`/grocery/${store.id}`)}`)} className="w-full rounded-xl border border-primary bg-primary/10 p-2.5 text-sm font-bold text-primary">
+            📱 {L("Print counter QR poster", "کاؤنٹر کے لیے QR پوسٹر پرنٹ کریں")}
+          </button>
+        </div>
+      )}
       {isOwner && newOrderCount > 0 && (
         <button onClick={dismissAlert} className="fixed inset-x-3 top-3 z-50 rounded-2xl bg-primary p-3 text-sm font-bold text-primary-foreground shadow-lg">
           🔔 {L("New order received! Open the Orders tab.", "نیا آرڈر آیا ہے! آرڈرز والا ٹیب کھولیں۔")} ({newOrderCount})
