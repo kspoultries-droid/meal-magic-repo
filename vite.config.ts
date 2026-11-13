@@ -22,6 +22,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    target: ['es2019', 'chrome64', 'safari12'],
+    cssTarget: ['chrome61'],
     rollupOptions: {
       output: {
         manualChunks: {
