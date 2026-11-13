@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { tr } from "@/lib/i18n";
+import { tr } from "@/lib/i18n/tr";
 import { toast } from "sonner";
 
 type Job = { id: string; external_order_no: string; amount: number; cod: boolean; pickup: any; dropoff: any; status: string; created_at: string };
