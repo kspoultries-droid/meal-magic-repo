@@ -41,5 +41,17 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      setTimeout(function () {
+        var r = document.getElementById('root');
+        if (r && r.children.length === 0) {
+          r.innerHTML = '<div style="font-family:sans-serif;padding:32px 20px;text-align:center;direction:rtl">' +
+            '<h2 style="color:#15803d">آپ کے فون کا ویب سسٹم پرانا ہے</h2>' +
+            '<p>ایپ چلانے کے لیے Play Store سے Android System WebView اور Chrome اپ ڈیٹ کریں، پھر ایپ دوبارہ کھولیں۔</p>' +
+            '<p><a href="https://play.google.com/store/apps/details?id=com.google.android.webview" style="display:inline-block;margin:8px;padding:12px 20px;background:#15803d;color:#fff;border-radius:10px;text-decoration:none">WebView اپ ڈیٹ کریں</a></p>' +
+            '<p><a href="javascript:location.reload()" style="color:#15803d">دوبارہ کوشش کریں</a></p></div>';
+        }
+      }, 12000);
+    </script>
   </body>
 </html>
