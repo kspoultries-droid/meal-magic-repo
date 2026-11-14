@@ -757,6 +757,13 @@
       "when": 1794660444307,
       "tag": "0107_fix_owner_shop_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "7",
+      "when": 1794662435710,
+      "tag": "0108_revoke_internal_grocery_helpers",
+      "breakpoints": true
     }
   ]
 }
