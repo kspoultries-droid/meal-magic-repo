@@ -366,7 +366,7 @@ const GroceryStoreDetail = () => {
                          onClick={() => !isOwner && navigate(`/product/${product.id}`)}
                        >
                           {product.image_url ? (
-                            <><img src={img(product.image_url, 360)} aria-hidden="true" alt="" className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-40" /><img src={img(product.image_url, 360)} onError={(e) => { if (e.currentTarget.src !== product.image_url) e.currentTarget.src = product.image_url; }} alt={product.name} className="relative w-full h-full object-contain" /></>
+                            <><img src={img(product.image_url, 360)} onError={(e) => { if (e.currentTarget.src !== product.image_url) e.currentTarget.src = product.image_url; }} alt={product.name} className="relative w-full h-full object-contain p-1.5 bg-card" /></>
                           ) : (
                             <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
                           )}
