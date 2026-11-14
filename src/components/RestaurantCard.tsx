@@ -44,7 +44,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
   return (
     <div
       className={`group relative bg-card rounded-2xl overflow-hidden border border-border/60 shadow-soft hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 ${
-        !isActive ? "opacity-60 grayscale" : ""
+        !isActive ? "grayscale-[0.6]" : ""
       }`}
     >
       {/* Image */}
@@ -63,7 +63,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
         />
 
         {!isActive && (
-          <div className="absolute inset-0 bg-foreground/50  flex items-center justify-center">
+          <div className="absolute inset-0 bg-foreground/15 flex items-center justify-center">
             <span className="bg-destructive text-destructive-foreground text-xs font-bold px-4 py-2 rounded-full shadow-card">
               {L("Closed", "بند ہے")}
             </span>
