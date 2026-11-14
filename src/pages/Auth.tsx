@@ -17,7 +17,7 @@ import { pendingShopping } from "@/lib/shoppingAccess";
 const Auth = () => {
   const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => { try { return localStorage.getItem("easylife:last-email") || ""; } catch { return ""; } });
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +37,7 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        try { localStorage.setItem("easylife:last-email", email.trim()); } catch { /* ignore */ }
         toast.success(t("auth.loginSuccess"));
         navigate(pendingShopping()?.path || "/");
       } else {
