@@ -118,14 +118,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       syncAuthState(nextSession);
     });
 
-    void supabase.auth.getSession()
-      .then(({ data: { session } }) => syncAuthState(session))
-      .catch((error) => {
-        console.error("Error loading session:", error);
-        syncAuthState(null);
-      });
+    // A weak signal on app open must never look like a logout: retry before giving up.
+    const loadSession = (attempt = 0) => {
+      void supabase.auth.getSession()
+        .then(({ data: { session } }) => syncAuthState(session))
+        .catch((error) => {
+          console.error("Error loading session:", error);
+          if (attempt < 3) window.setTimeout(() => loadSession(attempt + 1), 1500 * (attempt + 1));
+          else syncAuthState(null);
+        });
+    };
+    loadSession();
+    // Refresh the token when the phone/app comes back to the foreground.
+    const onVisible = () => { if (document.visibilityState === "visible") void supabase.auth.getSession(); };
+    document.addEventListener("visibilitychange", onVisible);
 
-    return () => subscription.unsubscribe();
+    return () => { subscription.unsubscribe(); document.removeEventListener("visibilitychange", onVisible); };
   }, []);
 
   useEffect(() => {
