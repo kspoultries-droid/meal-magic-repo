@@ -159,7 +159,9 @@ function CatalogPicker({ storeId, existing, onChanged, mode, storeCategory }: { 
   const cats = useMemo(() => Array.from(new Set(items.map((i) => i.category))).sort(), [items]);
   // Start on the shop's own category (e.g. an "Electric Store" opens on Electric/Electronics items)
   useEffect(() => {
-    const sc = String(storeCategory || "").toLowerCase();
+    const raw = String(storeCategory || "").toLowerCase();
+    const alias: [RegExp, string][] = [[/pharm|medic|dawa|chemist/, "medicine"], [/iron|steel|loha/, "iron & steel"], [/sanitary|hardware/, "hardware"], [/electric/, "electronics"], [/shoe|foot/, "shoes"], [/cloth|garment|fabric/, "clothes"], [/auto|bike|motor|car/, "auto parts"]];
+    const sc = alias.find(([r]) => r.test(raw))?.[1] || raw;
     if (!sc || !cats.length) return;
     const match = cats.find((c) => c.toLowerCase() === sc) || cats.find((c) => sc.includes(c.toLowerCase()) || c.toLowerCase().includes(sc.split(" ")[0]));
     if (match) setCat(match);
