@@ -24,6 +24,7 @@ const ReelsTab = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [sourceType, setSourceType] = useState("restaurant");
@@ -104,9 +105,33 @@ const ReelsTab = () => {
     if (!file) return null;
     try { if (isReelTooLong(await getVideoDuration(file))) { toast.error(tr("Video must be 45 seconds or shorter", "ویڈیو 45 سیکنڈ سے لمبی ہے، چھوٹی ویڈیو منتخب کریں")); throw new Error("too long"); } } catch (e) { if ((e as Error).message === "too long") throw e; }
     if (file.size > 50 * 1024 * 1024) { toast.error(tr("Video must be under 50MB", "ویڈیو 50MB سے چھوٹی ہونی چاہیے")); throw new Error("too large"); }
+    if (file.size > 25 * 1024 * 1024) toast.info(tr("Large video — upload may take a few minutes", "ویڈیو بڑی ہے، اپلوڈ میں چند منٹ لگ سکتے ہیں"));
     const path = `reels/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
-    const { error } = await supabase.storage.from("product-images").upload(path, file, { cacheControl: "3600", upsert: false });
-    if (error) { toast.error(tr("Video upload failed: ", "ویڈیو اپلوڈ ناکام: ") + error.message); throw error; }
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    const base = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const send = () => new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${base}/storage/v1/object/product-images/${path}`);
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      xhr.setRequestHeader("apikey", key);
+      xhr.setRequestHeader("x-upsert", "true");
+      xhr.setRequestHeader("cache-control", "3600");
+      xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100)); };
+      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(xhr.responseText || String(xhr.status))));
+      xhr.onerror = () => reject(new Error("network"));
+      xhr.ontimeout = () => reject(new Error("network"));
+      xhr.send(file);
+    });
+    setProgress(0);
+    let ok = false;
+    for (let attempt = 0; attempt < 3 && !ok; attempt++) {
+      try { await send(); ok = true; } catch { if (attempt < 2) { toast.info(tr("Connection weak, retrying…", "انٹرنیٹ کمزور ہے، دوبارہ کوشش ہو رہی ہے…")); await new Promise((r) => setTimeout(r, 2000)); } }
+    }
+    setProgress(null);
+    if (!ok) { toast.error(tr("Video could not upload due to slow internet. Try again or use a smaller video.", "انٹرنیٹ سست ہونے کی وجہ سے ویڈیو اپلوڈ نہیں ہو سکی۔ دوبارہ کوشش کریں یا چھوٹی ویڈیو منتخب کریں۔")); throw new Error("upload failed"); }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     return data.publicUrl;
   };
@@ -215,7 +240,7 @@ const ReelsTab = () => {
                 </div>
 
                 <Button className="w-full" onClick={saveReel} disabled={saving}>
-                  {saving ? tr("Publishing…", "شائع ہو رہی ہے…") : tr("Publish Reel", "ریل شائع کریں")}
+                  {progress !== null ? tr(`Uploading video ${progress}%`, `ویڈیو اپلوڈ ہو رہی ہے ${progress}%`) : saving ? tr("Publishing…", "شائع ہو رہی ہے…") : tr("Publish Reel", "ریل شائع کریں")}
                 </Button>
               </div>
             </DialogContent>
