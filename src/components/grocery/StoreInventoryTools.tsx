@@ -22,7 +22,7 @@ export const GROCERY_CATALOG_CATEGORIES = new Set([
   "bakery", "frozen", "care",
 ]);
 export const catalogFitsMode = (category: string | null | undefined, mode: "grocery" | "bazar") =>
-  GROCERY_CATALOG_CATEGORIES.has(String(category || "general").trim().toLowerCase()) === (mode === "grocery");
+  String(category || "").trim().toLowerCase() === "medicine" || GROCERY_CATALOG_CATEGORIES.has(String(category || "general").trim().toLowerCase()) === (mode === "grocery");
 type Draft = { price: string; discount: string; available: boolean };
 
 export default function StoreInventoryTools({ storeId, products, categories, onChanged, mode = "grocery", storeCategory }: Props & { storeCategory?: string | null }) {
