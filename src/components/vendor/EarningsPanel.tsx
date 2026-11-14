@@ -20,6 +20,7 @@ const EarningsPanel = () => {
   const [row, setRow] = useState<VendorRow | null>(null);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasBank, setHasBank] = useState<boolean | null>(null);
 
   const viewReceipt = async (path: string) => {
     const { data, error } = await supabase.storage.from("payout-receipts").createSignedUrl(path, 60);
@@ -35,12 +36,19 @@ const EarningsPanel = () => {
       setRow(rows[0] || null);
       const { data } = await supabase.from("payouts").select("*").eq("vendor_id", user.id).order("created_at", { ascending: false }).limit(20);
       setPayouts(data || []);
+      const { count } = await supabase.from("vendor_bank_accounts").select("id", { count: "exact", head: true }).eq("user_id", user.id);
+      setHasBank((count || 0) > 0);
       setLoading(false);
     })();
   }, [user?.id, period]);
 
   return (
     <div className="space-y-2.5">
+      {hasBank === false && (
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-xs font-bold text-destructive">
+          {tr("Add your bank, JazzCash or Easypaisa account below so EasyLife can send your payment.", "اپنی رقم وصول کرنے کے لیے نیچے بینک، جاز کیش یا ایزی پیسہ اکاؤنٹ شامل کریں۔")}
+        </div>
+      )}
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2 text-sm"><Wallet className="h-4 w-4" /> {tr("My Earnings", "میری کمائی")}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
@@ -64,7 +72,7 @@ const EarningsPanel = () => {
               <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">{tr("Platform Commission (", "پلیٹ فارم کمیشن (")}{row.commissionRate}%)</p><p className="text-sm font-extrabold text-destructive">− Rs {row.commission}</p></div>
               <div className="bg-secondary/50 rounded-xl py-2"><p className="text-muted-foreground">{tr("Payment Received", "وصول شدہ ادائیگی")}</p><p className="text-sm font-extrabold text-success">Rs {row.paid}</p></div>
               <div className="col-span-2 bg-primary/10 rounded-xl py-2">
-                <p className="text-muted-foreground">{tr("Pending Payout", "باقی ملنا ہے")}</p>
+                <p className="text-muted-foreground">{tr("EasyLife owes you", "EasyLife کے ذمے آپ کی رقم")}</p>
                 <p className="text-base font-extrabold text-primary">Rs {row.pending}</p>
                 {row.pending === 0 && row.paid > 0 && (
                   <p className="text-[11px] text-success">{tr("✅ All payments completed", "✅ تمام ادائیگی ہو چکی ہے")}</p>
