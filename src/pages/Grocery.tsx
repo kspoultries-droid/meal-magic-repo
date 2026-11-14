@@ -270,7 +270,7 @@ const Grocery = () => {
                 >
                   <div className="relative h-24 bg-card flex items-center justify-center overflow-hidden">
                     {p.image_url ? (
-                      <img src={img(p.image_url, 360)} alt={displayText(p.name)} loading="lazy" className="w-full h-full object-cover" />
+                      <img src={img(p.image_url, 360)} alt={displayText(p.name)} loading="lazy" className="w-full h-full object-contain" />
                     ) : (
                       <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
                     )}
@@ -317,7 +317,7 @@ const Grocery = () => {
               >
                 <div className="relative h-24 bg-card flex items-center justify-center overflow-hidden">
                   {p.image_url ? (
-                    <img src={img(p.image_url, 360)} alt={displayText(p.name)} loading="lazy" className="w-full h-full object-cover" />
+                    <img src={img(p.image_url, 360)} alt={displayText(p.name)} loading="lazy" className="w-full h-full object-contain" />
                   ) : (
                     <ShoppingBasket className="w-7 h-7 text-muted-foreground" />
                   )}
