@@ -761,7 +761,12 @@ const MenuTab = () => {
                 <ProductPhotoUploader onDone={async (photos) => {
                   const photo = photos[0]; if (!photo) return;
                   const url = await uploadImage(photo.file);
-                  if (url) setEditForm((prev) => ({ ...prev, image_url: url }));
+                  if (!url) return;
+                  setEditForm((prev) => ({ ...prev, image_url: url }));
+                  const { error: photoErr } = await supabase.from("menu_items").update({ image_url: url }).eq("id", editItem.id);
+                  if (photoErr) { toast.error(photoErr.message); return; }
+                  toast.success(tr("Photo saved", "تصویر محفوظ ہو گئی"));
+                  fetchMenu();
                 }} />
                 <PhotoTips />
                 {uploading && <p className="text-[11px] text-muted-foreground">{t("rest.uploading")}</p>}

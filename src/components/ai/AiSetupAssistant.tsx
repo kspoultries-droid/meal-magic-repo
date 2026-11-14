@@ -13,7 +13,7 @@ type Kind = "menu" | "grocery" | "service";
 
 const LABELS: Record<Kind, { title: string; hint: string }> = {
   menu: { title: "اسمارٹ مینو اسکینر", hint: "مثلاً: چکن بریانی 350 روپے، چکن کڑاہی آدھی 900 پوری 1700" },
-  grocery: { title: "اسمارٹ آئٹم اسکینر", hint: "مثلاً: چینی 1 کلو 160، آٹا 10 کلو 1200" },
+  grocery: { title: "لکھ کر آئٹمز ڈالیں", hint: "مثلاً: چینی 1 کلو 160، آٹا 10 کلو 1200" },
   service: { title: "اسمارٹ سروس اسکینر", hint: "مثلاً: میں AC ٹھیک کرتا ہوں، گیس بھرتا ہوں، 15 سال تجربہ" },
 };
 
