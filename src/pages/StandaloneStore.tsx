@@ -290,7 +290,7 @@ const StandaloneStore = () => {
                           onClick={() => { if (!isOwner) navigate(`/product/${product.id}`); }}
                         >
                           {product.image_url ? (
-                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                            <><img src={product.image_url} aria-hidden="true" alt="" className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-40" /><img src={product.image_url} alt={product.name} className="relative w-full h-full object-contain" /></>
                           ) : (
                             <ShoppingBasket className="w-10 h-10 text-muted-foreground/30" />
                           )}
