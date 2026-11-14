@@ -53,6 +53,12 @@ interface CartContextType {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  /** Daraz-style selection: only ticked lines go to checkout; the rest stay in the cart. */
+  selectedItems: CartItem[];
+  selectedTotal: number;
+  isSelected: (id: string) => boolean;
+  setSelected: (ids: string[], on: boolean) => void;
+  clearSelected: () => void;
   totalItems: number;
   totalPrice: number;
   voucher: CartVoucher | null;
@@ -77,10 +83,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   itemsRef.current = items;
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [deselected, setDeselected] = useState<Set<string>>(new Set());
   useLayoutEffect(() => {
     if (account.current !== user?.id) {
       itemsRef.current = [];
-      setItems([]); setVoucher(null); setIsOpen(false);
+      setItems([]); setVoucher(null); setIsOpen(false); setDeselected(new Set());
       account.current = user?.id;
     }
   }, [user?.id]);
@@ -179,11 +186,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setVoucher(null);
   }, []);
 
+  const isSelected = useCallback((id: string) => !deselected.has(id), [deselected]);
+  const setSelected = useCallback((ids: string[], on: boolean) => {
+    setDeselected((prev) => { const n = new Set(prev); ids.forEach((id) => (on ? n.delete(id) : n.add(id))); return n; });
+  }, []);
+  const selectedItems = items.filter((i) => !deselected.has(i.id));
+  const selectedTotal = selectedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const clearSelected = useCallback(() => {
+    setItems((prev) => prev.filter((i) => deselected.has(i.id)));
+    setVoucher(null);
+  }, [deselected]);
+
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, addItems, removeItem, updateQuantity, clearCart, totalItems, totalPrice, voucher, setVoucher, isOpen, setIsOpen }}>
+    <CartContext.Provider value={{ items, addItem, addItems, removeItem, updateQuantity, clearCart, selectedItems, selectedTotal, isSelected, setSelected, clearSelected, totalItems, totalPrice, voucher, setVoucher, isOpen, setIsOpen }}>
       {children}
     </CartContext.Provider>
   );

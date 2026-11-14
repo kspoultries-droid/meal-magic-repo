@@ -19,7 +19,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
-  const { items, totalPrice, clearCart, updateQuantity } = useCart();
+  const { selectedItems: items, selectedTotal: totalPrice, clearSelected: clearCart, updateQuantity } = useCart();
   const navigate = useNavigate();
   const { t, lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);

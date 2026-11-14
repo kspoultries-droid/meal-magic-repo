@@ -2,6 +2,7 @@ import { tr } from "@/lib/i18n/tr";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Minus, Plus, Trash2, ShoppingBag, Package, Store, ReceiptText, ChevronLeft, Truck } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useNavigate } from "react-router-dom";
@@ -11,11 +12,14 @@ import { img } from "@/lib/imageUrl";
 
 /** Clean marketplace-style cart: one shop header, list rows, add-more rail and a sticky checkout bar. */
 const CartDrawer = () => {
-  const { items, isOpen, setIsOpen, updateQuantity, removeItem, clearCart, totalItems, totalPrice, addItem } = useCart();
+  const { items, isOpen, setIsOpen, updateQuantity, removeItem, clearCart, addItem, selectedItems, selectedTotal, isSelected, setSelected } = useCart();
   const [confirmClear, setConfirmClear] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [recommended, setRecommended] = useState<any[]>([]);
+  const totalItems = selectedItems.reduce((n, i) => n + i.quantity, 0);
+  const totalPrice = selectedTotal;
+  const allOn = items.length > 0 && selectedItems.length === items.length;
   const go = (path: string) => { setIsOpen(false); navigate(path); };
 
   useEffect(() => {
@@ -62,6 +66,7 @@ const CartDrawer = () => {
               {groups.map((groupItems, gi) => (
               <section key={gi} className="overflow-hidden rounded-2xl border bg-card shadow-soft">
                 <div className="flex items-center gap-2 border-b px-3 py-2.5">
+                  <Checkbox aria-label={tr("Select shop", "دکان منتخب کریں")} checked={groupItems.every((i) => isSelected(i.id))} onCheckedChange={(v) => setSelected(groupItems.map((i) => i.id), v === true)} />
                   <Store className="size-4 text-primary" />
                   <p className="min-w-0 flex-1 truncate text-sm font-bold">{groups.length > 1 && <span className="me-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">{tr("Package", "پیکیج")} {gi + 1}</span>}{groupItems[0]?.restaurant}</p>
                   {gi === 0 && (confirmClear
@@ -70,7 +75,8 @@ const CartDrawer = () => {
                 </div>
                 <ul className="divide-y">
                   {groupItems.map((item) => (
-                    <li key={item.id} className="flex gap-3 p-3">
+                    <li key={item.id} className={`flex gap-3 p-3 ${isSelected(item.id) ? "" : "opacity-60"}`}>
+                      <Checkbox className="mt-7" aria-label={tr("Select item", "چیز منتخب کریں")} checked={isSelected(item.id)} onCheckedChange={(v) => setSelected([item.id], v === true)} />
                       <div className="size-20 shrink-0 overflow-hidden rounded-xl bg-muted ring-1 ring-border">
                         {item.image ? <img src={img(item.image, 160)} alt={item.name} loading="lazy" className="size-full object-cover" /> : <Package className="m-auto mt-6 size-6 text-muted-foreground" />}
                       </div>
@@ -127,12 +133,15 @@ const CartDrawer = () => {
             </div>
 
             <div className="flex items-center gap-3 border-t bg-card/95 px-4 py-3 shadow-elegant backdrop-blur">
+              <label className="flex shrink-0 flex-col items-center gap-1 text-[10px] font-semibold text-muted-foreground">
+                <Checkbox checked={allOn} onCheckedChange={(v) => setSelected(items.map((i) => i.id), v === true)} />{tr("All", "سب")}
+              </label>
               <div className="min-w-0">
                 <p className="text-[11px] text-muted-foreground">{t("cart.grandTotal")}</p>
                 <p className="text-lg font-extrabold text-primary">Rs {totalPrice.toLocaleString()}</p>
               </div>
-              <Button className="ms-auto h-12 flex-1 rounded-2xl bg-gradient-primary text-sm font-extrabold shadow-elegant" onClick={() => go("/checkout")}>
-                {t("cart.checkout")} <ChevronLeft className="size-4 ltr:rotate-180" />
+              <Button className="ms-auto h-12 flex-1 rounded-2xl bg-gradient-primary text-sm font-extrabold shadow-elegant" disabled={selectedItems.length === 0} onClick={() => go("/checkout")}>
+                {t("cart.checkout")} ({totalItems}) <ChevronLeft className="size-4 ltr:rotate-180" />
               </Button>
             </div>
           </>
