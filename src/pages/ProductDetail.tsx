@@ -155,6 +155,14 @@ const ProductDetail = () => {
               <span className="text-3xl font-black text-primary">Rs. {effectivePrice.toLocaleString()}</span>
               {hasDiscount && <span className="text-sm text-muted-foreground line-through">Rs. {Number(product.price).toLocaleString()}</span>}
             </div>
+            {hasDiscount && <p className="mt-1 inline-flex rounded-lg bg-success/10 px-2.5 py-1 text-xs font-extrabold text-success">{L(`You save Rs. ${(Number(product.price) - effectivePrice).toLocaleString()}`, `آپ کی بچت Rs. ${(Number(product.price) - effectivePrice).toLocaleString()}`)}</p>}
+            {availableQuantity !== null && availableQuantity > 0 && availableQuantity <= 5 && <p className="mt-2 text-xs font-extrabold text-destructive">{L(`Hurry! Only ${availableQuantity} left`, `جلدی کریں! صرف ${availableQuantity} باقی`)}</p>}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <InfoTile icon={<ShoppingBag className="h-3.5 w-3.5" />} label={L("Payment", "ادائیگی")} value={L("Cash on delivery", "کیش آن ڈیلیوری")} />
+              <InfoTile icon={<BadgeCheck className="h-3.5 w-3.5" />} label={L("Seller", "فروخت کنندہ")} value={L("Verified shop", "تصدیق شدہ دکان")} />
+              <InfoTile icon={<Clock3 className="h-3.5 w-3.5" />} label={L("Check", "جانچ")} value={L("Check at delivery", "وصولی پر چیک کریں")} />
+              <InfoTile icon={<MapPin className="h-3.5 w-3.5" />} label={L("Delivery", "ڈیلیوری")} value={store.ships_nationwide ? L("Nationwide", "ملک بھر") : L("Local rider", "مقامی رائیڈر")} />
+            </div>
             <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Truck className="h-3.5 w-3.5 text-primary" />{product.delivery_days ? L(`Delivery: ${product.delivery_days}`, `ڈیلیوری: ${product.delivery_days}`) : store.ships_nationwide ? L("Courier delivery nationwide", "ملک بھر میں کورئیر ڈیلیوری") : L("Local rider delivery", "مقامی رائیڈر ڈیلیوری")}</p>
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">{L(`Minimum order: ${product.min_order_qty} pcs`, `کم از کم آرڈر: ${product.min_order_qty} عدد`)}</p>}
             {variants.length > 0 && (
