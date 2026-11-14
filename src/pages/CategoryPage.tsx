@@ -25,7 +25,7 @@ const CategoryPage = () => {
       <header className="relative overflow-hidden border-b border-border bg-card">
         <div className="relative h-44 w-full overflow-hidden sm:h-56">
           {category?.image && <img src={category.image.replace("w=240&h=240", "w=1200&h=600")} alt={label} className="h-full w-full object-cover" />}
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
           <Button variant="secondary" size="icon"
             onClick={() => navigate(-1)}
             aria-label={L("Back", "واپس")}

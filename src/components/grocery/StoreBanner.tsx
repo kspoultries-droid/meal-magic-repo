@@ -164,7 +164,6 @@ const StoreBanner = ({
         ) : store.store_type === "wholesale" ? (() => { const Icon = autoBannerIcon(store.category); return (
           <div className="relative h-56 w-full overflow-hidden bg-muted sm:h-72">
             <img src={autoBannerPhoto(store.category)} alt="" width={1536} height={768} className="absolute inset-0 size-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/85 via-primary/40 to-transparent" />
             <div className="absolute right-4 top-14 flex items-center gap-2 rounded-full bg-card/90 px-3 py-1.5 shadow-elegant backdrop-blur">
               <Icon className="size-4 text-primary" />
               <span className="max-w-[40vw] truncate text-[11px] font-extrabold text-foreground">{store.category}</span>
@@ -175,7 +174,7 @@ const StoreBanner = ({
             {collageImages.slice(0, 8).map((img, i) => <img key={i} src={img} alt="" className="h-full w-full object-cover" />)}
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-foreground/55 via-foreground/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-foreground/60 via-foreground/15 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
           <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className={`${nameSize.className} ${nameStyle.className} leading-tight break-words sm:scale-110 sm:origin-bottom-left`} style={{ color: nameColor }}>{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p>{isOwner && store.image_url && store.store_type === "wholesale" && <button className="mt-2 rounded-full bg-card/90 px-3 py-1 text-[11px] font-bold text-foreground" onClick={() => { if (confirm("اپنی تصویر ہٹا کر خودکار بینر لگائیں؟ / Use auto banner?")) updateStore({ image_url: null }); }}>✨ خودکار بینر / Auto banner</button>}</div>
           {isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label="بینر تبدیل" onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${crypto.randomUUID()}/${storeId}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: false, contentType: photo.file.type }); if (upErr) throw new Error(upErr.message); const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: urlData.publicUrl }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || "بینر محفوظ نہیں ہو سکا"); toast.success("بینر تبدیل ہو گیا"); onRefresh(); }} /></div>}
