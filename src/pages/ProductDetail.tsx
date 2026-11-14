@@ -82,8 +82,9 @@ const ProductDetail = () => {
   const selectedVariantCartId = selectedVariant ? (selectedVariant.id || selectedVariant.label || null) : null;
   const basePrice = Number(product?.wholesale_price ?? product?.discount_price ?? product?.price ?? 0);
   const effectivePrice = Math.max(0, basePrice + Number(selectedVariant?.price_delta || 0));
-  const hasDiscount = effectivePrice < (product?.price ?? 0);
-  const discount = hasDiscount ? Math.round(((product.price - effectivePrice) / product.price) * 100) : 0;
+  const listPrice = Number(product?.price ?? 0) + (matrix ? Number(selectedVariant?.price_delta || 0) : 0);
+  const hasDiscount = effectivePrice < listPrice;
+  const discount = hasDiscount ? Math.round(((listPrice - effectivePrice) / listPrice) * 100) : 0;
   const cartLine = items.find((item) => item.menu_item_id === id && item.sourceId === product?.store_id && (item.variant_id || null) === selectedVariantCartId);
   const quantity = cartLine?.quantity || 0;
   const availableQuantity = availableShopQuantity(product || {}, selectedVariant);
@@ -170,9 +171,9 @@ const ProductDetail = () => {
 
             <div className="mt-4 flex flex-wrap items-baseline gap-2">
               <span className="text-3xl font-black text-primary">Rs. {effectivePrice.toLocaleString()}</span>
-              {hasDiscount && <span className="text-sm text-muted-foreground line-through">Rs. {Number(product.price).toLocaleString()}</span>}
+              {hasDiscount && <span className="text-sm text-muted-foreground line-through">Rs. {listPrice.toLocaleString()}</span>}
             </div>
-            {hasDiscount && <p className="mt-1 inline-flex rounded-lg bg-success/10 px-2.5 py-1 text-xs font-extrabold text-success">{L(`You save Rs. ${(Number(product.price) - effectivePrice).toLocaleString()}`, `آپ کی بچت Rs. ${(Number(product.price) - effectivePrice).toLocaleString()}`)}</p>}
+            {hasDiscount && <p className="mt-1 inline-flex rounded-lg bg-success/10 px-2.5 py-1 text-xs font-extrabold text-success">{L(`You save Rs. ${(listPrice - effectivePrice).toLocaleString()}`, `آپ کی بچت Rs. ${(listPrice - effectivePrice).toLocaleString()}`)}</p>}
             {availableQuantity !== null && availableQuantity > 0 && availableQuantity <= 5 && <p className="mt-2 text-xs font-extrabold text-destructive">{L(`Hurry! Only ${availableQuantity} left`, `جلدی کریں! صرف ${availableQuantity} باقی`)}</p>}
             <div className="mt-3 grid grid-cols-2 gap-2">
               <InfoTile icon={<ShoppingBag className="h-3.5 w-3.5" />} label={L("Payment", "ادائیگی")} value={L("Cash on delivery", "کیش آن ڈیلیوری")} />
