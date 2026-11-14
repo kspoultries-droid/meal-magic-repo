@@ -262,8 +262,8 @@ const StoreBanner = ({
         )}
 
         {isOwner && (
-          <div className="mt-2 flex items-center gap-2 flex-wrap">
-            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-bold">👑 آپ کی دکان</span>
+          <div className="mt-3 grid grid-cols-3 gap-2 rounded-2xl border border-border bg-secondary/30 p-2 [&>*]:w-full [&_button]:w-full [&_button]:h-9">
+            <p className="col-span-3 text-[11px] font-bold text-muted-foreground">👑 دکان کے فوری کام / Shop tools</p>
             
             {/* Theme Picker */}
             <Dialog open={showThemePicker} onOpenChange={setShowThemePicker}>
