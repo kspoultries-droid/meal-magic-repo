@@ -20,6 +20,7 @@ import MyReelsManager from "@/components/reels/MyReelsManager";
 import ProductPhotoUploader, { PreparedPhoto } from "@/components/media/ProductPhotoUploader";
 import { uploadGroceryProductPhoto } from "@/lib/groceryProductImages";
 import { storePath, mergeProductPhotos } from "@/lib/storePresentation";
+import VariantMatrixEditor from "@/components/grocery/VariantMatrixEditor";
 import StoreInventoryTools from "@/components/grocery/StoreInventoryTools";
 import ShopQuestions from "@/components/grocery/ShopQuestions";
 import ShopOrderSettings from "@/components/grocery/ShopOrderSettings";
@@ -415,6 +416,7 @@ const GroceryStoreDetail = () => {
                               <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder={L("Write product details...", "پروڈکٹ کی تفصیل لکھیں...")} rows={3} className="mt-1 text-xs" />
                             </div>
                             <ProductPhotoUploader multiple label={L("Change photo", "تصویر تبدیل کریں")} onDone={(photos) => uploadProductImage(product.id, photos)} />
+                            <VariantMatrixEditor product={product} onSaved={fetchData} />
                             <div className="flex gap-1">
                               <Button size="sm" className="h-6 text-xs flex-1" onClick={() => savePrice(product.id)}>
                                 <Check className="w-3 h-3 mr-0.5" /> {L("Save", "محفوظ")}
