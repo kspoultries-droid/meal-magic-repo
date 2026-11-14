@@ -750,6 +750,13 @@
       "when": 1794546372980,
       "tag": "0106_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1794660444307,
+      "tag": "0107_fix_owner_shop_categories",
+      "breakpoints": true
     }
   ]
 }

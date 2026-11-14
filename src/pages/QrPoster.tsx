@@ -2,7 +2,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { tr } from "@/lib/i18n/tr";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Home, Printer } from "lucide-react";
 
 const SITE = "https://easylife.apnahub.online";
 
@@ -17,7 +17,8 @@ const QrPoster = () => {
   return (
     <div className="min-h-screen bg-muted p-4 print:bg-background print:p-0">
       <div className="mx-auto mb-4 flex max-w-[600px] gap-2 print:hidden">
-        <Button variant="outline" onClick={() => navigate(-1)}><ArrowLeft className="mr-1 h-4 w-4" />{tr("Back", "واپس")}</Button>
+        <Button variant="outline" onClick={() => (window.history.length > 1 && window.history.state?.idx > 0 ? navigate(-1) : navigate(path.startsWith("/") ? path : "/"))}><ArrowLeft className="mr-1 h-4 w-4" />{tr("Back", "واپس")}</Button>
+        <Button variant="outline" onClick={() => navigate("/")}><Home className="mr-1 h-4 w-4" />{tr("Home", "ہوم")}</Button>
         <Button className="flex-1" onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" />{tr("Print poster", "پوسٹر پرنٹ کریں")}</Button>
       </div>
       <div className="mx-auto flex max-w-[600px] flex-col items-center rounded-3xl border-8 border-primary bg-card p-8 text-center print:min-h-screen print:rounded-none">
