@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildMatrixVariants, readMatrix } from "../variantMatrix";
+import { buildMatrixVariants, readMatrix } from "@/lib/variantMatrix";
 
 describe("design × size pricing", () => {
   const designs = [{ name: "Rose Gold", price: 1699 }, { name: "Maroon", price: 1499 }];
