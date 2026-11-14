@@ -440,7 +440,9 @@ const Checkout = () => {
           <div className="space-y-2">
             {items.map((item) => (
               <div key={item.id} className="flex items-center justify-between text-sm gap-2 rounded-lg bg-secondary/35 px-2.5 py-2">
-                <div className="min-w-0">
+                {item.image && <img src={item.image} alt="" loading="lazy" className="h-11 w-11 shrink-0 rounded-lg border border-border/60 bg-background object-contain" />}
+                <div className="min-w-0 flex-1">
+                  {multiShop && <p className="truncate text-[10px] font-bold text-primary">{item.restaurant}</p>}
                   <p className="text-foreground/90 truncate">{item.name} <span className="text-muted-foreground">× {item.quantity}</span></p>
                   {(item.variant_label || (item.options && item.options.length > 0)) && (
                     <p className="text-[11px] text-muted-foreground truncate">
