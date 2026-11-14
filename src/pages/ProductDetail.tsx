@@ -13,6 +13,7 @@ import ProductQuestions from "@/components/product/ProductQuestions";
 import RelatedProducts, { type RelatedItem } from "@/components/product/RelatedProducts";
 import { availableShopQuantity } from "@/lib/shopOrders";
 import { toast } from "sonner";
+import { isMatrix } from "@/lib/variantMatrix";
 
 
 
@@ -62,14 +63,20 @@ const ProductDetail = () => {
     load();
   }, [id]);
 
-  const images = useMemo(() => {
-    const extra = Array.isArray(product?.images) ? product.images : [];
-    return Array.from(new Set([product?.image_url, ...extra].filter(Boolean)));
-  }, [product]);
+  const [pickColor, setPickColor] = useState("");
+  const [pickSize, setPickSize] = useState("");
   const variants = useMemo(() => {
     if (!Array.isArray(product?.variants)) return [];
     return product.variants.filter((variant: any) => variant && (variant.label || variant.name));
   }, [product]);
+  const matrix = isMatrix(variants);
+  const colorList = useMemo(() => { const m = new Map<string, any>(); variants.forEach((v: any) => v.color && !m.has(v.color) && m.set(v.color, v)); return [...m.values()]; }, [variants]);
+  const sizeList = useMemo(() => variants.filter((v: any) => v.size && (!colorList.length || v.color === pickColor)), [variants, colorList.length, pickColor]);
+  const images = useMemo(() => {
+    const extra = Array.isArray(product?.images) ? product.images : [];
+    const chosen = colorList.find((v: any) => v.color === pickColor)?.image;
+    return Array.from(new Set([chosen, product?.image_url, ...extra].filter(Boolean))) as string[];
+  }, [product, colorList, pickColor]);
   const variantKey = (variant: any, index: number) => String(variant.id || variant.label || variant.name || index);
   const selectedVariant = variants.find((variant: any, index: number) => variantKey(variant, index) === selectedVariantId);
   const selectedVariantCartId = selectedVariant ? (selectedVariant.id || selectedVariant.label || null) : null;
@@ -82,19 +89,29 @@ const ProductDetail = () => {
   const availableQuantity = availableShopQuantity(product || {}, selectedVariant);
 
   useEffect(() => {
+    if (matrix) { setPickColor(variants[0]?.color || ""); setPickSize(variants[0]?.size || ""); return; }
     setSelectedVariantId(variants[0] ? String(variants[0].id || variants[0].label) : "");
-  }, [product?.id, variants]);
+  }, [product?.id, variants, matrix]);
+  useEffect(() => {
+    if (!matrix) return;
+    const sizeOk = !pickSize || sizeList.some((v: any) => v.size === pickSize);
+    const size = sizeOk ? pickSize : sizeList[0]?.size || "";
+    if (size !== pickSize) { setPickSize(size); return; }
+    const idx = variants.findIndex((v: any) => (v.color || "") === (colorList.length ? pickColor : "") && (v.size || "") === size);
+    setSelectedVariantId(idx >= 0 ? variantKey(variants[idx], idx) : "");
+  }, [matrix, pickColor, pickSize, sizeList, variants, colorList.length]);
 
   const addToCart = (): boolean => {
     if (!product || !store) return false;
     if (availableQuantity !== null && quantity >= availableQuantity) { toast.error(L("Selected quantity not available", "منتخب مقدار دستیاب نہیں")); return false; }
+    if (variants.length > 0 && !selectedVariant) { toast.error(L("Please choose colour and size", "براہ کرم رنگ اور سائز منتخب کریں")); return false; }
     const variantLabel = selectedVariant?.label || selectedVariant?.name;
       return addItem({
         id: product.id,
         name: variantLabel ? `${product.name} — ${variantLabel}` : product.name,
         restaurant: store.name,
         price: effectivePrice,
-        image: product.image_url || images[0] || "",
+        image: selectedVariant?.image || product.image_url || images[0] || "",
         source: "grocery",
         sourceId: store.id,
         bazar: store.store_type === "wholesale",
@@ -136,7 +153,7 @@ const ProductDetail = () => {
 
       <main className="mx-auto max-w-5xl">
         <section className="overflow-hidden bg-card border-b border-border/60 sm:mt-4 sm:rounded-3xl sm:border md:grid md:grid-cols-2 md:items-start">
-          <div className="mx-auto w-full max-w-[440px] md:max-w-[380px] md:p-4"><div className="overflow-hidden md:rounded-2xl md:border md:border-border/60"><ProductGallery images={images} name={product.name} rating={reviewSummary.rating} /></div></div>
+          <div className="mx-auto w-full max-w-[440px] md:max-w-[380px] md:p-4"><div className="overflow-hidden md:rounded-2xl md:border md:border-border/60"><ProductGallery key={pickColor} images={images} name={product.name} rating={reviewSummary.rating} /></div></div>
           <div className="p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -165,7 +182,31 @@ const ProductDetail = () => {
             </div>
             <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Truck className="h-3.5 w-3.5 text-primary" />{product.delivery_days ? L(`Delivery: ${product.delivery_days}`, `ڈیلیوری: ${product.delivery_days}`) : store.ships_nationwide ? L("Courier delivery nationwide", "ملک بھر میں کورئیر ڈیلیوری") : L("Local rider delivery", "مقامی رائیڈر ڈیلیوری")}</p>
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">{L(`Minimum order: ${product.min_order_qty} pcs`, `کم از کم آرڈر: ${product.min_order_qty} عدد`)}</p>}
-            {variants.length > 0 && (
+            {matrix && (
+              <div className="mt-4 space-y-4">
+                {colorList.length > 0 && <div>
+                  <p className="mb-2 text-xs font-extrabold text-foreground">{L("Design / colour", "ڈیزائن / رنگ")}: <span className="text-primary">{pickColor}</span></p>
+                  <div className="flex flex-wrap gap-2">
+                    {colorList.map((v: any) => { const active = v.color === pickColor; return (
+                      <button key={v.color} type="button" aria-pressed={active} onClick={() => setPickColor(v.color)} className={`flex items-center gap-2 rounded-xl border-2 p-1 pe-3 text-xs font-bold ${active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card text-foreground"}`}>
+                        {v.image ? <img src={v.image} alt={v.color} className="h-10 w-10 rounded-lg bg-background object-contain" loading="lazy" /> : <span className="h-10 w-2" />}
+                        <span>{v.color}</span>
+                      </button>); })}
+                  </div>
+                </div>}
+                {sizeList.length > 0 && <div>
+                  <p className="mb-2 text-xs font-extrabold text-foreground">{L("Size", "سائز")}: <span className="text-primary">{pickSize}</span></p>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {sizeList.map((v: any) => { const active = v.size === pickSize; const out = v.is_available === false; return (
+                      <button key={v.size} type="button" disabled={out} aria-pressed={active} onClick={() => setPickSize(v.size)} className={`rounded-xl border-2 px-2 py-2 text-xs font-bold disabled:opacity-40 ${active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card text-foreground"}`}>
+                        <span className="block">{v.size}</span>
+                        {v.size_note && <span className="mt-0.5 block text-[10px] font-medium text-muted-foreground">{v.size_note}</span>}
+                      </button>); })}
+                  </div>
+                </div>}
+              </div>
+            )}
+            {!matrix && variants.length > 0 && (
               <div className="mt-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <p className="text-xs font-extrabold text-foreground">{L("Choose size / color", "سائز / رنگ منتخب کریں")}</p>
