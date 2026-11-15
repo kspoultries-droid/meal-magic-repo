@@ -132,7 +132,6 @@ const Grocery = () => {
         .select("id, name, category, image_url, rating, delivery_time, minimum_order, is_active, pickup_lat, pickup_lng, city_id")
         .neq("subscription_status", "paused")
         .or("store_type.is.null,store_type.eq.retail");
-      if (activeCategory) query = query.eq("category", activeCategory);
       if (selectedCity) query = query.eq("city_id", selectedCity);
 
       if (sortBy === "rating") {
@@ -144,7 +143,15 @@ const Grocery = () => {
       }
 
       const { data } = await query.limit(200);
-      setStores(data || []);
+      let list = data || [];
+      if (activeCategory) {
+        const ALIAS: Record<string, string[]> = { "Eggs & Meat": ["Eggs & Meat", "Meat"], "Cake": ["Cake", "Bakery"], "Atta & Rice": ["Atta & Rice", "Atta"], "General": ["General", "Kirana", "Departmental Store"], "Gift": ["Gift", "Gifts"] };
+        const names = ALIAS[activeCategory] || [activeCategory];
+        const { data: prods } = await supabase.from("grocery_products").select("store_id").in("category", names).eq("is_available", true).limit(3000);
+        const ids = new Set((prods || []).map((r: any) => r.store_id));
+        list = list.filter((s: any) => names.includes(s.category) || ids.has(s.id));
+      }
+      setStores(list);
       setLoading(false);
     };
     fetchStores();
@@ -257,7 +264,7 @@ const Grocery = () => {
 
             </div>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
             {deals.map((p) => {
               const off = p.discount_price && p.price > p.discount_price
                 ? Math.round(((p.price - p.discount_price) / p.price) * 100)
@@ -308,7 +315,7 @@ const Grocery = () => {
             </h2>
 
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
             {topSelling.map((p, i) => (
               <Button variant="ghost"
                 key={p.id}
