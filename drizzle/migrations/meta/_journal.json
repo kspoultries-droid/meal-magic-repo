@@ -764,6 +764,13 @@
       "when": 1794662435710,
       "tag": "0108_revoke_internal_grocery_helpers",
       "breakpoints": true
+    },
+    {
+      "idx": 109,
+      "version": "7",
+      "when": 1794712442897,
+      "tag": "0109_product_reviews",
+      "breakpoints": true
     }
   ]
 }
