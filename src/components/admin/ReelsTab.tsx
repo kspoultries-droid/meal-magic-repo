@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getVideoDuration, isReelTooLong } from "@/lib/videoDuration";
+import { ReelUploadError, reelUploadPath, uploadReelFile } from "@/lib/reelUpload";
 import { Plus, Trash2, RefreshCw, Clapperboard, Eye, EyeOff, Heart, Upload, ShieldCheck, Ban } from "lucide-react";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -106,32 +107,35 @@ const ReelsTab = () => {
     try { if (isReelTooLong(await getVideoDuration(file))) { toast.error(tr("Video must be 45 seconds or shorter", "ویڈیو 45 سیکنڈ سے لمبی ہے، چھوٹی ویڈیو منتخب کریں")); throw new Error("too long"); } } catch (e) { if ((e as Error).message === "too long") throw e; }
     if (file.size > 50 * 1024 * 1024) { toast.error(tr("Video must be under 50MB", "ویڈیو 50MB سے چھوٹی ہونی چاہیے")); throw new Error("too large"); }
     if (file.size > 25 * 1024 * 1024) toast.info(tr("Large video — upload may take a few minutes", "ویڈیو بڑی ہے، اپلوڈ میں چند منٹ لگ سکتے ہیں"));
-    const path = `reels/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
     const { data: sess } = await supabase.auth.getSession();
     const token = sess.session?.access_token;
+    const uid = sess.session?.user.id;
+    if (!token || !uid) {
+      toast.error(tr("Please sign in again before uploading", "اپلوڈ سے پہلے دوبارہ لاگ اِن کریں"));
+      throw new Error("not authenticated");
+    }
+    const path = reelUploadPath(uid, file.name);
     const base = import.meta.env.VITE_SUPABASE_URL;
     const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    const send = () => new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", `${base}/storage/v1/object/product-images/${path}`);
-      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-      xhr.setRequestHeader("apikey", key);
-      xhr.setRequestHeader("x-upsert", "true");
-      xhr.setRequestHeader("cache-control", "3600");
-      xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
-      xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100)); };
-      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(xhr.responseText || String(xhr.status))));
-      xhr.onerror = () => reject(new Error("network"));
-      xhr.ontimeout = () => reject(new Error("network"));
-      xhr.send(file);
-    });
-    setProgress(0);
-    let ok = false;
-    for (let attempt = 0; attempt < 3 && !ok; attempt++) {
-      try { await send(); ok = true; } catch { if (attempt < 2) { toast.info(tr("Connection weak, retrying…", "انٹرنیٹ کمزور ہے، دوبارہ کوشش ہو رہی ہے…")); await new Promise((r) => setTimeout(r, 2000)); } }
+    try {
+      await uploadReelFile({
+        url: `${base}/storage/v1/object/product-images/${path}`, token, apiKey: key, file,
+        onProgress: setProgress,
+        onRetry: () => toast.info(tr("Upload interrupted temporarily; retrying…", "اپلوڈ عارضی طور پر رکی ہے؛ دوبارہ کوشش جاری ہے…")),
+      });
+    } catch (error) {
+      const status = error instanceof ReelUploadError ? error.status : -1;
+      toast.error(status === 401 || status === 403
+        ? tr("Upload permission denied. Sign in again; if this continues, contact the app administrator.", "اپلوڈ کی اجازت نہیں ملی۔ دوبارہ لاگ اِن کریں؛ مسئلہ برقرار رہے تو ایڈمن کو بتائیں۔")
+        : status === 413
+          ? tr("The video exceeds the storage file-size limit. Select a smaller file.", "ویڈیو محفوظ کرنے کی مقررہ حد سے بڑی ہے۔ چھوٹی فائل منتخب کریں۔")
+          : status === 0 || status === 408
+            ? tr("Upload connection interrupted or timed out. Please try again.", "اپلوڈ کا رابطہ ٹوٹ گیا یا وقت ختم ہو گیا۔ دوبارہ کوشش کریں۔")
+            : tr(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`, `اپلوڈ ناکام: ${error instanceof Error ? error.message : "نامعلوم خرابی"}`));
+      throw error;
+    } finally {
+      setProgress(null);
     }
-    setProgress(null);
-    if (!ok) { toast.error(tr("Video could not upload due to slow internet. Try again or use a smaller video.", "انٹرنیٹ سست ہونے کی وجہ سے ویڈیو اپلوڈ نہیں ہو سکی۔ دوبارہ کوشش کریں یا چھوٹی ویڈیو منتخب کریں۔")); throw new Error("upload failed"); }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     return data.publicUrl;
   };
@@ -143,7 +147,7 @@ const ReelsTab = () => {
       let finalVideoUrl = videoUrl.trim();
       if (!finalVideoUrl) {
         const uploaded = await uploadVideo();
-        if (uploaded) finalVideoUrl = uploaded;
+        if (uploaded) { finalVideoUrl = uploaded; setVideoUrl(uploaded); }
       }
       if (!finalVideoUrl) { toast.error(tr("Add video link or upload file", "ویڈیو لنک دیں یا فائل اپلوڈ کریں")); setSaving(false); return; }
 
