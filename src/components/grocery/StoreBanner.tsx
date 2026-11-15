@@ -12,6 +12,7 @@ import PhotoTips from "@/components/media/PhotoTips";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import ProductQuickFill from "@/components/grocery/ProductQuickFill";
 import { tr } from "@/lib/i18n/tr";
+import BannerPicker from "@/components/media/BannerPicker";
 
 
 // Grocery collage images per category
@@ -176,7 +177,7 @@ const StoreBanner = ({
           </div>
         )}
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
-          <div />{isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label={tr("Change banner", "بینر تبدیل")} onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${crypto.randomUUID()}/${storeId}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: false, contentType: photo.file.type }); if (upErr) throw new Error(upErr.message); const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: urlData.publicUrl }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || "بینر محفوظ نہیں ہو سکا"); toast.success("بینر تبدیل ہو گیا"); onRefresh(); }} /></div>}
+          <div />
         </div>
       </div>
 
@@ -188,7 +189,7 @@ const StoreBanner = ({
              <h1 className={`${nameSize.className} ${nameStyle.className} min-w-0 flex-1 break-words leading-tight text-foreground`}>{store.name}</h1>
              {isOwner && <Button size="icon" variant="outline" className="size-8 shrink-0" aria-label={tr("Edit shop name", "دکان کا نام تبدیل کریں")} onClick={async () => { const newName = prompt(tr("Shop name:", "دکان کا نام:"), store.name); if (newName && newName.trim() && newName.trim() !== store.name) await updateStore({ name: newName.trim() }); }}><Pencil className="size-4" /></Button>}
            </div>
-           {isOwner && store.image_url && store.store_type === "wholesale" && <button className="mt-2 rounded-full border bg-card px-3 py-1 text-[11px] font-bold text-foreground" onClick={() => { if (confirm(tr("Remove your photo and use the auto banner?", "اپنی تصویر ہٹا کر خودکار بینر لگائیں؟"))) updateStore({ image_url: null }); }}>✨ {tr("Auto banner", "خودکار بینر")}</button>}
+           {isOwner && <div className="mt-2"><BannerPicker vertical={store.store_type === "wholesale" ? "wholesale" : "grocery"} category={store.category} hasBanner={!!store.image_url} folder="store-banners" recordId={storeId} onSave={async (url) => { const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: url }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || tr("Banner not saved", "بینر محفوظ نہیں ہو سکا")); onRefresh(); }} /></div>}
          </div>
          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
            <span className="flex items-center gap-1"><Star className="size-4 text-primary" /> {store.rating || tr("New", "نئی")}</span>
