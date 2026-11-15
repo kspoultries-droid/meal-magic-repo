@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/tr";
 import { useState } from "react";
 import { Sparkles, Camera, Mic, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -68,7 +69,7 @@ export default function AiSetupAssistant({ kind, onSave }: { kind: Kind; onSave:
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="secondary" className="gap-1"><Sparkles className="h-4 w-4" />{label.title}</Button>
+        <Button size="sm" variant="secondary" className="gap-1"><Sparkles className="h-4 w-4" />{kind === "grocery" ? tr("Quick add items", label.title) : label.title}</Button>
       </DialogTrigger>
       <DialogContent dir="rtl" className="max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{label.title}</DialogTitle></DialogHeader>

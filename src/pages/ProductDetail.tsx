@@ -181,7 +181,7 @@ const ProductDetail = () => {
               <InfoTile icon={<Clock3 className="h-3.5 w-3.5" />} label={L("Check", "جانچ")} value={L("Check at delivery", "وصولی پر چیک کریں")} />
               <InfoTile icon={<MapPin className="h-3.5 w-3.5" />} label={L("Delivery", "ڈیلیوری")} value={store.ships_nationwide ? L("Nationwide", "ملک بھر") : L("Local rider", "مقامی رائیڈر")} />
             </div>
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Truck className="h-3.5 w-3.5 text-primary" />{product.delivery_days ? L(`Delivery: ${product.delivery_days}`, `ڈیلیوری: ${product.delivery_days}`) : store.ships_nationwide ? L("Courier delivery nationwide", "ملک بھر میں کورئیر ڈیلیوری") : L("Local rider delivery", "مقامی رائیڈر ڈیلیوری")}</p>
+            {product.delivery_days && <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Truck className="h-3.5 w-3.5 text-primary" />{L(`Delivery: ${product.delivery_days}`, `ڈیلیوری: ${product.delivery_days}`)}</p>}
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">{L(`Minimum order: ${product.min_order_qty} pcs`, `کم از کم آرڈر: ${product.min_order_qty} عدد`)}</p>}
             {matrix && (
               <div className="mt-4 space-y-4">
@@ -276,8 +276,7 @@ const ProductDetail = () => {
           </div>
         </section>
 
-        {activeTab === "related" && <RelatedProducts items={related} />}
-        {activeTab !== "related" && <RelatedProducts items={related} />}
+        <RelatedProducts items={related} title={L("Similar items", "ملتی جلتی اشیاء")} />
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 px-3 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_hsl(var(--foreground)/0.25)] backdrop-blur-xl">

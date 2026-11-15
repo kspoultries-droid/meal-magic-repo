@@ -11,6 +11,7 @@ import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import PhotoTips from "@/components/media/PhotoTips";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import ProductQuickFill from "@/components/grocery/ProductQuickFill";
+import { tr } from "@/lib/i18n/tr";
 
 
 // Grocery collage images per category
@@ -174,34 +175,40 @@ const StoreBanner = ({
             {collageImages.slice(0, 8).map((img, i) => <img key={i} src={img} alt="" className="h-full w-full object-cover" />)}
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-foreground/60 via-foreground/15 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
-          <div className="min-w-0 text-primary-foreground drop-shadow-md"><p className="mb-1 flex items-center gap-1 text-[10px] font-bold"><ShoppingBasket className="size-3" /> تصدیق شدہ اسٹور</p><h1 className={`${nameSize.className} ${nameStyle.className} leading-tight break-words sm:scale-110 sm:origin-bottom-left`} style={{ color: nameColor }}>{store.name}</h1><p className="mt-1 text-xs opacity-90">{store.category} · {store.delivery_time || "تیز ڈیلیوری"}</p>{isOwner && store.image_url && store.store_type === "wholesale" && <button className="mt-2 rounded-full bg-card/90 px-3 py-1 text-[11px] font-bold text-foreground" onClick={() => { if (confirm("اپنی تصویر ہٹا کر خودکار بینر لگائیں؟ / Use auto banner?")) updateStore({ image_url: null }); }}>✨ خودکار بینر / Auto banner</button>}</div>
-          {isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label="بینر تبدیل" onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${crypto.randomUUID()}/${storeId}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: false, contentType: photo.file.type }); if (upErr) throw new Error(upErr.message); const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: urlData.publicUrl }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || "بینر محفوظ نہیں ہو سکا"); toast.success("بینر تبدیل ہو گیا"); onRefresh(); }} /></div>}
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 sm:p-6">
+          <div />{isOwner && <div className="shrink-0 rounded-lg bg-card/90 p-1 shadow-elegant backdrop-blur"><ProductPhotoUploader aspect="wide" label={tr("Change banner", "بینر تبدیل")} onDone={async (photos) => { const photo = photos[0]; if (!photo) return; const path = `store-banners/${crypto.randomUUID()}/${storeId}.webp`; const { error: upErr } = await supabase.storage.from("product-images").upload(path, photo.file, { upsert: false, contentType: photo.file.type }); if (upErr) throw new Error(upErr.message); const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path); const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: urlData.publicUrl }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || "بینر محفوظ نہیں ہو سکا"); toast.success("بینر تبدیل ہو گیا"); onRefresh(); }} /></div>}
         </div>
       </div>
 
        {/* Store details and owner controls */}
        <div className="border-b bg-card px-4 py-3">
+         <div className="mb-2 min-w-0">
+           <p className="mb-1 flex items-center gap-1 text-[11px] font-bold text-primary"><ShoppingBasket className="size-3.5" /> {tr("Verified store", "تصدیق شدہ اسٹور")}</p>
+           <div className="flex items-start gap-2">
+             <h1 className={`${nameSize.className} ${nameStyle.className} min-w-0 flex-1 break-words leading-tight text-foreground`}>{store.name}</h1>
+             {isOwner && <Button size="icon" variant="outline" className="size-8 shrink-0" aria-label={tr("Edit shop name", "دکان کا نام تبدیل کریں")} onClick={async () => { const newName = prompt(tr("Shop name:", "دکان کا نام:"), store.name); if (newName && newName.trim() && newName.trim() !== store.name) await updateStore({ name: newName.trim() }); }}><Pencil className="size-4" /></Button>}
+           </div>
+           {isOwner && store.image_url && store.store_type === "wholesale" && <button className="mt-2 rounded-full border bg-card px-3 py-1 text-[11px] font-bold text-foreground" onClick={() => { if (confirm(tr("Remove your photo and use the auto banner?", "اپنی تصویر ہٹا کر خودکار بینر لگائیں؟"))) updateStore({ image_url: null }); }}>✨ {tr("Auto banner", "خودکار بینر")}</button>}
+         </div>
          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-           <span className="flex items-center gap-1"><Star className="size-4 text-primary" /> {store.rating || "New"}</span>
+           <span className="flex items-center gap-1"><Star className="size-4 text-primary" /> {store.rating || tr("New", "نئی")}</span>
            <span className="flex items-center gap-1">
-             <Clock className="size-4" /> {store.delivery_time ? `اندازاً / Estimate: ${store.delivery_time}` : "ڈیلیوری وقت غیرمقرر / Not set"}
+             <Clock className="size-4" /> {store.delivery_time ? tr(`Delivery: ${store.delivery_time}`, `ڈیلیوری: ${store.delivery_time}`) : tr("Delivery time not set", "ڈیلیوری وقت مقرر نہیں")}
              {isOwner && <Button size="icon" variant="ghost" className="size-8" aria-label="ڈیلیوری وقت تبدیل کریں" onClick={editDelivery}><Pencil className="size-4" /></Button>}
            </span>
            <span className="flex items-center gap-1 font-semibold text-foreground">
              {store.category}
              {isOwner && <button className="text-muted-foreground hover:text-foreground" aria-label="کیٹیگری تبدیل کریں" onClick={async () => { const val = prompt("کیٹیگری / Category (ان میں سے ایک لکھیں):\n" + groceryCategories.join(", "), store.category); if (val && val.trim()) await updateStore({ category: val.trim() }); }}><Pencil className="size-3" /></button>}
            </span>
-           {isOwner && <button className="ms-auto text-muted-foreground hover:text-foreground" aria-label="دکان کا نام تبدیل کریں" onClick={async () => { const newName = prompt("دکان کا نام / Store Name:", store.name); if (newName && newName.trim() && newName.trim() !== store.name) await updateStore({ name: newName.trim() }); }}><Pencil className="size-4" /></button>}
+           
          </div>
 
         <Dialog open={showDeliveryEditor} onOpenChange={(open) => { if (!deliverySaving) setShowDeliveryEditor(open); }}>
           <DialogContent className="max-w-sm">
-            <DialogHeader><DialogTitle>ڈیلیوری کا اندازاً وقت / Delivery estimate</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{tr("Delivery estimate", "ڈیلیوری کا اندازاً وقت")}</DialogTitle></DialogHeader>
             <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); void saveDelivery(); }}>
-              <label className="block space-y-2 text-sm"><span>وقت / Time</span><Input value={deliveryDraft} onChange={(event) => setDeliveryDraft(event.target.value)} placeholder="مثلاً 45–60 منٹ یا 2–3 دن" disabled={deliverySaving} /></label>
-              <div className="flex gap-2"><Button type="button" variant="outline" disabled={deliverySaving} onClick={() => setDeliveryDraft("")}>وقت ہٹائیں</Button><Button type="submit" className="flex-1" disabled={deliverySaving}>{deliverySaving ? "محفوظ ہو رہا ہے…" : "محفوظ کریں"}</Button></div>
+              <label className="block space-y-2 text-sm"><span>{tr("Time", "وقت")}</span><Input value={deliveryDraft} onChange={(event) => setDeliveryDraft(event.target.value)} placeholder={tr("e.g. 45–60 min or 2–3 days", "مثلاً 45–60 منٹ یا 2–3 دن")} disabled={deliverySaving} /></label>
+              <div className="flex gap-2"><Button type="button" variant="outline" disabled={deliverySaving} onClick={() => setDeliveryDraft("")}>{tr("Clear", "وقت ہٹائیں")}</Button><Button type="submit" className="flex-1" disabled={deliverySaving}>{deliverySaving ? tr("Saving…", "محفوظ ہو رہا ہے…") : tr("Save", "محفوظ کریں")}</Button></div>
             </form>
           </DialogContent>
         </Dialog>
@@ -210,7 +217,7 @@ const StoreBanner = ({
         {isOwner && (
           <div className="mt-2 flex items-center gap-3 flex-wrap bg-secondary/50 rounded-lg px-3 py-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-muted-foreground">🕐 ٹائمنگ:</span>
+              <span className="text-xs font-bold text-muted-foreground">🕐 {tr("Timing:", "ٹائمنگ:")}</span>
               <input
                 type="time"
                 className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
@@ -219,7 +226,7 @@ const StoreBanner = ({
                   await updateStore({ opening_time: e.target.value } as any);
                 }}
               />
-              <span className="text-xs text-muted-foreground">سے</span>
+              <span className="text-xs text-muted-foreground">{tr("to", "سے")}</span>
               <input
                 type="time"
                 className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
@@ -237,7 +244,7 @@ const StoreBanner = ({
                   : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
               }`}
             >
-              {store.is_active ? "🟢 کھلی ہے / Open" : "🔴 بند ہے / Closed"}
+              {store.is_active ? tr("🟢 Open", "🟢 کھلی ہے") : tr("🔴 Closed", "🔴 بند ہے")}
             </button>
           </div>
         )}
@@ -245,10 +252,10 @@ const StoreBanner = ({
         {/* Show closed notice to customers */}
         {!isOwner && !store.is_active && (
           <div className="mt-2 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-bold px-3 py-2 rounded-lg text-center">
-            🔴 دکان ابھی بند ہے / Shop is currently closed
+            {tr("🔴 Shop is currently closed", "🔴 دکان ابھی بند ہے")}
             {(store as any).opening_time && (store as any).closing_time && (
               <span className="block mt-0.5 font-normal">
-                ٹائمنگ: {(store as any).opening_time} - {(store as any).closing_time}
+                {tr("Timing:", "ٹائمنگ:")} {(store as any).opening_time} - {(store as any).closing_time}
               </span>
             )}
           </div>
@@ -257,23 +264,23 @@ const StoreBanner = ({
         {/* Show timing to customers when open */}
         {!isOwner && store.is_active && (store as any).opening_time && (store as any).closing_time && (
           <p className="text-[11px] text-muted-foreground mt-1">
-            🕐 ٹائمنگ: {(store as any).opening_time} - {(store as any).closing_time}
+            🕐 {tr("Timing:", "ٹائمنگ:")} {(store as any).opening_time} - {(store as any).closing_time}
           </p>
         )}
 
         {isOwner && (
-          <div className="mt-3 grid grid-cols-3 gap-2 rounded-2xl border border-border bg-secondary/30 p-2 [&>*]:w-full [&_button]:w-full [&_button]:h-9">
-            <p className="col-span-3 text-[11px] font-bold text-muted-foreground">👑 دکان کے فوری کام / Shop tools</p>
+          <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-secondary/30 p-2 [&>*]:w-full [&_button]:w-full [&_button]:h-10">
+            <p className="col-span-2 text-[11px] font-bold text-muted-foreground">👑 {tr("Shop tools", "دکان کے فوری کام")}</p>
             
             {/* Theme Picker */}
             <Dialog open={showThemePicker} onOpenChange={setShowThemePicker}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline" className="h-7 text-xs">
-                  <Palette className="h-3 w-3 mr-1" /> تھیم
+                  <Palette className="me-1 h-4 w-4" /> {tr("Theme", "تھیم")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-sm">
-                <DialogHeader><DialogTitle>بینر تھیم / Banner Theme</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>{tr("Banner theme", "بینر تھیم")}</DialogTitle></DialogHeader>
                 <div className="space-y-4">
                   {/* Overlay */}
                   <div>
@@ -382,29 +389,29 @@ const StoreBanner = ({
 
             {/* Share Buttons */}
             {store.slug && (
-              <div className="flex items-center gap-1.5">
+              <>
                 <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => {
                   const storeUrl = `${window.location.origin}/store/${store.slug}`;
                   const appUrl = `${window.location.origin}/install`;
                   const msg = `🛒 *${store.name}* پر آرڈر کریں!\n\n📱 اسٹور لنک:\n${storeUrl}\n\n📥 ایپ ڈاؤنلوڈ کریں:\n${appUrl}`;
                   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                 }}>
-                  <MessageCircle className="h-3 w-3" /> واٹس ایپ
+                  <MessageCircle className="h-4 w-4" /> {tr("WhatsApp", "واٹس ایپ")}
                 </Button>
                 <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => {
                   const storeUrl = `${window.location.origin}/store/${store.slug}`;
                   navigator.clipboard.writeText(storeUrl);
-                  toast.success("لنک کاپی ہو گیا / Link copied!");
+                  toast.success(tr("Link copied", "لنک کاپی ہو گیا"));
                 }}>
-                  <Copy className="h-3 w-3" /> لنک کاپی
+                  <Copy className="h-4 w-4" /> {tr("Copy link", "لنک کاپی")}
                 </Button>
-              </div>
+              </>
             )}
 
             <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
-              <DialogTrigger asChild><Button size="sm" className="h-7 text-xs"><Plus className="me-1 h-3 w-3" /> پروڈکٹ شامل</Button></DialogTrigger>
+              <DialogTrigger asChild><Button size="sm" className="col-span-2 h-10 text-sm font-bold"><Plus className="me-1 h-4 w-4" /> {tr("Add product", "پروڈکٹ شامل کریں")}</Button></DialogTrigger>
               <DialogContent className="max-h-[88vh] max-w-2xl overflow-y-auto">
-                <DialogHeader><DialogTitle>نئی پروڈکٹ / Add product</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>{tr("Add product", "نئی پروڈکٹ")}</DialogTitle></DialogHeader>
                 <div className="space-y-3">
                   <p className="rounded-lg bg-primary/5 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">یہ فارم <b>ایک</b> چیز کے لیے ہے۔ سینکڑوں اشیا ایک ساتھ ڈالنے کے لیے <b>اسٹاک</b> ٹیب سے Excel/CSV امپورٹ یا <b>AI مددگار</b> استعمال کریں۔</p>
                   <ProductQuickFill categories={productCategories} onFill={(patch) => setNewProduct((prev: any) => {
@@ -446,7 +453,7 @@ const StoreBanner = ({
                     </div>
                   </details>
                   <div className="space-y-2"><label className="text-xs font-bold text-muted-foreground">پروڈکٹ کی تصاویر / Product photos (8 تک)</label><ProductPhotoUploader multiple label="تصاویر منتخب کریں" onDone={(photos) => setNewProduct((previous: any) => ({ ...previous, imageFiles: [...(previous.imageFiles || []), ...photos.map((photo) => photo.file)].slice(0, 8) }))} /><p className="text-[10px] text-muted-foreground">گیلری سے ایک ساتھ کئی تصاویر منتخب کر سکتے ہیں، پھر «محفوظ کریں» دبائیں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر تیار ہیں</p>}<PhotoTips /></div>{!newProduct.catalog_item_id && newProduct.imageFiles?.length > 0 && <label className="flex items-center gap-2 text-[11px] text-muted-foreground"><input type="checkbox" checked={newProduct.suggestToCatalog !== false} onChange={(e) => setNewProduct({ ...newProduct, suggestToCatalog: e.target.checked })} /> میری تصویر معیاری فہرست کے لیے بھیجیں (ایڈمن منظوری کے بعد دوسری دکانوں کے کام آئے گی)</label>}
-                  <Button onClick={addProduct} className="w-full">پروڈکٹ محفوظ کریں</Button>
+                  <Button onClick={addProduct} className="w-full">{tr("Save product", "پروڈکٹ محفوظ کریں")}</Button>
                 </div>
               </DialogContent>
             </Dialog>
