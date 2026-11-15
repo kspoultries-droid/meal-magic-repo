@@ -1,5 +1,10 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Bazar promotional cards
+- [ ] Diagnose and repair image upload/save with a real authenticated readback.
+- [ ] Remove automatic placeholder slides; display only complete, eligible saved cards.
+- [ ] Simplify product/shop selection, automatic details, dates and admin publication controls; run regression tests.
+
 ## Current fix — Admin reel upload
 - [x] Remove upsert, use unique account-scoped paths, and report real upload errors.
 - [x] 4 upload tests passed; authenticated admin upload/publish/readback and video HTTP 200 verified; disposable test reel and file removed.
