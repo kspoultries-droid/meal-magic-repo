@@ -145,8 +145,7 @@ const Grocery = () => {
       const { data } = await query.limit(200);
       let list = data || [];
       if (activeCategory) {
-        const ALIAS: Record<string, string[]> = { "Eggs & Meat": ["Eggs & Meat", "Meat"], "Cake": ["Cake", "Bakery"], "Atta & Rice": ["Atta & Rice", "Atta"], "General": ["General", "Kirana", "Departmental Store"], "Gift": ["Gift", "Gifts"] };
-        const names = ALIAS[activeCategory] || [activeCategory];
+        const names = CAT_ALIAS[activeCategory] || [activeCategory];
         const { data: prods } = await supabase.from("grocery_products").select("store_id").in("category", names).eq("is_available", true).limit(3000);
         const ids = new Set((prods || []).map((r: any) => r.store_id));
         list = list.filter((s: any) => names.includes(s.category) || ids.has(s.id));
@@ -162,6 +161,8 @@ const Grocery = () => {
   const storeIds = new Set(reachableAll.map((x) => x.id));
   const storeName = new Map(reachableAll.map((x) => [x.id, x.name]));
   const productHits = debounced ? allProducts.filter((p) => storeIds.has(p.store_id) && matchesSearch(debounced, p.name, p.category)).slice(0, 40) : [];
+  const catNames = activeCategory ? (CAT_ALIAS[activeCategory] || [activeCategory]) : [];
+  const categoryHits = !debounced && activeCategory ? allProducts.filter((p) => storeIds.has(p.store_id) && catNames.includes(p.category)).slice(0, 60) : [];
   const hitStoreIds = new Set(productHits.map((p) => p.store_id));
   const shownStores = debounced ? reachable.filter((x) => hitStoreIds.has(x.id) || matchesSearch(debounced, x.name, x.category)) : reachable.slice(0, 40);
   const storeCount = shownStores.length;
@@ -240,6 +241,23 @@ const Grocery = () => {
           })}
         </div>
       </section>
+      {categoryHits.length > 0 && (
+        <section className="container mx-auto px-4 pb-4">
+          <h2 className="mb-2 text-base font-extrabold"><bdi>{categoryHits.length}</bdi> {L("items", "اشیاء")}</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {categoryHits.map((p) => (
+              <div key={p.id} className="relative">
+                <Button variant="ghost" onClick={() => navigate(`/product/${p.id}`)} className="block h-auto w-full overflow-hidden whitespace-normal rounded-xl border bg-card p-0 text-start shadow-soft hover:bg-card">
+                  <div className="grid h-28 place-items-center bg-card p-1.5">{p.image_url ? <img src={img(p.image_url, 320)} alt={displayText(p.name)} loading="lazy" className="size-full object-contain" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
+                  <div className="p-2"><p className="truncate text-xs font-bold"><bdi dir="auto">{displayText(p.name)}</bdi></p><p className="truncate text-[10px] text-muted-foreground"><bdi dir="auto">{storeName.get(p.store_id)}</bdi></p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</p></div>
+                </Button>
+                <Button size="icon" aria-label={L("Add to cart", "ٹوکری میں ڈالیں")} onClick={() => quickAdd(p)} className="absolute right-2 top-[5.5rem] size-8 rounded-full bg-gradient-primary text-primary-foreground shadow-glow"><Plus className="size-4" /></Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
 
       {/* Filter pills */}
       <div className="container mx-auto px-4 pb-3">
@@ -375,7 +393,7 @@ const Grocery = () => {
             {shownStores.map((store, i) => (
               <Button variant="ghost"
                 key={store.id}
-                onClick={() => navigate(`/grocery/${store.id}`)}
+                onClick={() => navigate(`/grocery/${store.id}${activeCategory ? `?cat=${encodeURIComponent(activeCategory)}` : ""}`)}
                 style={{ animationDelay: `${i * 50}ms` }}
                 className={`animate-fade-in-up h-auto whitespace-normal hover:bg-card [&_svg]:size-4 w-full flex gap-3 bg-card rounded-2xl border border-border shadow-soft hover:shadow-card transition-all p-2.5 text-left ${!store.is_active ? "opacity-60 grayscale" : ""}`}
               >
@@ -431,5 +449,7 @@ const Grocery = () => {
     </div>
   );
 };
+
+const CAT_ALIAS: Record<string, string[]> = { "Eggs & Meat": ["Eggs & Meat", "Meat"], "Cake": ["Cake", "Bakery"], "Atta & Rice": ["Atta & Rice", "Atta"], "General": ["General", "Kirana", "Departmental Store"], "Gift": ["Gift", "Gifts"] };
 
 export default Grocery;
