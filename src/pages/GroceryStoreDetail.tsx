@@ -54,7 +54,7 @@ const GroceryStoreDetail = () => {
   const { items: cartItems, addItem, updateQuantity } = useCart();
   const [store, setStore] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState(() => new URLSearchParams(window.location.search).get("cat") || "All");
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -116,6 +116,7 @@ const GroceryStoreDetail = () => {
   }, [isOwner, id]);
 
   const categories = ["All", "🔥 Special Offers", ...Array.from(new Set(products.map((p) => p.category || "General")))];
+  if (activeCategory !== "All" && activeCategory !== "🔥 Special Offers" && products.length && !products.some((p) => p.category === activeCategory)) { const alt = categories.find((c) => c.toLowerCase().includes(activeCategory.split(" ")[0].toLowerCase())); setTimeout(() => setActiveCategory(alt || "All"), 0); }
   const filtered = activeCategory === "All" ? products : activeCategory === "🔥 Special Offers" ? products.filter((p) => p.is_special_offer) : products.filter((p) => p.category === activeCategory);
 
   const getVariants = (product: any) =>
