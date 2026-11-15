@@ -60,7 +60,7 @@ const typoMatch = (q: string, hay: string) => {
   const qw = q.split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 3);
   if (!qw.length || !hw.length) return false;
   return qw.every((w) => {
-    const tol = w.length >= 7 ? 2 : 1;
+    const tol = w.length >= 6 ? 2 : 1;
     return hw.some((h) => editDistance(w, h) <= tol || (h.length > w.length && editDistance(w, h.slice(0, w.length)) <= tol && w.length >= 4));
   });
 };
