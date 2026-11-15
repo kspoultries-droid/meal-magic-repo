@@ -1289,6 +1289,45 @@ export type Database = {
           },
         ]
       }
+      grocery_product_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          order_id: string
+          photo_urls: string[]
+          product_id: string
+          rating: number
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          order_id: string
+          photo_urls?: string[]
+          product_id: string
+          rating: number
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          order_id?: string
+          photo_urls?: string[]
+          product_id?: string
+          rating?: number
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       grocery_products: {
         Row: {
           barcode: string | null
@@ -5670,6 +5709,10 @@ export type Database = {
         }
         Returns: string
       }
+      product_public_reviews: {
+        Args: { _limit?: number; _product_id: string }
+        Returns: Json
+      }
       propose_service_quote: {
         Args: {
           _booking_id: string
@@ -6150,6 +6193,16 @@ export type Database = {
           resolved: number
           week_start: string
         }[]
+      }
+      submit_product_review: {
+        Args: {
+          _comment?: string
+          _order_id: string
+          _photo_urls?: string[]
+          _product_id: string
+          _rating: number
+        }
+        Returns: string
       }
       submit_service_review: {
         Args: { _booking_id: string; _comment: string; _rating: number }
