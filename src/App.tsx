@@ -185,10 +185,10 @@ const App = () => (
             <Toaster />
             <Sonner />
             <ApkUpdateNotice />
-            <SmartAppBanner />
             <CourierNotifications />
             <BrowserRouter>
               <RoutePrefetcher />
+              <SmartAppBanner />
               <ShoppingLogin />
               <PullToRefresh />
               <RoleStartRedirect />
