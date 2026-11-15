@@ -23,6 +23,8 @@ const ProductDetail = () => {
   const { user } = useAuth();
   const { lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
+  const UNIT_EN: Record<string,string> = {"بیگ":"Bag","کلو":"Kg","کلوگرام":"Kg","عدد":"Pcs","درجن":"Dozen","پیکٹ":"Pack","لیٹر":"Litre","گرام":"g","بوتل":"Bottle","ڈبہ":"Box"};
+  const U = (u?: string) => !u ? "" : lang === "ur" ? u : (UNIT_EN[u.trim()] || u);
   const navigate = useNavigate();
   const { items, addItem, updateQuantity, setIsOpen } = useCart();
   const [product, setProduct] = useState<any>(null);
@@ -166,8 +168,8 @@ const ProductDetail = () => {
                   {availableQuantity !== 0 && product.is_available && <span className="flex items-center gap-1 text-[10px] font-bold text-success"><Check className="h-3 w-3" /> {availableQuantity === null ? L("In stock", "دستیاب ہے") : L(`Available: ${availableQuantity}`, `دستیاب: ${availableQuantity}`)}</span>}
                   {availableQuantity === 0 && <span className="text-xs font-bold text-destructive">{L("Out of stock", "اسٹاک ختم")}</span>}
                 </div>
-                <h1 className="text-xl font-extrabold leading-tight text-foreground sm:text-2xl">{product.name}</h1>
-                <p className="mt-1 text-xs text-muted-foreground">{product.brand || product.category || L("Standard product", "معیاری پروڈکٹ")}{product.unit ? L(` · per ${product.unit}`, ` · فی ${product.unit}`) : ""}{product.weight ? ` · ${product.weight}` : ""}</p>
+                <h1 dir="auto" className="text-xl font-extrabold leading-tight text-foreground sm:text-2xl"><bdi>{product.name}</bdi></h1>
+                <p className="mt-1 text-xs text-muted-foreground"><bdi>{cleanBrand || product.category || L("Standard product", "معیاری پروڈکٹ")}</bdi>{product.unit ? <> · {L("per", "فی")} <bdi>{U(product.unit)}</bdi></> : null}{product.weight ? <> · <bdi>{product.weight}</bdi></> : null}</p>
               </div>
               <Button variant="outline" size="icon" aria-label={L("Share", "شیئر کریں")} onClick={() => navigator.share?.({ title: product.name, url: window.location.href })}><Share2 className="h-4 w-4" /></Button>
             </div>
@@ -251,22 +253,22 @@ const ProductDetail = () => {
                 <div className="rounded-2xl border border-border bg-card p-4">
                   <h2 className="text-sm font-extrabold text-foreground">{L("About this product", "اس پروڈکٹ کے بارے میں")}</h2>
                   {product.description ? (
-                    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted-foreground">{product.description}</p>
+                    <p dir="auto" className="mt-2 whitespace-pre-line text-start text-sm leading-7 text-muted-foreground">{product.description}</p>
                   ) : (
                     <ul className="mt-2 space-y-1.5 text-sm leading-7 text-muted-foreground">
-                      <li>{product.name}{product.brand ? ` — ${product.brand}` : ""}</li>
+                      <li>{product.name}{cleanBrand ? ` — ${cleanBrand}` : ""}</li>
                       {product.weight && <li>{L("Weight / size", "وزن / سائز")}: {product.weight}</li>}
-                      {product.unit && <li>{L("Unit", "یونٹ")}: {L(`per ${product.unit}`, `فی ${product.unit}`)}</li>}
+                      {product.unit && <li>{L("Unit", "یونٹ")}: {L(`per ${U(product.unit)}`, `فی ${product.unit}`)}</li>}
                       <li>{L("Price", "قیمت")}: Rs. {effectivePrice.toLocaleString()}{product.min_order_qty > 1 ? L(` · min ${product.min_order_qty} pcs`, ` · کم از کم ${product.min_order_qty} عدد`) : ""}</li>
                       <li>{L(`Verified by ${store.name}, delivered with safe packing.`, `${store.name} سے تصدیق شدہ، محفوظ پیکنگ کے ساتھ ڈیلیوری۔`)}</li>
                     </ul>
                   )}
                   {Array.isArray(product.tags) && product.tags.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{product.tags.map((tag: string) => <span key={tag} className="rounded-full bg-accent px-3 py-1 text-[10px] font-bold text-accent-foreground">{tag}</span>)}</div>}
                 </div>
-                <DetailsBlock specs={product.specs} sku={product.sku} brand={product.brand} weight={product.weight || (product.weight_kg ? `${product.weight_kg} kg` : undefined)} unit={product.unit} warranty={warrantyFrom(product.description)} />
+                <DetailsBlock specs={product.specs} sku={product.sku} brand={cleanBrand} weight={product.weight || (product.weight_kg ? `${product.weight_kg} kg` : undefined)} unit={U(product.unit)} warranty={warrantyFrom(product.description)} />
               </>
             )}
-             {activeTab === "details" && <DetailsBlock specs={product.specs} sku={product.sku} brand={product.brand} weight={product.weight} unit={product.unit} />}
+             {activeTab === "details" && <DetailsBlock specs={product.specs} sku={product.sku} brand={cleanBrand} weight={product.weight} unit={U(product.unit)} />}
              {activeTab === "reviews" && <ReviewList reviews={reviews} summary={reviewSummary} store={store} shop={shopRating} />}
              {activeTab === "questions" && <ProductQuestions productId={product.id} storeId={store.id} storeOwnerId={store.owner_id} />}
            </section>
@@ -298,7 +300,7 @@ const ProductDetail = () => {
             </Button>
             <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={() => navigate("/checkout")}>
               <span className="truncate">{L("Checkout", "چیک آؤٹ")} ({items.reduce((n, i) => n + i.quantity, 0)})</span>
-              <ArrowLeft className="ms-1.5 h-4 w-4 shrink-0" />
+              <ArrowRight className="ms-1.5 h-4 w-4 shrink-0" />
             </Button>
           </>) : (<>
           <Button variant="outline" className="h-11 min-w-0 flex-1 rounded-xl border-primary/40 px-2 text-[13px] font-extrabold text-primary shadow-sm" onClick={addToCart}>
@@ -307,7 +309,7 @@ const ProductDetail = () => {
           </Button>
           <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={buyNow}>
             <span className="truncate">{L("Buy now", "ابھی خریدیں")}</span>
-            <ArrowLeft className="ms-1.5 h-4 w-4 shrink-0" />
+            <ArrowRight className="ms-1.5 h-4 w-4 shrink-0" />
           </Button>
           </>)}
         </div>
