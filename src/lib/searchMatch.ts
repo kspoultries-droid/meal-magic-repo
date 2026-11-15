@@ -35,8 +35,32 @@ export const matchesSearch = (query: string, ...texts: (string | null | undefine
   if (!q) return true;
   const hay = texts.filter(Boolean).join(" ");
   if (normalize(hay).includes(q)) return true;
+  if (typoMatch(q, hay)) return true;
   const words = q.split(" ").map(skeleton).filter((w) => w.length >= 2);
   if (!words.length) return false;
   const hs = skeleton(hay);
   return words.every((w) => hs.includes(w));
+};
+
+/** Edit distance between two strings, capped for speed. */
+export const editDistance = (a: string, b: string) => {
+  const m = a.length, n = b.length;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+};
+
+/** Every query word is within 1 typo (2 for long words) of some text word or its prefix. */
+const typoMatch = (q: string, hay: string) => {
+  const hw = normalize(hay).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const qw = q.split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 3);
+  if (!qw.length || !hw.length) return false;
+  return qw.every((w) => {
+    const tol = w.length >= 6 ? 2 : 1;
+    return hw.some((h) => editDistance(w, h) <= tol || (h.length > w.length && editDistance(w, h.slice(0, w.length)) <= tol && w.length >= 4));
+  });
 };

@@ -203,11 +203,11 @@ const Grocery = () => {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {productHits.map((p) => (
                 <div key={p.id} className="relative">
-                <Button variant="ghost" onClick={() => navigate(`/product/${p.id}`)} className="block h-auto overflow-hidden whitespace-normal rounded-xl border bg-card p-0 text-right shadow-soft hover:bg-card">
-                  <div className="grid h-28 place-items-center bg-secondary">{p.image_url ? <img src={img(p.image_url, 320)} alt={displayText(p.name)} loading="lazy" className="size-full object-cover" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
-                  <div className="p-2"><p className="truncate text-xs font-bold">{displayText(p.name)}</p><p className="truncate text-[10px] text-muted-foreground">{storeName.get(p.store_id)}</p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price} <span className="text-[10px] font-normal text-muted-foreground">{p.unit}</span></p></div>
+                <Button variant="ghost" onClick={() => navigate(`/product/${p.id}`)} className="block h-auto overflow-hidden whitespace-normal w-full rounded-xl border bg-card p-0 text-start shadow-soft hover:bg-card">
+                  <div className="relative grid h-28 place-items-center overflow-hidden bg-card">{p.image_url ? <img src={img(p.image_url, 320)} alt={displayText(p.name)} loading="lazy" className="absolute inset-0 size-full object-contain p-1.5" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
+                  <div className="relative border-t bg-card p-2"><p className="truncate text-xs font-bold"><bdi dir="auto">{displayText(p.name)}</bdi></p><p className="truncate text-[10px] text-muted-foreground"><bdi dir="auto">{storeName.get(p.store_id)}</bdi></p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price} <span className="text-[10px] font-normal text-muted-foreground">{p.unit}</span></p></div>
                 </Button>
-                <Button size="icon" aria-label={L("Add to cart", "ٹوکری میں ڈالیں")} onClick={() => quickAdd(p)} className="absolute right-2 top-[5.5rem] size-8 rounded-full bg-gradient-primary text-primary-foreground shadow-glow"><Plus className="size-4" /></Button>
+                <Button size="icon" aria-label={L("Add to cart", "ٹوکری میں ڈالیں")} onClick={() => quickAdd(p)} className="absolute end-2 top-[5.5rem] z-10 size-8 rounded-full bg-gradient-primary text-primary-foreground shadow-glow"><Plus className="size-4" /></Button>
                 </div>
               ))}
             </div>
@@ -248,10 +248,10 @@ const Grocery = () => {
             {categoryHits.map((p) => (
               <div key={p.id} className="relative">
                 <Button variant="ghost" onClick={() => navigate(`/product/${p.id}`)} className="block h-auto w-full overflow-hidden whitespace-normal rounded-xl border bg-card p-0 text-start shadow-soft hover:bg-card">
-                  <div className="grid h-28 place-items-center bg-card p-1.5">{p.image_url ? <img src={img(p.image_url, 320)} alt={displayText(p.name)} loading="lazy" className="size-full object-contain" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
-                  <div className="p-2"><p className="truncate text-xs font-bold"><bdi dir="auto">{displayText(p.name)}</bdi></p><p className="truncate text-[10px] text-muted-foreground"><bdi dir="auto">{storeName.get(p.store_id)}</bdi></p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</p></div>
+                  <div className="relative grid h-28 place-items-center overflow-hidden bg-card">{p.image_url ? <img src={img(p.image_url, 320)} alt={displayText(p.name)} loading="lazy" className="absolute inset-0 size-full object-contain p-1.5" /> : <ShoppingBasket className="size-7 text-muted-foreground" />}</div>
+                  <div className="relative border-t bg-card p-2"><p className="truncate text-xs font-bold"><bdi dir="auto">{displayText(p.name)}</bdi></p><p className="truncate text-[10px] text-muted-foreground"><bdi dir="auto">{storeName.get(p.store_id)}</bdi></p><p className="mt-1 text-sm font-extrabold text-primary">Rs {p.discount_price || p.price}</p></div>
                 </Button>
-                <Button size="icon" aria-label={L("Add to cart", "ٹوکری میں ڈالیں")} onClick={() => quickAdd(p)} className="absolute right-2 top-[5.5rem] size-8 rounded-full bg-gradient-primary text-primary-foreground shadow-glow"><Plus className="size-4" /></Button>
+                <Button size="icon" aria-label={L("Add to cart", "ٹوکری میں ڈالیں")} onClick={() => quickAdd(p)} className="absolute end-2 top-[5.5rem] z-10 size-8 rounded-full bg-gradient-primary text-primary-foreground shadow-glow"><Plus className="size-4" /></Button>
               </div>
             ))}
           </div>
