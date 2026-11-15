@@ -1,9 +1,9 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
 ## Current request — Bazar promotional cards
-- [ ] Diagnose and repair image upload/save with a real authenticated readback.
-- [ ] Remove automatic placeholder slides; display only complete, eligible saved cards.
-- [ ] Simplify product/shop selection, automatic details, dates and admin publication controls; run regression tests.
+- [x] Prepare original-framing compressed uploads, retain successful uploads on save failure and expose real errors; authenticated 3600×2000 image upload/save/readback passed.
+- [x] Remove automatic placeholder slides; display only complete eligible saved cards and suppress broken images.
+- [x] Simplify product/shop selection, automatic details and dates; preserve existing payment state without a misleading payment toggle. 7 regression tests, actual product/shop clickthrough, mobile no-overflow and test-card deletion passed.
 
 ## Current fix — Admin reel upload
 - [x] Remove upsert, use unique account-scoped paths, and report real upload errors.
