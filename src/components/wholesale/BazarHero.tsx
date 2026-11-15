@@ -3,41 +3,25 @@ import { displayText } from "@/lib/i18n/displayText";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
-import { ArrowRight, BadgeCheck, Gift, Search, ShieldCheck, Store, Truck, Video, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, BadgeCheck, Search, ShieldCheck, Truck, X, type LucideIcon } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import HeroEditor from "@/components/common/HeroEditor";
 import BazarSlidesManager from "@/components/wholesale/BazarSlidesManager";
 import { useHeroSettings } from "@/hooks/useHeroSettings";
-import { bazarHeroDefaults, heroBackgroundStyle } from "@/lib/heroConfig";
+import { bazarHeroDefaults } from "@/lib/heroConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { img } from "@/lib/imageUrl";
 import { toast } from "sonner";
 import type { Ad } from "@/components/PromotionalAds";
-import slideElectronics from "@/assets/bazar-slide-electronics.jpg";
-import slideFashion from "@/assets/bazar-slide-fashion.jpg";
-import slideHome from "@/assets/bazar-slide-home.jpg";
+import { visibleBazarCards } from "@/lib/bazarCards";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   searchQuery: string;
   onSearchChange: (v: string) => void;
   hideAds?: boolean;
 }
-
-/** Daraz-style top banner: up to 15 slides, paid "bazar_top" ads first, then EasyLife feature slides. */
-const MAX_SLIDES = 15;
-
-type Feature = { key: string; icon: LucideIcon; eyebrow: string; title: string; cta: string; link: string; photo?: string };
-const getFeatures = (): Feature[] => [
-  { key: "p-elec", icon: Truck, eyebrow: "", title: tr("Mobiles, watches & gadgets", "موبائل، گھڑیاں اور گیجٹس"), cta: "", link: "#bazar-shops", photo: slideElectronics },
-  { key: "p-fashion", icon: Truck, eyebrow: "", title: tr("Kurtas, fabric & footwear", "کرتے، کپڑا اور جوتے"), cta: "", link: "#bazar-shops", photo: slideFashion },
-  { key: "p-home", icon: Truck, eyebrow: "", title: tr("Kitchen & home essentials", "کچن اور گھر کا سامان"), cta: "", link: "#bazar-shops", photo: slideHome },
-  { key: "f-deals", icon: Gift, eyebrow: tr("EasyLife offers", "EasyLife آفرز"), title: tr("Collect vouchers, save more", "واؤچر جمع کریں، زیادہ بچت کریں"), cta: tr("View vouchers", "واؤچر دیکھیں"), link: "#bazar-deals" },
-  { key: "f-ship", icon: Truck, eyebrow: tr("Nationwide delivery", "ملک بھر میں ڈیلیوری"), title: tr("Karachi wholesale market, in your city", "کراچی کی ہول سیل مارکیٹ اب آپ کے شہر میں"), cta: tr("Shop now", "ابھی خریدیں"), link: "#bazar-shops" },
-  { key: "f-verified", icon: BadgeCheck, eyebrow: tr("Verified sellers", "تصدیق شدہ دکاندار"), title: tr("Direct from shops, at better prices", "براہِ راست دکان سے، بہتر قیمت پر"), cta: tr("View shops", "دکانیں دیکھیں"), link: "#bazar-shops" },
-  { key: "f-sell", icon: Store, eyebrow: tr("Open your shop", "اپنی دکان لگائیں"), title: tr("Sell your products on EasyLife Bazar", "EasyLife بازار پر اپنا مال بیچیں"), cta: tr("Register", "رجسٹر کریں"), link: "/partner" },
-  { key: "f-reels", icon: Video, eyebrow: tr("New videos", "نئی ویڈیوز"), title: tr("Discover shops through reels", "دکانوں کی ریلز دیکھ کر خریداری کریں"), cta: tr("Watch reels", "ریلز دیکھیں"), link: "/reels" },
-];
 
 const seen = new Set<string>();
 const track = (id: string, kind: "view" | "click") => {
@@ -58,9 +42,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const [reload, setReload] = useState(0);
   useEffect(() => {
     supabase.from("promotional_ads").select("*").eq("is_active", true).order("sort_order").then(({ data }) => {
-      const today = new Date().toISOString().slice(0, 10);
-      setAds(((data || []) as any[]).filter((ad) => ad.placements?.includes("bazar_top") && ad.payment_status === "paid"
-        && (!ad.start_date || ad.start_date <= today) && (!ad.end_date || ad.end_date >= today)).slice(0, MAX_SLIDES) as Ad[]);
+      setAds(visibleBazarCards((data || []) as Ad[]));
     });
   }, [reload]);
 
@@ -71,8 +53,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
     return () => { api.off("select", onSelect); };
   }, [api]);
 
-  const features = getFeatures().slice(0, Math.max(0, MAX_SLIDES - ads.length));
-  const total = ads.length + features.length;
+  const total = ads.length;
   useEffect(() => { const ad = ads[current]; if (ad) track(ad.id, "view"); }, [current, ads]);
 
   const go = (link?: string | null) => {
@@ -100,7 +81,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
     </div>
   );
 
-  if (hideAds) return <header className="bg-background">{searchBar}</header>;
+  if (hideAds || total === 0) return <header className="bg-background">{searchBar}</header>;
 
   const pill = (title: string, badge?: string | null) => (
     <span className="absolute bottom-6 start-3 flex max-w-[80%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-3 text-foreground shadow-card backdrop-blur-md">
@@ -118,21 +99,14 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
           <CarouselContent className="ml-0">
             {ads.map((ad, i) => (
               <CarouselItem key={ad.id} className="basis-full pl-0">
-                <button type="button" onClick={() => openAd(ad)} className="relative block aspect-[2/1] max-h-80 w-full overflow-hidden bg-muted text-start">
-                  {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0" style={heroBackgroundStyle(config)} />}
+                <Button type="button" onClick={() => openAd(ad)} variant="ghost" className="h-auto rounded-none p-0 relative block aspect-[9/5] max-h-80 w-full overflow-hidden bg-muted text-start">
+                  {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-contain" onError={() => setAds(previous => previous.filter(item => item.id !== ad.id))} /> : null}
                   {ad.show_text !== false && pill(ad.title, ad.offer_badge)}
                   <span className="absolute end-2 top-2 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>
-                </button>
+                </Button>
               </CarouselItem>
             ))}
-            {features.map((f, i) => (
-              <CarouselItem key={f.key} className="basis-full pl-0">
-                <button type="button" onClick={() => go(f.link)} style={f.photo ? undefined : heroBackgroundStyle(config)} className="relative block aspect-[2/1] max-h-80 w-full overflow-hidden bg-muted text-start">
-                  {f.photo ? <img src={f.photo} alt={f.title} width={1536} height={768} loading={i === 0 && !ads.length ? "eager" : "lazy"} className="absolute inset-0 size-full object-cover" /> : <span className="absolute end-6 top-1/2 grid size-20 -translate-y-1/2 place-items-center rounded-3xl bg-background/15"><f.icon className="size-10" style={{ color: config.accentColor }} /></span>}
-                  {pill(f.title, f.photo ? null : f.eyebrow)}
-                </button>
-              </CarouselItem>
-            ))}
+
           </CarouselContent>
         </Carousel>
         {total > 1 && <div dir="ltr" className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1">{Array.from({ length: total }).map((_, i) => <button type="button" key={i} aria-label={`${i + 1}`} onClick={() => api?.scrollTo(i)} className={`h-1.5 rounded-full transition-all ${i === current ? "w-4 bg-primary" : "w-1.5 bg-card/80"}`} />)}</div>}
