@@ -148,7 +148,7 @@ const ProductDetail = () => {
     <div className="min-h-screen bg-secondary/40 pb-28">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-4">
-          <Button variant="ghost" size="icon" aria-label={L("Back", "واپس")} onClick={() => navigate(-1)}><ArrowRight className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon" aria-label={L("Back", "واپس")} onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
           <div className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">{L("Search products", "پروڈکٹ تلاش کریں")}</div>
           <Button variant="ghost" size="icon" aria-label={L("Favourite", "پسندیدہ")} onClick={() => setLiked((value) => !value)}><Heart className={`h-5 w-5 ${liked ? "fill-destructive text-destructive" : ""}`} /></Button>
           <Button variant="ghost" size="icon" aria-label={L("Cart", "کارٹ")} onClick={() => setIsOpen(true)}><ShoppingBag className="h-5 w-5" /></Button>
@@ -320,12 +320,14 @@ const InfoTile = ({ icon, label, value }: { icon: ReactNode; label: string; valu
 
 const warrantyFrom = (text?: string | null) => { const m = String(text || "").match(/(\d+\s*(?:year|years|month|months|سال|ماہ)[^,\n]*warranty|warranty[^,\n]*)/i); return m ? m[0].trim() : undefined; };
 
+ const fmtWarranty = (v: string, lang: string) => { const m = v.match(/^\s*(\d+)\s*(سال|year|years|ماہ|month|months)\s*(کمپنی|company)?/i); if (!m) return v; const yr = /سال|year/i.test(m[2]); const n = Number(m[1]); return lang === "ur" ? `${n} ${yr ? "سال" : "ماہ"}${m[3] ? " آفیشل کمپنی" : ""} وارنٹی` : `${n} ${yr ? (n > 1 ? "Years" : "Year") : (n > 1 ? "Months" : "Month")}${m[3] ? " Official Company" : ""} Warranty`; };
+
  const DetailsBlock = ({ specs, sku, brand, weight, unit, warranty }: { specs: unknown; sku?: string; brand?: string; weight?: string; unit?: string; warranty?: string }) => {
    const { lang } = useLanguage();
    const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
    const entries = specs && typeof specs === "object" && !Array.isArray(specs) ? Object.entries(specs as Record<string, unknown>) : [];
    const hasWarrantySpec = entries.some(([k]) => /warrant/i.test(k));
-   return <div className="rounded-2xl border border-border bg-card p-4"><h2 className="text-sm font-extrabold text-foreground">{L("Specifications", "خصوصیات")}</h2><div className="mt-3 divide-y divide-border">{[[L("Brand", "برانڈ"), brand], [L("Weight", "وزن"), weight], [L("Unit", "یونٹ"), unit], [L("Warranty", "وارنٹی"), hasWarrantySpec ? undefined : warranty], ["SKU", sku], ...entries.map(([key, value]) => [key, String(value)])].filter(([, value]) => value).map(([key, value]) => <div key={String(key)} className="flex items-center justify-between gap-4 py-2 text-xs"><span className="text-muted-foreground">{key}</span><span className="font-bold text-foreground">{value}</span></div>)}</div></div>;
+   return <div className="rounded-2xl border border-border bg-card p-4"><h2 className="text-sm font-extrabold text-foreground">{L("Specifications", "خصوصیات")}</h2><div className="mt-3 divide-y divide-border">{[[L("Brand", "برانڈ"), brand], [L("Weight", "وزن"), weight], [L("Unit", "یونٹ"), unit], [L("Warranty", "وارنٹی"), hasWarrantySpec ? undefined : warranty], ["SKU", sku], ...entries.map(([key, value]) => [key, String(value)])].filter(([, value]) => value).map(([key, value]) => <div key={String(key)} className="flex items-center justify-between gap-4 py-2 text-xs"><span className="text-muted-foreground">{key}</span><bdi dir="auto" className="font-bold text-foreground">{/warrant|وارنٹی/i.test(String(key)) ? fmtWarranty(String(value), lang) : value}</bdi></div>)}</div></div>;
  };
 
  const ReviewList = ({ reviews, summary, store, shop }: { reviews: any[]; summary: { rating: number; count: number }; store: any; shop: { rating: number; count: number } }) => {
