@@ -16,6 +16,7 @@ import CartDrawer from "@/components/CartDrawer";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { ApkUpdateNotice } from "@/components/common/ApkUpdateNotice";
+import { SmartAppBanner } from "@/components/common/SmartAppBanner";
 import { RoleStartRedirect } from "@/components/common/RoleStartRedirect";
 import { RiderLocationProvider } from "@/contexts/RiderLocationContext";
 import ShoppingLogin from "@/components/common/ShoppingLogin";
@@ -187,6 +188,7 @@ const App = () => (
             <CourierNotifications />
             <BrowserRouter>
               <RoutePrefetcher />
+              <SmartAppBanner />
               <ShoppingLogin />
               <PullToRefresh />
               <RoleStartRedirect />
