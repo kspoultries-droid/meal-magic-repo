@@ -145,6 +145,8 @@ const ProductDetail = () => {
     </div>
   );
   if (!product || !store) return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3"><p className="text-muted-foreground">{L("Product not found", "پروڈکٹ نہیں ملی")}</p><Button onClick={() => navigate(-1)}>{L("Go back", "واپس جائیں")}</Button></div>;
+  const rawBrand = (product.brand || "").trim();
+  const cleanBrand = rawBrand && rawBrand !== store.name && !/(کریانہ|اسٹور|سٹور|مارٹ|جنرل|mart|store|kiryana|karyana|general)/i.test(rawBrand) ? rawBrand : "";
 
   return (
     <div className="min-h-screen bg-secondary/40 pb-28">
@@ -300,7 +302,7 @@ const ProductDetail = () => {
             </Button>
             <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={() => navigate("/checkout")}>
               <span className="truncate">{L("Checkout", "چیک آؤٹ")} ({items.reduce((n, i) => n + i.quantity, 0)})</span>
-              <ArrowRight className="ms-1.5 h-4 w-4 shrink-0" />
+              <ArrowRight className="ms-1.5 h-4 w-4 shrink-0 rtl:rotate-180" />
             </Button>
           </>) : (<>
           <Button variant="outline" className="h-11 min-w-0 flex-1 rounded-xl border-primary/40 px-2 text-[13px] font-extrabold text-primary shadow-sm" onClick={addToCart}>
@@ -309,7 +311,7 @@ const ProductDetail = () => {
           </Button>
           <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={buyNow}>
             <span className="truncate">{L("Buy now", "ابھی خریدیں")}</span>
-            <ArrowRight className="ms-1.5 h-4 w-4 shrink-0" />
+            <ArrowRight className="ms-1.5 h-4 w-4 shrink-0 rtl:rotate-180" />
           </Button>
           </>)}
         </div>
