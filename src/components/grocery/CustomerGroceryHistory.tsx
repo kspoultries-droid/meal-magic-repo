@@ -5,7 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Receipt, MapPin, ShoppingBasket, FileImage } from "lucide-react";
+import { Receipt, MapPin, ShoppingBasket, FileImage, RotateCcw } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { buildReorder } from "@/lib/reorder";
+import { tr } from "@/lib/i18n/tr";
+import { toast } from "sonner";
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending: { label: "زیرِ التوا", color: "bg-yellow-100 text-yellow-800" },
@@ -25,6 +29,21 @@ const CustomerGroceryHistory = () => {
   const navigate = useNavigate();
   const [rows, setRows] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
+  const { addItems, items: cartItems } = useCart();
+  const [busy, setBusy] = useState<string | null>(null);
+  const reorder = async (o: any) => {
+    const lines = (Array.isArray(o.items) ? o.items : []).filter((l: any) => l?.id);
+    if (!lines.length) return;
+    if (cartItems.length && cartItems[0].sourceId !== o.store_id) { toast.error(tr("Your cart has another shop's items. Empty it first.", "ٹوکری میں دوسری دکان کی اشیاء ہیں، پہلے انہیں ہٹائیں۔")); return; }
+    setBusy(o.id);
+    const { data, error } = await supabase.from("grocery_products").select("id,name,price,discount_price,is_available,image_url,store_id,stock_qty,weight_kg,weight,unit").in("id", lines.map((l: any) => l.id)).eq("store_id", o.store_id);
+    setBusy(null);
+    if (error) { toast.error(error.message); return; }
+    const { add, skipped } = buildReorder(lines, (data || []) as any);
+    if (!add.length) { toast.error(tr("None of these items are available now", "ان میں سے کوئی چیز ابھی دستیاب نہیں")); return; }
+    addItems(add.map((p) => ({ id: p.id, name: p.name, restaurant: o.grocery_stores?.name || "Grocery", price: p.unitPrice, quantity: p.quantity, image: p.image_url || "", source: "grocery" as const, sourceId: p.store_id, weight_kg: p.weight_kg, weight: p.weight, unit: p.unit })));
+    if (skipped.length) toast.info(tr(`Not added (unavailable or choose size/colour again): ${skipped.join(", ")}`, `شامل نہیں ہوئیں (دستیاب نہیں یا سائز/رنگ دوبارہ چنیں): ${skipped.join("، ")}`), { duration: 7000 });
+  };
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
@@ -71,8 +90,8 @@ const CustomerGroceryHistory = () => {
       {rows.map((o) => {
         const st = STATUS_MAP[o.status] || STATUS_MAP.pending;
         return (
+          <div key={`${o.kind}-${o.id}`} className="space-y-1">
           <button
-            key={`${o.kind}-${o.id}`}
             onClick={() => navigate(`/order-tracking/${o.id}`)}
             className="w-full text-left bg-card rounded-2xl p-4 border space-y-1"
           >
@@ -95,6 +114,12 @@ const CustomerGroceryHistory = () => {
               <p className="text-[11px] text-primary font-bold flex items-center gap-1"><Receipt className="w-3 h-3" /> بل دستیاب — دیکھیں</p>
             )}
           </button>
+          {o.kind === "cart" && ["delivered", "completed"].includes(o.status) && (
+            <Button size="sm" variant="outline" className="w-full" disabled={busy === o.id} onClick={() => reorder(o)}>
+              <RotateCcw className="size-4" /> {tr("Order again (today's prices)", "دوبارہ آرڈر کریں (آج کی قیمت)")}
+            </Button>
+          )}
+          </div>
         );
       })}
 
