@@ -1,3 +1,4 @@
+import BannerPicker from "@/components/media/BannerPicker";
 import { tr } from "@/lib/i18n/tr";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import { useEffect, useRef, useState } from "react";
@@ -268,14 +269,7 @@ const MyRestaurantTab = () => {
                       {t("rest.noPhoto")}
                     </div>
                   )}
-                  <ProductPhotoUploader
-                    aspect="wide"
-                    label={t("rest.uploadOwnPhoto")}
-                    onDone={async (photos) => {
-                      const photo = photos[0];
-                      if (photo) await uploadBanner(r.id, photo.file);
-                    }}
-                  />
+                  <BannerPicker vertical="restaurant" category={`${r.name} ${r.description || ""} ${(r as any).cuisine || ""}`} hasBanner={!!r.image_url} folder={`restaurants/${r.id}`} recordId={r.id} onSave={async (url) => { const { error } = await supabase.from("restaurants").update({ image_url: url }).eq("id", r.id); if (error) throw new Error(error.message); fetchAll(); }} />
                   {uploading && <p className="text-[10px] text-muted-foreground">{t("rest.uploading")}</p>}
                 </div>
                 <div className="flex-1 min-w-0 w-full">
