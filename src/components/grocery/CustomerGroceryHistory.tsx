@@ -36,7 +36,7 @@ const CustomerGroceryHistory = () => {
     if (!lines.length) return;
     if (cartItems.length && cartItems[0].sourceId !== o.store_id) { toast.error(tr("Your cart has another shop's items. Empty it first.", "ٹوکری میں دوسری دکان کی اشیاء ہیں، پہلے انہیں ہٹائیں۔")); return; }
     setBusy(o.id);
-    const { data, error } = await supabase.from("grocery_products").select("id,name,price,discount_price,is_available,image_url,store_id,stock_quantity,weight_kg,weight,unit").in("id", lines.map((l: any) => l.id)).eq("store_id", o.store_id);
+    const { data, error } = await supabase.from("grocery_products").select("id,name,price,discount_price,is_available,image_url,store_id,stock_qty,weight_kg,weight,unit").in("id", lines.map((l: any) => l.id)).eq("store_id", o.store_id);
     setBusy(null);
     if (error) { toast.error(error.message); return; }
     const { add, skipped } = buildReorder(lines, (data || []) as any);
