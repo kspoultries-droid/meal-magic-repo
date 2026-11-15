@@ -47,4 +47,3 @@
 - Supervision logs success/failure and deduplicates risks; flags require independent review, never automatic punishment.
 
 - UI text: tr(en,ur); lang switch reloads page.
-- Shop/restaurant banners are permanent branding set via BannerPicker (category library copied to storage, or own photo) behind owner confirmation; never put change buttons over the public banner.
