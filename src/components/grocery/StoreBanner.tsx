@@ -187,7 +187,6 @@ const StoreBanner = ({
            <p className="mb-1 flex items-center gap-1 text-[11px] font-bold text-primary"><ShoppingBasket className="size-3.5" /> {tr("Verified store", "تصدیق شدہ اسٹور")}</p>
            <div className="flex items-start gap-2">
              <h1 className={`${nameSize.className} ${nameStyle.className} min-w-0 flex-1 break-words leading-tight text-foreground`}>{store.name}</h1>
-             {isOwner && <Button size="icon" variant="outline" className="size-8 shrink-0" aria-label={tr("Edit shop name", "دکان کا نام تبدیل کریں")} onClick={async () => { const newName = prompt(tr("Shop name:", "دکان کا نام:"), store.name); if (newName && newName.trim() && newName.trim() !== store.name) await updateStore({ name: newName.trim() }); }}><Pencil className="size-4" /></Button>}
            </div>
            {isOwner && <div className="mt-2"><BannerPicker vertical={store.store_type === "wholesale" ? "wholesale" : "grocery"} category={store.category} hasBanner={!!store.image_url} folder="store-banners" recordId={storeId} onSave={async (url) => { const { data: saved, error } = await supabase.from("grocery_stores").update({ image_url: url }).eq("id", storeId).select("id").single(); if (error || !saved) throw new Error(error?.message || tr("Banner not saved", "بینر محفوظ نہیں ہو سکا")); onRefresh(); }} /></div>}
          </div>
@@ -199,7 +198,6 @@ const StoreBanner = ({
            </span>
            <span className="flex items-center gap-1 font-semibold text-foreground">
              {store.category}
-             {isOwner && <button className="text-muted-foreground hover:text-foreground" aria-label="کیٹیگری تبدیل کریں" onClick={async () => { const val = prompt("کیٹیگری / Category (ان میں سے ایک لکھیں):\n" + groceryCategories.join(", "), store.category); if (val && val.trim()) await updateStore({ category: val.trim() }); }}><Pencil className="size-3" /></button>}
            </span>
            
          </div>

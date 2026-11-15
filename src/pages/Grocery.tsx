@@ -17,7 +17,7 @@ import { StoreGridSkeleton } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDeliveryLocation } from "@/hooks/useDeliveryLocation";
-import { filterStoresByReach } from "@/lib/groceryReach";
+import { filterStoresByReach, etaFromKm } from "@/lib/groceryReach";
 import { useCart } from "@/contexts/CartContext";
 import { availableShopQuantity } from "@/lib/shopOrders";
 import { toast } from "sonner";
@@ -421,7 +421,7 @@ const Grocery = () => {
                   <p className="text-[11px] text-primary font-semibold mt-0.5">{store.category}</p>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
                     <span className="flex items-center gap-1 text-[10px] font-bold text-accent-foreground bg-accent rounded-full px-2 py-0.5">
-                      <Clock className="w-3 h-3" /> {store.delivery_time}
+                      <Clock className="w-3 h-3" /> {store._km != null ? etaFromKm(store._km) : store.delivery_time}
                     </span>
                     {store.minimum_order > 0 && (
                       <span className="text-[10px] font-semibold text-muted-foreground bg-muted rounded-full px-2 py-0.5">

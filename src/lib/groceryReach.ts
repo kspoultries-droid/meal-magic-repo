@@ -24,3 +24,9 @@ export const filterStoresByReach = <T extends StoreLike>(
   if (nearestFirst) out.sort((a, b) => Number(!!b.is_active) - Number(!!a.is_active) || a._km - b._km);
   return out;
 };
+
+/** Rough delivery window from shop distance: ~15 min packing + ~3 min per km riding, rounded to 5. */
+export const etaFromKm = (km: number): string => {
+  const base = Math.round((15 + km * 3) / 5) * 5;
+  return `${base}-${base + 10} min`;
+};
