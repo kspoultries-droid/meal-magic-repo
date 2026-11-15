@@ -51,6 +51,24 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
   const [riderComment, setRiderComment] = useState("");
   const [existingRider, setExistingRider] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [productItems, setProductItems] = useState<{ product_id: string; name: string }[]>([]);
+  const [productRatings, setProductRatings] = useState<Record<string, number>>({});
+  const [productComments, setProductComments] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!open || kind !== "grocery") return;
+    (async () => {
+      const { data: rows } = await supabase.from("grocery_order_items").select("product_id,substitute_product_id,name,substitute_name").eq("order_id", orderId);
+      const seen = new Set<string>();
+      const list = (rows || []).map((r: any) => ({ product_id: r.substitute_product_id || r.product_id, name: r.substitute_name || r.name }))
+        .filter((r) => r.product_id && !seen.has(r.product_id) && seen.add(r.product_id));
+      setProductItems(list);
+      const { data: mine } = await supabase.from("grocery_product_reviews").select("product_id,rating,comment").eq("order_id", orderId);
+      const rt: Record<string, number> = {}; const cm: Record<string, string> = {};
+      (mine || []).forEach((m: any) => { rt[m.product_id] = m.rating; cm[m.product_id] = m.comment || ""; });
+      setProductRatings(rt); setProductComments(cm);
+    })();
+  }, [open, kind, orderId]);
 
   const table = kind === "grocery" ? "grocery_reviews" : "order_reviews";
   const orderKind = kind === "grocery" ? "grocery_cart" : "food";
@@ -134,6 +152,15 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
       ({ error } = await (supabase.from(table as any) as any).insert(payload));
     }
 
+    if (!error && kind === "grocery") {
+      for (const item of productItems) {
+        const r = productRatings[item.product_id];
+        if (!r) continue;
+        const res = await supabase.rpc("submit_product_review", { _order_id: orderId, _product_id: item.product_id, _rating: r, _comment: productComments[item.product_id] || null, _photo_urls: photoUrls.slice(0, 6) });
+        if (res.error) { error = res.error; break; }
+      }
+    }
+
     if (!error && riderId && riderRating > 0) {
       const riderPayload: any = {
         order_id: orderId,
@@ -162,7 +189,7 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
         <DialogHeader>
           <DialogTitle className="text-lg font-extrabold">آرڈر کی رائے دیں ⭐</DialogTitle>
           <DialogDescription>
-            {kind === "grocery" ? "اسٹور کے تجربے کی درجہ بندی کریں" : "ریسٹورنٹ کے تجربے کی درجہ بندی کریں"}
+            {kind === "grocery" ? "دکان اور خریدی گئی چیزوں کی درجہ بندی کریں" : "ریسٹورنٹ کے تجربے کی درجہ بندی کریں"}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -187,6 +214,19 @@ const OrderReviewDialog = ({ open, onOpenChange, orderId, restaurantId, customer
              <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-secondary/30 px-2 py-3 text-xs font-bold text-muted-foreground"><Video className="size-4 text-primary" /> ویڈیو {reviewVideo ? "منتخب" : "شامل کریں"}<input type="file" accept="video/*" className="hidden" onChange={(e) => setReviewVideo(e.target.files?.[0] || null)} /></label>
            </div>
            {(existingPhotos.length > 0 || existingVideo) && <p className="text-[10px] text-muted-foreground">آپ کا سابقہ میڈیا بھی اس ریویو کے ساتھ محفوظ ہے</p>}
+
+          {kind === "grocery" && productItems.length > 0 && (
+            <div className="rounded-2xl border bg-secondary/20 p-3 space-y-3">
+              <p className="text-sm font-extrabold text-center">ہر چیز کو الگ ریٹنگ دیں / Rate each item</p>
+              {productItems.map((item) => (
+                <div key={item.product_id} className="space-y-1.5 border-t border-border/60 pt-2 first:border-0 first:pt-0">
+                  <p className="text-xs font-bold truncate">{item.name}</p>
+                  <StarRow value={productRatings[item.product_id] || 0} onChange={(v) => setProductRatings((p) => ({ ...p, [item.product_id]: v }))} size="w-7 h-7" />
+                  <input value={productComments[item.product_id] || ""} onChange={(e) => setProductComments((p) => ({ ...p, [item.product_id]: e.target.value }))} maxLength={500} placeholder="اس چیز کے بارے میں (اختیاری)" className="w-full px-3 py-2 rounded-xl border bg-card text-foreground text-xs" />
+                </div>
+              ))}
+            </div>
+          )}
 
           {riderId && (
             <div className="rounded-2xl border bg-secondary/20 p-3 space-y-2">
