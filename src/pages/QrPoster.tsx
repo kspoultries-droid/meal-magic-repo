@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, Printer } from "lucide-react";
 
 const SITE = "https://easylife.apnahub.online";
+const DISPLAY = "easylife.apnahub.online";
 
 /** Printable counter poster: QR opens the shop page (with app install link). */
 const QrPoster = () => {
@@ -31,7 +32,8 @@ const QrPoster = () => {
         </div>
         <p className="text-xl font-bold" dir="rtl">QR کوڈ اسکین کریں اور ایپ ڈاؤن لوڈ کریں</p>
         <p className="mt-1 text-lg text-muted-foreground">Scan to order from home</p>
-        <p className="mt-4 text-sm text-muted-foreground" dir="ltr">{url}</p>
+        <p className="mt-6 text-sm text-muted-foreground" dir="rtl">یا براؤزر میں لکھیں</p>
+        <p className="mt-2 rounded-full bg-primary px-6 py-2 text-2xl font-extrabold tracking-wide text-primary-foreground" dir="ltr">{DISPLAY}</p>
       </div>
     </div>
   );
