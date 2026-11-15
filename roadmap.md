@@ -1,5 +1,9 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current fix — Admin reel upload
+- [x] Remove upsert, use unique account-scoped paths, and report real upload errors.
+- [x] 4 upload tests passed; authenticated admin upload/publish/readback and video HTTP 200 verified; disposable test reel and file removed.
+
 ## Current request — Location privacy and shopping access
 - [x] Clear personal delivery locations and cart on logout/account switching.
 - [x] Require sign-in before adding items; resume selection and show a quiet guest reminder.
