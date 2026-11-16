@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useLayoutEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, useLayoutEffect, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { rememberShopping, SHOPPING_LOGIN_EVENT } from "@/lib/shoppingAccess";
