@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface Voucher {
   id: string;
@@ -36,6 +37,7 @@ const BazarDeals = () => {
   const [loaded, setLoaded] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [form, setForm] = useState({ code: "", title: "", discountType: "percent", discountValue: "", minOrder: "0", validUntil: "" });
 
   const fetchVouchers = async () => {
@@ -120,38 +122,41 @@ const BazarDeals = () => {
   const amount = (v: Voucher) => <bdi dir="ltr">{v.discount_type === "percent" ? <>{v.discount_value}<span className="text-sm">% OFF</span></> : <><span className="text-sm">Rs.</span>{v.discount_value}</>}</bdi>;
   const done = (v: Voucher) => collected.has(v.code) || copiedId === v.id || copiedId === "all";
 
+  const top = vouchers[0];
   return (
-    <section className="px-3 py-3 sm:px-6">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary-glow p-[3px] shadow-card">
-        <div className="rounded-[14px] bg-gradient-to-b from-primary/90 to-primary px-3 pb-3 pt-2.5">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <h2 className="flex items-center gap-1.5 text-sm font-extrabold text-primary-foreground"><Ticket className="size-4" /> {tr("Voucher Hub", "واؤچر سینٹر")}</h2>
-            {isAdmin && <button onClick={() => setDialogOpen(true)} className="flex items-center gap-0.5 rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[11px] font-bold text-primary-foreground"><Plus className="size-3" /> {tr("New", "نیا")}</button>}
+    <section className="px-3 pt-2 sm:px-6">
+      <button onClick={() => setSheetOpen(true)} className="flex h-9 w-full items-center gap-2 rounded-lg border border-warning/40 bg-gradient-to-r from-warning/15 to-destructive/10 px-3 text-start">
+        <Ticket className="size-4 shrink-0 text-destructive" />
+        {top ? <span className="min-w-0 flex-1 truncate text-xs font-bold text-foreground"><span className="text-destructive">{amount(top)}</span> · {tr(top.title, top.title_ur || top.title)}{vouchers.length > 1 && <span className="text-muted-foreground"> +{vouchers.length - 1}</span>}</span>
+          : <span className="flex-1 text-xs text-muted-foreground">{tr("No vouchers yet", "ابھی کوئی واؤچر نہیں")}</span>}
+        <span className="shrink-0 text-[11px] font-extrabold text-destructive">{tr("Collect All ›", "سب حاصل کریں ›")}</span>
+      </button>
+
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent side="bottom" className="max-h-[75vh] overflow-y-auto rounded-t-2xl">
+          <SheetHeader className="flex-row items-center justify-between gap-2 space-y-0">
+            <SheetTitle className="flex items-center gap-1.5 text-base"><Ticket className="size-4 text-destructive" /> {tr("Voucher Hub", "واؤچر سینٹر")}</SheetTitle>
+            {isAdmin && <button onClick={() => setDialogOpen(true)} className="me-8 flex items-center gap-0.5 rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold"><Plus className="size-3" /> {tr("New", "نیا")}</button>}
+          </SheetHeader>
+          {vouchers.length > 1 && <Button size="sm" onClick={() => collect(vouchers)} className="mt-3 w-full rounded-full bg-gradient-to-r from-warning to-destructive text-xs font-extrabold text-destructive-foreground">{copiedId === "all" ? <Check className="size-4" /> : tr("Collect All", "سب حاصل کریں")}</Button>}
+          <div className="mt-3 space-y-2">
+            {vouchers.map((v) => { const left = daysLeft(v.valid_until); return (
+              <div key={v.id} className="relative flex overflow-hidden rounded-xl border border-border bg-card">
+                <div className="flex w-24 shrink-0 flex-col items-center justify-center border-e border-dashed border-destructive/30 p-2 text-center">
+                  <p className="text-xl font-black leading-none text-destructive">{amount(v)}</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">{v.min_order > 0 ? <>{tr("Min.", "کم از کم")} <b className="text-foreground">Rs.{v.min_order}</b></> : tr("No minimum", "کوئی حد نہیں")}</p>
+                </div>
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 p-2">
+                  <div className="min-w-0"><p className="truncate text-xs font-bold text-foreground">{tr(v.title, v.title_ur || v.title)}</p>
+                  <p className="flex items-center gap-1 text-[10px] text-muted-foreground"><Clock className="size-2.5" />{left !== null ? <>{left} {tr("days left", "دن باقی")}</> : v.code}</p></div>
+                  <Button size="sm" variant={done(v) ? "outline" : "destructive"} onClick={() => collect([v])} className="h-7 shrink-0 rounded-full px-3 text-[11px] font-bold">{done(v) ? <><Check className="size-3" /> {tr("Collected", "حاصل")}</> : tr("Collect", "حاصل کریں")}</Button>
+                </div>
+                {isAdmin && <div className="absolute end-1 top-1 flex gap-0.5"><button onClick={() => closeVoucher(v.id)} title={tr("Close", "بند کریں")} className="grid size-5 place-items-center rounded-full bg-muted"><X className="size-3" /></button><button onClick={() => deleteVoucher(v.id)} title={tr("Delete", "حذف کریں")} className="grid size-5 place-items-center rounded-full bg-muted text-destructive"><Trash2 className="size-3" /></button></div>}
+              </div>); })}
           </div>
-          {vouchers.length === 0 ? <p className="rounded-xl bg-card py-3 text-center text-xs text-muted-foreground">{tr("No vouchers yet", "ابھی کوئی واؤچر نہیں")}</p> : <>
-            <div className="flex items-stretch rounded-xl bg-card shadow-soft">
-              {vouchers.slice(0, 2).map((v) => <div key={v.id} className="min-w-0 flex-1 border-e border-dashed border-border px-3 py-2"><p className="text-xl font-black leading-none text-destructive">{amount(v)}</p><p className="mt-1 truncate text-[11px] font-semibold text-muted-foreground">{tr(v.title, v.title_ur || v.title)}</p></div>)}
-              <div className="grid shrink-0 place-items-center px-2"><Button size="sm" onClick={() => collect(vouchers)} className="h-9 rounded-full bg-gradient-to-r from-warning to-destructive px-4 text-xs font-extrabold text-destructive-foreground shadow-soft">{copiedId === "all" ? <Check className="size-4" /> : tr("Collect All", "سب حاصل کریں")}</Button></div>
-            </div>
-            <div className="no-scrollbar mt-2.5 flex gap-2 overflow-x-auto">
-              {vouchers.map((v) => { const left = daysLeft(v.valid_until); return (
-                <div key={v.id} className="relative flex w-64 shrink-0 overflow-hidden rounded-xl bg-card shadow-soft">
-                  <span className="absolute start-0 top-0 rounded-ee-lg bg-gradient-to-r from-warning to-destructive px-2 py-0.5 text-[9px] font-bold text-destructive-foreground">{tr("Bazar Voucher", "بازار واؤچر")}</span>
-                  <div className="flex w-24 shrink-0 flex-col items-center justify-center border-e border-dashed border-destructive/30 px-2 pt-4 pb-2 text-center">
-                    <p className="text-xl font-black leading-none text-destructive">{amount(v)}</p>
-                    <p className="mt-1 text-[10px] text-muted-foreground">{v.min_order > 0 ? <>{tr("Min.", "کم از کم")} <b className="text-foreground">Rs.{v.min_order}</b></> : tr("No minimum", "کوئی حد نہیں")}</p>
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col justify-between p-2 pt-4">
-                    <p className="truncate text-xs font-bold text-foreground">{tr(v.title, v.title_ur || v.title)}</p>
-                    <p className="flex items-center gap-1 text-[10px] text-muted-foreground"><Clock className="size-2.5" />{left !== null ? <>{left} {tr("days left", "دن باقی")}</> : v.code}</p>
-                    <Button size="sm" variant={done(v) ? "outline" : "destructive"} onClick={() => collect([v])} className="mt-1 h-7 self-end rounded-full px-4 text-[11px] font-bold">{done(v) ? <><Check className="size-3" /> {tr("Collected", "حاصل")}</> : tr("Collect", "حاصل کریں")}</Button>
-                  </div>
-                  {isAdmin && <div className="absolute end-1 top-1 flex gap-0.5"><button onClick={() => closeVoucher(v.id)} title={tr("Close", "بند کریں")} className="grid size-5 place-items-center rounded-full bg-muted text-foreground"><X className="size-3" /></button><button onClick={() => deleteVoucher(v.id)} title={tr("Delete", "حذف کریں")} className="grid size-5 place-items-center rounded-full bg-muted text-destructive"><Trash2 className="size-3" /></button></div>}
-                </div>); })}
-            </div>
-          </>}
-        </div>
-      </div>
+          <p className="mt-3 text-center text-[10px] text-muted-foreground">{tr("Enter the code at checkout", "کوڈ چیک آؤٹ پر لگائیں")}</p>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
