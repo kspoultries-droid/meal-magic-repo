@@ -62,6 +62,7 @@ const GroceryStoreDetail = () => {
   const [editDiscount, setEditDiscount] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editWeightKg, setEditWeightKg] = useState("");
+  const [editInfo, setEditInfo] = useState({ name: "", brand: "", sku: "", power: "", warranty: "", stock: "" });
   const [pendingCount, setPendingCount] = useState(0);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
@@ -163,6 +164,8 @@ const GroceryStoreDetail = () => {
     setEditDiscount(product.discount_price ? String(product.discount_price) : "");
     setEditDescription(product.description || "");
     setEditWeightKg(product.weight_kg != null ? String(product.weight_kg) : "");
+    const sp = (product.specs && typeof product.specs === "object" && !Array.isArray(product.specs)) ? product.specs : {};
+    setEditInfo({ name: product.name || "", brand: product.brand || "", sku: product.sku || "", power: sp["پاور (واٹ)"] || "", warranty: sp["وارنٹی"] || "", stock: product.stock_qty != null ? String(product.stock_qty) : "" });
   };
 
   const savePrice = async (productId: string) => {
@@ -170,12 +173,19 @@ const GroceryStoreDetail = () => {
     updates.discount_price = editDiscount ? Number(editDiscount) : null;
     updates.is_special_offer = !!editDiscount;
     updates.description = editDescription.trim() || null;
+    if (!editInfo.name.trim()) { toast.error(L("Name required", "نام درکار ہے")); return; }
+    updates.name = editInfo.name.trim(); updates.brand = editInfo.brand.trim() || null; updates.sku = editInfo.sku.trim() || null;
+    if (editInfo.stock.trim()) { const st = Number(editInfo.stock); if (!Number.isFinite(st) || st < 0) { toast.error(L("Enter valid stock", "درست اسٹاک لکھیں")); return; } updates.stock_qty = Math.floor(st); }
+    const oldP = products.find((x) => x.id === productId);
+    const baseSpecs = { ...((oldP?.specs && typeof oldP.specs === "object" && !Array.isArray(oldP.specs)) ? oldP.specs : {}) } as Record<string, unknown>;
+    for (const [k, v] of [["پاور (واٹ)", editInfo.power], ["وارنٹی", editInfo.warranty]] as const) { if (v.trim()) baseSpecs[k] = v.trim(); else delete baseSpecs[k]; }
+    updates.specs = baseSpecs;
     const w = Number(editWeightKg);
     if (editWeightKg.trim() && (!Number.isFinite(w) || w <= 0 || w > 2000)) { toast.error(L("Enter a valid weight in kg", "درست وزن (کلو) لکھیں")); return; }
     if (editWeightKg.trim()) updates.weight_kg = w;
     const { error } = await supabase.from("grocery_products").update(updates).eq("id", productId);
     if (error) { toast.error(error.message); return; }
-    toast.success(L("Price updated", "قیمت اپڈیٹ ہو گئی"));
+    toast.success(L("Product updated", "پروڈکٹ اپڈیٹ ہو گئی"));
     setEditingId(null);
     fetchData();
   };
@@ -412,6 +422,11 @@ const GroceryStoreDetail = () => {
                               <span className="text-[10px] text-muted-foreground">kg</span>
                             </div>
                             <p className="text-[10px] text-muted-foreground">{L("Correct weight decides bike or loader and the delivery fare.", "درست وزن سے ہی بائیک یا لوڈر اور کرایہ طے ہوتا ہے۔")}</p>
+                            <div className="grid grid-cols-2 gap-1">
+                              {([["name", L("Name", "نام")], ["brand", L("Brand", "برانڈ")], ["sku", L("Model", "ماڈل")], ["power", L("Power (e.g. 400W)", "پاور (مثلاً 400W)")], ["warranty", L("Warranty (e.g. 1 year)", "وارنٹی (مثلاً 1 سال)")], ["stock", L("Stock", "اسٹاک")]] as const).map(([k, label]) => (
+                                <Input key={k} type={k === "stock" ? "number" : "text"} value={editInfo[k]} onChange={(e) => setEditInfo((prev) => ({ ...prev, [k]: e.target.value }))} placeholder={label} aria-label={label} className={`h-7 text-xs ${k === "name" ? "col-span-2" : ""}`} />
+                              ))}
+                            </div>
                             <div>
                               <span className="text-[10px] text-muted-foreground">{L("Details:", "تفصیل:")}</span>
                               <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder={L("Write product details...", "پروڈکٹ کی تفصیل لکھیں...")} rows={3} className="mt-1 text-xs" />
