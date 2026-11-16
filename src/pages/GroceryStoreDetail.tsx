@@ -1,5 +1,5 @@
 import { img } from "@/lib/imageUrl";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
@@ -92,6 +92,7 @@ const GroceryStoreDetail = () => {
     if (storeData && id && !storePathMatches(storeData.store_type)) {
       navigate(storePath(id, storeData.store_type), { replace: true });
     }
+    loadedOnce.current = true;
     setLoading(false);
   };
 

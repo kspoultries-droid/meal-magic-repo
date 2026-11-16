@@ -118,8 +118,8 @@ export default function ProductQuickFill({ categories, onFill }: Props) {
           {busy === "ai" ? <Loader2 className="h-5 w-5 animate-spin" /> : <span className="flex gap-1"><Camera className="h-5 w-5" /><Sparkles className="h-4 w-4" /></span>} تصویر سے خود بھریں
         </Button>
       </div>
-      <input ref={scanRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { onScan(e.target.files?.[0]); e.target.value = ""; }} />
-      <input ref={aiRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { onAi(Array.from(e.target.files || [])); e.target.value = ""; }} />
+      <input ref={scanRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="hidden" onChange={(e) => { onScan(e.target.files?.[0]); e.target.value = ""; }} />
+      <input ref={aiRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(e) => { onAi(Array.from(e.target.files || [])); e.target.value = ""; }} />
       <div className="flex gap-2">
         <Input inputMode="numeric" placeholder="یا بارکوڈ نمبر لکھیں" className="h-8 text-xs" value={manual} onChange={(e) => setManual(e.target.value)} />
         <Button type="button" size="sm" variant="secondary" className="h-8" onClick={() => lookup(manual)}>تلاش</Button>
