@@ -67,6 +67,10 @@ interface CartContextType {
   setIsOpen: (open: boolean) => void;
 }
 
+export type CartLane = "food" | "shop";
+/** Food (instant restaurant) and shop (grocery + Bazar) are independent carts that never wipe each other. */
+export const laneOf = (item: Pick<CartItem, "source">): CartLane => ((item.source || "restaurant") === "restaurant" ? "food" : "shop");
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const buildLineId = (item: AddItemInput) => {
@@ -101,6 +105,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return next;
     });
   }, []);
+  // Checkout only ever receives one lane: ticking food unticks shop lines and vice versa.
+  const focusLane = useCallback((lane: CartLane) => {
+    const others = itemsRef.current.filter((v) => laneOf(v) !== lane).map((v) => v.id);
+    if (others.length) setDeselected((prev) => { const n = new Set(prev); others.forEach((id) => n.add(id)); return n; });
+  }, []);
   useLayoutEffect(() => {
     if (account.current !== user?.id) {
       const restored = readStoredCart(user?.id);
@@ -131,12 +140,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         option_ids: raw.option_ids || [],
         options: raw.options || [],
       };
-      const first = next[0];
+      const first = next.find((v) => laneOf(v) === laneOf(item));
       if (first) {
         const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
         const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
         const bothBazar = sameSource && Boolean(first.bazar) && Boolean(item.bazar);
-        if ((!sameSource || !sameShop) && !bothBazar) next = [];
+        if ((!sameSource || !sameShop) && !bothBazar) next = next.filter((v) => laneOf(v) !== laneOf(item));
       }
       const existing = next.find((value) => value.id === lineId);
       next = existing
@@ -163,7 +172,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       option_ids: raw.option_ids || [],
       options: raw.options || [],
     };
-    const first = itemsRef.current[0];
+    const first = itemsRef.current.find((v) => laneOf(v) === laneOf(item));
     if (first) {
       const sameSource = (first.source || "restaurant") === (item.source || "restaurant");
       const sameShop = (first.sourceId || first.restaurant) === (item.sourceId || item.restaurant);
@@ -172,16 +181,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Never silently wipe a cart: ask first (one shop = one rider trip = one bill).
         toast.warning(tr(`Your cart contains items from ${first.restaurant}. One order can contain items from one shop only.`, `آپ کے کارٹ میں «${first.restaurant}» کی اشیاء ہیں۔ ایک آرڈر میں ایک ہی دکان کی چیزیں آ سکتی ہیں۔`), {
           id: "cart-swap", duration: 8000,
-          action: { label: tr("Replace cart", "پرانا ہٹا کر شامل کریں"), onClick: () => { setItems([item]); setDeselected(new Set()); toast.success(tr(`${item.name} added to cart ✓`, `${item.name} کارٹ میں شامل ✓`), { id: "cart-add", duration: 1500 }); } },
+          action: { label: tr("Replace cart", "پرانا ہٹا کر شامل کریں"), onClick: () => { const other = itemsRef.current.filter((v) => laneOf(v) !== laneOf(item)); setItems([...other, item]); setDeselected(new Set(other.map((v) => v.id))); toast.success(tr(`${item.name} added to cart ✓`, `${item.name} کارٹ میں شامل ✓`), { id: "cart-add", duration: 1500 }); } },
         });
         return false;
       }
     }
     setItems((prev) => mergeItems(prev, [item]));
     selectLines([lineId]);
+    focusLane(laneOf(item));
     toast.success(tr(`${item.name} added to cart ✓`, `${item.name} کارٹ میں شامل ✓`), { id: "cart-add", duration: 1500 });
     return true;
-  }, [mergeItems, user?.id, selectLines]);
+  }, [mergeItems, user?.id, selectLines, focusLane]);
 
   const addItems = useCallback((rawItems: AddItemInput[]) => {
     if (!user) {
@@ -193,8 +203,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (validItems.length === 0) return;
     setItems((prev) => mergeItems(prev, validItems));
     selectLines(validItems.map(buildLineId));
+    focusLane(laneOf(validItems[0]));
     toast.success(tr(`${validItems.length} selections added to cart ✓`, `${validItems.length} انتخاب کارٹ میں شامل ہو گئے ✓`), { id: "cart-add-batch", duration: 1600 });
-  }, [mergeItems, user?.id, selectLines]);
+  }, [mergeItems, user?.id, selectLines, focusLane]);
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));

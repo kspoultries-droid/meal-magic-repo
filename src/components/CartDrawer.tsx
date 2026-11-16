@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Minus, Plus, Trash2, ShoppingBag, Package, Store, ReceiptText, ChevronLeft, Truck } from "lucide-react";
-import { useCart } from "@/contexts/CartContext";
+import { useCart, laneOf, type CartLane } from "@/contexts/CartContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,8 +12,25 @@ import { img } from "@/lib/imageUrl";
 
 /** Clean marketplace-style cart: one shop header, list rows, add-more rail and a sticky checkout bar. */
 const CartDrawer = () => {
-  const { items, isOpen, setIsOpen, updateQuantity, removeItem, clearCart, addItem, selectedItems, selectedTotal, isSelected, setSelected } = useCart();
+  const { items: allItems, isOpen, setIsOpen, updateQuantity, removeItem, clearCart, addItem, selectedItems, selectedTotal, isSelected, setSelected } = useCart();
   const [confirmClear, setConfirmClear] = useState(false);
+  const foodCount = allItems.filter((i) => laneOf(i) === "food").reduce((n, i) => n + i.quantity, 0);
+  const shopCount = allItems.filter((i) => laneOf(i) === "shop").reduce((n, i) => n + i.quantity, 0);
+  const selectedLane: CartLane | null = selectedItems[0] ? laneOf(selectedItems[0]) : null;
+  const [lane, setLane] = useState<CartLane>("shop");
+  useEffect(() => {
+    if (!isOpen) return;
+    setLane(selectedLane || (foodCount ? "food" : "shop"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+  const activeLane: CartLane = lane === "food" ? (foodCount ? "food" : "shop") : (shopCount ? "shop" : "food");
+  const items = allItems.filter((i) => laneOf(i) === activeLane);
+  const switchLane = (next: CartLane) => {
+    setLane(next); setConfirmClear(false);
+    setSelected(allItems.filter((i) => laneOf(i) !== next).map((i) => i.id), false);
+    setSelected(allItems.filter((i) => laneOf(i) === next).map((i) => i.id), true);
+  };
+  const clearLane = () => items.forEach((i) => removeItem(i.id));
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [recommended, setRecommended] = useState<any[]>([]);
@@ -47,6 +64,15 @@ const CartDrawer = () => {
           </SheetTitle>
         </SheetHeader>
 
+        {foodCount > 0 && shopCount > 0 && (
+          <div role="tablist" className="grid grid-cols-2 gap-2 border-b bg-card px-3 py-2">
+            {([["food", tr("Food", "کھانا"), "🍔", foodCount], ["shop", tr("Bazar & Grocery", "بازار و گروسری"), "🛍️", shopCount]] as const).map(([k, l, ic, n]) => (
+              <button key={k} type="button" role="tab" aria-selected={activeLane === k} onClick={() => switchLane(k)} className={`rounded-full border px-3 py-2 text-xs font-bold transition-colors ${activeLane === k ? "border-primary bg-primary text-primary-foreground" : "bg-background text-muted-foreground"}`}>
+                {ic} {l} ({n})
+              </button>
+            ))}
+          </div>
+        )}
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
             <div className="mb-4 grid size-20 place-items-center rounded-full bg-card shadow-soft"><ShoppingBag className="size-9 text-muted-foreground" /></div>
@@ -70,7 +96,7 @@ const CartDrawer = () => {
                   <Store className="size-4 text-primary" />
                   <p className="min-w-0 flex-1 truncate text-sm font-bold">{groups.length > 1 && <span className="me-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">{tr("Package", "پیکیج")} {gi + 1}</span>}{groupItems[0]?.restaurant}</p>
                   {gi === 0 && (confirmClear
-                    ? <span className="flex items-center gap-2 text-xs font-semibold"><button type="button" onClick={() => { clearCart(); setConfirmClear(false); }} className="text-destructive">{tr("Yes, clear", "ہاں، خالی کریں")}</button><button type="button" onClick={() => setConfirmClear(false)} className="text-muted-foreground">{tr("No", "نہیں")}</button></span>
+                    ? <span className="flex items-center gap-2 text-xs font-semibold"><button type="button" onClick={() => { clearLane(); setConfirmClear(false); }} className="text-destructive">{tr("Yes, clear", "ہاں، خالی کریں")}</button><button type="button" onClick={() => setConfirmClear(false)} className="text-muted-foreground">{tr("No", "نہیں")}</button></span>
                     : <button type="button" onClick={() => setConfirmClear(true)} className="text-xs font-semibold text-muted-foreground hover:text-destructive">{t("cart.clear")}</button>)}
                 </div>
                 <ul className="divide-y">
