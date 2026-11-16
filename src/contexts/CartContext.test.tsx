@@ -8,7 +8,7 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), warning: vi.fn() } }));
 let cart: ReturnType<typeof useCart>;
 function Probe() { cart = useCart(); return <span data-testid="count">{cart.totalItems}</span>; }
 const item: AddItemInput = { id: "rice", name: "Rice", price: 100, restaurant: "Shop", image: "", source: "grocery", sourceId: "shop" };
-beforeEach(() => { auth.user = null; sessionStorage.clear(); });
+beforeEach(() => { auth.user = null; sessionStorage.clear(); localStorage.clear(); });
 afterEach(cleanup);
 describe("sign in before cart", () => {
   it("does not add a guest item and remembers it for login", () => {
@@ -35,6 +35,14 @@ describe("sign in before cart", () => {
     act(() => cart.addItem(item));
     auth.user = { id: "second" }; view.rerender(<CartProvider><Probe /></CartProvider>);
     expect(cart.totalItems).toBe(0);
+  });
+  it("keeps a signed-in cart after the app reloads", () => {
+    auth.user = { id: "customer" };
+    const first = render(<CartProvider><Probe /></CartProvider>);
+    act(() => { cart.addItem({ ...item, quantity: 3 }); });
+    first.unmount();
+    render(<CartProvider><Probe /></CartProvider>);
+    expect(cart.totalItems).toBe(3);
   });
 });describe("bazar multi-shop cart", () => {
   it("lets bazar items from two shops share one cart", () => {

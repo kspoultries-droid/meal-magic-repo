@@ -7,7 +7,7 @@ import FloatingCartBar from "@/components/cart/FloatingCartBar";
 vi.mock("@/hooks/useAuth", () => ({ useAuth: () => ({ user: { id: "test-account" } }) }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), warning: vi.fn() } }));
 vi.mock("@/lib/i18n/tr", () => ({ tr: (en: string) => en }));
-afterEach(cleanup);
+afterEach(() => { cleanup(); localStorage.clear(); });
 const apple: AddItemInput = { id: "apple", name: "Apple", price: 100, restaurant: "Shop", source: "grocery", sourceId: "shop", image: "" };
 const rice: AddItemInput = { ...apple, id: "rice", name: "Rice", price: 250, quantity: 2 };
 const wrapper = ({ children }: { children: React.ReactNode }) => <CartProvider>{children}</CartProvider>;

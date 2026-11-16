@@ -34,15 +34,15 @@ const BoughtTogether = ({ sourceId, source = "restaurant", sourceName = "", baza
           .eq("is_available", true)
           .order("price", { ascending: true })
           .limit(12);
-        setList((data || []).filter((d) => !inCart.has(d.id)).slice(0, 8).map((d) => ({ id: d.id, name: d.name, price: d.price, image: (d as any).image_url })));
+        setList((data || []).filter((d) => !inCart.has(d.id)).slice(0, 8).map((d: any) => ({ id: d.id, name: d.name, price: d.discount_price && d.discount_price < d.price ? d.discount_price : d.price, image: d.image_url })));
       } else {
         const { data } = await supabase
           .from("grocery_products")
-          .select("id, name, price, image_url")
+          .select("id, name, price, discount_price, image_url")
           .eq("store_id", sourceId)
           .order("price", { ascending: true })
           .limit(12);
-        setList((data || []).filter((d) => !inCart.has(d.id)).slice(0, 8).map((d) => ({ id: d.id, name: d.name, price: d.price, image: (d as any).image_url })));
+        setList((data || []).filter((d) => !inCart.has(d.id)).slice(0, 8).map((d: any) => ({ id: d.id, name: d.name, price: d.discount_price && d.discount_price < d.price ? d.discount_price : d.price, image: d.image_url })));
       }
     };
     load();
