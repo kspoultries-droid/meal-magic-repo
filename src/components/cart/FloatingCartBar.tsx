@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ShoppingBag, ChevronLeft } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { tr } from "@/lib/i18n/tr";
+import { Button } from "@/components/ui/button";
 
 // Routes where a floating cart would get in the way
 const HIDDEN_PREFIXES = [
@@ -28,7 +29,8 @@ export const isShopPage = (pathname: string) =>
   /^\/(restaurant|grocery|bazar|store)\/[^/]+\/?$/.test(pathname) && !pathname.startsWith("/restaurant-dashboard");
 
 const FloatingCartBar = () => {
-  const { items, totalItems, totalPrice, setIsOpen } = useCart();
+  const { items, totalItems, selectedItems, selectedTotal, setIsOpen } = useCart();
+  const selectedCount = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -63,21 +65,22 @@ const FloatingCartBar = () => {
           <div className="relative w-10 h-10 rounded-xl bg-primary-foreground/15 flex items-center justify-center shrink-0">
             <ShoppingBag className="w-5 h-5" />
             <span className="absolute -top-1 -end-1 min-w-5 h-5 px-1 rounded-full bg-background text-foreground text-[11px] font-extrabold flex items-center justify-center shadow-card">
-              {totalItems}
+              {selectedCount}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] opacity-90 truncate">{shopName || tr("Your order", "آپ کا آرڈر")} · {totalItems} {tr("items", "اشیا")}</p>
-            <p className="text-sm font-extrabold leading-tight">Rs {totalPrice.toLocaleString()}</p>
+            <p className="text-[11px] opacity-90 truncate">{shopName || tr("Your order", "آپ کا آرڈر")} · {selectedCount} {tr("selected items", "منتخب اشیا")}</p>
+            <p className="text-sm font-extrabold leading-tight">Rs {selectedTotal.toLocaleString()}</p>
           </div>
         </button>
-        <button
-          onClick={() => navigate("/checkout")}
+        <Button
+          disabled={selectedItems.length === 0}
+          onClick={() => { if (selectedItems.length > 0) navigate("/checkout"); }}
           className="shrink-0 h-10 px-4 rounded-xl bg-background/95 text-foreground text-sm font-extrabold flex items-center gap-1 hover:scale-[1.03] active:scale-95 transition-transform"
         >
           {tr("Checkout", "چیک آؤٹ")}
           <ChevronLeft className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
     </div>
   );

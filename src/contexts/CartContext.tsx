@@ -84,6 +84,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [deselected, setDeselected] = useState<Set<string>>(new Set());
+  const selectLines = useCallback((ids: string[]) => {
+    setDeselected((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.delete(id));
+      return next;
+    });
+  }, []);
   useLayoutEffect(() => {
     if (account.current !== user?.id) {
       itemsRef.current = [];
@@ -147,15 +154,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Never silently wipe a cart: ask first (one shop = one rider trip = one bill).
         toast.warning(tr(`Your cart contains items from ${first.restaurant}. One order can contain items from one shop only.`, `آپ کے کارٹ میں «${first.restaurant}» کی اشیاء ہیں۔ ایک آرڈر میں ایک ہی دکان کی چیزیں آ سکتی ہیں۔`), {
           id: "cart-swap", duration: 8000,
-          action: { label: tr("Replace cart", "پرانا ہٹا کر شامل کریں"), onClick: () => { setItems([item]); toast.success(tr(`${item.name} added to cart ✓`, `${item.name} کارٹ میں شامل ✓`), { id: "cart-add", duration: 1500 }); } },
+          action: { label: tr("Replace cart", "پرانا ہٹا کر شامل کریں"), onClick: () => { setItems([item]); setDeselected(new Set()); toast.success(tr(`${item.name} added to cart ✓`, `${item.name} کارٹ میں شامل ✓`), { id: "cart-add", duration: 1500 }); } },
         });
         return false;
       }
     }
     setItems((prev) => mergeItems(prev, [item]));
+    selectLines([lineId]);
     toast.success(tr(`${item.name} added to cart ✓`, `${item.name} کارٹ میں شامل ✓`), { id: "cart-add", duration: 1500 });
     return true;
-  }, [mergeItems, user?.id]);
+  }, [mergeItems, user?.id, selectLines]);
 
   const addItems = useCallback((rawItems: AddItemInput[]) => {
     if (!user) {
@@ -166,23 +174,27 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const validItems = rawItems.filter((item) => (item.quantity ?? 0) > 0);
     if (validItems.length === 0) return;
     setItems((prev) => mergeItems(prev, validItems));
+    selectLines(validItems.map(buildLineId));
     toast.success(tr(`${validItems.length} selections added to cart ✓`, `${validItems.length} انتخاب کارٹ میں شامل ہو گئے ✓`), { id: "cart-add-batch", duration: 1600 });
-  }, [mergeItems, user?.id]);
+  }, [mergeItems, user?.id, selectLines]);
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
-  }, []);
+    selectLines([id]);
+  }, [selectLines]);
 
   const updateQuantity = useCallback((id: string, quantity: number) => {
     if (quantity <= 0) {
       setItems((prev) => prev.filter((i) => i.id !== id));
+      selectLines([id]);
     } else {
       setItems((prev) => prev.map((i) => i.id === id ? { ...i, quantity } : i));
     }
-  }, []);
+  }, [selectLines]);
 
   const clearCart = useCallback(() => {
     setItems([]);
+    setDeselected(new Set());
     setVoucher(null);
   }, []);
 

@@ -1,5 +1,8 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current QA fix — Cart selection
+- [ ] Align checkout entry points with selected lines, clear stale exclusions and verify authenticated shopping plus regression tests.
+
 ## Current request — Bazar promotional cards
 - [x] Prepare original-framing compressed uploads, retain successful uploads on save failure and expose real errors; authenticated 3600×2000 image upload/save/readback passed.
 - [x] Remove automatic placeholder slides; display only complete eligible saved cards and suppress broken images.

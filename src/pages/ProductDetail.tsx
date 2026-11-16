@@ -26,7 +26,7 @@ const ProductDetail = () => {
   const UNIT_EN: Record<string,string> = {"بیگ":"Bag","کلو":"Kg","کلوگرام":"Kg","عدد":"Pcs","درجن":"Dozen","پیکٹ":"Pack","لیٹر":"Litre","گرام":"g","بوتل":"Bottle","ڈبہ":"Box"};
   const U = (u?: string) => !u ? "" : lang === "ur" ? u : (UNIT_EN[u.trim()] || u);
   const navigate = useNavigate();
-  const { items, addItem, updateQuantity, setIsOpen } = useCart();
+  const { items, selectedItems, addItem, updateQuantity, setIsOpen } = useCart();
   const [product, setProduct] = useState<any>(null);
   const [store, setStore] = useState<any>(null);
    const [related, setRelated] = useState<RelatedItem[]>([]);
@@ -300,8 +300,8 @@ const ProductDetail = () => {
               <Store className="me-1.5 h-4 w-4 shrink-0" />
               <span className="truncate">{L("Add more items", "مزید اشیاء لیں")}</span>
             </Button>
-            <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" onClick={() => navigate("/checkout")}>
-              <span className="truncate">{L("Checkout", "چیک آؤٹ")} ({items.reduce((n, i) => n + i.quantity, 0)})</span>
+            <Button className="h-11 min-w-0 flex-1 rounded-xl bg-gradient-to-l from-primary to-primary/80 px-2 text-[13px] font-extrabold shadow-lg shadow-primary/25" disabled={selectedItems.length === 0} onClick={() => { if (selectedItems.length > 0) navigate("/checkout"); }}>
+              <span className="truncate">{L("Checkout", "چیک آؤٹ")} ({selectedItems.reduce((n, i) => n + i.quantity, 0)})</span>
               <ArrowRight className="ms-1.5 h-4 w-4 shrink-0 rtl:rotate-180" />
             </Button>
           </>) : (<>
