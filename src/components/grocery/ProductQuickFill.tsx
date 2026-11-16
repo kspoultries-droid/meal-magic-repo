@@ -74,7 +74,8 @@ export default function ProductQuickFill({ categories, onFill }: Props) {
     await lookup(code);
   };
 
-  const onAi = async (file?: File) => {
+  const onAi = async (files: File[]) => {
+    const file = files[0];
     if (!file) return;
     setBusy("ai"); setNote("");
     try {
@@ -82,7 +83,7 @@ export default function ProductQuickFill({ categories, onFill }: Props) {
       const [imageDataUrl, code] = await Promise.all([fileToDataUrl(small), readBarcode(file)]);
       if (code) {
         const { data } = await (supabase as any).from("catalog_items").select("*").eq("barcode", code).maybeSingle();
-        if (data) { onFill({ ...catalogToPatch(data), imageFiles: data.image_verified ? [] : [file] }); setNote(`فہرست میں مل گیا: ${data.name}`); return; }
+        if (data) { onFill({ ...catalogToPatch(data), imageFiles: data.image_verified ? [] : files.slice(0, 8) }); setNote(`فہرست میں مل گیا: ${data.name}`); return; }
       }
       const { data, error } = await supabase.functions.invoke("ai-setup-assistant", { body: { kind: "product", imageDataUrl, categories } });
       if (error) {
@@ -95,7 +96,7 @@ export default function ProductQuickFill({ categories, onFill }: Props) {
       onFill({
         name: p.name, brand: p.brand, category: categories.includes(p.category) ? p.category : undefined, unit: p.unit,
         description: p.description, barcode: code || p.barcode?.replace(/\D/g, "") || undefined, extraSpecs,
-        imageFiles: p.photo_ok ? [file] : [], catalog_item_id: null,
+        imageFiles: p.photo_ok ? files.slice(0, 8) : files.slice(1, 8), catalog_item_id: null,
       });
       setNote(p.photo_ok
         ? `تفصیل بھر دی گئی۔ ایک بار پڑھ کر درست کر لیں، پھر قیمت اور اسٹاک لکھیں۔ (آج ${data.remaining} بار باقی)`
@@ -117,12 +118,12 @@ export default function ProductQuickFill({ categories, onFill }: Props) {
         </Button>
       </div>
       <input ref={scanRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { onScan(e.target.files?.[0]); e.target.value = ""; }} />
-      <input ref={aiRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { onAi(e.target.files?.[0]); e.target.value = ""; }} />
+      <input ref={aiRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { onAi(Array.from(e.target.files || [])); e.target.value = ""; }} />
       <div className="flex gap-2">
         <Input inputMode="numeric" placeholder="یا بارکوڈ نمبر لکھیں" className="h-8 text-xs" value={manual} onChange={(e) => setManual(e.target.value)} />
         <Button type="button" size="sm" variant="secondary" className="h-8" onClick={() => lookup(manual)}>تلاش</Button>
       </div>
-      <p className="text-[10px] text-muted-foreground">تصویر کھینچتے وقت: چیز سامنے رکھیں، نام اور سائز والا حصہ صاف دکھے، روشنی میں اور سادہ پس منظر پر۔</p>
+      <p className="text-[10px] text-muted-foreground">«تصویر سے خود بھریں» میں ایک ساتھ 8 تک تصاویر چن سکتے ہیں (سامنے والی پہلے)؛ سب گیلری میں لگ جائیں گی۔ تصویر کھینچتے وقت: چیز سامنے رکھیں، نام اور سائز والا حصہ صاف دکھے، روشنی میں اور سادہ پس منظر پر۔</p>
       {note && <p className="rounded-md bg-card px-2 py-1.5 text-[11px] font-medium text-primary">{note}</p>}
     </div>
   );

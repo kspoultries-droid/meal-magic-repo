@@ -173,7 +173,7 @@ const ProductDetail = () => {
                   {availableQuantity === 0 && <span className="text-xs font-bold text-destructive">{L("Out of stock", "اسٹاک ختم")}</span>}
                 </div>
                 <h1 dir="auto" className="text-xl font-extrabold leading-tight text-foreground sm:text-2xl"><bdi>{product.name}</bdi></h1>
-                <p className="mt-1 text-xs text-muted-foreground"><bdi>{cleanBrand || product.category || L("Standard product", "معیاری پروڈکٹ")}</bdi>{product.unit ? <> · {L("per", "فی")} <bdi>{U(product.unit)}</bdi></> : null}{product.weight ? <> · <bdi>{product.weight}</bdi></> : null}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{cleanBrand ? <>{L("Brand", "برانڈ")}: <bdi className="font-bold text-foreground">{cleanBrand}</bdi></> : <bdi>{product.category || L("Standard product", "معیاری پروڈکٹ")}</bdi>}</p>
               </div>
               <Button variant="outline" size="icon" aria-label={L("Share", "شیئر کریں")} onClick={() => navigator.share?.({ title: product.name, url: window.location.href })}><Share2 className="h-4 w-4" /></Button>
             </div>
@@ -184,11 +184,8 @@ const ProductDetail = () => {
             </div>
             {hasDiscount && <p className="mt-1 inline-flex rounded-lg bg-success/10 px-2.5 py-1 text-xs font-extrabold text-success">{L(`You save Rs. ${(listPrice - effectivePrice).toLocaleString()}`, `آپ کی بچت Rs. ${(listPrice - effectivePrice).toLocaleString()}`)}</p>}
             {availableQuantity !== null && availableQuantity > 0 && availableQuantity <= 5 && <p className="mt-2 text-xs font-extrabold text-destructive">{L(`Hurry! Only ${availableQuantity} left`, `جلدی کریں! صرف ${availableQuantity} باقی`)}</p>}
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <InfoTile icon={<ShoppingBag className="h-3.5 w-3.5" />} label={L("Payment", "ادائیگی")} value={L("Cash on delivery", "کیش آن ڈیلیوری")} />
-              <InfoTile icon={<BadgeCheck className="h-3.5 w-3.5" />} label={L("Seller", "فروخت کنندہ")} value={L("Verified shop", "تصدیق شدہ دکان")} />
-              <InfoTile icon={<Clock3 className="h-3.5 w-3.5" />} label={L("Check", "جانچ")} value={L("Check at delivery", "وصولی پر چیک کریں")} />
-              <InfoTile icon={<MapPin className="h-3.5 w-3.5" />} label={L("Delivery", "ڈیلیوری")} value={store.ships_nationwide ? L("Nationwide", "ملک بھر") : L("Local rider", "مقامی رائیڈر")} />
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-y border-border/60 py-2 text-[11px] font-semibold text-muted-foreground">
+              {[L("Cash on delivery", "کیش آن ڈیلیوری"), L("Verified shop", "تصدیق شدہ دکان"), L("Check at delivery", "وصولی پر جانچ"), store.ships_nationwide ? L("Nationwide", "ملک بھر") : L("Local rider", "مقامی رائیڈر")].map((t) => <span key={t} className="inline-flex items-center gap-1"><Check className="h-3 w-3 text-success" />{t}</span>)}
             </div>
             {product.delivery_days && <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Truck className="h-3.5 w-3.5 text-primary" />{L(`Delivery: ${product.delivery_days}`, `ڈیلیوری: ${product.delivery_days}`)}</p>}
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">{L(`Minimum order: ${product.min_order_qty} pcs`, `کم از کم آرڈر: ${product.min_order_qty} عدد`)}</p>}
@@ -332,8 +329,9 @@ const warrantyFrom = (text?: string | null) => { const m = String(text || "").ma
    const { lang } = useLanguage();
    const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
    const entries = specs && typeof specs === "object" && !Array.isArray(specs) ? Object.entries(specs as Record<string, unknown>) : [];
-   const hasWarrantySpec = entries.some(([k]) => /warrant/i.test(k));
-   return <div className="rounded-2xl border border-border bg-card p-4"><h2 className="text-sm font-extrabold text-foreground">{L("Specifications", "خصوصیات")}</h2><div className="mt-3 divide-y divide-border">{[[L("Brand", "برانڈ"), brand], [L("Weight", "وزن"), weight], [L("Unit", "یونٹ"), unit], [L("Warranty", "وارنٹی"), hasWarrantySpec ? undefined : warranty], ["SKU", sku], ...entries.map(([key, value]) => [key, String(value)])].filter(([, value]) => value).map(([key, value]) => <div key={String(key)} className="flex items-center justify-between gap-4 py-2 text-xs"><span className="text-muted-foreground">{key}</span><bdi dir="auto" className="font-bold text-foreground">{/warrant|وارنٹی/i.test(String(key)) ? fmtWarranty(String(value), lang) : value}</bdi></div>)}</div></div>;
+   const dupKey = (k: string) => (/^(brand|برانڈ)$/i.test(k.trim()) && !!brand) || (/^(weight|وزن)$/i.test(k.trim()) && !!weight) || (/^(unit|یونٹ)$/i.test(k.trim()) && !!unit);
+  const hasWarrantySpec = entries.some(([k]) => /warrant/i.test(k));
+   return <div className="rounded-2xl border border-border bg-card p-4"><h2 className="text-sm font-extrabold text-foreground">{L("Specifications", "خصوصیات")}</h2><div className="mt-3 divide-y divide-border">{[[L("Brand", "برانڈ"), brand], [L("Weight", "وزن"), weight], [L("Unit", "یونٹ"), unit], [L("Warranty", "وارنٹی"), hasWarrantySpec ? undefined : warranty], ["SKU", sku], ...entries.filter(([key]) => !dupKey(key)).map(([key, value]) => [key, String(value)])].filter(([, value]) => value).map(([key, value]) => <div key={String(key)} className="flex items-center justify-between gap-4 py-2 text-xs"><span className="text-muted-foreground">{key}</span><bdi dir="auto" className="font-bold text-foreground">{/warrant|وارنٹی/i.test(String(key)) ? fmtWarranty(String(value), lang) : value}</bdi></div>)}</div></div>;
  };
 
  const ReviewList = ({ reviews, summary, store, shop }: { reviews: any[]; summary: { rating: number; count: number }; store: any; shop: { rating: number; count: number } }) => {
