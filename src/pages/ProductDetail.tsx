@@ -14,13 +14,14 @@ import RelatedProducts, { type RelatedItem } from "@/components/product/RelatedP
 import { availableShopQuantity } from "@/lib/shopOrders";
 import { toast } from "sonner";
 import { isMatrix } from "@/lib/variantMatrix";
+import ProductQuickEdit from "@/components/product/ProductQuickEdit";
 
 
 
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const UNIT_EN: Record<string,string> = {"بیگ":"Bag","کلو":"Kg","کلوگرام":"Kg","عدد":"Pcs","درجن":"Dozen","پیکٹ":"Pack","لیٹر":"Litre","گرام":"g","بوتل":"Bottle","ڈبہ":"Box"};
@@ -154,6 +155,7 @@ const ProductDetail = () => {
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-4">
           <Button variant="ghost" size="icon" aria-label={L("Back", "واپس")} onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
           <div className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">{L("Search products", "پروڈکٹ تلاش کریں")}</div>
+          {(isAdmin || (user && store.owner_id === user.id)) && <ProductQuickEdit product={product} L={L} onSaved={setProduct} />}
           <Button variant="ghost" size="icon" aria-label={L("Favourite", "پسندیدہ")} onClick={() => setLiked((value) => !value)}><Heart className={`h-5 w-5 ${liked ? "fill-destructive text-destructive" : ""}`} /></Button>
           <Button variant="ghost" size="icon" aria-label={L("Cart", "کارٹ")} onClick={() => setIsOpen(true)}><ShoppingBag className="h-5 w-5" /></Button>
         </div>
