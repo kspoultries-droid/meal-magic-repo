@@ -1,5 +1,5 @@
 import { img } from "@/lib/imageUrl";
-import { Zap, Smartphone, Shirt, Footprints, Wrench, Sparkles, Gift, BookOpen, Store as StoreIcon, ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link, Share2, Copy, Download, MessageCircle } from "lucide-react";
+import { Zap, Smartphone, Shirt, Footprints, Wrench, Sparkles, Gift, BookOpen, Store as StoreIcon, ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link, Share2, Copy, Download, MessageCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -110,7 +110,7 @@ interface StoreBannerProps {
   setShowAddProduct: (v: boolean) => void;
   newProduct: any;
   setNewProduct: Dispatch<SetStateAction<any>>;
-  addProduct: () => void;
+  addProduct: () => void | Promise<void>;
   onNavigateBack: () => void;
 }
 
@@ -118,6 +118,7 @@ const StoreBanner = ({
   store, isOwner, storeId, onRefresh, categories: groceryCategories,
   showAddProduct, setShowAddProduct, newProduct, setNewProduct, addProduct, onNavigateBack
 }: StoreBannerProps) => {
+  const [savingProduct, setSavingProduct] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showDeliveryEditor, setShowDeliveryEditor] = useState(false);
   const [deliveryDraft, setDeliveryDraft] = useState("");
@@ -452,7 +453,7 @@ const StoreBanner = ({
                     </div>
                   </details>
                   <div className="space-y-2"><label className="text-xs font-bold text-muted-foreground">پروڈکٹ کی تصاویر / Product photos (8 تک)</label><ProductPhotoUploader multiple label="تصاویر منتخب کریں" onDone={(photos) => setNewProduct((previous: any) => ({ ...previous, imageFiles: [...(previous.imageFiles || []), ...photos.map((photo) => photo.file)].slice(0, 8) }))} /><p className="text-[10px] text-muted-foreground">گیلری سے ایک ساتھ کئی تصاویر منتخب کر سکتے ہیں، پھر «محفوظ کریں» دبائیں</p>{newProduct.imageFiles?.length > 0 && <p className="text-[10px] font-semibold text-primary">{newProduct.imageFiles.length} تصاویر تیار ہیں</p>}<PhotoTips /></div>{!newProduct.catalog_item_id && newProduct.imageFiles?.length > 0 && <label className="flex items-center gap-2 text-[11px] text-muted-foreground"><input type="checkbox" checked={newProduct.suggestToCatalog !== false} onChange={(e) => setNewProduct({ ...newProduct, suggestToCatalog: e.target.checked })} /> میری تصویر معیاری فہرست کے لیے بھیجیں (ایڈمن منظوری کے بعد دوسری دکانوں کے کام آئے گی)</label>}
-                  <Button onClick={addProduct} className="w-full">{tr("Save product", "پروڈکٹ محفوظ کریں")}</Button>
+                  <Button disabled={savingProduct} onClick={async () => { if (savingProduct) return; setSavingProduct(true); try { await addProduct(); } finally { setSavingProduct(false); } }} className="w-full">{savingProduct ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{tr("Saving...", "محفوظ ہو رہا ہے...")}</> : tr("Save product", "پروڈکٹ محفوظ کریں")}</Button>
                 </div>
               </DialogContent>
             </Dialog>
