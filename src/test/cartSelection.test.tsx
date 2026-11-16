@@ -52,6 +52,27 @@ describe("cart selection", () => {
     expect(result.current.selectedItems.map(i => i.menu_item_id)).toEqual(["apple"]);
     expect(result.current.selectedTotal).toBe(200);
   });
+  it("quantity editing alone preserves an unticked line", () => {
+    const { result } = renderHook(useCart, { wrapper });
+    act(() => result.current.addItem(apple));
+    act(() => result.current.setSelected([buildLineId(apple)], false));
+    act(() => result.current.updateQuantity(buildLineId(apple), 3));
+    expect(result.current.items[0]?.quantity).toBe(3);
+    expect(result.current.selectedTotal).toBe(0);
+    expect(result.current.selectedItems).toHaveLength(0);
+  });
+  it("Bazar completion and partial package removal retain unticked items from every shop", () => {
+    const { result } = renderHook(useCart, { wrapper });
+    const held = { ...apple, id: "held", bazar: true, quantity: 1 };
+    const otherShop = { ...rice, sourceId: "other-shop", bazar: true };
+    act(() => result.current.addItems([{ ...apple, bazar: true, quantity: 1 }, held, otherShop]));
+    act(() => result.current.setSelected([buildLineId(held)], false));
+    act(() => result.current.updateQuantity(buildLineId(apple), 0));
+    expect(result.current.selectedItems.map(i => i.menu_item_id)).toEqual(["rice"]);
+    act(() => result.current.clearSelected());
+    expect(result.current.items.map(i => i.menu_item_id)).toEqual(["held"]);
+    expect(result.current.selectedTotal).toBe(0);
+  });
   it("floating checkout cannot navigate with no selection and navigates when selected", () => {
     const Probe = () => {
       const cart = useCart();
