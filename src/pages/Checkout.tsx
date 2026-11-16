@@ -226,6 +226,29 @@ const Checkout = () => {
     );
   };
 
+  // Auto-apply a voucher collected on the Bazar page (single-shop orders only; server validates).
+  useEffect(() => {
+    if (voucher || multiShop || items.length === 0) return;
+    let codes: string[] = [];
+    try { codes = JSON.parse(localStorage.getItem("bazar_collected_vouchers") || "[]"); } catch { codes = []; }
+    if (!codes.length) return;
+    let cancelled = false;
+    const scope = items.every(i => i.source === "grocery") ? "grocery" : "food";
+    (async () => {
+      let best: { code: string; discount: number } | null = null;
+      for (const c of codes.slice(0, 10)) {
+        const { data } = await (supabase.rpc("validate_voucher" as any, { _code: c, _scope: scope, _subtotal: totalPrice }) as any);
+        if (data?.ok && (!best || data.discount > best.discount)) best = { code: data.code, discount: data.discount };
+      }
+      if (cancelled || !best) return;
+      setVoucher(best);
+      setVoucherCode(best.code);
+      toast.success(L(`Collected voucher ${best.code} applied — Rs ${best.discount} off`, `حاصل کردہ واؤچر ${best.code} لگ گیا — Rs ${best.discount} رعایت`));
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [multiShop, totalPrice, items.length]);
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-background">

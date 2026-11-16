@@ -117,7 +117,7 @@ const BazarDeals = () => {
     localStorage.setItem("bazar_collected_vouchers", JSON.stringify([...collected]));
     try { await navigator.clipboard.writeText(list.map((v) => v.code).join(" ")); } catch { /* ignore */ }
     setCopiedId(list.length === 1 ? list[0].id : "all");
-    toast.success(list.length === 1 ? tr(`Collected ${list[0].code} — enter it at checkout`, `${list[0].code} حاصل — چیک آؤٹ پر لگائیں`) : tr("All vouchers collected — codes copied", "تمام واؤچر حاصل — کوڈ کاپی ہو گئے"));
+    toast.success(list.length === 1 ? tr(`Collected ${list[0].code} — auto-applies at checkout`, `${list[0].code} حاصل — چیک آؤٹ پر خود لگ جائے گا`) : tr("All vouchers collected — codes copied", "تمام واؤچر حاصل — کوڈ کاپی ہو گئے"));
   };
   const amount = (v: Voucher) => <bdi dir="ltr">{v.discount_type === "percent" ? <>{v.discount_value}<span className="text-sm">% OFF</span></> : <><span className="text-sm">Rs.</span>{v.discount_value}</>}</bdi>;
   const done = (v: Voucher) => collected.has(v.code) || copiedId === v.id || copiedId === "all";
