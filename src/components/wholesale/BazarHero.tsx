@@ -109,7 +109,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
             {ads.map((ad, i) => (
               <CarouselItem key={ad.id} className="basis-full pl-0">
                 <Button type="button" onClick={() => openAd(ad)} variant="ghost" className="h-auto rounded-none p-0 relative block aspect-[9/5] max-h-80 w-full overflow-hidden bg-muted text-start">
-                  {ad.image_url ? <><img src={ad.id.startsWith("house-") ? ad.image_url : img(ad.image_url, 400, 40)} alt="" aria-hidden className="absolute inset-0 size-full scale-110 object-cover blur-xl" /><img src={ad.id.startsWith("house-") ? ad.image_url : img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className={`absolute inset-0 size-full ${ad.id.startsWith("house-") ? "object-cover" : "object-contain"}`} onError={() => setAds(previous => previous.filter(item => item.id !== ad.id))} /></> : null}
+                  {ad.image_url ? <><img src={ad.id.startsWith("house-") ? ad.image_url : img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover object-center" onError={() => setAds(previous => previous.filter(item => item.id !== ad.id))} /></> : null}
                   {ad.show_text !== false && pill(ad.title, ad.offer_badge)}
                   {!ad.id.startsWith("house-") && <span className="absolute end-2 top-2 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>}
                   {total > 1 && <span dir="ltr" className="absolute start-2 top-2 rounded-full bg-foreground/60 px-2 py-0.5 text-[10px] font-bold text-background">{i + 1}/{total}</span>}
