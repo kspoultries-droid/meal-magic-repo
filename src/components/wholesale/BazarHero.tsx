@@ -16,6 +16,15 @@ import { toast } from "sonner";
 import type { Ad } from "@/components/PromotionalAds";
 import { visibleBazarCards } from "@/lib/bazarCards";
 import { Button } from "@/components/ui/button";
+import slideFashion from "@/assets/bazar-slide-fashion.jpg";
+import slideElectronics from "@/assets/bazar-slide-electronics.jpg";
+import slideWholesale from "@/assets/bazar-slide-wholesale.jpg";
+
+const HOUSE_SLIDES = () => [
+  { id: "house-wholesale", title: tr("Wholesale rates for shops", "دکانوں کے لیے ہول سیل ریٹ"), offer_badge: tr("Bulk", "ہول سیل"), image_url: slideWholesale, link_url: "#bazar-feed", show_text: true },
+  { id: "house-fashion", title: tr("Fashion & clothing", "فیشن اور کپڑے"), offer_badge: tr("New", "نیا"), image_url: slideFashion, link_url: "#bazar-feed", show_text: true },
+  { id: "house-electronics", title: tr("Mobiles & electronics", "موبائل اور الیکٹرانکس"), offer_badge: tr("Deals", "ڈیلز"), image_url: slideElectronics, link_url: "#bazar-feed", show_text: true },
+] as unknown as Ad[];
 
 interface Props {
   searchQuery: string;
@@ -42,7 +51,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const [reload, setReload] = useState(0);
   useEffect(() => {
     supabase.from("promotional_ads").select("*").eq("is_active", true).order("sort_order").then(({ data }) => {
-      setAds(visibleBazarCards((data || []) as Ad[]));
+      const real = visibleBazarCards((data || []) as Ad[]); setAds(real.length >= 3 ? real : [...real, ...HOUSE_SLIDES().slice(0, 3 - real.length + (real.length ? 0 : 0))]);
     });
   }, [reload]);
 
@@ -54,7 +63,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   }, [api]);
 
   const total = ads.length;
-  useEffect(() => { const ad = ads[current]; if (ad) track(ad.id, "view"); }, [current, ads]);
+  useEffect(() => { const ad = ads[current]; if (ad && !ad.id.startsWith("house-")) track(ad.id, "view"); }, [current, ads]);
 
   const go = (link?: string | null) => {
     const l = link?.trim(); if (!l) return;
@@ -63,7 +72,7 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
     else window.open(l, "_blank", "noopener,noreferrer");
   };
   const openAd = (ad: Ad) => {
-    track(ad.id, "click");
+    if (!ad.id.startsWith("house-")) track(ad.id, "click");
     if (ad.promo_code) navigator.clipboard?.writeText(ad.promo_code).then(() => toast.success(tr(`Code ${ad.promo_code} copied`, `کوڈ ${ad.promo_code} کاپی ہو گیا`))).catch(() => {});
     go(ad.link_url);
   };
@@ -100,9 +109,10 @@ const BazarHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
             {ads.map((ad, i) => (
               <CarouselItem key={ad.id} className="basis-full pl-0">
                 <Button type="button" onClick={() => openAd(ad)} variant="ghost" className="h-auto rounded-none p-0 relative block aspect-[9/5] max-h-80 w-full overflow-hidden bg-muted text-start">
-                  {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-contain" onError={() => setAds(previous => previous.filter(item => item.id !== ad.id))} /> : null}
+                  {ad.image_url ? <><img src={ad.id.startsWith("house-") ? ad.image_url : img(ad.image_url, 400, 40)} alt="" aria-hidden className="absolute inset-0 size-full scale-110 object-cover blur-xl" /><img src={ad.id.startsWith("house-") ? ad.image_url : img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-contain" onError={() => setAds(previous => previous.filter(item => item.id !== ad.id))} /></> : null}
                   {ad.show_text !== false && pill(ad.title, ad.offer_badge)}
-                  <span className="absolute end-2 top-2 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>
+                  {!ad.id.startsWith("house-") && <span className="absolute end-2 top-2 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>}
+                  {total > 1 && <span dir="ltr" className="absolute start-2 top-2 rounded-full bg-foreground/60 px-2 py-0.5 text-[10px] font-bold text-background">{i + 1}/{total}</span>}
                 </Button>
               </CarouselItem>
             ))}
