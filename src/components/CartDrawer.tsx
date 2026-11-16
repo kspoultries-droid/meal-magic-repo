@@ -39,13 +39,18 @@ const CartDrawer = () => {
   const allOn = items.length > 0 && selectedItems.length === items.length;
   const go = (path: string) => { setIsOpen(false); navigate(path); };
 
+  // Depend on a stable string key: `items` is a fresh array each render and would loop forever.
+  const firstSourceId = items[0]?.source === "grocery" ? items[0]?.sourceId : undefined;
+  const itemIdsKey = items.map((i) => i.menu_item_id).join(",");
   useEffect(() => {
-    const sourceId = items[0]?.sourceId;
-    if (!isOpen || !sourceId || items[0]?.source !== "grocery") { setRecommended([]); return; }
+    if (!isOpen || !firstSourceId) { setRecommended((r) => (r.length ? [] : r)); return; }
+    const inCart = new Set(itemIdsKey.split(","));
+    let alive = true;
     supabase.from("grocery_products").select("id,name,price,discount_price,image_url")
-      .eq("store_id", sourceId).eq("is_available", true).limit(8)
-      .then(({ data }) => setRecommended((data || []).filter((p: any) => !items.some((i) => i.menu_item_id === p.id))));
-  }, [isOpen, items]);
+      .eq("store_id", firstSourceId).eq("is_available", true).limit(8)
+      .then(({ data }) => { if (alive) setRecommended((data || []).filter((p: any) => !inCart.has(p.id))); });
+    return () => { alive = false; };
+  }, [isOpen, firstSourceId, itemIdsKey]);
 
   // Bazar carts can hold several shops: show one package per shop.
   const groups = Array.from(new Set(items.map((i) => i.sourceId || i.restaurant))).map((key) => items.filter((i) => (i.sourceId || i.restaurant) === key));
