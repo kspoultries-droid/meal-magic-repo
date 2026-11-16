@@ -70,7 +70,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
             {product.wholesale_price != null && <span className="shrink-0 rounded bg-accent px-1 text-[9px] font-bold text-primary">{tr("Wholesale", "ہول سیل")}</span>}
             {product.min_order_qty && product.min_order_qty > 1 ? <span className="shrink-0 rounded border border-destructive/30 px-1 text-[9px] font-semibold text-destructive">MOQ {product.min_order_qty}</span> : null}
           </div>
-          <p dir="auto" className="h-4 truncate ltr:pr-10 rtl:pl-10 text-start text-[9px] text-muted-foreground">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
+          <p dir="auto" className="line-clamp-2 min-h-4 break-words ltr:pr-10 rtl:pl-10 text-start text-[10px] leading-tight text-muted-foreground">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
         </div>
       </Button>
       {onToggleWishlist && <Button type="button" variant="secondary" size="icon" aria-label={isWishlisted ? tr("Remove from wishlist", "محفوظ فہرست سے ہٹائیں") : tr("Save", "محفوظ کریں")} onClick={onToggleWishlist} className="absolute right-1.5 top-1.5 size-7 rounded-full bg-card shadow-sm hover:bg-secondary">
