@@ -19,25 +19,47 @@ export type PhotoAspect = "square" | "wide" | "original";
 
 const MAX_SIDE = 1200;
 
-export const loadImage = (file: File | Blob) =>
+export type DecodedImage = ImageBitmap | HTMLImageElement;
+const DECODE_MAX = 2400;
+
+const decodeWithImg = (blob: Blob) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
-    const url = URL.createObjectURL(file);
+    const url = URL.createObjectURL(blob);
     const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("تصویر پڑھی نہیں جا سکی"));
-    };
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("تصویر پڑھی نہیں جا سکی — JPG یا PNG تصویر منتخب کریں")); };
     img.src = url;
   });
+
+/** Copies the picked file into memory once (Android picker/camera streams can be read only once). */
+export const copyFile = async (file: File): Promise<File> => {
+  try {
+    const bytes = await file.arrayBuffer();
+    return new File([bytes], file.name || "photo.jpg", { type: file.type || "image/jpeg" });
+  } catch {
+    throw new Error("تصویر پڑھی نہیں جا سکی — دوبارہ منتخب کریں");
+  }
+};
+
+/** Decodes and downsizes large camera photos so low-memory phones do not reload the page. */
+export const loadImage = async (file: File | Blob): Promise<DecodedImage> => {
+  if (typeof createImageBitmap === "function") {
+    try {
+      const probe = await createImageBitmap(file);
+      const scale = Math.min(1, DECODE_MAX / Math.max(probe.width, probe.height));
+      if (scale === 1) return probe;
+      const w = Math.round(probe.width * scale), h = Math.round(probe.height * scale);
+      probe.close();
+      return await createImageBitmap(file, { resizeWidth: w, resizeHeight: h, resizeQuality: "high" });
+    } catch { /* fall back to <img> decoding */ }
+  }
+  return decodeWithImg(file);
+};
 
 const targetRatio = (aspect: PhotoAspect, w: number, h: number) =>
   aspect === "square" ? 1 : aspect === "wide" ? 16 / 9 : w / h;
 
-const drawCropped = (img: HTMLImageElement, aspect: PhotoAspect) => {
+const drawCropped = (img: DecodedImage, aspect: PhotoAspect) => {
   const ratio = targetRatio(aspect, img.width, img.height);
   let sw = img.width;
   let sh = Math.round(sw / ratio);
