@@ -391,7 +391,7 @@ const GroceryStoreDetail = () => {
                       </div>
                        <div className="p-3">
                          <button type="button" className="block max-w-full text-left" onClick={() => !isOwner && navigate(`/product/${product.id}`)}>
-                           <h3 className="text-sm font-bold text-foreground truncate">{product.name}</h3>
+                           <h3 dir="auto" className="line-clamp-2 break-words text-sm font-bold text-foreground">{product.name}</h3>
                            {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
                          </button>
                         {availableShopQuantity(product) !== null && <p className="mt-1 text-[11px] text-muted-foreground">{L("Available", "دستیاب")}: {availableShopQuantity(product)}</p>}

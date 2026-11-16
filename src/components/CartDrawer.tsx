@@ -115,7 +115,7 @@ const CartDrawer = () => {
                         <button type="button" aria-label={tr("Add", "شامل کریں")} onClick={() => addItem({ id: p.id, name: p.name, price: Number(p.discount_price || p.price), image: p.image_url || "", restaurant: items[0]?.restaurant || "", source: "grocery", sourceId: items[0]?.sourceId, bazar: items[0]?.bazar })} className="absolute end-1.5 top-[4.6rem] z-10 grid size-8 place-items-center rounded-full bg-primary text-primary-foreground shadow-elegant active:scale-90"><Plus className="size-4" /></button>
                         <button type="button" onClick={() => go(`/product/${p.id}`)} className="block w-full text-start">
                         <div className="h-28 overflow-hidden rounded-xl bg-muted">{p.image_url ? <img src={img(p.image_url, 200)} alt={p.name} loading="lazy" className="size-full object-cover" /> : <Package className="m-auto mt-8 size-6 text-muted-foreground" />}</div>
-                        <p className="mt-1 truncate text-[11px] font-medium">{p.name}</p>
+                        <p dir="auto" className="mt-1 line-clamp-2 break-words text-[11px] font-medium">{p.name}</p>
                         <p className="text-xs font-bold">Rs {p.discount_price || p.price}</p>
                         </button>
                       </div>

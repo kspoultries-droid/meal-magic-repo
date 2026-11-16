@@ -65,7 +65,7 @@ const BoughtTogether = ({ sourceId, source = "restaurant", sourceName = "", baza
               {s.image && <img src={s.image} alt={s.name} loading="lazy" className="h-full w-full object-cover" />}
             </div>
             <div className="p-2">
-              <p className="truncate text-[11px] font-bold text-foreground">{s.name}</p>
+              <p dir="auto" className="line-clamp-2 break-words text-[11px] font-bold text-foreground">{s.name}</p>
               <p className="text-[11px] font-extrabold text-primary">Rs {s.price}</p>
               <button
                 onClick={() => {
