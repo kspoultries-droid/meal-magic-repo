@@ -41,7 +41,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
   const showImage = Boolean(imageUrl) && !imageFailed;
 
   return (
-    <article className={`group relative h-full overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card ${compact ? "w-[8.5rem] shrink-0" : ""}`}>
+    <article className={`group relative h-full overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-card ${compact ? "w-[10.5rem] shrink-0" : ""}`}>
       <Button variant="ghost" onClick={onClick} className={list ? "flex h-auto w-full items-center justify-start gap-3 whitespace-normal p-2 text-start hover:bg-card" : "block h-auto w-full whitespace-normal p-0 text-start hover:bg-card"} aria-label={tr(`View ${displayText(product.name)}`, `${product.name} دیکھیں`)}>
         <div className={`relative shrink-0 overflow-hidden bg-accent ${list ? "size-24 rounded-md" : compact ? "aspect-square w-full" : "aspect-square w-full"}`}>
           {showImage ? (
@@ -56,7 +56,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
           {off > 0 && <span className="absolute left-1.5 top-1.5 rounded-md bg-destructive px-1.5 py-1 text-[10px] font-bold text-destructive-foreground" dir="ltr">-{off}%</span>}
         </div>
         <div className={`min-w-0 space-y-1 ${list ? "flex-1 py-1" : "p-2"}`}>
-          <p className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{displayText(product.name)}</p>
+          <p dir="auto" className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{displayText(product.name)}</p>
           <div className={list ? "" : "min-h-[2.5rem]"}>
             <p className="font-display text-base font-extrabold leading-none text-primary">Rs {effective.toLocaleString()}</p>
             <p className="mt-1 flex min-h-4 items-center gap-1 text-[10px]">{hasDiscount ? <><span className="text-muted-foreground line-through">Rs {product.price.toLocaleString()}</span><bdi dir="ltr" className="font-bold text-destructive">-{off}%</bdi></> : "\u00a0"}</p>
@@ -70,7 +70,7 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
             {product.wholesale_price != null && <span className="shrink-0 rounded bg-accent px-1 text-[9px] font-bold text-primary">{tr("Wholesale", "ہول سیل")}</span>}
             {product.min_order_qty && product.min_order_qty > 1 ? <span className="shrink-0 rounded border border-destructive/30 px-1 text-[9px] font-semibold text-destructive">MOQ {product.min_order_qty}</span> : null}
           </div>
-          <p className="h-4 truncate pe-8 text-[9px] text-muted-foreground">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
+          <p dir="auto" className="line-clamp-2 min-h-4 break-words ltr:pr-10 rtl:pl-10 text-start text-[10px] leading-tight text-muted-foreground">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
         </div>
       </Button>
       {onToggleWishlist && <Button type="button" variant="secondary" size="icon" aria-label={isWishlisted ? tr("Remove from wishlist", "محفوظ فہرست سے ہٹائیں") : tr("Save", "محفوظ کریں")} onClick={onToggleWishlist} className="absolute right-1.5 top-1.5 size-7 rounded-full bg-card shadow-sm hover:bg-secondary">
