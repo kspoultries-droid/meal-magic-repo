@@ -9,7 +9,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 describe("editable header settings readiness", () => {
-  beforeEach(() => read.mockReset());
+  beforeEach(() => { read.mockReset(); localStorage.clear(); });
 
   it.each([
     ["hero_bazar", bazarHeroDefaults],
@@ -27,6 +27,7 @@ describe("editable header settings readiness", () => {
       expect(result.current.config.bgFrom).toBe("#123456");
       expect(result.current.config.bgTo).toBe("#654321");
       unmount();
+      localStorage.clear();
     }
   });
 
