@@ -1,5 +1,5 @@
 import { img } from "@/lib/imageUrl";
-import { Zap, Smartphone, Shirt, Footprints, Wrench, Sparkles, Gift, BookOpen, Store as StoreIcon, ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link, Share2, Copy, Download, MessageCircle } from "lucide-react";
+import { Zap, Smartphone, Shirt, Footprints, Wrench, Sparkles, Gift, BookOpen, Store as StoreIcon, ShoppingBasket, Star, Clock, Pencil, Camera, Plus, Palette, ArrowLeft, Link, Share2, Copy, Download, MessageCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -118,6 +118,7 @@ const StoreBanner = ({
   store, isOwner, storeId, onRefresh, categories: groceryCategories,
   showAddProduct, setShowAddProduct, newProduct, setNewProduct, addProduct, onNavigateBack
 }: StoreBannerProps) => {
+  const [savingProduct, setSavingProduct] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showDeliveryEditor, setShowDeliveryEditor] = useState(false);
   const [deliveryDraft, setDeliveryDraft] = useState("");
