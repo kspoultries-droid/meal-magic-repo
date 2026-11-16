@@ -22,7 +22,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 let cart: ReturnType<typeof useCart>;
 function Probe() { cart = useCart(); return null; }
-afterEach(cleanup);
+afterEach(() => { cleanup(); localStorage.clear(); });
 
 describe("suggestions preserve Bazar packages", () => {
   it.each(["drawer", "checkout"])("keeps both shops after adding a %s suggestion", async (surface) => {
