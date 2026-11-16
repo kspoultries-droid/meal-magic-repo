@@ -53,19 +53,24 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
               {imageUrl && <ImageOff className="absolute bottom-2 right-2 size-3.5 text-muted-foreground" />}
             </div>
           )}
-          {off > 0 && <span className="absolute left-1.5 top-1.5 rounded-md bg-destructive px-1.5 py-1 text-[10px] font-bold text-destructive-foreground">-{off}%</span>}
+          {off > 0 && <span className="absolute left-1.5 top-1.5 rounded-md bg-destructive px-1.5 py-1 text-[10px] font-bold text-destructive-foreground" dir="ltr">-{off}%</span>}
         </div>
         <div className={`min-w-0 space-y-1 ${list ? "flex-1 py-1" : "p-2"}`}>
           <p className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{displayText(product.name)}</p>
-          <div className={`flex flex-wrap items-end justify-between gap-1 ${list ? "" : "min-h-[2.75rem]"}`}>
-            <div><p className="font-display text-sm font-bold text-primary">Rs {effective.toLocaleString()}</p><p className="min-h-4 text-[9px] text-muted-foreground line-through">{hasDiscount ? `Rs ${product.price.toLocaleString()}` : "\u00a0"}</p></div>
-            {!!product.rating && <span className="flex items-center gap-0.5 text-[9px] font-semibold text-muted-foreground"><Star className="size-2.5 fill-primary text-primary" />{product.rating.toFixed(1)}</span>}
+          <div className={list ? "" : "min-h-[2.5rem]"}>
+            <p className="font-display text-base font-extrabold leading-none text-primary">Rs {effective.toLocaleString()}</p>
+            <p className="mt-1 flex min-h-4 items-center gap-1 text-[10px]">{hasDiscount ? <><span className="text-muted-foreground line-through">Rs {product.price.toLocaleString()}</span><bdi dir="ltr" className="font-bold text-destructive">-{off}%</bdi></> : "\u00a0"}</p>
           </div>
-          <div className="min-w-0 text-[9px] text-muted-foreground">
-            <p className="h-4 truncate">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
-            <p className="h-4 truncate font-semibold text-destructive">{product.min_order_qty && product.min_order_qty > 1 ? `MOQ ${product.min_order_qty}` : "\u00a0"}</p>
+          <div className="flex h-4 items-center gap-1 text-[10px] text-muted-foreground">
+            {!!product.rating && <><Star className="size-3 fill-primary text-primary" /><span className="font-semibold text-foreground">{product.rating.toFixed(1)}</span></>}
+            {!!product.rating && !!product.sold_count && <span className="text-border">|</span>}
+            {!!product.sold_count && product.sold_count > 0 && <span>{product.sold_count.toLocaleString()} {tr("sold", "فروخت")}</span>}
           </div>
-          <p className="h-4 truncate text-[9px] font-semibold text-muted-foreground">{product.sold_count && product.sold_count > 0 ? `${product.sold_count.toLocaleString()} ${tr("sold", "فروخت")}` : "\u00a0"}</p>
+          <div className="flex h-5 min-w-0 items-center gap-1 pe-8">
+            {product.wholesale_price != null && <span className="shrink-0 rounded bg-accent px-1 text-[9px] font-bold text-primary">{tr("Wholesale", "ہول سیل")}</span>}
+            {product.min_order_qty && product.min_order_qty > 1 ? <span className="shrink-0 rounded border border-destructive/30 px-1 text-[9px] font-semibold text-destructive">MOQ {product.min_order_qty}</span> : null}
+          </div>
+          <p className="h-4 truncate pe-8 text-[9px] text-muted-foreground">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
         </div>
       </Button>
       {onToggleWishlist && <Button type="button" variant="secondary" size="icon" aria-label={isWishlisted ? tr("Remove from wishlist", "محفوظ فہرست سے ہٹائیں") : tr("Save", "محفوظ کریں")} onClick={onToggleWishlist} className="absolute right-1.5 top-1.5 size-7 rounded-full bg-card shadow-sm hover:bg-secondary">
