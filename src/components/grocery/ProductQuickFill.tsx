@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { fileToDataUrl, loadImage } from "@/lib/imageEnhance";
+import { copyFile, fileToDataUrl, loadImage } from "@/lib/imageEnhance";
 import { specsToText } from "@/lib/catalogSpecs";
 import { Camera, Loader2, ScanBarcode, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -75,10 +75,11 @@ export default function ProductQuickFill({ categories, onFill }: Props) {
   };
 
   const onAi = async (files: File[]) => {
-    const file = files[0];
-    if (!file) return;
+    if (!files[0]) return;
     setBusy("ai"); setNote("");
     try {
+      files = await Promise.all(files.slice(0, 8).map(copyFile));
+      const file = files[0];
       const small = await shrink(file);
       const [imageDataUrl, code] = await Promise.all([fileToDataUrl(small), readBarcode(file)]);
       if (code) {
