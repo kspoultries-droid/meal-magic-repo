@@ -19,7 +19,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
-  const { selectedItems: items, selectedTotal: totalPrice, clearSelected: clearCart, updateQuantity } = useCart();
+  const { items: cartItems, selectedItems: items, selectedTotal: totalPrice, clearSelected: clearCart, updateQuantity, setIsOpen } = useCart();
   const navigate = useNavigate();
   const { t, lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
@@ -232,8 +232,8 @@ const Checkout = () => {
         <Navbar />
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <ShoppingBag className="w-16 h-16 mb-4 opacity-30" />
-          <p className="text-lg font-bold">{t("cart.empty")}</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate("/")}>{t("cart.viewRestaurants")}</Button>
+          <p className="text-lg font-bold">{cartItems.length > 0 ? L("No items selected", "کوئی چیز منتخب نہیں کی گئی") : t("cart.empty")}</p>
+          <Button variant="outline" className="mt-4" onClick={() => cartItems.length > 0 ? setIsOpen(true) : navigate("/")}>{cartItems.length > 0 ? L("Select items", "اشیا منتخب کریں") : t("cart.viewRestaurants")}</Button>
         </div>
       </div>
     );

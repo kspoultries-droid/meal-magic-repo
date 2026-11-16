@@ -16,7 +16,7 @@ import { featuredMenuIds } from "@/lib/featuredMenu";
 const RestaurantDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { items, addItem, updateQuantity } = useCart();
+  const { items, selectedItems, addItem, updateQuantity } = useCart();
   const { lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const [sheetItem, setSheetItem] = useState<any>(null);
@@ -133,7 +133,7 @@ const RestaurantDetail = () => {
                 .filter((m) => (m.category || "Main") === cat)
                 .map((item) => {
                   const cartLines = items.filter((line) => line.menu_item_id === item.id);
-                  const selectedQty = cartLines.reduce((sum, line) => sum + line.quantity, 0);
+                  const selectedQty = selectedItems.filter((line) => line.menu_item_id === item.id).reduce((sum, line) => sum + line.quantity, 0);
                   const simpleLine = cartLines.find((line) => !line.variant_id && line.line_type !== "addon");
                   return (
                   <div key={item.id} className={`flex flex-wrap items-center gap-3 rounded-lg p-4 border transition-all ${selectedQty > 0 ? "bg-accent border-primary/40 shadow-card" : "bg-card border-border hover:shadow-card"}`}>
@@ -180,7 +180,7 @@ const RestaurantDetail = () => {
                       <div className="flex shrink-0 items-center gap-1 rounded-full border border-primary/30 bg-background p-1">
                         <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => updateQuantity(simpleLine.id, simpleLine.quantity - 1)}><Minus className="h-3.5 w-3.5" /></Button>
                         <span className="w-5 text-center text-sm font-extrabold">{simpleLine.quantity}</span>
-                        <Button size="icon" className="h-7 w-7 rounded-full" onClick={() => updateQuantity(simpleLine.id, simpleLine.quantity + 1)}><Plus className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" className="h-7 w-7 rounded-full" onClick={() => addItem({ ...simpleLine, quantity: 1 })}><Plus className="h-3.5 w-3.5" /></Button>
                       </div>
                     ) : (
                       <Button size="sm" className="rounded-full h-10 w-10 p-0" onClick={() => addItem({ menu_item_id: item.id, name: item.name, restaurant: restaurant.name, price: item.price, image: item.image_url || restaurant.image_url || "", source: "restaurant", sourceId: restaurant.id })}><Plus className="w-5 h-5" /></Button>
