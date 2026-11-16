@@ -42,6 +42,14 @@ Deno.serve(async (req) => {
       .neq("id", row.id).neq("status", "rejected").ilike("reference_no", row.reference_no ?? "");
     if ((dup ?? 0) > 0) flags.push("duplicate_reference");
 
+    const path = String(row.receipt_url ?? "");
+    const ownPath = path.startsWith(`${row.rider_id}/remittance-`) && !path.includes("..") && !path.slice(row.rider_id.length + 1).includes("/");
+    if (!ownPath) {
+      flags.push("receipt_unreadable");
+      const check = { status: "red", flags, checked_at: new Date().toISOString() };
+      await admin.from("rider_remittances").update({ slip_check: check }).eq("id", row.id);
+      return json({ check });
+    }
     const file = await admin.storage.from("partner-documents").download(row.receipt_url);
     if (file.error || !file.data) {
       flags.push("receipt_unreadable");

@@ -778,6 +778,13 @@
       "when": 1794841849606,
       "tag": "0110_staff_cancel_order_static_sql",
       "breakpoints": true
+    },
+    {
+      "idx": 111,
+      "version": "7",
+      "when": 1794854000000,
+      "tag": "0111_remittance_receipt_path_guard",
+      "breakpoints": true
     }
   ]
 }
