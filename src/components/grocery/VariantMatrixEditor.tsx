@@ -74,7 +74,7 @@ export default function VariantMatrixEditor({ product, onSaved }: { product: any
             <div key={i} className="flex items-center gap-2 rounded-xl border border-border p-2">
               <label className="relative flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-muted">
                 {busy === `img${i}` ? <Loader2 className="h-4 w-4 animate-spin" /> : d.image ? <img src={d.image} alt={d.name} className="h-full w-full object-contain" /> : <ImagePlus className="h-5 w-5 text-muted-foreground" />}
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadDesignPhoto(i, e.target.files?.[0])} />
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => uploadDesignPhoto(i, e.target.files?.[0])} />
               </label>
               <div className="grid flex-1 gap-1">
                 <Input value={d.name} onChange={(e) => setD(i, { name: e.target.value })} placeholder={L("e.g. Maroon / Rose Gold", "مثلاً Maroon / Rose Gold")} className="h-8 text-xs" />

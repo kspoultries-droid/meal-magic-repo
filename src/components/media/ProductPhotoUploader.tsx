@@ -111,7 +111,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
       {!compact && <span>{capture ? tr("Take photo", "کیمرہ سے تصویر") : label}</span>}
       <input
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         multiple={multiple && !capture}
         {...(capture ? { capture: "environment" as const } : {})}
         className="hidden"

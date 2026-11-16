@@ -1,5 +1,5 @@
 import { img } from "@/lib/imageUrl";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
@@ -74,8 +74,10 @@ const GroceryStoreDetail = () => {
      barcode: "", catalog_item_id: null as string | null, catalogImages: [] as string[], extraSpecs: {} as Record<string, string>, suggestToCatalog: true,
    });
 
+  const loadedOnce = useRef(false);
   const fetchData = async () => {
-    setLoading(true);
+    // Only show the full-page loader on first load; refreshes (camera return, saves) keep the form mounted
+    if (!loadedOnce.current) setLoading(true);
     const [{ data: storeData }, { data: productsData }] = await Promise.all([
       supabase.from("grocery_stores").select("*").eq("id", id).single(),
       supabase.from("grocery_products").select("*").eq("store_id", id).order("sort_order").order("category"),
@@ -90,6 +92,7 @@ const GroceryStoreDetail = () => {
     if (storeData && id && !storePathMatches(storeData.store_type)) {
       navigate(storePath(id, storeData.store_type), { replace: true });
     }
+    loadedOnce.current = true;
     setLoading(false);
   };
 
@@ -97,7 +100,7 @@ const GroceryStoreDetail = () => {
 
   useEffect(() => {
     if (id) fetchData();
-  }, [id, user]);
+  }, [id, user?.id]);
 
   // Owner: live new-order bell + count, whichever tab is open
   useEffect(() => {

@@ -149,6 +149,7 @@ function CatalogPicker({ storeId, existing, onChanged, mode, storeCategory }: { 
   const [cat, setCat] = useState("all");
   const [picks, setPicks] = useState<Record<string, Pick>>({});
   const [busy, setBusy] = useState(false);
+  const [bulkPrice, setBulkPrice] = useState("");
 
   useEffect(() => {
     (supabase as any).from("catalog_items").select("*").order("category").order("name").limit(5000)
@@ -207,6 +208,15 @@ function CatalogPicker({ storeId, existing, onChanged, mode, storeCategory }: { 
           {["all", ...cats].map((c) => (
             <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full border px-3 py-1 text-xs ${cat === c ? "border-primary bg-primary text-primary-foreground" : "bg-card"}`}>{c === "all" ? "سب" : c}</button>
           ))}
+        </div>
+      )}
+      {shown.length > 0 && (
+        <div className="flex items-center gap-2 rounded-xl border bg-card p-2">
+          <Input inputMode="numeric" placeholder="ایک قیمت" className="h-8 w-24 px-2 text-xs" value={bulkPrice} onChange={(e) => setBulkPrice(e.target.value)} />
+          <Button size="sm" variant="outline" className="h-8 flex-1 text-xs" disabled={!(Number(bulkPrice) > 0)}
+            onClick={() => setPicks((p) => { const n = { ...p }; shown.forEach((i) => { const cur = n[i.id] || pickOf(i); if (!(Number(cur.price) > 0)) n[i.id] = { ...cur, price: bulkPrice }; }); return n; })}>
+            نظر آنے والی تمام {shown.length} چیزیں منتخب کریں
+          </Button>
         </div>
       )}
       <div className="divide-y rounded-xl border bg-card">
