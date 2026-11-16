@@ -2,7 +2,7 @@
 
 ## Current QA fix — Cart selection
 - [x] Align floating/product checkout with selected lines, clear stale exclusions and provide empty-selection recovery; 7 regression tests and authenticated checkout/Buy now readback passed (no order placed).
-- [ ] Sweep all cart consumers and server order/quote paths; align restaurant selection indicators and explicit additions, then rerun focused checks.
+- [x] Read all cart consumers (food, grocery, Bazar, standalone store, product, drawer, floating bar, suggestions, reorder, login recovery and navigation) plus current order/quote functions and courier jobs. Fixed restaurant selection badge and explicit plus-button reselect; 17 tests and authenticated food variant checkout passed. No order submitted; simple-food branch had no live fixture and was code-reviewed only.
 
 ## Current request — Bazar promotional cards
 - [x] Prepare original-framing compressed uploads, retain successful uploads on save failure and expose real errors; authenticated 3600×2000 image upload/save/readback passed.
