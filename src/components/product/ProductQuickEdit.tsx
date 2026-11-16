@@ -14,7 +14,7 @@ const ProductQuickEdit = ({ product, L, onSaved }: Props) => {
   const [saving, setSaving] = useState(false);
   const [f, setF] = useState({
     name: product.name || "", price: String(product.price ?? ""), discount_price: String(product.discount_price ?? ""),
-    stock: String(product.stock_quantity ?? ""), brand: product.brand || "", model: specs.Model || "", power: specs.Power || "", warranty: specs.Warranty || "",
+    stock: String(product.stock_qty ?? ""), brand: product.brand || "", model: specs.Model || "", power: specs.Power || "", warranty: specs.Warranty || "",
   });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
@@ -26,7 +26,7 @@ const ProductQuickEdit = ({ product, L, onSaved }: Props) => {
     const nextSpecs: Record<string, unknown> = { ...specs };
     ([["Model", f.model], ["Power", f.power], ["Warranty", f.warranty]] as const).forEach(([k, v]) => { if (v.trim()) nextSpecs[k] = v.trim(); else delete nextSpecs[k]; });
     const payload: any = { name: f.name.trim(), price, discount_price: disc, brand: f.brand.trim() || null, specs: nextSpecs };
-    if (f.stock.trim() !== "") payload.stock_quantity = Math.max(0, Math.floor(Number(f.stock) || 0));
+    if (f.stock.trim() !== "") payload.stock_qty = Math.max(0, Math.floor(Number(f.stock) || 0));
     setSaving(true);
     const { data, error } = await (supabase as any).from("grocery_products").update(payload).eq("id", product.id).select("*").maybeSingle();
     setSaving(false);
