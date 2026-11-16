@@ -15,6 +15,8 @@ import { availableShopQuantity } from "@/lib/shopOrders";
 import { toast } from "sonner";
 import { isMatrix } from "@/lib/variantMatrix";
 import ProductQuickEdit from "@/components/product/ProductQuickEdit";
+import { useCityServices } from "@/hooks/useCityServices";
+import { deliveryPromise } from "@/lib/deliveryPromise";
 
 
 
@@ -24,6 +26,7 @@ const ProductDetail = () => {
   const { user, isAdmin } = useAuth();
   const { lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
+  const { cityId: buyerCityId, cities } = useCityServices();
   const UNIT_EN: Record<string,string> = {"بیگ":"Bag","کلو":"Kg","کلوگرام":"Kg","عدد":"Pcs","درجن":"Dozen","پیکٹ":"Pack","لیٹر":"Litre","گرام":"g","بوتل":"Bottle","ڈبہ":"Box"};
   const U = (u?: string) => !u ? "" : lang === "ur" ? u : (UNIT_EN[u.trim()] || u);
   const navigate = useNavigate();
@@ -185,7 +188,7 @@ const ProductDetail = () => {
             {hasDiscount && <p className="mt-1 inline-flex rounded-lg bg-success/10 px-2.5 py-1 text-xs font-extrabold text-success">{L(`You save Rs. ${(listPrice - effectivePrice).toLocaleString()}`, `آپ کی بچت Rs. ${(listPrice - effectivePrice).toLocaleString()}`)}</p>}
             {availableQuantity !== null && availableQuantity > 0 && availableQuantity <= 5 && <p className="mt-2 text-xs font-extrabold text-destructive">{L(`Hurry! Only ${availableQuantity} left`, `جلدی کریں! صرف ${availableQuantity} باقی`)}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-y border-border/60 py-2 text-[11px] font-semibold text-muted-foreground">
-              {[L("Cash on delivery", "کیش آن ڈیلیوری"), L("Verified shop", "تصدیق شدہ دکان"), L("Check at delivery", "وصولی پر جانچ"), store.ships_nationwide ? L("Nationwide", "ملک بھر") : L("Local rider", "مقامی رائیڈر")].map((t) => <span key={t} className="inline-flex items-center gap-1"><Check className="h-3 w-3 text-success" />{t}</span>)}
+              {[L("Cash on delivery", "کیش آن ڈیلیوری"), L("Verified shop", "تصدیق شدہ دکان"), L("Check at delivery", "وصولی پر جانچ"), (() => { const dp = deliveryPromise(buyerCityId, store.city_id, !!store.ships_nationwide, cities.find((c: any) => c.id === store.city_id)?.name); return L(dp.en, dp.ur); })()].map((t) => <span key={t} className="inline-flex items-center gap-1"><Check className="h-3 w-3 text-success" />{t}</span>)}
             </div>
             {product.delivery_days && <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Truck className="h-3.5 w-3.5 text-primary" />{L(`Delivery: ${product.delivery_days}`, `ڈیلیوری: ${product.delivery_days}`)}</p>}
             {product.min_order_qty > 1 && <p className="mt-2 text-xs font-bold text-destructive">{L(`Minimum order: ${product.min_order_qty} pcs`, `کم از کم آرڈر: ${product.min_order_qty} عدد`)}</p>}
