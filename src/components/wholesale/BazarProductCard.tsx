@@ -53,13 +53,13 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
               {imageUrl && <ImageOff className="absolute bottom-2 right-2 size-3.5 text-muted-foreground" />}
             </div>
           )}
-          {off > 0 && <span className="absolute left-1.5 top-1.5 rounded-md bg-destructive px-1.5 py-1 text-[10px] font-bold text-destructive-foreground">-{off}%</span>}
+          {off > 0 && <span className="absolute left-1.5 top-1.5 rounded-md bg-destructive px-1.5 py-1 text-[10px] font-bold text-destructive-foreground" dir="ltr">-{off}%</span>}
         </div>
         <div className={`min-w-0 space-y-1 ${list ? "flex-1 py-1" : "p-2"}`}>
           <p className={`line-clamp-2 text-xs font-semibold leading-tight text-card-foreground ${list ? "min-h-0" : "min-h-[2.25rem]"}`}>{displayText(product.name)}</p>
           <div className={list ? "" : "min-h-[2.5rem]"}>
             <p className="font-display text-base font-extrabold leading-none text-primary">Rs {effective.toLocaleString()}</p>
-            <p className="mt-1 flex min-h-4 items-center gap-1 text-[10px]">{hasDiscount ? <><span className="text-muted-foreground line-through">Rs {product.price.toLocaleString()}</span><span className="font-bold text-destructive">-{off}%</span></> : "\u00a0"}</p>
+            <p className="mt-1 flex min-h-4 items-center gap-1 text-[10px]">{hasDiscount ? <><span className="text-muted-foreground line-through">Rs {product.price.toLocaleString()}</span><bdi dir="ltr" className="font-bold text-destructive">-{off}%</bdi></> : "\u00a0"}</p>
           </div>
           <div className="flex h-4 items-center gap-1 text-[10px] text-muted-foreground">
             {!!product.rating && <><Star className="size-3 fill-primary text-primary" /><span className="font-semibold text-foreground">{product.rating.toFixed(1)}</span></>}
