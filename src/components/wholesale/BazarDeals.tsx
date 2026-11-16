@@ -117,7 +117,7 @@ const BazarDeals = () => {
     setCopiedId(list.length === 1 ? list[0].id : "all");
     toast.success(list.length === 1 ? tr(`Collected ${list[0].code} — enter it at checkout`, `${list[0].code} حاصل — چیک آؤٹ پر لگائیں`) : tr("All vouchers collected — codes copied", "تمام واؤچر حاصل — کوڈ کاپی ہو گئے"));
   };
-  const amount = (v: Voucher) => v.discount_type === "percent" ? <>{v.discount_value}<span className="text-sm">% OFF</span></> : <><span className="text-sm">Rs.</span>{v.discount_value}</>;
+  const amount = (v: Voucher) => <bdi dir="ltr">{v.discount_type === "percent" ? <>{v.discount_value}<span className="text-sm">% OFF</span></> : <><span className="text-sm">Rs.</span>{v.discount_value}</>}</bdi>;
   const done = (v: Voucher) => collected.has(v.code) || copiedId === v.id || copiedId === "all";
 
   return (
