@@ -1,7 +1,7 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
 ## Current QA fix — Cart selection
-- [ ] Align checkout entry points with selected lines, clear stale exclusions and verify authenticated shopping plus regression tests.
+- [x] Align floating/product checkout with selected lines, clear stale exclusions and provide empty-selection recovery; 7 regression tests and authenticated checkout/Buy now readback passed (no order placed).
 
 ## Current request — Bazar promotional cards
 - [x] Prepare original-framing compressed uploads, retain successful uploads on save failure and expose real errors; authenticated 3600×2000 image upload/save/readback passed.
