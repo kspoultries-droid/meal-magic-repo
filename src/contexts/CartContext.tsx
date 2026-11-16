@@ -88,7 +88,7 @@ const readStoredCart = (uid?: string): CartItem[] => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const account = useRef(user?.id);
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => readStoredCart(user?.id));
   const itemsRef = useRef<CartItem[]>(items);
   itemsRef.current = items;
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
