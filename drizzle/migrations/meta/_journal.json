@@ -771,6 +771,13 @@
       "when": 1794712442897,
       "tag": "0109_product_reviews",
       "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1794841849606,
+      "tag": "0110_staff_cancel_order_static_sql",
+      "breakpoints": true
     }
   ]
 }
