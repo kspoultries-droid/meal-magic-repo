@@ -84,7 +84,7 @@ const TopPicksRail = () => {
               </span>
             </div>
             <div className="p-2.5">
-              <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+              <p dir="auto" className="line-clamp-2 break-words text-xs font-bold text-foreground">{p.name}</p>
               <p className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
                 <Clock className="w-3 h-3" />
                 {p.deliveryTime}
