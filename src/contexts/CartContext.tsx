@@ -75,6 +75,16 @@ export const buildLineId = (item: AddItemInput) => {
   return [mid, item.line_type || "main", item.variant_id || "", item.choice_id || "", opts].join("|");
 };
 
+const cartKey = (uid: string) => `easylife:cart:${uid}`;
+// Account-scoped convenience copy so a refresh/app restart keeps the cart; prices stay server-validated at checkout.
+const readStoredCart = (uid?: string): CartItem[] => {
+  if (!uid) return [];
+  try {
+    const raw = JSON.parse(localStorage.getItem(cartKey(uid)) || "[]");
+    return Array.isArray(raw) ? raw.filter((i) => i && typeof i.id === "string" && Number(i.quantity) > 0) : [];
+  } catch { return []; }
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const account = useRef(user?.id);
@@ -93,11 +103,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
   useLayoutEffect(() => {
     if (account.current !== user?.id) {
-      itemsRef.current = [];
-      setItems([]); setVoucher(null); setIsOpen(false); setDeselected(new Set());
+      const restored = readStoredCart(user?.id);
+      itemsRef.current = restored;
+      setItems(restored); setVoucher(null); setIsOpen(false); setDeselected(new Set());
       account.current = user?.id;
     }
   }, [user?.id]);
+  useEffect(() => {
+    if (account.current !== user?.id || !user?.id) return;
+    try {
+      if (items.length) localStorage.setItem(cartKey(user.id), JSON.stringify(items.slice(0, 100)));
+      else localStorage.removeItem(cartKey(user.id));
+    } catch { /* storage unavailable */ }
+  }, [items, user?.id]);
 
   const mergeItems = useCallback((previous: CartItem[], rawItems: AddItemInput[]) => {
     let next = [...previous];
