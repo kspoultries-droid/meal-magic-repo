@@ -5713,6 +5713,7 @@ export type Database = {
         Args: { _limit?: number; _product_id: string }
         Returns: Json
       }
+      product_rating_breakdown: { Args: { _product_id: string }; Returns: Json }
       propose_service_quote: {
         Args: {
           _booking_id: string
@@ -6004,6 +6005,7 @@ export type Database = {
         Args: { _limit?: number; _store_id: string }
         Returns: Json
       }
+      shop_quality_score: { Args: { _store_id: string }; Returns: Json }
       staff_add: {
         Args: {
           _city_ids?: string[]

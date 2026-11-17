@@ -17,6 +17,8 @@ import { isMatrix } from "@/lib/variantMatrix";
 import ProductQuickEdit from "@/components/product/ProductQuickEdit";
 import { useCityServices } from "@/hooks/useCityServices";
 import { deliveryPromise } from "@/lib/deliveryPromise";
+import SellerScoreCard from "@/components/product/SellerScoreCard";
+import ReviewInsights from "@/components/product/ReviewInsights";
 
 
 
@@ -273,6 +275,7 @@ const ProductDetail = () => {
               </>
             )}
              {activeTab === "details" && <DetailsBlock specs={product.specs} sku={product.sku} brand={cleanBrand} weight={product.weight} unit={U(product.unit)} />}
+             {activeTab === "reviews" && <ReviewInsights productId={product.id} rating={reviewSummary.rating} count={reviewSummary.count} L={L} lang={lang} />}
              {activeTab === "reviews" && <ReviewList reviews={reviews} summary={reviewSummary} store={store} shop={shopRating} />}
              {activeTab === "questions" && <ProductQuestions productId={product.id} storeId={store.id} storeOwnerId={store.owner_id} />}
            </section>
@@ -280,9 +283,7 @@ const ProductDetail = () => {
 
         <section className="mx-4 mt-3 space-y-3">
 
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary"><Store className="h-5 w-5" /></div><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-foreground">{store.name}</p><p className="text-xs text-muted-foreground">{store.rating ? `★ ${store.rating}` : L("New shop", "نئی دکان")} · {L("Verified shop", "تصدیق شدہ شاپ")}</p></div><Button variant="outline" size="sm" onClick={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)}>{L("View shop", "دکان دیکھیں")} <ChevronRight className="ms-1 h-3 w-3" /></Button></div>
-          </div>
+          <SellerScoreCard storeId={store.id} name={store.name} L={L} onOpen={() => navigate(store.store_type === "wholesale" ? `/bazar/${store.id}` : `/grocery/${store.id}`)} />
         </section>
 
         <RelatedProducts items={related} title={L("Similar items", "ملتی جلتی اشیاء")} />
