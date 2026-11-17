@@ -792,6 +792,13 @@
       "when": 1794855495617,
       "tag": "0112_rider_delivery_static_sql",
       "breakpoints": true
+    },
+    {
+      "idx": 113,
+      "version": "7",
+      "when": 1794902569652,
+      "tag": "0113_seller_quality_scores",
+      "breakpoints": true
     }
   ]
 }
