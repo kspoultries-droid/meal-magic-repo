@@ -500,7 +500,7 @@ const CategoriesSection = () => {
                         {COLOR_OPTIONS.map(co => <option key={co.value} value={co.value}>{co.label}</option>)}
                       </select>
                     ) : (
-                      <span className={`px-2 py-1 rounded text-xs ${c.color}`}>{c.color.split(" ")[0]}</span>
+                      <span aria-label={c.color} className={`inline-block size-6 rounded-full border ${c.color}`} />
                     )}
                   </TableCell>
                   <TableCell>

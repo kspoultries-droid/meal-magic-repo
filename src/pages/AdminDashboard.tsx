@@ -22,7 +22,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket, Clapperboard, BellRing, LayoutDashboard, Clock3, Ban, RotateCcw } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, LogOut, ShoppingBag, Store, Bike, MapPin, Plus, Trash2, RefreshCw, Users, Shield, ShoppingCart, Wrench, Megaphone, FileImage, Pencil, Check, X, Package, Ticket, Clapperboard, BellRing, LayoutDashboard, Clock3, Ban, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import GroceryTab from "@/components/admin/GroceryTab";
 import ServicesTab from "@/components/admin/ServicesTab";
@@ -888,22 +889,25 @@ const RestaurantsTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       {!r.is_active ? tr("Inactive", "غیر فعال") : r.busy_until && new Date(r.busy_until) > new Date() ? `${tr("Temporarily Closed:", "عارضی بند:")} ${new Date(r.busy_until).toLocaleTimeString("ur-PK", { hour: "numeric", minute: "2-digit" })}` : tr("Open", "کھلا")}
                     </Badge>
                   </TableCell>
-                  <TableCell data-label={tr("Actions", "ایکشنز")} className="flex flex-wrap gap-1">
+                  <TableCell data-label={tr("Actions", "ایکشنز")} className="flex flex-wrap items-center gap-1.5">
                     <BusinessLocationDialog business={r} kind="restaurant" onChanged={fetchRests} />
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(r.id, r.is_active)}>
                       {r.is_active ? <><Ban className="me-1 h-3 w-3" />{tr("Inactive", "غیر فعال")}</> : <><RotateCcw className="me-1 h-3 w-3" />{tr("Active", "فعال")}</>}
                     </Button>
-                    {r.is_active && !(r.busy_until && new Date(r.busy_until) > new Date()) && (
-                      <>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "hour")}><Clock3 className="me-1 h-3 w-3" />{tr("1 hour", "1 گھنٹہ")}</Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "today")}>{tr("Until today", "آج تک")}</Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => temporarilyClose(r.id, "custom")}>{tr("Select time", "وقت چنیں")}</Button>
-                      </>
-                    )}
-                    {r.busy_until && new Date(r.busy_until) > new Date() && <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => restoreRestaurant(r.id)}>{tr("Open Now", "ابھی کھولیں")}</Button>}
-                    {isAdmin && <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>}
+                    {r.busy_until && new Date(r.busy_until) > new Date() && <Button size="sm" className="h-7 text-xs" onClick={() => restoreRestaurant(r.id)}>{tr("Open Now", "ابھی کھولیں")}</Button>}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs" aria-label={tr("More actions", "مزید")}><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        {r.is_active && !(r.busy_until && new Date(r.busy_until) > new Date()) && (<>
+                          <DropdownMenuItem onSelect={() => temporarilyClose(r.id, "hour")}><Clock3 className="me-2 h-3.5 w-3.5" />{tr("Close for 1 hour", "1 گھنٹہ بند")}</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => temporarilyClose(r.id, "today")}><Clock3 className="me-2 h-3.5 w-3.5" />{tr("Close for today", "آج کے لیے بند")}</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => temporarilyClose(r.id, "custom")}><Clock3 className="me-2 h-3.5 w-3.5" />{tr("Close until time…", "وقت چن کر بند")}</DropdownMenuItem>
+                        </>)}
+                        {isAdmin && <><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive" onSelect={() => deleteRestaurant(r.id)}><Trash2 className="me-2 h-3.5 w-3.5" />{tr("Delete", "حذف کریں")}</DropdownMenuItem></>}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}

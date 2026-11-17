@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown, AlertTriangle, PauseCircle, PlayCircle, Copy, MessageCircle, Link } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Plus, Trash2, RefreshCw, Eye, EyeOff, ImageIcon, Pencil, Check, X as XIcon, ArrowUp, ArrowDown, AlertTriangle, PauseCircle, PlayCircle, Copy, MessageCircle, Link } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { useAuth } from "@/hooks/useAuth";
@@ -166,8 +167,8 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="space-y-2">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0 space-y-2">
             <CardTitle>{kind === "wholesale" ? tr("City Bazar / Market", "سٹی بازار / مارکیٹ") : tr("Local Shops (Grocery, Medical)", "مقامی دکانیں (گروسری، میڈیکل)")}</CardTitle>
             <div className="flex gap-1 rounded-md bg-muted p-1">
               <Button size="sm" variant={kind === "retail" ? "default" : "ghost"} className="h-7 text-xs" onClick={() => { setKind("retail"); setPage(1); setSelectedStore(null); }}>{tr("Local Shops", "مقامی دکانیں")} ({stores.filter(s => s.store_type !== "wholesale").length})</Button>
@@ -177,7 +178,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
           <div className="flex gap-2">
             <Dialog open={showAddStore} onOpenChange={setShowAddStore}>
               <DialogTrigger asChild>
-                <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {tr("Add Store", "اسٹور شامل / Add Store")}</Button>
+                <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {tr("Add Store", "اسٹور شامل کریں")}</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader><DialogTitle>{tr("New Store", "نیا اسٹور / New Store")}</DialogTitle></DialogHeader>
@@ -224,7 +225,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
         <CardContent className="space-y-4">
           <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filteredStores.length} />
           {/* Category Filter Chips */}
-          <div className="flex flex-wrap gap-2">
+          <div className="-mx-1 flex gap-1.5 overflow-x-auto no-scrollbar px-1 pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap">
             <button
               onClick={() => setActiveCategory(null)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${!activeCategory ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-accent border-border"}`}
@@ -385,52 +386,47 @@ ${tr("Share this link with your customers!", "یہ لنک اپنے کسٹمرز 
                       </Badge>
                     </TableCell>
                     <TableCell data-label={tr("Actions", "ایکشنز")}>
-                      <div className="flex gap-1 flex-wrap">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <BusinessLocationDialog business={s} kind="grocery" onChanged={fetchData} />
                         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setSelectedStore(selectedStore === s.id ? null : s.id)}>
                           <Eye className="h-3 w-3 mr-1" /> {tr("Products", "پروڈکٹس")}
                         </Button>
-                        {/* Subscription Actions */}
-                        {s.subscription_status === 'active' && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs text-yellow-600 border-yellow-300" onClick={() => {
-                            const msg = prompt(tr("Write warning message:", "وارننگ پیغام لکھیں:"), tr("Payment is due. Please pay soon.", "ادائیگی واجب الادا ہے۔ براہ کرم جلد ادائیگی کریں۔"));
-                            if (msg !== null) {
-                              supabase.from("grocery_stores").update({ subscription_status: 'warned', warning_message: msg }).eq("id", s.id).then(() => { toast.success(tr("Warning sent", "وارننگ بھیج دی")); fetchData(); });
-                            }
-                          }}>
-                            <AlertTriangle className="h-3 w-3 mr-0.5" /> {tr("Warning", "وارننگ")}
-                          </Button>
-                        )}
-                        {(s.subscription_status === 'active' || s.subscription_status === 'warned') && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs text-destructive border-destructive/30" onClick={() => {
-                            if (!window.confirm(tr("Are you sure you want to suspend the store? It will not be visible to customers.", "کیا واقعی اسٹور معطل کرنا ہے؟ کسٹمرز کو نظر نہیں آئے گا۔"))) return;
-                            supabase.from("grocery_stores").update({ subscription_status: 'paused' }).eq("id", s.id).then(() => { toast.success(tr("Store suspended", "اسٹور معطل ہو گیا")); fetchData(); });
-                          }}>
-                            <PauseCircle className="h-3 w-3 mr-0.5" /> Pause
-                          </Button>
-                        )}
-                        {(s.subscription_status === 'warned' || s.subscription_status === 'paused') && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs text-green-600 border-green-300" onClick={() => {
-                            const paidUntil = prompt(tr("Payment due date? (YYYY-MM-DD):", "ادائیگی کب تک ہے؟ (YYYY-MM-DD):"), new Date(Date.now() + 30*86400000).toISOString().split("T")[0]);
-                            if (paidUntil) {
-                              supabase.from("grocery_stores").update({ subscription_status: 'active', warning_message: null, fee_paid_until: paidUntil }).eq("id", s.id).then(() => { toast.success(tr("Store activated", "اسٹور فعال ہو گیا")); fetchData(); });
-                            }
-                          }}>
-                            <PlayCircle className="h-3 w-3 mr-0.5" /> {tr("Active", "فعال")}
-                          </Button>
-                        )}
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleStoreActive(s.id, s.is_active)}>
-                          {s.is_active ? tr("Closed", "بند") : tr("Active", "فعال")}
+                        <Button size="sm" variant={s.is_active ? "outline" : "default"} className="h-7 text-xs" onClick={() => toggleStoreActive(s.id, s.is_active)}>
+                          {s.is_active ? tr("Close", "بند کریں") : tr("Open", "کھولیں")}
                         </Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "up")} disabled={stores.indexOf(s) === 0}>
-                          <ArrowUp className="h-3 w-3" />
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => moveStore(s.id, "down")} disabled={stores.indexOf(s) === stores.length - 1}>
-                          <ArrowDown className="h-3 w-3" />
-                        </Button>
-                        <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => deleteStore(s.id)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="outline" className="h-7 px-2 text-xs" aria-label={tr("More actions", "مزید")}><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            {s.subscription_status === 'active' && (
+                              <DropdownMenuItem className="text-yellow-700" onSelect={() => {
+                                const msg = prompt(tr("Write warning message:", "وارننگ پیغام لکھیں:"), tr("Payment is due. Please pay soon.", "ادائیگی واجب الادا ہے۔ براہ کرم جلد ادائیگی کریں۔"));
+                                if (msg !== null) {
+                                  supabase.from("grocery_stores").update({ subscription_status: 'warned', warning_message: msg }).eq("id", s.id).then(() => { toast.success(tr("Warning sent", "وارننگ بھیج دی")); fetchData(); });
+                                }
+                              }}><AlertTriangle className="me-2 h-3.5 w-3.5" />{tr("Send warning", "وارننگ بھیجیں")}</DropdownMenuItem>
+                            )}
+                            {(s.subscription_status === 'active' || s.subscription_status === 'warned') && (
+                              <DropdownMenuItem className="text-destructive" onSelect={() => {
+                                if (!window.confirm(tr("Are you sure you want to suspend the store? It will not be visible to customers.", "کیا واقعی اسٹور معطل کرنا ہے؟ کسٹمرز کو نظر نہیں آئے گا۔"))) return;
+                                supabase.from("grocery_stores").update({ subscription_status: 'paused' }).eq("id", s.id).then(() => { toast.success(tr("Store suspended", "اسٹور معطل ہو گیا")); fetchData(); });
+                              }}><PauseCircle className="me-2 h-3.5 w-3.5" />{tr("Suspend subscription", "رکنیت معطل کریں")}</DropdownMenuItem>
+                            )}
+                            {(s.subscription_status === 'warned' || s.subscription_status === 'paused') && (
+                              <DropdownMenuItem onSelect={() => {
+                                const paidUntil = prompt(tr("Payment due date? (YYYY-MM-DD):", "ادائیگی کب تک ہے؟ (YYYY-MM-DD):"), new Date(Date.now() + 30*86400000).toISOString().split("T")[0]);
+                                if (paidUntil) {
+                                  supabase.from("grocery_stores").update({ subscription_status: 'active', warning_message: null, fee_paid_until: paidUntil }).eq("id", s.id).then(() => { toast.success(tr("Store activated", "اسٹور فعال ہو گیا")); fetchData(); });
+                                }
+                              }}><PlayCircle className="me-2 h-3.5 w-3.5" />{tr("Renew subscription", "رکنیت بحال کریں")}</DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem disabled={stores.indexOf(s) === 0} onSelect={() => moveStore(s.id, "up")}><ArrowUp className="me-2 h-3.5 w-3.5" />{tr("Move up", "اوپر کریں")}</DropdownMenuItem>
+                            <DropdownMenuItem disabled={stores.indexOf(s) === stores.length - 1} onSelect={() => moveStore(s.id, "down")}><ArrowDown className="me-2 h-3.5 w-3.5" />{tr("Move down", "نیچے کریں")}</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onSelect={() => deleteStore(s.id)}><Trash2 className="me-2 h-3.5 w-3.5" />{tr("Delete", "حذف کریں")}</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
