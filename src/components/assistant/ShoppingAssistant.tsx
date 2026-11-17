@@ -30,7 +30,7 @@ const ShoppingAssistant = () => {
   const ask = async () => {
     if (text.trim().length < 2 || busy) return;
     setBusy(true); setErr(""); setReply(""); setFound(null);
-    const { data, error } = await supabase.functions.invoke("shopping-assistant", { body: { mode, text } });
+    const { data, error } = await supabase.functions.invoke("shopping-assistant", { body: { mode, text, lang } });
     let msg = data?.error;
     if (error && !msg) { try { msg = (await (error as any)?.context?.json())?.error; } catch { /* ignore */ } }
     setBusy(false);
