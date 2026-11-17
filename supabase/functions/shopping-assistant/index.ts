@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
     if (!words.length) return json({ reply: q.reply, products: [], remaining });
     const or = words.flatMap((w: string) => [`name.ilike.%${w}%`, `category.ilike.%${w}%`, `brand.ilike.%${w}%`]).join(",");
     let query = admin.from("grocery_products").select("id,name,price,discount_price,wholesale_price,image_url,rating,store_id,grocery_stores!inner(name,subscription_status)")
-      .eq("is_available", true).neq("grocery_stores.subscription_status", "paused").or(or).limit(40);
+      .eq("is_available", true).or("subscription_status.is.null,subscription_status.neq.paused", { referencedTable: "grocery_stores" }).or(or).limit(40);
     if (q.max_price) query = query.lte("price", q.max_price * 1.3);
     const { data: rows } = await query;
     const priceOf = (p: any) => Number(p.wholesale_price ?? p.discount_price ?? p.price ?? 0);
