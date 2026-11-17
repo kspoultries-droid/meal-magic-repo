@@ -36,7 +36,7 @@ const CartDrawer = () => {
   const [recommended, setRecommended] = useState<any[]>([]);
   const totalItems = selectedItems.reduce((n, i) => n + i.quantity, 0);
   const totalPrice = selectedTotal;
-  const allOn = items.length > 0 && selectedItems.length === items.length;
+  const allOn = items.length > 0 && items.every((i) => selectedItems.some((s) => s.id === i.id));
   const go = (path: string) => { setIsOpen(false); navigate(path); };
 
   // Depend on a stable string key: `items` is a fresh array each render and would loop forever.

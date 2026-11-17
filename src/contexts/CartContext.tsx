@@ -88,6 +88,11 @@ const readStoredCart = (uid?: string): CartItem[] => {
     return Array.isArray(raw) ? raw.filter((i) => i && typeof i.id === "string" && Number(i.quantity) > 0) : [];
   } catch { return []; }
 };
+// A restored cart ticks only the lane of the most recently added line, so checkout never gets mixed lanes.
+export const restoredDeselection = (items: CartItem[]): Set<string> => {
+  const last = items[items.length - 1];
+  return new Set(last ? items.filter((i) => laneOf(i) !== laneOf(last)).map((i) => i.id) : []);
+};
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -97,7 +102,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   itemsRef.current = items;
   const [voucher, setVoucher] = useState<CartVoucher | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [deselected, setDeselected] = useState<Set<string>>(new Set());
+  const [deselected, setDeselected] = useState<Set<string>>(() => restoredDeselection(itemsRef.current));
   const selectLines = useCallback((ids: string[]) => {
     setDeselected((prev) => {
       const next = new Set(prev);
@@ -114,7 +119,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (account.current !== user?.id) {
       const restored = readStoredCart(user?.id);
       itemsRef.current = restored;
-      setItems(restored); setVoucher(null); setIsOpen(false); setDeselected(new Set());
+      setItems(restored); setVoucher(null); setIsOpen(false); setDeselected(restoredDeselection(restored));
       account.current = user?.id;
     }
   }, [user?.id]);
