@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import Index from "./pages/Index";
 import CartDrawer from "@/components/CartDrawer";
 import FloatingCartBar from "@/components/cart/FloatingCartBar";
+import ShoppingAssistant from "@/components/assistant/ShoppingAssistant";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { ApkUpdateNotice } from "@/components/common/ApkUpdateNotice";
 import { SmartAppBanner } from "@/components/common/SmartAppBanner";
@@ -194,6 +195,7 @@ const App = () => (
               <RoleStartRedirect />
               <CartDrawer />
               <FloatingCartBar />
+              <ShoppingAssistant />
               <Suspense fallback={<RouteLoading />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
