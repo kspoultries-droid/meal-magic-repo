@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current QA sweep — Floating shopping controls
+- [x] Reproduce and separate AI helper from grocery/Bazar cart; 18 cart tests and authenticated mobile/desktop EN/UR cart readback passed.
+- [x] Read route registration, restaurant/product/standalone cart actions, drawer/menu overlays, navigation, sharing, APK notices and checkout/confirmation controls; no server-side layout path exists.
+- [x] Separate share from AI, put Android install prompt in document flow, and move transient notifications above shopping controls.
+- [x] Verified 18 assistant routes at 3 mobile/desktop EN/UR configurations, 8 hidden routes, Android download target/dismissal, share invocation, navigation hit targets, food variant add/immediate cart/readback and retail/wholesale populated/empty carts; 20 cart tests passed. Native hardware and actual APK/WhatsApp handoff were not tested; no orders or settled records changed.
+
 ## Current QA fix — Cart selection
 - [x] Align floating/product checkout with selected lines, clear stale exclusions and provide empty-selection recovery; 7 regression tests and authenticated checkout/Buy now readback passed (no order placed).
 - [x] Read all cart consumers (food, grocery, Bazar, standalone store, product, drawer, floating bar, suggestions, reorder, login recovery and navigation) plus current order/quote functions and courier jobs. Fixed restaurant selection badge and explicit plus-button reselect; 17 tests and authenticated food variant checkout passed. No order submitted; simple-food branch had no live fixture and was code-reviewed only.

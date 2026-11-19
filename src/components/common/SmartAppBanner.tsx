@@ -20,7 +20,7 @@ export const SmartAppBanner = () => {
   if (["/install", "/qr-poster"].includes(pathname) || pathname.startsWith("/store/")) return null;
   const close = () => { try { localStorage.setItem(KEY, String(Date.now())); } catch { /* ignore */ } setHidden(true); };
   return (
-    <div className="fixed inset-x-2 bottom-20 z-50 flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-xl print:hidden">
+    <div className="mx-2 my-2 flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-xl print:hidden">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-extrabold text-primary-foreground">EL</div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold">{tr("Easy Life app", "Easy Life ایپ")}</p>
