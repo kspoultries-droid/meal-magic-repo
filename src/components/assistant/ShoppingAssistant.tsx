@@ -7,6 +7,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useCart } from "@/contexts/CartContext";
+import { isShopPage } from "@/components/cart/FloatingCartBar";
 
 const HIDDEN = [/^\/rider/, /^\/admin/, /^\/reels/, /^\/auth/, /^\/checkout/, /^\/store\//, /^\/staff/, /^\/support/, /^\/product\//];
 type Found = { id: string; name: string; price: number; list_price: number; image_url: string | null; rating: number | null; shop: string };
@@ -16,6 +18,7 @@ const ShoppingAssistant = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { totalItems } = useCart();
   const { lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const [open, setOpen] = useState(false);
@@ -42,9 +45,9 @@ const ShoppingAssistant = () => {
     : [L("How do I place an order?", "آرڈر کیسے دوں؟"), L("How do I add products to my shop?", "دکان میں چیزیں کیسے لگاؤں؟"), L("How do I track my order?", "آرڈر کہاں ہے کیسے دیکھوں؟")];
 
   return (<>
-    <button aria-label={L("AI helper", "AI مددگار")} onClick={() => setOpen(true)} className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] start-3 z-40 flex h-11 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-extrabold text-primary-foreground shadow-lg shadow-primary/30">
+    <Button aria-label={L("AI helper", "AI مددگار")} onClick={() => setOpen(true)} className={`fixed ${totalItems > 0 && isShopPage(pathname) ? "bottom-[calc(8.5rem+env(safe-area-inset-bottom))]" : "bottom-[calc(5.5rem+env(safe-area-inset-bottom))]"} start-3 z-40 flex h-11 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-extrabold text-primary-foreground shadow-lg shadow-primary/30`}>
       <Sparkles className="h-4 w-4" />{L("Ask AI", "AI سے پوچھیں")}
-    </button>
+    </Button>
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-3xl">
         <SheetHeader><SheetTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />{L("EasyLife AI helper (free)", "ایزی لائف AI مددگار (مفت)")}</SheetTitle></SheetHeader>
