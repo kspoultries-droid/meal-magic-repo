@@ -3,7 +3,8 @@
 ## Current request — Bake House food-only cleanup
 - [x] Improve the existing food menu add/edit form for bakery sizes, categories and safe saves; preserve custom categories and normal restaurant options.
 - [x] Run 273 automated regression tests and 4 isolated authenticated EN/UR mobile/desktop browser add/edit/readback checks with extra sizes/toppings and invalid-price rejection; no live orders or data writes.
-- [ ] Remove the grocery listing and replace the unrelated menu only after the standing database freeze exception and safe ownership/product transfer are resolved. Preserve historical orders and original products; do not delete business records.
+- [x] Under the user's narrow freeze exception, suspend grocery Bake House without deletion; verify inactive state, preserved 5 products and unchanged order counts, run 273 regression tests and inspect the real public mobile detail page. See docs/bake-house-safe-suspension-2026-11-20.md.
+- [ ] Food Bake House activation and unrelated-menu replacement remain blocked on safe ownership resolution and separate authorization; grocery suspension does not migrate products or hide the historical closed-store page.
 - [x] Report backend read-only findings, physical delivery limits and the open phone security issue separately in docs/bake-house-food-readiness-2026-11-20.md.
 
 ## Current step — Safe dispatch interface (frontend only)
