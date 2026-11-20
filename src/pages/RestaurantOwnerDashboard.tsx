@@ -36,6 +36,7 @@ import RestaurantSelfSetup from "@/components/vendor/RestaurantSelfSetup";
 import BusinessLocationRequest from "@/components/vendor/BusinessLocationRequest";
 import MenuBasicFields from "@/components/menu/MenuBasicFields";
 import { validateMenuDraft } from "@/lib/menuDraft";
+import { restaurantSaveErrorMessage } from "@/lib/restaurantSaveError";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut, isRestaurantOwner } = useAuth();
@@ -207,6 +208,17 @@ const MyRestaurantTab = () => {
     fetchAll();
   };
 
+  // Every owner setting save must report a real failure; never show success when the server refused it.
+  const saveRest = async (id: string, patch: Record<string, unknown>) => {
+    const { error } = await supabase.from("restaurants").update(patch as any).eq("id", id);
+    if (error) {
+      toast.error(restaurantSaveErrorMessage(error.message));
+      fetchAll();
+      return false;
+    }
+    return true;
+  };
+
   const deleteRestaurant = async (id: string) => {
     const { error } = await supabase.from("restaurants").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
@@ -293,7 +305,7 @@ const MyRestaurantTab = () => {
                       className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
                       defaultValue={(r as any).opening_time || "08:00"}
                       onChange={async (e) => {
-                        await supabase.from("restaurants").update({ opening_time: e.target.value } as any).eq("id", r.id);
+                        if (!(await saveRest(r.id, { opening_time: e.target.value } as any))) return;
                         toast.success(tr("Timing updated", "ٹائمنگ اپڈیٹ")); fetchAll();
                       }}
                     />
@@ -303,13 +315,13 @@ const MyRestaurantTab = () => {
                       className="h-7 text-xs border rounded-md px-2 bg-background text-foreground"
                       defaultValue={(r as any).closing_time || "22:00"}
                       onChange={async (e) => {
-                        await supabase.from("restaurants").update({ closing_time: e.target.value } as any).eq("id", r.id);
+                        if (!(await saveRest(r.id, { closing_time: e.target.value } as any))) return;
                         toast.success(tr("Timing updated", "ٹائمنگ اپڈیٹ")); fetchAll();
                       }}
                     />
                     <button
                       onClick={async () => {
-                        await supabase.from("restaurants").update({ is_active: !r.is_active }).eq("id", r.id);
+                        if (!(await saveRest(r.id, { is_active: !r.is_active }))) return;
                         toast.success(r.is_active ? tr("Closed", "بند ہو گیا") : tr("Opened", "کھل گیا")); fetchAll();
                       }}
                       className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors ${
@@ -326,15 +338,15 @@ const MyRestaurantTab = () => {
                   <div className="mt-2 flex items-center gap-2 flex-wrap bg-secondary/50 rounded-lg px-3 py-2 text-xs">
                     <label className="flex items-center gap-1.5 font-bold">
                       <input type="checkbox" defaultChecked={!!r.auto_print} onChange={async (e) => {
-                        await supabase.from("restaurants").update({ auto_print: e.target.checked } as any).eq("id", r.id);
+                        if (!(await saveRest(r.id, { auto_print: e.target.checked } as any))) return;
                         toast.success(e.target.checked ? tr("Kitchen slip will print upon order acceptance", "آرڈر قبول کرتے ہی کچن سلپ پرنٹ ہوگی") : tr("Auto-print Off", "خودکار پرنٹ بند"));
                       }} />
                       {tr("🖨️ Auto Print", "🖨️ خودکار پرنٹ")}
                     </label>
                     <input placeholder="NTN" defaultValue={r.ntn || ""} className="h-7 w-28 border rounded-md px-2 bg-background"
-                      onBlur={async (e) => { await supabase.from("restaurants").update({ ntn: e.target.value.trim() || null } as any).eq("id", r.id); }} />
+                      onBlur={async (e) => { if (!(await saveRest(r.id, { ntn: e.target.value.trim() || null } as any))) return; }} />
                     <input type="number" min={0} max={30} placeholder={tr("Tax %", "ٹیکس %")} defaultValue={r.tax_percent || ""} className="h-7 w-20 border rounded-md px-2 bg-background"
-                      onBlur={async (e) => { await supabase.from("restaurants").update({ tax_percent: Math.min(30, Math.max(0, Number(e.target.value) || 0)) } as any).eq("id", r.id); }} />
+                      onBlur={async (e) => { if (!(await saveRest(r.id, { tax_percent: Math.min(30, Math.max(0, Number(e.target.value) || 0)) } as any))) return; }} />
                   </div>
 
 
@@ -362,7 +374,7 @@ const MyRestaurantTab = () => {
                         </Badge>
                         <button
                           onClick={async () => {
-                            await supabase.from("restaurants").update({ busy_until: null } as any).eq("id", r.id);
+                            if (!(await saveRest(r.id, { busy_until: null } as any))) return;
                             toast.success(tr("Busy mode off", "مصروف موڈ ختم")); fetchAll();
                           }}
                           className="text-[11px] font-semibold text-primary underline"
@@ -382,7 +394,7 @@ const MyRestaurantTab = () => {
                       className="h-7 text-xs border rounded-md px-2 bg-background text-foreground w-full min-w-0 max-w-full"
                       value={(r as any).delivery_mode || "platform"}
                       onChange={async (e) => {
-                        await supabase.from("restaurants").update({ delivery_mode: e.target.value } as any).eq("id", r.id);
+                        if (!(await saveRest(r.id, { delivery_mode: e.target.value } as any))) return;
                         toast.success(tr("Update Delivery Mode", "ڈلیوری موڈ اپڈیٹ")); fetchAll();
                       }}
                     >
@@ -402,7 +414,7 @@ const MyRestaurantTab = () => {
                       type="button"
                       className={`h-7 shrink-0 rounded-full px-3 text-[11px] font-bold ${(r as any).pays_delivery_fee ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
                       onClick={async () => {
-                        await supabase.from("restaurants").update({ pays_delivery_fee: !(r as any).pays_delivery_fee } as any).eq("id", r.id);
+                        if (!(await saveRest(r.id, { pays_delivery_fee: !(r as any).pays_delivery_fee } as any))) return;
                         toast.success(tr("Updated", "اپڈیٹ ہو گیا")); fetchAll();
                       }}
                     >
