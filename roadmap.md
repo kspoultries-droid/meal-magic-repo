@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Streamlined food and rider workflow
+- [x] Combine restaurant accept/start preparation into one recoverable action; replace Send with explicit food-ready confirmation.
+- [x] Add deliberate swipe confirmation for rider pickup/completion while retaining authorized arrival and cash checks.
+- [x] Run 285 automated regressions, signed-in real-page reads and 4 isolated authenticated EN/UR mobile/desktop action/readback checks; no live orders, payments or dispatch writes. See docs/streamlined-food-workflow-2026-11-20.md.
+- [ ] Atomic server actions / removal of remaining readiness dependencies blocked by the migration-tool failure and standing database freeze.
+
 ## Current request — Bake House food-only cleanup
 - [x] Improve the existing food menu add/edit form for bakery sizes, categories and safe saves; preserve custom categories and normal restaurant options.
 - [x] Run 273 automated regression tests and 4 isolated authenticated EN/UR mobile/desktop browser add/edit/readback checks with extra sizes/toppings and invalid-price rejection; no live orders or data writes.

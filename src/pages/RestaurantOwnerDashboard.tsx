@@ -37,6 +37,7 @@ import BusinessLocationRequest from "@/components/vendor/BusinessLocationRequest
 import MenuBasicFields from "@/components/menu/MenuBasicFields";
 import { validateMenuDraft } from "@/lib/menuDraft";
 import { restaurantSaveErrorMessage } from "@/lib/restaurantSaveError";
+import { runRestaurantTransitions, type RestaurantAction } from "@/lib/restaurantOrderActions";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut, isRestaurantOwner } = useAuth();
@@ -801,6 +802,8 @@ const OwnerOrdersTab = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [busyOrders, setBusyOrders] = useState<string[]>([]);
+  const busyOrderIds = useRef(new Set<string>());
   const [dateFilter, setDateFilter] = useState(false);
   const [day, setDay] = useState<Date>(startOfDay(new Date()));
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
@@ -860,27 +863,26 @@ const OwnerOrdersTab = () => {
     return () => clearInterval(timer);
   }, [orders, triggerAlert]);
 
-  const updateStatus = async (order: any, status: string) => {
-    if (["delivered", "completed", "cancelled"].includes(order.status)) {
-      toast.error(tr("This order is closed — cannot move back to previous stage", "یہ آرڈر بند ہو چکا ہے — اسے واپس پچھلے مرحلے میں نہیں لے جا سکتے"));
-      return;
+  const updateStatus = async (order: any, action: RestaurantAction) => {
+    if (busyOrderIds.current.has(order.id)) return;
+    busyOrderIds.current.add(order.id);
+    setBusyOrders([...busyOrderIds.current]);
+    try {
+      await runRestaurantTransitions(order.status, action, !!order.rider_id, async (previous, next) => {
+        const { data, error } = await supabase.from("orders").update({ status: next })
+          .eq("id", order.id).eq("status", previous).select("id,status");
+        if (error) throw error;
+        if (!data?.length) throw new Error(tr("Order changed or could not be saved; refresh and retry", "آرڈر بدل گیا یا محفوظ نہیں ہوا؛ تازہ حالت دیکھ کر دوبارہ کوشش کریں"));
+        if (next === "confirmed" && order.restaurants?.auto_print) printOrderReceipt(order, "kitchen");
+      });
+      toast.success(tr("Status updated", "سٹیٹس اپڈیٹ ہو گئی"));
+    } catch (error) {
+      toast.error((error as { message?: string })?.message || tr("Could not save order", "آرڈر محفوظ نہیں ہوا"));
+    } finally {
+      busyOrderIds.current.delete(order.id);
+      setBusyOrders([...busyOrderIds.current]);
+      await fetchOrders();
     }
-    const allowedNext: Record<string, string[]> = {
-      pending: ["confirmed", "cancelled"],
-      confirmed: ["preparing", "cancelled"],
-      preparing: ["delivering", "cancelled"],
-      delivering: ["delivered"],
-    };
-    if (!allowedNext[order.status]?.includes(status)) {
-      toast.error(tr("Status can only move to the next stage", "سٹیٹس صرف اگلے مرحلے پر جا سکتا ہے"));
-      return;
-    }
-
-    const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
-    if (error) { toast.error(error.message); return; }
-    if (status === "confirmed" && order.restaurants?.auto_print) printOrderReceipt(order, "kitchen");
-    toast.success(tr("Status updated", "سٹیٹس اپڈیٹ ہو گئی"));
-    fetchOrders();
   };
 
   const statusColor = (s: string) => {
@@ -899,7 +901,7 @@ const OwnerOrdersTab = () => {
   const renderActive = (o: any) => {
     const deliveryMode = o.restaurants?.delivery_mode || "platform";
     const needsPlatformRider = deliveryMode === "platform";
-    const canSend = o.status === "preparing" && (!needsPlatformRider || o.rider_id);
+    const busy = busyOrders.includes(o.id);
     const restaurantCanFinish = o.status === "delivering" && (deliveryMode === "self" || (deliveryMode === "both" && !o.rider_id));
     return (
       <div key={o.id} className="rounded-lg border p-2.5 space-y-2">
@@ -964,43 +966,18 @@ const OwnerOrdersTab = () => {
         )}
 
         <div className="pt-1">
-          <div className="grid grid-cols-4 gap-1.5">
-            {[
-              { key: "confirmed", label: t("rest.stepAccept"), active: o.status === "pending", disabledReason: "" },
-              { key: "preparing", label: t("rest.stepPrepare"), active: o.status === "confirmed", disabledReason: "" },
-              { key: "delivering", label: t("rest.stepSend"), active: canSend, disabledReason: needsPlatformRider && !o.rider_id ? t("rest.needRiderFirst") : "" },
-              { key: "delivered", label: t("rest.stepDelivered"), active: restaurantCanFinish, disabledReason: o.rider_id ? t("rest.riderWillDo") : "" },
-            ].map((step) => {
-              const order = ["pending", "confirmed", "preparing", "delivering", "delivered"];
-              const currentIdx = order.indexOf(o.status);
-              const stepIdx = order.indexOf(step.key);
-              const isDone = currentIdx >= stepIdx;
-              return (
-                <Button
-                  key={step.key}
-                  type="button"
-                  variant="outline"
-                  disabled={!step.active}
-                  title={step.disabledReason}
-                  onClick={() => updateStatus(o, step.key)}
-                  className={`h-8 rounded-md border px-1.5 py-1 text-[10px] font-bold transition-all ${
-                    isDone
-                      ? "bg-success/20 border-success text-success"
-                      : step.active
-                        ? "bg-primary text-primary-foreground border-primary shadow-glow animate-pulse cursor-pointer"
-                        : "bg-muted border-border text-muted-foreground opacity-60 cursor-not-allowed"
-                  }`}
-                >
-                  {step.label}
-                </Button>
-              );
-            })}
+          <div className="flex flex-wrap gap-2">
+            {["pending", "confirmed"].includes(o.status) && <Button className="min-h-11 w-full text-xs" disabled={busy} onClick={() => void updateStatus(o, "accept")}>
+              {o.status === "pending" ? tr("Accept & start cooking", "قبول کریں اور تیاری شروع کریں") : tr("Resume preparation", "تیاری جاری کریں")}
+            </Button>}
+            {o.status === "preparing" && <Button className="min-h-11 w-full text-xs" disabled={busy} onClick={() => void updateStatus(o, "ready")}>{tr("Food packed & ready", "کھانا پیک اور تیار ہے")}</Button>}
+            {restaurantCanFinish && <Button className="min-h-11 w-full text-xs" disabled={busy} onClick={() => void updateStatus(o, "complete")}>{t("rest.stepDelivered")}</Button>}
           </div>
-          {needsPlatformRider && o.status === "preparing" && !o.rider_id && (
+          {needsPlatformRider && ["preparing", "delivering"].includes(o.status) && !o.rider_id && (
             <p className="text-[11px] text-muted-foreground mt-2">{t("rest.waitingRider")}</p>
           )}
           {o.status === "delivering" && o.rider_id && (
-            <p className="text-[11px] text-primary mt-2">{t("rest.handedToRider")}</p>
+            <p className="text-[11px] text-primary mt-2">{["picked_up", "arrived_customer", "delivered"].includes(o.delivery_stage) ? tr("Rider has picked up the order", "رائیڈر آرڈر وصول کر چکا ہے") : tr("Food ready — awaiting rider pickup", "کھانا تیار ہے — رائیڈر کی وصولی کا انتظار")}</p>
           )}
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => printOrderReceipt(o, "kitchen")}>{tr("🖨️ Kitchen Slip", "🖨️ کچن سلپ")}</Button>
@@ -1012,7 +989,7 @@ const OwnerOrdersTab = () => {
               }}>{tr("⏱️ +10 min delay", "⏱️ +10 منٹ تاخیر")}{o.delay_minutes ? ` (${o.delay_minutes})` : ""}</Button>
             )}
             {o.status !== "delivering" && (
-              <Button size="sm" variant="ghost" className="h-7 text-[10px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>
+              <Button size="sm" variant="ghost" disabled={busy} className="h-7 text-[10px] text-destructive" onClick={() => void updateStatus(o, "cancel")}>
                 {t("rest.cancelOrder")}
               </Button>
             )}
