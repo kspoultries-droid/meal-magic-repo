@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Circle, Clock, ChefHat, Bike, MapPin, Package, Star } from "lucide-react";
 import OrderReviewDialog from "@/components/orders/OrderReviewDialog";
 import CourierTimeline from "@/components/orders/CourierTimeline";
+import { isCourierShopOrder } from "@/lib/courier";
 import ReportProblemDialog from "@/components/support/ReportProblemDialog";
 import OrderChat from "@/components/orders/OrderChat";
 import GroceryOrderAdjustments from "@/components/grocery/GroceryOrderAdjustments";
@@ -164,6 +165,8 @@ const OrderTracking = () => {
   const isCancelled = ["cancelled", "returned_to_store"].includes(order.status);
   const locationFresh = !locationError && freshRiderLocation(rider?.location_updated_at, now);
   const riderPoint = locationFresh && Number.isFinite(rider?.lat) && Number.isFinite(rider?.lng) ? { lat: rider.lat, lng: rider.lng } : null;
+  // Intercity courier parcels have no live rider GPS; show the courier interface instead of rider map/steps.
+  const isCourier = isCourierShopOrder(kind, order);
   const destination = Number.isFinite(order.delivery_lat) && Number.isFinite(order.delivery_lng) ? { lat: order.delivery_lat, lng: order.delivery_lng } : null;
 
   return (
@@ -179,16 +182,17 @@ const OrderTracking = () => {
       <section className="bg-card px-5 py-5 border-b">
         <p className="text-xs text-muted-foreground mb-2">#{order.id.slice(0, 8)} · {new Date(order.created_at).toLocaleString("en-GB")}</p>
         {kind !== "food" && <p className="mb-2 font-bold">{order.grocery_stores?.name}</p>}
+        {kind === "grocery_cart" && <p className="mb-2 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-bold text-foreground">{isCourier ? L("Intercity courier delivery", "شہر سے باہر کوریئر ڈیلیوری") : L("Local rider delivery", "مقامی رائیڈر ڈیلیوری")}</p>}
         <h2 className={`text-xl font-bold ${isCancelled ? "text-destructive" : "text-primary"}`}>{isCancelled ? t("track.cancelled") : stepNote(currentStepIndex)}</h2>
         <div className="flex items-center gap-2 mt-4">
           {orderSteps.map((step, index) => <div key={step.key} className={`h-1 flex-1 rounded-full ${!isCancelled && index <= currentStepIndex ? "bg-primary" : "bg-border"}`} />)}
         </div>
-        <Button variant="link" className="px-0 mt-2 text-xs" onClick={() => document.getElementById("order-progress")?.scrollIntoView({behavior:"smooth"})}>{L("View delivery progress", "ڈیلیوری کے مراحل دیکھیں")}</Button>
-        {!isCancelled && !["delivered", "completed"].includes(order.status) && <Button variant="outline" size="sm" className="ms-3" onClick={() => setShowMap(!showMap)}><MapPin className="h-4 w-4 me-1"/>{showMap ? L("Hide map", "نقشہ چھپائیں") : L("Live map", "براہِ راست نقشہ")}</Button>}
+        <Button variant="link" className="px-0 mt-2 text-xs" onClick={() => document.getElementById(isCourier ? "courier-progress" : "order-progress")?.scrollIntoView({behavior:"smooth"})}>{L("View delivery progress", "ڈیلیوری کے مراحل دیکھیں")}</Button>
+        {!isCourier && !isCancelled && !["delivered", "completed"].includes(order.status) && <Button variant="outline" size="sm" className="ms-3" onClick={() => setShowMap(!showMap)}><MapPin className="h-4 w-4 me-1"/>{showMap ? L("Hide map", "نقشہ چھپائیں") : L("Live map", "براہِ راست نقشہ")}</Button>}
       </section>
 
       {/* Map area */}
-      {showMap && (order.rider_id && !["delivered", "completed", "cancelled", "returned_to_store"].includes(order.status) ? <div id="live-delivery-map" className="px-4 py-3"><LiveDeliveryRoute orderId={order.id} kind={kind} stage={order.delivery_stage || "assigned"} /></div> : <div className="h-64 bg-secondary relative">
+      {!isCourier && showMap && (order.rider_id && !["delivered", "completed", "cancelled", "returned_to_store"].includes(order.status) ? <div id="live-delivery-map" className="px-4 py-3"><LiveDeliveryRoute orderId={order.id} kind={kind} stage={order.delivery_stage || "assigned"} /></div> : <div className="h-64 bg-secondary relative">
         {(destination || riderPoint) ? (
           <DeliveryMap key={id} destination={destination} rider={riderPoint} />
         ) : order.delivery_address ? (
@@ -215,7 +219,7 @@ const OrderTracking = () => {
       </div>)}
 
       {/* Rider card */}
-      {rider && !["delivered", "completed", "cancelled"].includes(order.status) && (
+      {!isCourier && rider && !["delivered", "completed", "cancelled"].includes(order.status) && (
         <div className="mx-4 mt-4 rounded-lg border bg-card p-4 flex flex-wrap items-center gap-3 shadow-soft">
           <span className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <Bike className="w-5 h-5 text-primary" />
@@ -245,7 +249,7 @@ const OrderTracking = () => {
 
 
       {/* Courier shipment — name, tracking number, live timeline + history */}
-      {kind === "grocery_cart" && (order.delivery_method === "courier" || order.courier_name || order.tracking_number) && (
+      {isCourier && (
         <CourierTimeline
           orderId={order.id}
           courierName={order.courier_name}
@@ -260,7 +264,7 @@ const OrderTracking = () => {
 
       {/* Order Status Steps */}
 
-      <div id="order-progress" className="account-band px-5 py-5">
+      {!isCourier && <div id="order-progress" className="account-band px-5 py-5">
         <h2 className="text-lg font-extrabold text-foreground mb-6">
           {isCancelled ? `${t("track.cancelled")} ❌` : stepNote(currentStepIndex)}
         </h2>
@@ -294,7 +298,7 @@ const OrderTracking = () => {
             })}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Order Details */}
       <div className="account-band px-5 py-5">

@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Package, Truck, MapPin, CheckCircle2, RotateCcw, Clock } from "lucide-react";
-import { SHIPMENT_MESSAGES, SHIPMENT_STATUSES, shipmentRank } from "@/lib/courier";
+import { SHIPMENT_STATUSES, shipmentRank } from "@/lib/courier";
+import { tr } from "@/lib/i18n/tr";
+
+const LABELS: Record<string, [string, string]> = {
+  pending: ["Preparing parcel", "پارسل تیار ہو رہا ہے"],
+  dispatched: ["Handed to courier", "کوریئر کے حوالے"],
+  in_transit: ["In transit", "راستے میں"],
+  out_for_delivery: ["Out for delivery", "ڈیلیوری کے لیے نکل گیا"],
+  delivered: ["Delivered", "پہنچا دیا گیا"],
+  returned: ["Returned to sender", "واپس بھیج دیا گیا"],
+};
+const label = (v?: string | null) => (v && LABELS[v] ? tr(LABELS[v][0], LABELS[v][1]) : v || "—");
 
 const ICONS: Record<string, any> = {
   pending: Package,
@@ -62,7 +73,7 @@ const CourierTimeline = ({
 
   const currentRank = shipmentRank(shipmentStatus);
   const steps = SHIPMENT_STATUSES.filter((s) => s.value !== "returned");
-  const shipmentEvents = events.filter((e) => e.event_type !== "status" || true);
+  const shipmentEvents = events;
 
   const copy = async () => {
     if (!trackingNumber) return;
@@ -74,21 +85,22 @@ const CourierTimeline = ({
   };
 
   return (
-    <div className="mx-4 mt-4 rounded-2xl border bg-card p-4 shadow-soft space-y-4">
+    <div id="courier-progress" className="mx-4 mt-4 rounded-2xl border bg-card p-4 shadow-soft space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">کورئیر ڈلیوری</p>
-          <p className="font-extrabold text-foreground truncate">{courierName || "کورئیر مقرر نہیں"}</p>
+          <p className="text-xs text-muted-foreground">{tr("Courier shipment", "کوریئر شپمنٹ")}</p>
+          <p className="font-extrabold text-foreground truncate">{courierName || tr("Courier booking pending", "کوریئر بکنگ ابھی باقی ہے")}</p>
           {trackingNumber && (
             <button onClick={copy} className="mt-1 font-mono text-xs text-primary underline underline-offset-2">
-              #{trackingNumber} (کاپی کریں)
+              #{trackingNumber} ({tr("copy", "کاپی کریں")})
             </button>
           )}
           {paymentType && (
             <p className="mt-1 text-[11px] text-muted-foreground">
-              ادائیگی: {paymentType === "cod" ? "ڈلیوری پر (COD)" : paymentType === "advance" ? "ایڈوانس" : "جزوی ایڈوانس"}
+              {tr("Payment", "ادائیگی")}: {paymentType === "cod" ? tr("Cash on delivery", "ڈیلیوری پر نقد") : paymentType === "advance" ? tr("Advance", "ایڈوانس") : tr("Partial advance", "جزوی ایڈوانس")}
             </p>
           )}
+          {!trackingNumber && <p className="mt-1 text-[11px] text-muted-foreground">{tr("Tracking number appears after the shop books the courier.", "دکان کے کوریئر بُک کرنے کے بعد ٹریکنگ نمبر یہاں نظر آئے گا۔")}</p>}
         </div>
         {trackingUrl && (
           <a
@@ -97,7 +109,7 @@ const CourierTimeline = ({
             rel="noopener noreferrer"
             className="shrink-0 rounded-full bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
           >
-            ٹریک کریں
+            {tr("Track", "ٹریک کریں")}
           </a>
         )}
       </div>
@@ -123,35 +135,35 @@ const CourierTimeline = ({
                 )}
               </div>
               <div className="pt-1.5">
-                <p className={`text-sm font-bold ${done ? "text-foreground" : "text-muted-foreground"}`}>{s.label}</p>
-                {current && <p className="text-xs text-primary">{SHIPMENT_MESSAGES[s.value]}</p>}
+                <p className={`text-sm font-bold ${done ? "text-foreground" : "text-muted-foreground"}`}>{label(s.value)}</p>
+                {current && <p className="text-xs text-primary">{tr("Current step", "موجودہ مرحلہ")}</p>}
               </div>
             </div>
           );
         })}
         {shipmentStatus === "returned" && (
-          <p className="text-sm font-bold text-destructive">{SHIPMENT_MESSAGES.returned}</p>
+          <p className="text-sm font-bold text-destructive">{label("returned")}</p>
         )}
       </div>
 
       {/* Saved update history / receipt */}
       <div className="rounded-xl border bg-background p-3">
         <p className="mb-2 flex items-center gap-1.5 text-xs font-extrabold">
-          <Clock className="h-3.5 w-3.5" /> اپڈیٹس کی تاریخ
+          <Clock className="h-3.5 w-3.5" /> {tr("Update history", "اپڈیٹس کی تاریخ")}
         </p>
         {shipmentEvents.length === 0 ? (
-          <p className="text-xs text-muted-foreground">ابھی کوئی اپڈیٹ نہیں</p>
+          <p className="text-xs text-muted-foreground">{tr("No updates yet", "ابھی کوئی اپڈیٹ نہیں")}</p>
         ) : (
           <div className="space-y-2">
             {shipmentEvents.map((e) => (
               <div key={e.id} className="flex items-start justify-between gap-2 text-xs">
                 <span className="text-foreground">
                   {e.event_type === "courier"
-                    ? `ٹریکنگ نمبر: ${e.tracking_number}`
-                    : SHIPMENT_MESSAGES[e.to_value] || `${e.from_value || "—"} → ${e.to_value}`}
+                    ? `${tr("Tracking number", "ٹریکنگ نمبر")}: ${e.tracking_number}`
+                    : LABELS[e.to_value] ? label(e.to_value) : `${e.from_value || "—"} → ${e.to_value}`}
                 </span>
                 <span className="shrink-0 text-muted-foreground">
-                  {new Date(e.created_at).toLocaleString("ur-PK", { dateStyle: "short", timeStyle: "short" })}
+                  {new Date(e.created_at).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" })}
                 </span>
               </div>
             ))}

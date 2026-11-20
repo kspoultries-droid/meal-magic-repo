@@ -78,3 +78,10 @@ export const retryDelaySeconds = (attempts: number): number =>
   Math.min(60 * 60, Math.round(30 * Math.pow(2, Math.max(0, attempts))));
 
 export const MAX_COURIER_RETRIES = 6;
+
+/** True when a shop order travels by intercity courier (no live rider GPS). */
+export const isCourierShopOrder = (
+  kind: string,
+  order: { delivery_method?: string | null; courier_name?: string | null; tracking_number?: string | null } | null | undefined
+): boolean =>
+  kind === "grocery_cart" && !!order && (order.delivery_method === "courier" || !!order.courier_name || !!order.tracking_number);
