@@ -2,8 +2,9 @@
 -- Purpose: customers cannot set profiles.phone_verified themselves; changing phone resets it.
 -- Only server-side code (real OTP verification, service role) may set phone_verified = true.
 -- Rollback: DROP TRIGGER guard_phone_verified_trigger ON public.profiles; DROP FUNCTION public.guard_phone_verified();
+-- Review fix: SECURITY INVOKER is required; under SECURITY DEFINER current_user is the owner and the guard would never fire.
 CREATE OR REPLACE FUNCTION public.guard_phone_verified()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path = public AS $$
 BEGIN
   IF current_user IN ('authenticated','anon') THEN
     IF TG_OP = 'INSERT' THEN
