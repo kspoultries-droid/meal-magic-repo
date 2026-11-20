@@ -11,6 +11,7 @@ import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import PhotoTips from "@/components/media/PhotoTips";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import ProductQuickFill from "@/components/grocery/ProductQuickFill";
+import { isFreshFoodCategory } from "@/lib/productFormFields";
 import { tr } from "@/lib/i18n/tr";
 import BannerPicker from "@/components/media/BannerPicker";
 
@@ -144,6 +145,8 @@ const StoreBanner = ({
   const productCategories = Array.from(new Set([...groceryCategories, "Electronics", "Mobiles", "Clothing", "Shoes", "Home & Kitchen", "Beauty", "Sports", "Toys", "Hardware", "Other"]));
   const isClothingCat = ["Clothing", "Shoes"].includes(newProduct.category);
   const isTechCat = ["Electronics", "Mobiles"].includes(newProduct.category);
+  // Fresh/prepared food: no barcode, SKU, material, warranty or parcel class.
+  const isFoodCat = isFreshFoodCategory(newProduct.category);
 
   const updateStore = async (updates: Record<string, any>) => {
     const { error } = await supabase.from("grocery_stores").update(updates).eq("id", storeId);
@@ -414,13 +417,13 @@ const StoreBanner = ({
                 <DialogHeader><DialogTitle>{tr("Add product", "نئی پروڈکٹ")}</DialogTitle></DialogHeader>
                 <div className="space-y-3">
                   <p className="rounded-lg bg-primary/5 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">یہ فارم <b>ایک</b> چیز کے لیے ہے۔ سینکڑوں اشیا ایک ساتھ ڈالنے کے لیے <b>اسٹاک</b> ٹیب سے Excel/CSV امپورٹ یا <b>AI مددگار</b> استعمال کریں۔</p>
-                  <ProductQuickFill categories={productCategories} onFill={(patch) => setNewProduct((prev: any) => {
+                  {!isFoodCat && <ProductQuickFill categories={productCategories} onFill={(patch) => setNewProduct((prev: any) => {
                     const { imageFiles, extraSpecs, ...rest } = patch;
                     const clean = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined && v !== ""));
                     return { ...prev, ...clean, catalog_item_id: patch.catalog_item_id === undefined ? prev.catalog_item_id : patch.catalog_item_id,
                       catalogImages: patch.catalogImages ?? (patch.catalog_item_id === null ? [] : prev.catalogImages),
                       extraSpecs: extraSpecs ?? prev.extraSpecs, imageFiles: imageFiles?.length ? [...(prev.imageFiles || []), ...imageFiles].slice(0, 8) : prev.imageFiles };
-                  })} />
+                  })} />}
                   {newProduct.catalogImages?.length > 0 && <div className="flex gap-1.5 overflow-x-auto">{newProduct.catalogImages.map((u: string) => <img key={u} src={u} alt="" className="h-14 w-14 shrink-0 rounded-md border object-contain bg-muted" />)}<p className="self-center text-[10px] text-muted-foreground">تصدیق شدہ اصل تصاویر لگ جائیں گی</p></div>}<div className="space-y-2 rounded-lg border bg-muted/40 p-2"><label className="text-xs font-bold">{tr("Product photos (up to 8)", "پروڈکٹ کی تصاویر (8 تک)")}</label><p className="text-[10px] text-muted-foreground">{tr("Take every angle: front, back, side, close-up, box/accessories.", "ہر زاویہ لیں: سامنے، پیچھے، سائیڈ، قریب سے، ڈبہ/چارجر۔")}</p><ProductPhotoUploader multiple label={tr("Add photos", "تصاویر شامل کریں")} onDone={(photos) => setNewProduct((previous: any) => ({ ...previous, imageFiles: [...(previous.imageFiles || []), ...photos.map((photo) => photo.file)].slice(0, 8) }))} />{newProduct.imageFiles?.length > 0 && <div className="flex gap-1.5 overflow-x-auto">{newProduct.imageFiles.map((f: File, i: number) => <div key={i} className="relative shrink-0"><img src={URL.createObjectURL(f)} alt="" className="h-14 w-14 rounded-md border bg-card object-contain" /><button type="button" aria-label="remove" onClick={() => setNewProduct((prev: any) => ({ ...prev, imageFiles: prev.imageFiles.filter((_: File, j: number) => j !== i) }))} className="absolute -right-1 -top-1 h-5 w-5 rounded-full bg-destructive text-[10px] text-destructive-foreground">✕</button></div>)}</div>}<PhotoTips /></div>
                   {newProduct.extraSpecs && Object.keys(newProduct.extraSpecs).length > 0 && <div className="rounded-lg border bg-card p-2 text-[11px]">{Object.entries(newProduct.extraSpecs).map(([k, v]) => <div key={k} className="flex items-center gap-1"><span className="w-24 shrink-0 text-muted-foreground">{k}</span><input className="flex-1 rounded border bg-background px-1 py-0.5" value={String(v)} onChange={(e) => setNewProduct((prev: any) => ({ ...prev, extraSpecs: { ...prev.extraSpecs, [k]: e.target.value } }))} /></div>)}</div>}
                   <div className="grid gap-2 sm:grid-cols-2">
@@ -432,17 +435,17 @@ const StoreBanner = ({
                     <Input placeholder="اسٹاک / Stock" type="number" value={newProduct.stock_qty} onChange={(e) => setNewProduct({...newProduct, stock_qty: e.target.value})} />
                   </div>
                   <datalist id="unit-options"><option value="piece" /><option value="kg" /><option value="g" /><option value="litre" /><option value="ml" /><option value="dozen" /><option value="pack" /><option value="box" /><option value="meter" /><option value="set" /></datalist>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  {!isFoodCat && <div className="grid gap-2 sm:grid-cols-2">
                     <Input placeholder="ڈیلیوری وزن / Weight (kg)" type="number" step="0.1" min="0.1" value={newProduct.weight_kg} onChange={(e) => setNewProduct({...newProduct, weight_kg: e.target.value})} />
                     <select className="w-full rounded-md border bg-background p-2 text-sm text-foreground" value={newProduct.shipping_class} onChange={(e) => setNewProduct({...newProduct, shipping_class: e.target.value})}><option value="standard">عام پارسل / Standard</option><option value="fragile">نازک / Fragile</option><option value="bulk">بلک / Bulk</option><option value="oversized">بڑا سامان / Oversized</option></select>
-                  </div>
+                  </div>}
                   {isClothingCat && (
                     <div><p className="mb-2 text-xs font-extrabold text-foreground">لباس / جوتے — سائز اور رنگ</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="سائز / Sizes — S, M, L, 40, 41" value={newProduct.sizes} onChange={(e) => setNewProduct({...newProduct, sizes: e.target.value})} /><Input placeholder="رنگ / Colours — کالا, سفید" value={newProduct.colors} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value})} /><Input placeholder="مواد / Material" value={newProduct.material} onChange={(e) => setNewProduct({...newProduct, material: e.target.value})} /></div></div>
                   )}
                   {isTechCat && (
                     <div><p className="mb-2 text-xs font-extrabold text-foreground">بجلی / موبائل — specifications</p><div className="grid gap-2 sm:grid-cols-2"><Input placeholder="برانڈ / Brand" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} /><Input placeholder="SKU / ماڈل نمبر" value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} /><Input placeholder="وولٹیج / Voltage" value={newProduct.voltage} onChange={(e) => setNewProduct({...newProduct, voltage: e.target.value})} /><Input placeholder="پاور / Power (e.g. 400W)" value={newProduct.power || ""} onChange={(e) => setNewProduct({...newProduct, power: e.target.value})} /><Input placeholder="وارنٹی / Warranty (e.g. 1 year)" value={newProduct.warranty || ""} onChange={(e) => setNewProduct({...newProduct, warranty: e.target.value})} /><Input placeholder="موبائل اسکرین سائز" value={newProduct.screen_size} onChange={(e) => setNewProduct({...newProduct, screen_size: e.target.value})} /><Input placeholder="RAM" value={newProduct.ram} onChange={(e) => setNewProduct({...newProduct, ram: e.target.value})} /><Input placeholder="Storage / میموری" value={newProduct.storage} onChange={(e) => setNewProduct({...newProduct, storage: e.target.value})} /></div></div>
                   )}
-                  <details className="rounded-lg border border-border/60 p-3">
+                  {isFoodCat ? <Textarea placeholder={tr("Description — size, flavour, ingredients", "تفصیل — سائز، ذائقہ، اجزاء")} rows={3} value={newProduct.description || ""} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} /> : <details className="rounded-lg border border-border/60 p-3">
                     <summary className="cursor-pointer text-xs font-bold text-muted-foreground">مزید تفصیل (اختیاری) — برانڈ، ماڈل، tags، مکمل تفصیل، تصویر لنک</summary>
                     <div className="mt-3 space-y-2">
                       {!isTechCat && <div className="grid gap-2 sm:grid-cols-2"><Input placeholder="برانڈ / Brand" value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} /><Input placeholder="SKU / ماڈل نمبر" value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} /></div>}
@@ -451,7 +454,7 @@ const StoreBanner = ({
                       <Input placeholder="Tags — نیا, premium, wholesale" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
                       <Input placeholder="تصویر URL / Image URL (optional)" value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
                     </div>
-                  </details>
+                  </details>}
                   {!newProduct.catalog_item_id && newProduct.imageFiles?.length > 0 && <label className="flex items-center gap-2 text-[11px] text-muted-foreground"><input type="checkbox" checked={newProduct.suggestToCatalog !== false} onChange={(e) => setNewProduct({ ...newProduct, suggestToCatalog: e.target.checked })} /> میری تصویر معیاری فہرست کے لیے بھیجیں (ایڈمن منظوری کے بعد دوسری دکانوں کے کام آئے گی)</label>}
                   <Button disabled={savingProduct} onClick={async () => { if (savingProduct) return; setSavingProduct(true); try { await addProduct(); } finally { setSavingProduct(false); } }} className="w-full">{savingProduct ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{tr("Saving...", "محفوظ ہو رہا ہے...")}</> : tr("Save product", "پروڈکٹ محفوظ کریں")}</Button>
                 </div>
