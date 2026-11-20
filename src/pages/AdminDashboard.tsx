@@ -36,6 +36,7 @@ import PartnerDeliveryJobs from "@/components/admin/PartnerDeliveryJobs";
 import RiderOperationsPanel from "@/components/admin/RiderOperationsPanel";
 import { riderPresenceFresh } from "@/lib/riderOperations";
 import CitySettingsTab from "@/components/admin/CitySettingsTab";
+import CityCoverageTab from "@/components/admin/CityCoverageTab";
 import DeliveryRatesTab from "@/components/admin/DeliveryRatesTab";
 import AuditLogTab from "@/components/admin/AuditLogTab";
 import VouchersTab from "@/components/admin/VouchersTab";
@@ -186,7 +187,7 @@ const AdminDashboard = () => {
           </TabsContent>}
 
           {can("settings") && <TabsContent value="settings" className="admin-compact">
-            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{isAdmin && <TabsTrigger value="my-businesses">{tr("My Businesses", "میرے کاروبار")}</TabsTrigger>}{isAdmin && <TabsTrigger value="company">{tr("Company Info", "کمپنی معلومات")}</TabsTrigger>}{isAdmin && <TabsTrigger value="catalog">{tr("Standard Menu", "معیاری فہرست")}</TabsTrigger>}<TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList>{isAdmin && <TabsContent value="my-businesses"><MyBusinessesTab /></TabsContent>}{isAdmin && <TabsContent value="company"><CompanySettingsTab /></TabsContent>}{isAdmin && <TabsContent value="catalog"><CatalogManagerTab /></TabsContent>}<TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
+            <Tabs value={settingsTab} onValueChange={setSettingsTab}><TabsList className="admin-subtabs mb-3 flex h-auto w-full justify-start gap-1 overflow-x-auto no-scrollbar bg-muted/60 p-1">{isAdmin && <TabsTrigger value="my-businesses">{tr("My Businesses", "میرے کاروبار")}</TabsTrigger>}{isAdmin && <TabsTrigger value="company">{tr("Company Info", "کمپنی معلومات")}</TabsTrigger>}{isAdmin && <TabsTrigger value="catalog">{tr("Standard Menu", "معیاری فہرست")}</TabsTrigger>}<TabsTrigger value="city-coverage">{tr("City Coverage", "شہر وار کوریج")}</TabsTrigger><TabsTrigger value="city-settings">{t("admin.citySettings")}</TabsTrigger><TabsTrigger value="delivery-rates">{t("admin.deliveryRates")}</TabsTrigger><TabsTrigger value="cities">{t("admin.cities")}</TabsTrigger></TabsList>{isAdmin && <TabsContent value="my-businesses"><MyBusinessesTab /></TabsContent>}{isAdmin && <TabsContent value="company"><CompanySettingsTab /></TabsContent>}{isAdmin && <TabsContent value="catalog"><CatalogManagerTab /></TabsContent>}<TabsContent value="city-coverage"><CityCoverageTab /></TabsContent><TabsContent value="city-settings"><CitySettingsTab /></TabsContent><TabsContent value="delivery-rates"><DeliveryRatesTab /></TabsContent><TabsContent value="cities"><CitiesTab /></TabsContent></Tabs>
           </TabsContent>}
         </Tabs>
       </div>
