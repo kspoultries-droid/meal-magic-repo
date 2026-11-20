@@ -9,7 +9,6 @@ import { summarizeCity, type WarningCode } from "@/lib/cityCoverage";
 
 const WARN: Record<WarningCode, [string, string]> = {
   no_riders: ["No registered riders in this city", "اس شہر میں کوئی رجسٹرڈ رائیڈر نہیں"],
-  radius_unrealistic: ["Local delivery radius is unrealistically large — review in City Settings", "مقامی ڈیلیوری کا دائرہ غیر حقیقی حد تک بڑا ہے — سٹی سیٹنگز میں درست کریں"],
   shops_missing_pin: ["Some shops have no pickup location pin", "کچھ دکانوں کا پک اپ مقام (پن) موجود نہیں"],
   nationwide_without_courier_rates: ["Nationwide shops exist but no verified courier rate or route", "ملک گیر دکانیں ہیں مگر کوئی تصدیق شدہ کوریئر ریٹ یا روٹ نہیں"],
   advance_without_gateway: ["Advance payment is set but no online payment gateway exists — such orders fail", "ایڈوانس ادائیگی مقرر ہے مگر آن لائن ادائیگی کا نظام موجود نہیں — ایسے آرڈر ناکام ہوں گے"],

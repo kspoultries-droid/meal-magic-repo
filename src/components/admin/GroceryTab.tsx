@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { shopDeliveryStatus } from "@/lib/shopDeliveryStatus";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -35,6 +36,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [showAddStore, setShowAddStore] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", category: "General", unit: "kg" });
+  const [cityNames, setCityNames] = useState<Record<string, string>>({});
   const [newStore, setNewStore] = useState({ name: "", category: "General", delivery_time: "20-30 min", image_url: "", store_type: "retail", ships_nationwide: false, shop_category: "" });
   const [shopCats, setShopCats] = useState<any[]>([]);
 
@@ -60,6 +62,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
   const fetchData = async () => {
     setLoading(true);
+    supabase.from("cities").select("id,name").then(({ data }) => setCityNames(Object.fromEntries((data || []).map((c: any) => [c.id, c.name]))));
     let query = supabase.from("grocery_stores").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: false });
     if (activeCategory) query = query.eq("category", activeCategory);
     const { data: storesData } = await query;
@@ -250,6 +253,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                   <TableHead>{tr("Image", "تصویر")}</TableHead>
                   <TableHead>{tr("Name", "نام")}</TableHead>
                   <TableHead>{tr("Category", "کیٹیگری")}</TableHead>
+                  <TableHead>{tr("Delivery", "ڈیلیوری")}</TableHead>
                   <TableHead>{tr("Fee", "فیس")}</TableHead>
                   <TableHead>{tr("Status", "حالت")}</TableHead>
                   <TableHead>{tr("Active", "ایکٹو")}</TableHead>
@@ -334,6 +338,16 @@ ${tr("Share this link with your customers!", "یہ لنک اپنے کسٹمرز 
                       )}
                     </TableCell>
 
+                    <TableCell data-label={tr("Delivery", "ڈیلیوری")}>
+                      {(() => { const d = shopDeliveryStatus(s); return (
+                        <div className="flex flex-wrap gap-1 text-[11px]" data-testid="shop-delivery">
+                          <Badge variant="outline">{cityNames[s.city_id] || tr("No city", "شہر نہیں")}</Badge>
+                          <Badge variant="secondary">{tr("Local rider", "مقامی رائیڈر")}</Badge>
+                          {d.modes.includes("courier") && <Badge variant="secondary">{tr("Nationwide courier — booking API pending", "ملک گیر کوریئر — بکنگ API زیرِ التوا")}</Badge>}
+                          {d.flags.includes("no_pin") && <Badge variant="destructive">{tr("No pickup pin", "پک اپ پن نہیں")}</Badge>}
+                          {d.flags.includes("advance_needs_gateway") && <Badge variant="destructive">{tr(`Advance ${s.advance_percent}% — payment gateway pending`, `ایڈوانس ${s.advance_percent}% — ادائیگی گیٹ وے زیرِ التوا`)}</Badge>}
+                        </div>); })()}
+                    </TableCell>
                     <TableCell data-label={tr("Fee", "فیس")}>
                       <div className="flex items-center gap-1">
                         <span className="font-semibold text-sm">Rs {s.monthly_fee || 0}</span>

@@ -3,10 +3,7 @@ export interface CoverageCity { id: string; name: string; food_enabled: boolean;
 export interface CoverageShop { city_id: string | null; is_active: boolean | null; ships_nationwide: boolean | null; pickup_lat: number | null; pickup_lng: number | null; advance_percent: number | null }
 export interface CoverageRate { city_id: string | null; mode: string; is_active: boolean | null }
 export interface CoverageRoute { from_city_id: string | null; is_active: boolean | null }
-export type WarningCode = "no_riders" | "radius_unrealistic" | "shops_missing_pin" | "nationwide_without_courier_rates" | "advance_without_gateway" | "courier_text_only" | "no_local_rate";
-
-/** Local radius above this is not a believable rider radius and is flagged for review. */
-export const MAX_REALISTIC_LOCAL_KM = 50;
+export type WarningCode = "no_riders" | "shops_missing_pin" | "nationwide_without_courier_rates" | "advance_without_gateway" | "courier_text_only" | "no_local_rate";
 
 export const summarizeCity = (c: CoverageCity, shops: CoverageShop[], rates: CoverageRate[], routes: CoverageRoute[], riderCount: number) => {
   const mine = shops.filter((s) => s.city_id === c.id);
@@ -18,7 +15,6 @@ export const summarizeCity = (c: CoverageCity, shops: CoverageShop[], rates: Cov
   const advanceShops = mine.filter((s) => Number(s.advance_percent) > 0).length;
   const warnings: WarningCode[] = [];
   if (riderCount === 0) warnings.push("no_riders");
-  if (Number(c.grocery_max_km) > MAX_REALISTIC_LOCAL_KM) warnings.push("radius_unrealistic");
   if (missingPin > 0) warnings.push("shops_missing_pin");
   if (nationwide > 0 && courierRates + activeRoutes === 0) warnings.push("nationwide_without_courier_rates");
   if (advanceShops > 0 || Number(c.courier_advance_percent) > 0) warnings.push("advance_without_gateway");

@@ -6,7 +6,6 @@ const shop = { city_id: "k", is_active: true, ships_nationwide: false, pickup_la
 const rate = { city_id: "k", mode: "rider", is_active: true };
 
 describe("summarizeCity", () => {
-  it("flags a 1000 km local radius as unrealistic", () => expect(summarizeCity({ ...city, grocery_max_km: 1000 }, [shop], [rate], [], 1).warnings).toContain("radius_unrealistic"));
   it("flags a city with no riders", () => expect(summarizeCity(city, [shop], [rate], [], 0).warnings).toContain("no_riders"));
   it("flags nationwide shops with no verified courier rate or route", () => expect(summarizeCity(city, [{ ...shop, ships_nationwide: true }], [rate], [], 1).warnings).toContain("nationwide_without_courier_rates"));
   it("does not flag nationwide shops when an active route exists", () => expect(summarizeCity(city, [{ ...shop, ships_nationwide: true }], [rate], [{ from_city_id: "k", is_active: true }], 1).warnings).not.toContain("nationwide_without_courier_rates"));
