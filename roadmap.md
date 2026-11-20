@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Alfalah and nationwide launch audit
+- [x] Align Alfalah test city with its existing Khairpur pin through the authorized audited relocation action; enable nationwide test shipping and set shop advance to 0.
+- [x] Exercise temporary-customer checkout, actual order creation, confirmation, tracking and authorized cancellation for explicit Khairpur/RYK destinations; verify payment cancellation and run 40 delivery/cart tests.
+- [x] Reproduce mismatched destination city/address and writable phone_verified; report courier booking, rates/routes, city settings, payment/OTP and launch-readiness gaps in docs/delivery-payment-otp-audit-2026-11-20.md. This request audits other gaps; it does not implement those redesigns.
+- [ ] Provider/hardware end-to-end certification — requires courier/payment/SMS account configuration and actual parcels, bank remittances and Android/rider devices; source/database/browser checks are not that certification.
+
 ## Current QA sweep — Floating shopping controls
 - [x] Reproduce and separate AI helper from grocery/Bazar cart; 18 cart tests and authenticated mobile/desktop EN/UR cart readback passed.
 - [x] Read route registration, restaurant/product/standalone cart actions, drawer/menu overlays, navigation, sharing, APK notices and checkout/confirmation controls; no server-side layout path exists.
