@@ -90,14 +90,17 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     [newStores[idx], newStores[swapIdx]] = [newStores[swapIdx], newStores[idx]];
     setStores(newStores);
 
-    await Promise.all([
+    const results = await Promise.all([
       supabase.from("grocery_stores").update({ sort_order: newOrderA }).eq("id", stores[idx].id),
       supabase.from("grocery_stores").update({ sort_order: newOrderB }).eq("id", stores[swapIdx].id),
     ]);
+    const failed = results.find((r) => r.error);
+    if (failed?.error) { toast.error(failed.error.message); fetchData(); }
   };
 
   const toggleStoreActive = async (id: string, current: boolean) => {
-    await supabase.from("grocery_stores").update({ is_active: !current }).eq("id", id);
+    const { error } = await supabase.from("grocery_stores").update({ is_active: !current }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
     toast.success(tr("Updated", "اپڈیٹ ہو گیا / Updated"));
     fetchData();
   };
@@ -274,7 +277,7 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
                           const newName = prompt(tr("New Name:", "نیا نام:"), s.name);
                           if (newName && newName.trim()) {
-                            supabase.from("grocery_stores").update({ name: newName.trim() }).eq("id", s.id).then(() => { toast.success(tr("Update Name", "نام اپڈیٹ")); fetchData(); });
+                            supabase.from("grocery_stores").update({ name: newName.trim() }).eq("id", s.id).then(({ error }) => { if (error) { toast.error(error.message); fetchData(); return; } toast.success(tr("Update Name", "نام اپڈیٹ")); fetchData(); });
                           }
                         }}>
                           <Pencil className="h-3 w-3" />
@@ -354,7 +357,7 @@ ${tr("Share this link with your customers!", "یہ لنک اپنے کسٹمرز 
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
                           const fee = prompt(tr("Set Monthly Fee (Rs):", "ماہانہ فیس سیٹ کریں (Rs):"), String(s.monthly_fee || 0));
                           if (fee !== null) {
-                            supabase.from("grocery_stores").update({ monthly_fee: Number(fee) || 0 }).eq("id", s.id).then(() => { toast.success(tr("Update Fee", "فیس اپڈیٹ")); fetchData(); });
+                            supabase.from("grocery_stores").update({ monthly_fee: Number(fee) || 0 }).eq("id", s.id).then(({ error }) => { if (error) { toast.error(error.message); fetchData(); return; } toast.success(tr("Update Fee", "فیس اپڈیٹ")); fetchData(); });
                           }
                         }}>
                           <Pencil className="h-3 w-3" />
@@ -366,7 +369,7 @@ ${tr("Share this link with your customers!", "یہ لنک اپنے کسٹمرز 
                           const pct = prompt(tr("Advance % for New Customers (0-100):", "نئے کسٹمر سے ایڈوانس فیصد (0-100):"), String(s.advance_percent || 0));
                           if (pct !== null) {
                             const val = Math.min(100, Math.max(0, Number(pct) || 0));
-                            supabase.from("grocery_stores").update({ advance_percent: val } as any).eq("id", s.id).then(() => { toast.success(tr("Update Advance", "ایڈوانس اپڈیٹ")); fetchData(); });
+                            supabase.from("grocery_stores").update({ advance_percent: val } as any).eq("id", s.id).then(({ error }) => { if (error) { toast.error(error.message); fetchData(); return; } toast.success(tr("Update Advance", "ایڈوانس اپڈیٹ")); fetchData(); });
                           }
                         }}>
                           <Pencil className="h-3 w-3" />
@@ -377,7 +380,7 @@ ${tr("Share this link with your customers!", "یہ لنک اپنے کسٹمرز 
                         <button className="text-muted-foreground hover:text-foreground" onClick={() => {
                           const min = prompt(tr("Minimum Order Limit (Rs):", "کم از کم آرڈر لمٹ (Rs):"), String((s as any).minimum_order || 0));
                           if (min !== null) {
-                            supabase.from("grocery_stores").update({ minimum_order: Number(min) || 0 } as any).eq("id", s.id).then(() => { toast.success(tr("Update Minimum Order", "کم از کم آرڈر اپڈیٹ")); fetchData(); });
+                            supabase.from("grocery_stores").update({ minimum_order: Number(min) || 0 } as any).eq("id", s.id).then(({ error }) => { if (error) { toast.error(error.message); fetchData(); return; } toast.success(tr("Update Minimum Order", "کم از کم آرڈر اپڈیٹ")); fetchData(); });
                           }
                         }}>
                           <Pencil className="h-3 w-3" />
@@ -417,21 +420,21 @@ ${tr("Share this link with your customers!", "یہ لنک اپنے کسٹمرز 
                               <DropdownMenuItem className="text-yellow-700" onSelect={() => {
                                 const msg = prompt(tr("Write warning message:", "وارننگ پیغام لکھیں:"), tr("Payment is due. Please pay soon.", "ادائیگی واجب الادا ہے۔ براہ کرم جلد ادائیگی کریں۔"));
                                 if (msg !== null) {
-                                  supabase.from("grocery_stores").update({ subscription_status: 'warned', warning_message: msg }).eq("id", s.id).then(() => { toast.success(tr("Warning sent", "وارننگ بھیج دی")); fetchData(); });
+                                  supabase.from("grocery_stores").update({ subscription_status: 'warned', warning_message: msg }).eq("id", s.id).then(({ error }) => { if (error) { toast.error(error.message); fetchData(); return; } toast.success(tr("Warning sent", "وارننگ بھیج دی")); fetchData(); });
                                 }
                               }}><AlertTriangle className="me-2 h-3.5 w-3.5" />{tr("Send warning", "وارننگ بھیجیں")}</DropdownMenuItem>
                             )}
                             {(s.subscription_status === 'active' || s.subscription_status === 'warned') && (
                               <DropdownMenuItem className="text-destructive" onSelect={() => {
                                 if (!window.confirm(tr("Are you sure you want to suspend the store? It will not be visible to customers.", "کیا واقعی اسٹور معطل کرنا ہے؟ کسٹمرز کو نظر نہیں آئے گا۔"))) return;
-                                supabase.from("grocery_stores").update({ subscription_status: 'paused' }).eq("id", s.id).then(() => { toast.success(tr("Store suspended", "اسٹور معطل ہو گیا")); fetchData(); });
+                                supabase.from("grocery_stores").update({ subscription_status: 'paused' }).eq("id", s.id).then(({ error }) => { if (error) { toast.error(error.message); fetchData(); return; } toast.success(tr("Store suspended", "اسٹور معطل ہو گیا")); fetchData(); });
                               }}><PauseCircle className="me-2 h-3.5 w-3.5" />{tr("Suspend subscription", "رکنیت معطل کریں")}</DropdownMenuItem>
                             )}
                             {(s.subscription_status === 'warned' || s.subscription_status === 'paused') && (
                               <DropdownMenuItem onSelect={() => {
                                 const paidUntil = prompt(tr("Payment due date? (YYYY-MM-DD):", "ادائیگی کب تک ہے؟ (YYYY-MM-DD):"), new Date(Date.now() + 30*86400000).toISOString().split("T")[0]);
                                 if (paidUntil) {
-                                  supabase.from("grocery_stores").update({ subscription_status: 'active', warning_message: null, fee_paid_until: paidUntil }).eq("id", s.id).then(() => { toast.success(tr("Store activated", "اسٹور فعال ہو گیا")); fetchData(); });
+                                  supabase.from("grocery_stores").update({ subscription_status: 'active', warning_message: null, fee_paid_until: paidUntil }).eq("id", s.id).then(({ error }) => { if (error) { toast.error(error.message); fetchData(); return; } toast.success(tr("Store activated", "اسٹور فعال ہو گیا")); fetchData(); });
                                 }
                               }}><PlayCircle className="me-2 h-3.5 w-3.5" />{tr("Renew subscription", "رکنیت بحال کریں")}</DropdownMenuItem>
                             )}

@@ -2,6 +2,7 @@
 -- Bug: guard_business_identity reads NEW.category on restaurants (no such column). PL/pgSQL does not
 -- short-circuit field lookups, so EVERY non-admin restaurant owner update fails
 -- (timing, open/close, delivery mode, print, tax, busy end). Admin saves are unaffected (early return).
+-- Also blocks customer food reviews: trg_recalc_rest_rating updates restaurants.rating under the customer uid (0 food reviews exist).
 -- Fix: read grocery-only fields through jsonb inside a table-specific branch.
 -- Rollback: re-create the previous body (saved in docs/pending-sql/phase1-02 rollback note below).
 CREATE OR REPLACE FUNCTION public.guard_business_identity()
