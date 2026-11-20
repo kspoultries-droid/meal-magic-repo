@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current step — Safe dispatch interface (frontend only)
+- [x] Separate persisted courier orders from local rider controls in admin dispatch; no delivery mode conversion, rates or database changes.
+- [x] Make the existing manual CN dialog bilingual and truthful about pending API booking; preserve server authorization and snapshots.
+- [x] Run 260 automated tests and authenticated live empty-list plus isolated EN/UR mobile/desktop save/readback browser checks; read-only backend verification and provider/hardware limits reported in docs/safe-dispatch-ui-2026-11-20.md. Phone security remains open.
+- [ ] Later phases remain required: verified serviceability/rates, courier/OTP/payment architecture and activation, city settings and settlement; backend writes are blocked by the standing database freeze.
+
 ## Current request — Alfalah and nationwide launch audit
 - [x] Align Alfalah test city with its existing Khairpur pin through the authorized audited relocation action; enable nationwide test shipping and set shop advance to 0.
 - [x] Exercise temporary-customer checkout, actual order creation, confirmation, tracking and authorized cancellation for explicit Khairpur/RYK destinations; verify payment cancellation and run 40 delivery/cart tests.

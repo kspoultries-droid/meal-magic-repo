@@ -10,6 +10,7 @@ import { RefreshCw, Truck } from "lucide-react";
 import CourierShipmentDialog from "@/components/orders/CourierShipmentDialog";
 import { AdminListTools } from "./AdminListTools";
 import { groceryReady, riderPresenceFresh } from "@/lib/riderOperations";
+import { dispatchInterface } from "@/lib/courier";
 
 const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
   const toRad = (v: number) => (v * Math.PI) / 180;
@@ -94,6 +95,7 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
   };
 
   const assign = async (table: "grocery_cart_orders" | "grocery_list_orders", order: any, riderId: string) => {
+    if (!dispatchInterface(table === "grocery_cart_orders" ? "grocery_cart" : "grocery_list", order).showRiderControls) return;
     const fee = Number(fees[order.id] ?? order.delivery_fee ?? 0) || 0;
     const kind = table === "grocery_cart_orders" ? "grocery_cart" : "grocery_list";
     const { error } = await (supabase.rpc as any)("admin_offer_order_to_rider", {
@@ -134,7 +136,9 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
     fetchAll();
   };
 
-  const renderOrder = (o: any, table: "grocery_cart_orders" | "grocery_list_orders", label: string) => (
+  const renderOrder = (o: any, table: "grocery_cart_orders" | "grocery_list_orders", label: string) => {
+    const delivery = dispatchInterface(table === "grocery_cart_orders" ? "grocery_cart" : "grocery_list", o);
+    return (
     <div key={o.id} className="border rounded-lg px-3 py-2 space-y-2">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex min-w-0 items-center gap-2">
@@ -144,17 +148,18 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px]">{label}</Badge>
+          <Badge variant="outline" className="text-[10px]">{delivery.mode === "courier" ? tr("Courier", "کوریئر") : delivery.mode === "local" ? tr("Local rider", "مقامی رائیڈر") : tr("Delivery mode: review pending", "ترسیل کا طریقہ: جائزہ زیرِ التوا")}</Badge>
           <Badge className="text-[10px]">{o.status}</Badge>
           {isStale(o) && <Badge variant="destructive" className="text-[10px]">{tr("⚠️ Over 2 hours", "⚠️ 2 گھنٹے سے زائد")}</Badge>}
-          {!o.rider_id && o.dispatch_state === "searching" && <Badge variant="outline" className="text-[10px]">{tr("Offer sent", "آفر بھیجی گئی")}</Badge>}
-          {!o.rider_id && o.dispatch_state === "stuck" && <Badge variant="destructive" className="text-[10px]">{tr("Action required", "توجہ درکار")}</Badge>}
+          {delivery.showRiderControls && !o.rider_id && o.dispatch_state === "searching" && <Badge variant="outline" className="text-[10px]">{tr("Offer sent", "آفر بھیجی گئی")}</Badge>}
+          {delivery.showRiderControls && !o.rider_id && o.dispatch_state === "stuck" && <Badge variant="destructive" className="text-[10px]">{tr("Action required", "توجہ درکار")}</Badge>}
         </div>
       </div>
       <div className="grid gap-1 text-xs text-muted-foreground">
-        <p>🏪 Pickup: <span className="font-bold text-foreground">{o.grocery_stores?.name || tr("Store", "اسٹور")}</span></p>
-        <p>📍 Dropoff: {o.delivery_address || tr("Unknown", "پتہ نہیں")}</p>
+        <p className="break-words">🏪 {tr("Pickup:", "پک اپ:")} <span className="font-bold text-foreground">{o.grocery_stores?.name || tr("Store", "اسٹور")}</span></p>
+        <p className="break-words">📍 {tr("Dropoff:", "منزل:")} {o.delivery_address || tr("Unknown", "پتہ نہیں")}</p>
       </div>
-      {!o.rider_id && o.dispatch_state === "stuck" && (
+      {delivery.showRiderControls && !o.rider_id && o.dispatch_state === "stuck" && (
         <p className="rounded-md bg-destructive/10 px-2 py-1 text-[11px] font-bold text-destructive">
           {Number(o.total_amount) > 20000
             ? tr("Auto-dispatch stopped: order cash is above the rider cash limit (Rs 20,000). Assign a trusted rider manually.", "خودکار رائیڈر رک گیا: آرڈر کی رقم رائیڈر کی کیش حد (Rs 20,000) سے زیادہ ہے۔ کسی بھروسہ مند رائیڈر کو خود مقرر کریں۔")
@@ -162,14 +167,14 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
         </p>
       )}
       <div className="flex flex-wrap gap-2">
-        {o.picked_up_at && o.delivery_stage !== "return_pending" ? (
+        {delivery.showRiderControls && o.picked_up_at && o.delivery_stage !== "return_pending" ? (
           <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => forceDeliver(table, o)}>{tr("Mark delivered", "ڈیلیور ہو گیا")}</Button>
         ) : !o.picked_up_at ? (<>
-          {!o.rider_id && expanded !== o.id && <Button size="sm" className="h-7 text-xs" onClick={() => setExpanded(o.id)}>{tr("Assign rider", "رائیڈر مقرر کریں")}</Button>}
+          {delivery.showRiderControls && !o.rider_id && expanded !== o.id && <Button size="sm" className="h-7 text-xs" onClick={() => setExpanded(o.id)}>{tr("Assign rider", "رائیڈر مقرر کریں")}</Button>}
           <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => cancelOrder(table, o)}>{tr("Cancel order", "آرڈر منسوخ کریں")}</Button>
-        </>) : (
+        </>) : delivery.showRiderControls ? (
           <p className="text-xs text-warning">{tr("Return in progress — confirm in Rider Operations", "واپسی جاری — رائیڈر آپریشنز میں تصدیق کریں")}</p>
-        )}
+        ) : null}
       </div>
 
       {expanded === o.id && <>
@@ -182,25 +187,27 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
         </div>
       )}
 
-      {table === "grocery_cart_orders" && (
+      {delivery.mode === "courier" && (
         <div className="rounded-lg border bg-background px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
-          <div className="text-xs">
+          <div className="min-w-0 break-words text-xs">
             <p className="font-bold">{tr("🚚 Courier shipment", "🚚 کورئیر شپمنٹ")}</p>
             {o.tracking_number ? (
               <p className="text-muted-foreground">
                 {o.courier_name} · {o.tracking_number} · {o.shipment_status || "—"} · {o.courier_payment_type === "cod" ? "COD" : tr("Advance", "ایڈوانس")}
               </p>
             ) : (
-              <p className="text-muted-foreground">{tr("No shipments created yet", "ابھی کوئی شپمنٹ نہیں بنی")}</p>
+              <p className="text-muted-foreground">{tr("Awaiting actual courier booking / CN", "اصل کوریئر بکنگ / CN کا انتظار")}</p>
             )}
+            <p className="mt-1 text-warning">{tr("API booking: Pending · Manual record", "API بکنگ: زیرِ التوا · دستی ریکارڈ")}</p>
           </div>
-          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setShipOrder(o)}>
-            <Truck className="h-3 w-3" /> {o.tracking_number ? tr("Update", "اپڈیٹ") : tr("Create Shipment", "شپمنٹ بنائیں")}
-          </Button>
+          {delivery.canRecordShipment ? <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setShipOrder(o)}>
+            <Truck className="h-3 w-3" /> {o.tracking_number ? tr("Update courier record", "کوریئر ریکارڈ بدلیں") : tr("Record actual CN", "اصل CN درج کریں")}
+          </Button> : <Badge variant="outline">{tr("Snapshot review pending", "محفوظ ترسیل کا جائزہ زیرِ التوا")}</Badge>}
         </div>
       )}
+      {delivery.mode === "unknown" && <p className="text-xs text-warning">{tr("Delivery service review pending", "ڈیلیوری سروس کا جائزہ زیرِ التوا")}</p>}
 
-      {o.rider_id ? (
+      {delivery.showRiderControls && (o.rider_id ? (
         <p className="text-xs text-muted-foreground">
           {tr("🏍️ Rider:", "🏍️ رائیڈر:")} <span className="font-bold">{riderName(o.rider_id)}</span>
           {riderPhone(o.rider_id) && ` · 📞 ${riderPhone(o.rider_id)}`} {tr("· Delivery Fee Rs", "· ڈلیوری فیس Rs")} {o.delivery_fee || 0}
@@ -235,10 +242,11 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
             ))
           )}
         </div>
-      )}
+      ))}
       </>}
     </div>
-  );
+    );
+  };
 
   const matches = (o: any) => `${o.id} ${o.grocery_stores?.name || ""} ${o.delivery_address || ""}`.toLowerCase().includes(query.trim().toLowerCase());
   const filteredCart = cartOrders.filter(matches);

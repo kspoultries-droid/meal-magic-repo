@@ -85,3 +85,18 @@ export const isCourierShopOrder = (
   order: { delivery_method?: string | null; courier_name?: string | null; tracking_number?: string | null } | null | undefined
 ): boolean =>
   kind === "grocery_cart" && !!order && (order.delivery_method === "courier" || !!order.courier_name || !!order.tracking_number);
+
+/** Display routing only: never infer or write a new delivery mode from distance/city. */
+export const dispatchInterface = (
+  kind: "grocery_cart" | "grocery_list",
+  order: { delivery_method?: string | null; courier_name?: string | null; tracking_number?: string | null },
+) => {
+  const courier = isCourierShopOrder(kind, order);
+  const local = !courier && (kind === "grocery_list" || order.delivery_method === "local_rider");
+  return {
+    mode: courier ? "courier" as const : local ? "local" as const : "unknown" as const,
+    showRiderControls: local,
+    // Legacy courier evidence is visible, but fixed local/unknown snapshots cannot be converted.
+    canRecordShipment: courier && order.delivery_method === "courier",
+  };
+};
