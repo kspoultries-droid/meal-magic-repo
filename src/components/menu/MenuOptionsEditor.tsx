@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
+import { tr } from "@/lib/i18n/tr";
 
 export interface VariantRow { id: string; label: string; price: number }
 export interface ChoiceRow { id: string; label: string; price_delta: number }
@@ -16,19 +17,15 @@ export const VariantsEditor = ({ value, onChange }: { value: VariantRow[]; onCha
     <div className="border rounded-lg p-3 space-y-2 bg-secondary/30">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-bold">اضافی سائز / وزن (اختیاری)</p>
-          <p className="text-[11px] text-muted-foreground">
-            اوپر والی بنیادی قیمت اور وزن گاہک کو پہلے سے نظر آئے گا۔ یہاں صرف <b>اضافی</b> سائز لکھیں،
-            مثلاً "آدھا کلو — 1300"۔ ضرورت نہ ہو تو خالی چھوڑ دیں۔
-          </p>
+          <p className="text-sm font-bold">{tr("Additional sizes (optional)", "اضافی سائز (اختیاری)")}</p>
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={add}><Plus className="h-3 w-3 mr-1" /> سائز</Button>
+        <Button type="button" size="sm" variant="outline" onClick={add}><Plus className="h-3 w-3 mr-1" /> {tr("Size", "سائز")}</Button>
       </div>
       {(value || []).map((v, i) => (
         <div key={v.id} className="flex gap-2">
-          <Input placeholder="مثلاً آدھا کلو / 6 پیس" value={v.label} onChange={(e) => update(i, { label: e.target.value })} />
-          <Input type="number" placeholder="قیمت" value={v.price || ""} onChange={(e) => update(i, { price: Number(e.target.value) })} className="w-28" />
-          <Button type="button" size="sm" variant="ghost" onClick={() => remove(i)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+          <Input aria-label={tr("Additional size", "اضافی سائز")} placeholder={tr("e.g. 6 pieces", "مثلاً 6 عدد")} value={v.label} onChange={(e) => update(i, { label: e.target.value })} />
+          <Input type="number" aria-label={tr("Size price", "سائز کی قیمت")} placeholder={tr("Price", "قیمت")} value={v.price || ""} onChange={(e) => update(i, { price: Number(e.target.value) })} className="w-24 shrink-0" />
+          <Button type="button" size="sm" variant="ghost" aria-label={tr("Remove size", "سائز ہٹائیں")} onClick={() => remove(i)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
         </div>
       ))}
     </div>
@@ -63,42 +60,39 @@ export const OptionGroupsEditor = ({ value, onChange }: { value: OptionGroupRow[
     <div className="border rounded-lg p-3 space-y-3 bg-secondary/30">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-bold">ایکسٹرا / فلیورز (اختیاری)</p>
-          <p className="text-[11px] text-muted-foreground">
-            <b>گروپ کا نام</b> = سوال (مثلاً "ایکسٹرا کیا چاہیے؟" یا "مرچ")۔ <b>چوائس</b> = اُس کے جواب
-            (نان +30، رائتہ +80، سلاد +50)۔ نیچے سے طے کریں کہ گاہک کے لیے یہ لازمی ہے یا نہیں۔
-          </p>
+          <p className="text-sm font-bold">{tr("Extras / flavours (optional)", "ایکسٹرا / فلیورز (اختیاری)")}</p>
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={addGroup}><Plus className="h-3 w-3 mr-1" /> گروپ</Button>
+        <Button type="button" size="sm" variant="outline" onClick={addGroup}><Plus className="h-3 w-3 mr-1" /> {tr("Group", "گروپ")}</Button>
       </div>
       {(value || []).map((g, gi) => (
         <div key={g.id} className="border rounded-md p-2 bg-background space-y-2">
           <div className="flex gap-2 items-center">
-            <Input placeholder="گروپ کا نام (مثلاً ایکسٹرا)" value={g.name} onChange={(e) => updateGroup(gi, { name: e.target.value })} className="flex-1" />
-            <Button type="button" size="sm" variant="ghost" onClick={() => removeGroup(gi)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+            <Input aria-label={tr("Group name", "گروپ کا نام")} placeholder={tr("Group name (e.g. toppings)", "گروپ کا نام (مثلاً ٹاپنگ)")} value={g.name} onChange={(e) => updateGroup(gi, { name: e.target.value })} className="flex-1" />
+            <Button type="button" size="sm" variant="ghost" aria-label={tr("Remove group", "گروپ ہٹائیں")} onClick={() => removeGroup(gi)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
           </div>
           <select
             className="w-full border rounded-md p-2 bg-background text-sm"
+            aria-label={tr("Selection requirement", "انتخاب کی شرط")}
             value={presetOf(g)}
             onChange={(e) => updateGroup(gi, applyPreset(g, e.target.value as Preset))}
           >
-            <option value="optional-many">اختیاری — گاہک جتنے چاہے منتخب کرے (یا کوئی نہیں)</option>
-            <option value="optional-one">اختیاری — زیادہ سے زیادہ ایک</option>
-            <option value="required-one">لازمی — ایک منتخب کرنا ضروری</option>
-            <option value="required-many">لازمی — کم از کم ایک، کئی منتخب ہو سکتے ہیں</option>
+            <option value="optional-many">{tr("Optional — multiple", "اختیاری — متعدد")}</option>
+            <option value="optional-one">{tr("Optional — at most 1", "اختیاری — زیادہ سے زیادہ 1")}</option>
+            <option value="required-one">{tr("Required — exactly 1", "لازمی — صرف 1")}</option>
+            <option value="required-many">{tr("Required — at least 1", "لازمی — کم از کم 1")}</option>
           </select>
           <div className="space-y-1.5 pl-2 border-l-2 border-primary/30">
             {g.choices.map((c, ci) => (
               <div key={c.id} className="flex gap-2">
-                <Input placeholder="چوائس (مثلاً نان)" value={c.label} onChange={(e) => {
+                <Input aria-label={tr("Choice name", "چوائس کا نام")} placeholder={tr("Choice (e.g. cheese)", "چوائس (مثلاً چیز)")} value={c.label} onChange={(e) => {
                   const choices = g.choices.map((x, idx) => idx === ci ? { ...x, label: e.target.value } : x);
                   updateGroup(gi, { choices });
                 }} />
-                <Input type="number" placeholder="+ / − Rs" value={c.price_delta || ""} onChange={(e) => {
+                <Input type="number" aria-label={tr("Extra price", "اضافی قیمت")} placeholder="+ / − Rs" value={c.price_delta || ""} onChange={(e) => {
                   const choices = g.choices.map((x, idx) => idx === ci ? { ...x, price_delta: Number(e.target.value) } : x);
                   updateGroup(gi, { choices });
                 }} className="w-24" />
-                <Button type="button" size="sm" variant="ghost" onClick={() => {
+                <Button type="button" size="sm" variant="ghost" aria-label={tr("Remove choice", "چوائس ہٹائیں")} onClick={() => {
                   updateGroup(gi, { choices: g.choices.filter((_, idx) => idx !== ci) });
                 }}><Trash2 className="h-3 w-3 text-destructive" /></Button>
               </div>
@@ -107,7 +101,7 @@ export const OptionGroupsEditor = ({ value, onChange }: { value: OptionGroupRow[
               const choices = [...g.choices, { id: uid(), label: "", price_delta: 0 }];
               const grown = g.max >= g.choices.length ? { max: Math.max(choices.length, g.max) } : {};
               updateGroup(gi, { choices, ...grown });
-            }}><Plus className="h-3 w-3 mr-1" /> چوائس</Button>
+            }}><Plus className="h-3 w-3 mr-1" /> {tr("Choice", "چوائس")}</Button>
           </div>
         </div>
       ))}

@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Bake House food-only cleanup
+- [x] Improve the existing food menu add/edit form for bakery sizes, categories and safe saves; preserve custom categories and normal restaurant options.
+- [x] Run 273 automated regression tests and 4 isolated authenticated EN/UR mobile/desktop browser add/edit/readback checks with extra sizes/toppings and invalid-price rejection; no live orders or data writes.
+- [ ] Remove the grocery listing and replace the unrelated menu only after the standing database freeze exception and safe ownership/product transfer are resolved. Preserve historical orders and original products; do not delete business records.
+- [x] Report backend read-only findings, physical delivery limits and the open phone security issue separately in docs/bake-house-food-readiness-2026-11-20.md.
+
 ## Current step — Safe dispatch interface (frontend only)
 - [x] Separate persisted courier orders from local rider controls in admin dispatch; no delivery mode conversion, rates or database changes.
 - [x] Make the existing manual CN dialog bilingual and truthful about pending API booking; preserve server authorization and snapshots.

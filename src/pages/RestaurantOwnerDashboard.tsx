@@ -34,6 +34,8 @@ import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigat
 import { useQueryClient } from "@tanstack/react-query";
 import RestaurantSelfSetup from "@/components/vendor/RestaurantSelfSetup";
 import BusinessLocationRequest from "@/components/vendor/BusinessLocationRequest";
+import MenuBasicFields from "@/components/menu/MenuBasicFields";
+import { validateMenuDraft } from "@/lib/menuDraft";
 
 const RestaurantOwnerDashboard = () => {
   const { user, loading, signOut, isRestaurantOwner } = useAuth();
@@ -450,6 +452,7 @@ const MenuTab = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [savingItem, setSavingItem] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", price: "", unit: "", category: "Main", image_url: "" });
   const [uploading, setUploading] = useState(false);
   const [formVariants, setFormVariants] = useState<VariantRow[]>([]);
@@ -526,13 +529,17 @@ const MenuTab = () => {
   };
 
   const addItem = async () => {
-    if (!form.name || !form.price) { toast.error(tr("Name and price are required", "نام اور قیمت درکار ہے")); return; }
+    if (savingItem || uploading) return;
+    const invalid = validateMenuDraft(form, selectedRest);
+    if (invalid) { toast.error(invalid === "restaurant" ? tr("Select restaurant first", "پہلے ریسٹورنٹ منتخب کریں") : tr("Enter an item name and a positive price", "آئٹم کا نام اور 0 سے زیادہ قیمت درج کریں")); return; }
+    setSavingItem(true);
+    try {
     const { error } = await supabase.from("menu_items").insert({
       restaurant_id: selectedRest,
-      name: form.name,
-      description: form.description,
+      name: form.name.trim(),
+      description: form.description.trim(),
       price: Number(form.price),
-      category: form.category || "Main",
+      category: form.category.trim() || "Main",
       image_url: form.image_url,
       variants: buildVariants(form.unit, form.price, formVariants) as any,
       option_groups: sanitizeGroups(formGroups) as any,
@@ -543,16 +550,22 @@ const MenuTab = () => {
     setForm({ name: "", description: "", price: "", unit: "", category: "Main", image_url: "" });
     setFormVariants([]); setFormGroups([]);
     fetchMenu();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tr("Item could not be saved", "آئٹم محفوظ نہیں ہو سکی"));
+    } finally { setSavingItem(false); }
   };
 
   const toggleAvailability = async (id: string, current: boolean) => {
-    await supabase.from("menu_items").update({ is_available: !current }).eq("id", id);
+    const { error } = await supabase.from("menu_items").update({ is_available: !current }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
     toast.success(tr("Updated", "اپڈیٹ ہو گیا"));
     fetchMenu();
   };
 
   const deleteItem = async (id: string) => {
-    await supabase.from("menu_items").delete().eq("id", id);
+    if (!window.confirm(tr("Delete this menu item? This cannot be undone.", "یہ مینو آئٹم حذف کریں؟ اسے واپس نہیں لایا جا سکے گا۔"))) return;
+    const { error } = await supabase.from("menu_items").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
     toast.success(tr("Deleted", "حذف ہو گیا"));
     fetchMenu();
   };
@@ -572,12 +585,15 @@ const MenuTab = () => {
   };
 
   const saveEdit = async () => {
-    if (!editForm.name || !editForm.price) { toast.error(tr("Name and price are required", "نام اور قیمت درکار ہے")); return; }
+    if (savingItem || uploading || !editItem) return;
+    if (validateMenuDraft(editForm, selectedRest)) { toast.error(tr("Enter an item name and a positive price", "آئٹم کا نام اور 0 سے زیادہ قیمت درج کریں")); return; }
+    setSavingItem(true);
+    try {
     const { error } = await supabase.from("menu_items").update({
-      name: editForm.name,
-      description: editForm.description,
+      name: editForm.name.trim(),
+      description: editForm.description.trim(),
       price: Number(editForm.price),
-      category: editForm.category,
+      category: editForm.category.trim() || "Main",
       image_url: editForm.image_url,
       variants: buildVariants(editForm.unit, editForm.price, editVariants) as any,
       option_groups: sanitizeGroups(editGroups) as any,
@@ -586,6 +602,9 @@ const MenuTab = () => {
     toast.success(tr("Item updated!", "آئٹم اپڈیٹ ہو گئی!"));
     setEditItem(null);
     fetchMenu();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tr("Item could not be saved", "آئٹم محفوظ نہیں ہو سکی"));
+    } finally { setSavingItem(false); }
   };
 
   const categories = Array.from(new Set(menuItems.map((m) => m.category || "Main")));
@@ -631,21 +650,14 @@ const MenuTab = () => {
           toast.success(tr(`${items.length} items added to the menu`, `${items.length} آئٹمز مینو میں شامل ہو گئے`));
           fetchMenu();
         }} />
-        <Dialog open={showAdd} onOpenChange={setShowAdd}>
+        <Dialog open={showAdd} onOpenChange={open => { if (!savingItem && !uploading) setShowAdd(open); }}>
           <DialogTrigger asChild>
             <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {t("rest.newItem")}</Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{t("rest.newMenuItem")}</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              <Input placeholder={t("rest.itemName")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <Input placeholder={t("rest.description")} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder={t("rest.price")} type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-                <Input placeholder={t("rest.unit")} value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
-              </div>
-              <p className="text-[11px] text-muted-foreground">{t("rest.baseHint")}</p>
-              <Input placeholder={t("rest.categoryPlaceholder")} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+              <MenuBasicFields value={form} onChange={setForm} />
               <div className="space-y-2">
                 <Input placeholder={t("rest.imageUrl")} value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
                 <ProductPhotoUploader onDone={async (photos) => {
@@ -659,7 +671,7 @@ const MenuTab = () => {
               </div>
               <VariantsEditor value={formVariants} onChange={setFormVariants} />
               <OptionGroupsEditor value={formGroups} onChange={setFormGroups} />
-              <Button className="w-full" onClick={addItem}>{t("rest.add")}</Button>
+              <Button className="w-full" disabled={savingItem || uploading} onClick={addItem}>{savingItem ? tr("Saving…", "محفوظ ہو رہا ہے…") : t("rest.add")}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -721,7 +733,7 @@ const MenuTab = () => {
                   </TableCell>
                   <TableCell className="flex gap-1">
                     <Button size="icon" variant={featured.includes(m.id) ? "default" : "outline"} className="h-7 w-7 shrink-0" disabled={savingFeatured} title={tr("Main dish", "مرکزی ڈش")} aria-label={`${m.name} ${tr("Main dish", "مرکزی ڈش")}`} aria-pressed={featured.includes(m.id)} onClick={() => void toggleFeatured(m)}><Star className={`h-3.5 w-3.5 ${featured.includes(m.id) ? "fill-current" : ""}`} /></Button>
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openEdit(m)}>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" aria-label={`${m.name} ${tr("Edit", "ترمیم")}`} onClick={() => openEdit(m)}>
                       <Pencil className="h-3 w-3" />
                     </Button>
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleAvailability(m.id, m.is_available)}>
@@ -739,17 +751,11 @@ const MenuTab = () => {
         )}
 
         {/* Edit Dialog */}
-        <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
+        <Dialog open={!!editItem} onOpenChange={(open) => { if (!open && !savingItem && !uploading) setEditItem(null); }}>
           <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{t("rest.editItem")}</DialogTitle></DialogHeader>
             <div className="space-y-3">
-              <Input placeholder={t("rest.itemName")} value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
-              <Input placeholder={t("rest.description")} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder={t("rest.price")} type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
-                <Input placeholder={t("rest.unit")} value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} />
-              </div>
-              <Input placeholder={t("rest.category")} value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} />
+              <MenuBasicFields value={editForm} onChange={setEditForm} />
               <div className="space-y-2">
                 <Input placeholder={t("rest.imageUrl")} value={editForm.image_url} onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })} />
                 <ProductPhotoUploader onDone={async (photos) => {
@@ -768,7 +774,7 @@ const MenuTab = () => {
               </div>
               <VariantsEditor value={editVariants} onChange={setEditVariants} />
               <OptionGroupsEditor value={editGroups} onChange={setEditGroups} />
-              <Button className="w-full" onClick={saveEdit}>{t("rest.update")}</Button>
+              <Button className="w-full" disabled={savingItem || uploading} onClick={saveEdit}>{savingItem ? tr("Saving…", "محفوظ ہو رہا ہے…") : t("rest.update")}</Button>
             </div>
           </DialogContent>
         </Dialog>
