@@ -1,0 +1,45 @@
+Support view grocery cart orders|SELECT|(has_permission(auth.uid(), 'orders'::text) AND staff_city_allowed(COALESCE(city_id, ( SELECT grocery_stores.city_id
+   FROM grocery_stores
+  WHERE (grocery_stores.id = grocery_cart_orders.store_id)))))|
+Customers create grocery cart orders|INSERT||(auth.uid() = customer_id)
+staff grocery orders read|SELECT|(has_permission(auth.uid(), 'orders'::text) AND staff_city_allowed(COALESCE(city_id, ( SELECT grocery_stores.city_id
+   FROM grocery_stores
+  WHERE (grocery_stores.id = grocery_cart_orders.store_id)))))|
+Admins manage cities|ALL|has_role(auth.uid(), 'admin'::app_role)|has_role(auth.uid(), 'admin'::app_role)
+Anyone can view cities|SELECT|true|
+Admins can view all profiles|SELECT|has_role(auth.uid(), 'admin'::app_role)|
+Users can update own profile|UPDATE|(auth.uid() = id)|
+Users can view own profile|SELECT|(auth.uid() = id)|
+Admins manage all grocery stores|ALL|has_role(auth.uid(), 'admin'::app_role)|has_role(auth.uid(), 'admin'::app_role)
+Anyone can view all grocery stores|SELECT|true|
+Owners manage own grocery stores|ALL|(auth.uid() = owner_id)|(auth.uid() = owner_id)
+Customers view own grocery cart orders|SELECT|(auth.uid() = customer_id)|
+Store owners manage grocery cart orders|ALL|(EXISTS ( SELECT 1
+   FROM grocery_stores
+  WHERE ((grocery_stores.id = grocery_cart_orders.store_id) AND (grocery_stores.owner_id = auth.uid()))))|(EXISTS ( SELECT 1
+   FROM grocery_stores
+  WHERE ((grocery_stores.id = grocery_cart_orders.store_id) AND (grocery_stores.owner_id = auth.uid()))))
+Admins manage grocery cart orders|ALL|has_role(auth.uid(), 'admin'::app_role)|has_role(auth.uid(), 'admin'::app_role)
+Support view all grocery stores|SELECT|(has_permission(auth.uid(), 'partners'::text) AND staff_city_allowed(city_id))|
+staff stores update|UPDATE|(has_permission(auth.uid(), 'partners'::text) AND staff_city_allowed(city_id))|(has_permission(auth.uid(), 'partners'::text) AND staff_city_allowed(city_id))
+Users can create own profile|INSERT||(auth.uid() = id)
+Riders view assigned grocery cart orders|SELECT|(has_role(auth.uid(), 'rider'::app_role) AND ((rider_id = auth.uid()) OR ((rider_id IS NULL) AND (delivery_method = 'rider'::text) AND (status = ANY (ARRAY['confirmed'::text, 'preparing'::text, 'ready'::text, 'delivering'::text, 'out_for_delivery'::text])))))|
+Riders update own grocery cart orders|UPDATE|((rider_id = auth.uid()) AND has_role(auth.uid(), 'rider'::app_role))|(rider_id = auth.uid())
+Mechanics view their booking customers|SELECT|(has_role(auth.uid(), 'mechanic'::app_role) AND (EXISTS ( SELECT 1
+   FROM service_bookings b
+  WHERE ((b.customer_id = profiles.id) AND mechanic_can_access_booking(auth.uid(), b.id)))))|
+Service managers view their category customers|SELECT|(has_role(auth.uid(), 'service_manager'::app_role) AND (EXISTS ( SELECT 1
+   FROM (service_bookings b
+     JOIN services s ON ((s.id = b.service_id)))
+  WHERE ((b.customer_id = profiles.id) AND manages_category(auth.uid(), s.category_id)))))|
+Scoped staff related profiles|SELECT|(((has_permission(auth.uid(), 'riders'::text) OR has_permission(auth.uid(), 'dispatch'::text) OR has_permission(auth.uid(), 'finance'::text)) AND (EXISTS ( SELECT 1
+   FROM riders r
+  WHERE ((r.id = profiles.id) AND staff_city_allowed(r.city_id))))) OR (has_permission(auth.uid(), 'orders'::text) AND ((EXISTS ( SELECT 1
+   FROM orders o
+  WHERE ((o.customer_id = profiles.id) AND staff_city_allowed(o.city_id)))) OR (EXISTS ( SELECT 1
+   FROM grocery_cart_orders o
+  WHERE ((o.customer_id = profiles.id) AND staff_city_allowed(o.city_id)))) OR (EXISTS ( SELECT 1
+   FROM service_bookings b
+  WHERE ((b.customer_id = profiles.id) AND staff_city_allowed(b.city_id)))))) OR (has_permission(auth.uid(), 'partners'::text) AND (EXISTS ( SELECT 1
+   FROM partner_applications a
+  WHERE ((a.user_id = profiles.id) AND staff_application_allowed(a.id))))) OR staff_vendor_allowed(id))|
