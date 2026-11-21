@@ -1,4 +1,5 @@
 import { tr } from "@/lib/i18n/tr";
+import { foodCancellationAvailable } from "@/lib/foodOperations";
 import TicketsQueue from "@/components/support/TicketsQueue";
 import BusinessLocationDialog from "@/components/admin/BusinessLocationDialog";
 import { staffWorkspace, staffLanding } from "@/lib/staffAccess";
@@ -482,6 +483,9 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [cancelOrder, setCancelOrder] = useState<any>(null);
+  const [cancelNote, setCancelNote] = useState("");
+  const [cancelling, setCancelling] = useState(false);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
   const fetchOrders = async (showLoading = true) => {
@@ -562,12 +566,16 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       toast.error(tr("Admin will only assign rider or emergency cancel; status will be managed by restaurant/rider", "ایڈمن صرف rider assign یا emergency cancel کرے گا؛ status ریسٹورنٹ/رائیڈر چلائیں گے"));
       return;
     }
-    const note = window.prompt(tr("Cancellation reason (e.g. test order, customer refused)", "منسوخی کی وجہ (مثلاً ٹیسٹ آرڈر، گاہک نے انکار کیا)"));
-    if (!note || note.trim().length < 3) return;
-    const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: "food", _order_id: order.id, _note: note });
-    if (error) { toast.error(error.message); return; }
-    toast.success(tr("Status updated", "سٹیٹس اپڈیٹ ہو گئی"));
-    fetchOrders();
+    if (cancelling || !foodCancellationAvailable(order) || cancelNote.trim().length < 3) return;
+    setCancelling(true);
+    try {
+      const { error } = await (supabase as any).rpc("staff_cancel_order", { _kind: "food", _order_id: order.id, _note: cancelNote.trim() });
+      if (error) throw error;
+      toast.success(tr("Order cancelled", "آرڈر منسوخ ہو گیا"));
+      setCancelOrder(null);
+      await fetchOrders();
+    } catch (error) { toast.error((error as Error).message); }
+    finally { setCancelling(false); }
   };
 
   const forceDeliver = async (order: any) => {
@@ -656,17 +664,18 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
         <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filteredOrders.length} />
         <div className="mb-2 flex gap-1">{[["all", tr("All", "سب")], ["open", tr("Open", "جاری")], ["closed", tr("Closed", "بند")]].map(([value, label]) => <Button key={value} size="sm" variant={statusFilter === value ? "default" : "outline"} onClick={() => { setStatusFilter(value); setPage(1); }}>{label}</Button>)}</div>
         {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {orders.length === 0 && <p className="text-center text-muted-foreground py-8">{tr("No orders", "کوئی آرڈر نہیں")}</p>}
             {filteredOrders.slice((page - 1) * 20, page * 20).map((o) => {
               const deliveryMode = o.restaurants?.delivery_mode || "platform";
               const nearestRiders = getNearestRiders(o);
-              const isClosed = ["delivered", "completed", "cancelled"].includes(o.status);
+              const isClosed = ["delivered", "completed", "cancelled", "returned_to_store"].includes(o.status);
               const needsRider = deliveryMode !== "self" && ["confirmed", "preparing", "delivering"].includes(o.status) && !o.rider_id;
               const cust = customerOf(o);
               const dispatch = offerInfo(o.id);
               return (
-                <div key={o.id} className="rounded-lg border px-2.5 py-2 space-y-1.5">
+                <div key={o.id} className="min-w-0 rounded-lg border px-3 py-3 space-y-2">
+                  <p className="truncate text-sm font-semibold">{o.restaurants?.name || tr("Restaurant", "ریسٹورنٹ")}</p>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-[11px] text-muted-foreground">#{o.id.slice(0, 8)}</span>
                     <span className="font-bold text-xs">Rs {o.total_amount}</span>
@@ -677,7 +686,8 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                     <span className="text-[10px] font-bold">{cust.name}{cust.phone ? ` · ${cust.phone}` : ""}</span>
                     {o.rider_id && <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{getRiderName(o.rider_id)}</Badge>}
                     {deliveryMode === "self" && <Badge variant="outline" className="h-5 px-1.5 text-[10px]">{tr("Self delivery", "خود ڈلیوری")}</Badge>}
-                     <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("ur-PK")}</span>
+                     <span className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString("en-GB")}</span>
+                    {canCancel && !isClosed && <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-destructive" onClick={() => { setCancelNote(""); setCancelOrder(o); }}>{tr("Cancel order", "آرڈر منسوخ کریں")}</Button>}
                     {canDispatch && needsRider && (
                       <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => setExpandedOrder(o.id)}>{tr("Manual assign", "دستی تفویض")}</Button>
                     )}
@@ -739,9 +749,6 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                         {canDispatch && !isClosed && o.picked_up_at && o.delivery_stage !== "return_pending" && (
                           <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => forceDeliver(o)}>{tr("Mark delivered", "ڈیلیور ہو گیا")}</Button>
                         )}
-                        {canCancel && !isClosed && !o.picked_up_at && o.status !== "delivering" && (
-                          <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-destructive" onClick={() => updateStatus(o, "cancelled")}>{tr("Cancel order", "آرڈر منسوخ کریں")}</Button>
-                        )}
                       </div>
                     </div>
                   )}
@@ -752,6 +759,17 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
           </div>
         )}
         <AdminPagination page={page} count={filteredOrders.length} onPage={setPage} />
+        <Dialog open={!!cancelOrder} onOpenChange={open => { if (!open && !cancelling) setCancelOrder(null); }}>
+          <DialogContent className="max-w-md w-[calc(100%-2rem)]" dir="rtl" aria-describedby={undefined}>
+            <DialogHeader><DialogTitle>{tr("Cancel order", "آرڈر منسوخ کریں")} #{cancelOrder?.id.slice(0, 8)}</DialogTitle></DialogHeader>
+            {cancelOrder && foodCancellationAvailable(cancelOrder) ? <>
+              <label htmlFor="food-cancel-note" className="text-sm">{tr("Cancellation reason", "منسوخی کی وجہ")}</label>
+              <Input id="food-cancel-note" maxLength={1000} value={cancelNote} onChange={event => setCancelNote(event.target.value)} disabled={cancelling} />
+              <Button variant="destructive" disabled={cancelling || cancelNote.trim().length < 3} onClick={() => void updateStatus(cancelOrder, "cancelled")}>{cancelling ? tr("Cancelling…", "منسوخ ہو رہا ہے…") : tr("Confirm cancellation", "منسوخی کی تصدیق")}</Button>
+            </> : <p role="alert" className="text-sm text-muted-foreground">{tr("This order is in delivery or return resolution. Direct cancellation is blocked to protect the food, rider and payment records. Rider removal/replacement is not available yet.", "یہ آرڈر ڈیلیوری یا واپسی کے مرحلے میں ہے۔ کھانے، رائیڈر اور حساب کی حفاظت کے لیے براہِ راست منسوخی بند ہے۔ رائیڈر ہٹانے یا تبدیل کرنے کی سہولت ابھی دستیاب نہیں۔")}</p>}
+            <Button variant="outline" disabled={cancelling} onClick={() => setCancelOrder(null)}>{tr("Back", "واپس")}</Button>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

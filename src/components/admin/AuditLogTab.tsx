@@ -78,7 +78,7 @@ const AuditLogTab = () => {
       )}
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle>{tr("Audit Log — Order & Shipment Changes", "آڈٹ لاگ — آرڈر و شپمنٹ تبدیلیاں")}</CardTitle>
           <div className="flex items-center gap-2">
             <Input
@@ -107,7 +107,7 @@ const AuditLogTab = () => {
                 </div>
                 <div className="text-muted-foreground">
                   {e.actor_id ? (actors[e.actor_id] || e.actor_id.slice(0, 8)) : `${tr("System (", "سسٹم (")}${e.source})`} ·{" "}
-                  {new Date(e.created_at).toLocaleString("ur-PK", { dateStyle: "short", timeStyle: "short" })}
+                  {new Date(e.created_at).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" })}
                 </div>
               </div>
             ))

@@ -30,6 +30,7 @@ import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import NewOrderBanner from "@/components/NewOrderBanner";
 import { VariantsEditor, OptionGroupsEditor, sanitizeVariants, sanitizeGroups, type VariantRow, type OptionGroupRow } from "@/components/menu/MenuOptionsEditor";
 import { printOrderReceipt } from "@/lib/receiptPrint";
+import ReceiptPreview from "@/components/orders/ReceiptPreview";
 import DayNavigator, { dayKey, startOfDay } from "@/components/common/DayNavigator";
 import { useQueryClient } from "@tanstack/react-query";
 import RestaurantSelfSetup from "@/components/vendor/RestaurantSelfSetup";
@@ -107,6 +108,7 @@ const RestaurantOwnerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ReceiptPreview />
       <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur-xl px-3 py-2.5 sm:px-6">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
@@ -218,13 +220,6 @@ const MyRestaurantTab = () => {
       return false;
     }
     return true;
-  };
-
-  const deleteRestaurant = async (id: string) => {
-    const { error } = await supabase.from("restaurants").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
-    toast.success(tr("Restaurant deleted!", "ریسٹورنٹ حذف ہو گیا!"));
-    fetchAll();
   };
 
   const uploadBanner = async (restaurantId: string, file: File) => {
@@ -441,9 +436,6 @@ const MyRestaurantTab = () => {
 
 
 
-                  <Button size="sm" variant="destructive" className="mt-2 h-7 text-xs" onClick={() => deleteRestaurant(r.id)}>
-                    <Trash2 className="h-3 w-3 mr-1" /> {t("rest.delete")}
-                  </Button>
                 </div>
               </div>
             ))}
