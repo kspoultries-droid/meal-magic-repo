@@ -1,5 +1,9 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Bright food photography
+- [x] Replace 3 built-in rotating food visuals and 12 category photos with cohesive bright studio photography; preserve paid advertisements and restaurant photos.
+- [x] Verify 15 images, 3 slide controls, all 12 category destinations and search/clear in 4 EN/UR mobile/desktop browser scenarios; 285 automated tests passed, build OK, no database changes. See docs/food-photography-2026-11-21.md.
+
 ## Current request — Safe migration-history recovery
 - [x] Retry supported history inspection and compare repository metadata with read-only applied-history records; findings saved in docs/migration-history-audit-2026-11-21.md.
 - [ ] Restore history through a verified supported repair plan — blocked because the inspection tool returns `too many migration revisions to establish a unique applied history` without a plan ID. Requires platform history-inspection repair; no manual journal, snapshot or database-history rewrite.

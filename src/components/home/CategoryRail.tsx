@@ -20,12 +20,15 @@ const CategoryRail = () => {
             style={{ animationDelay: `${i * 40}ms` }}
             className="animate-fade-in group flex h-auto w-[76px] shrink-0 flex-col items-center gap-1.5 whitespace-normal p-0 hover:bg-transparent active:scale-95 transition-transform"
           >
-            <span className="relative size-[72px] overflow-hidden rounded-full bg-muted shadow-card ring-2 ring-card outline outline-1 outline-primary/25">
+            <span className="relative size-[72px] overflow-hidden rounded-full bg-card shadow-soft ring-1 ring-border/50">
               <img
                 src={cat.image}
-                alt={cat.name}
+                alt={tr(cat.name, cat.ur)}
+                width={360}
+                height={360}
                 loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                decoding="async"
+                className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
               />
             </span>
             <span className="w-full truncate text-center text-[11px] font-bold text-foreground">{tr(cat.name, cat.ur)}</span>

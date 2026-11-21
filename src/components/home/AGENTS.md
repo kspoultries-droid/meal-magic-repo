@@ -1,0 +1,2 @@
+# Food home media
+- Built-in food slides and category photos use optimized CDN asset pointers; keep paid advertiser and restaurant-owned media independent so visual refreshes never replace business photography.

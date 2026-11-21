@@ -7,9 +7,10 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { img } from "@/lib/imageUrl";
 import { toast } from "sonner";
-import foodBiryani from "@/assets/food-biryani.jpg";
-import foodKarahi from "@/assets/food-karahi.jpg";
-import foodBbq from "@/assets/food-bbq.jpg";
+import biryaniAsset from "@/assets/food-studio-biryani.webp.asset.json";
+import karahiAsset from "@/assets/food-studio-karahi.webp.asset.json";
+import bbqAsset from "@/assets/food-studio-bbq.webp.asset.json";
+import { Button } from "@/components/ui/button";
 import type { Ad } from "@/components/PromotionalAds";
 
 interface Props {
@@ -20,6 +21,9 @@ interface Props {
 
 /** Food page top banner (Bazar style): search sits on the rotating cards; paid "home" ads first, then EasyLife slides. */
 const MAX_SLIDES = 8;
+const foodBiryani = biryaniAsset.url;
+const foodKarahi = karahiAsset.url;
+const foodBbq = bbqAsset.url;
 const getSlides = () => [
   { key: "s1", eyebrow: tr("Order today", "آج ہی آرڈر کریں"), title: tr("Free delivery on your first order", "پہلے آرڈر پر مفت ڈیلیوری"), cta: tr("Get it now", "ابھی حاصل کریں"), to: "/category/biryani", image: foodBiryani },
   { key: "s2", eyebrow: tr("At selected restaurants", "منتخب ریسٹورنٹس پر"), title: tr("New deals and discounts daily", "روزانہ نئی ڈیلز اور رعایت"), cta: tr("View deals", "ڈیلز دیکھیں"), to: "/category/burgers", image: foodKarahi },
@@ -78,7 +82,7 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
       <label className="mx-auto flex h-12 max-w-3xl items-center gap-2 rounded-2xl bg-card ps-3.5 shadow-elegant ring-1 ring-border/60 focus-within:ring-2 focus-within:ring-primary">
         <Search className="size-5 shrink-0 text-muted-foreground" />
         <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={PLACEHOLDERS[ph]} enterKeyHint="search" aria-label={tr("Search food", "کھانا تلاش کریں")} className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
-        {searchQuery && <button type="button" aria-label={tr("Clear", "صاف کریں")} onClick={() => onSearchChange("")} className="grid size-8 place-items-center text-muted-foreground"><X className="size-4" /></button>}
+        {searchQuery && <Button variant="ghost" size="icon" type="button" aria-label={tr("Clear", "صاف کریں")} onClick={() => onSearchChange("")} className="grid size-8 shrink-0 place-items-center text-muted-foreground"><X className="size-4" /></Button>}
         <span className="m-1.5 grid h-9 place-items-center rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">{tr("Search", "تلاش")}</span>
       </label>
     </div>
@@ -86,17 +90,17 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
 
   if (hideAds) return <header>{searchBar}</header>;
 
-  const H = "h-44 sm:h-64";
+  const H = "h-44 sm:h-auto sm:aspect-video";
   return (
     <header className="relative isolate">
       {searchBar}
-      <div className="container mx-auto px-3 pt-3">
+      <div className="container mx-auto max-w-3xl px-3 pt-3">
       <div className="relative overflow-hidden rounded-2xl shadow-card">
         <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 ? [autoplay.current] : []} className="w-full">
           <CarouselContent className="ml-0">
             {ads.map((ad, i) => (
               <CarouselItem key={ad.id} className="basis-full pl-0">
-                <button type="button" onClick={() => openAd(ad)} className={`relative block ${H} w-full overflow-hidden bg-muted text-start`}>
+                <Button variant="ghost" type="button" onClick={() => openAd(ad)} className={`relative block ${H} w-full overflow-hidden rounded-none bg-muted p-0 text-start`}>
                   {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0 bg-gradient-hero" />}
                   {ad.show_text !== false && <>
                     <div className="absolute bottom-6 start-3 flex max-w-[78%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-3 text-foreground shadow-card backdrop-blur-md">
@@ -106,23 +110,23 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
                     </div>
                   </>}
                   <span className="absolute top-2 end-2 rounded bg-card/90 px-1.5 py-0.5 text-[9px] font-medium text-foreground">AD</span>
-                </button>
+                </Button>
               </CarouselItem>
             ))}
-            {slides.map((s) => (
+            {slides.map((s, i) => (
               <CarouselItem key={s.key} className="basis-full pl-0">
-                <button type="button" onClick={() => go(s.to)} className={`relative block ${H} w-full overflow-hidden bg-muted text-start`}>
-                  <img src={s.image} alt="" width={1024} height={640} loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
-                  <div className="absolute bottom-6 start-3 flex max-w-[78%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-3 text-foreground shadow-card backdrop-blur-md">
+                <Button variant="ghost" type="button" onClick={() => go(s.to)} className={`relative block ${H} w-full overflow-hidden rounded-none bg-card p-0 text-start`}>
+                  <img src={s.image} alt="" width={1440} height={810} loading={i === 0 && ads.length === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" />
+                  <div className="absolute bottom-6 start-3 flex max-w-[78%] items-center gap-1.5 rounded-full bg-card py-1 pe-1 ps-3 text-foreground shadow-soft">
                     <span className="truncate text-xs font-bold">{s.title}</span>
                     <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"><ArrowRight className="size-3.5 rtl:rotate-180" /></span>
                   </div>
-                </button>
+                </Button>
               </CarouselItem>
             ))}
           </CarouselContent>
         </Carousel>
-        {total > 1 && <div dir="ltr" className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1.5">{Array.from({ length: total }).map((_, i) => <button key={i} type="button" aria-label={`${i + 1}/${total}`} onClick={() => api?.scrollTo(i)} className={`h-1.5 rounded-full transition-all ${i === current ? "w-5 bg-card" : "w-1.5 bg-card/60"}`} />)}</div>}
+        {total > 1 && <div dir="ltr" className="absolute inset-x-0 bottom-0 z-10 flex justify-center gap-1.5">{Array.from({ length: total }).map((_, i) => <Button variant="ghost" size="icon" key={i} type="button" aria-label={`${i + 1}/${total}`} aria-current={i === current ? "true" : undefined} onClick={() => api?.scrollTo(i)} className="h-6 w-6 rounded-full p-0 hover:bg-transparent"><span className={`h-1.5 rounded-full shadow-soft transition-all ${i === current ? "w-5 bg-primary" : "w-1.5 bg-muted-foreground/50"}`} /></Button>)}</div>}
       </div>
       </div>
     </header>
