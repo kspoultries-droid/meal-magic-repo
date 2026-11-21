@@ -264,10 +264,10 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
         ) : cartOrders.length === 0 && listOrders.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">{tr("No open grocery orders", "کوئی کھلا گروسری آرڈر نہیں")}</p>
         ) : (
-          <>
+          <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {filteredCart.map((o) => renderOrder(o, "grocery_cart_orders", tr("Grocery Cart", "گروسری کارٹ")))}
             {filteredList.map((o) => renderOrder(o, "grocery_list_orders", tr("List/Photo Order", "لسٹ/فوٹو آرڈر")))}
-          </>
+          </div>
         )}
       </CardContent>
       {shipOrder && (

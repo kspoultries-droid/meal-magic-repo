@@ -1,11 +1,10 @@
-/** Prints a 58/80mm thermal-style receipt (kitchen slip or customer bill) via the browser print dialog.
- *  Works with any printer the phone/PC can see, including Bluetooth/USB thermal printers. */
+/** Receipt documents never navigate the WebView or open a popup. */
 const esc = (s: unknown) =>
-  String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+  String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] ?? c));
 
 export type ReceiptKind = "kitchen" | "bill";
 
-export const printOrderReceipt = (
+export const receiptDocument = (
   order: any,
   kind: ReceiptKind,
   opts: { restaurantName?: string; ntn?: string | null; taxPercent?: number; width?: 58 | 80 } = {},
@@ -37,10 +36,12 @@ ${kind === "bill" ? `<div class="r"><span>ڈلیوری</span><span>${Math.round(
 ${tax ? `<div class="r"><span>ٹیکس (${opts.taxPercent}% شامل)</span><span>${tax}</span></div>` : ""}
 <div class="r big"><span>کل</span><span>Rs ${Math.round(total)}</span></div>
 <div class="c">${esc(order.payment_method === "cod" ? "نقد ادائیگی" : order.payment_method || "")}</div><hr><div class="c">شکریہ — Easy Life</div>` : ""}
-<script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}</script></body></html>`;
-  const w = window.open("", "_blank", "width=420,height=640");
-  if (!w) return false;
-  w.document.write(html);
-  w.document.close();
+</body></html>`;
+  return html;
+};
+
+export const RECEIPT_PREVIEW_EVENT = "easylife:receipt-preview";
+export const printOrderReceipt = (order: any, kind: ReceiptKind, opts: Parameters<typeof receiptDocument>[2] = {}) => {
+  window.dispatchEvent(new CustomEvent(RECEIPT_PREVIEW_EVENT, { detail: { html: receiptDocument(order, kind, opts), kind } }));
   return true;
 };

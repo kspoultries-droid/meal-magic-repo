@@ -1,5 +1,13 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Operations safety and usability
+- [x] Replace food receipt popups with closable in-app previews, including automatic acceptance previews; browser system printing only.
+- [x] Remove restaurant-owner hard-delete control and request path; preserve existing open/close settings.
+- [x] Compact food orders into responsive desktop columns; expose cancellation dialog and truthful delivery restrictions without changing server rules.
+- [ ] Verify automated tests and signed-in browser receipt/order controls and review all Operations tabs.
+- [ ] Native Android printer integration / physical Back verification — requires a native integration and device; receipt view no longer attempts a popup print.
+- [ ] Safe rider unassign/reassign and deletion protection at server level — blocked by standing database/function freeze and unavailable supported lifecycle action; no bypass or live order mutation.
+
 ## Current request — Low-cost rider navigation
 - [x] Add API-key-free Google Maps directions to the authorized pickup/customer destination; retain in-app tracking and refresh the active order on return.
 - [x] Run 291 automated regressions including stage/pin/navigation URL rules; signed-in mobile rider page checked without overflow. Session had no active order, so live navigation controls and native handoff/back navigation remain unverified. See docs/rider-navigation-2026-11-21.md.
