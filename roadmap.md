@@ -4,7 +4,7 @@
 - [x] Replace food receipt popups with closable in-app previews, including automatic acceptance previews; browser system printing only.
 - [x] Remove restaurant-owner hard-delete control and request path; preserve existing open/close settings.
 - [x] Compact food orders into responsive desktop columns; expose cancellation dialog and truthful delivery restrictions without changing server rules.
-- [ ] Verify automated tests and signed-in browser receipt/order controls and review all Operations tabs.
+- [x] 296 automated tests passed; real signed-in Kffc receipt/bill previews, print-command interception and return checked in EN/UR at mobile/desktop sizes. All 6 Operations tabs opened in 4 configurations without horizontal overflow or runtime errors. Browser print output/native hardware remain unverified; no live orders or payments mutated. See docs/operations-safety-2026-11-21.md.
 - [ ] Native Android printer integration / physical Back verification — requires a native integration and device; receipt view no longer attempts a popup print.
 - [ ] Safe rider unassign/reassign and deletion protection at server level — blocked by standing database/function freeze and unavailable supported lifecycle action; no bypass or live order mutation.
 
