@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Low-cost rider navigation
+- [x] Add API-key-free Google Maps directions to the authorized pickup/customer destination; retain in-app tracking and refresh the active order on return.
+- [x] Run 291 automated regressions including stage/pin/navigation URL rules; signed-in mobile rider page checked without overflow. Session had no active order, so live navigation controls and native handoff/back navigation remain unverified. See docs/rider-navigation-2026-11-21.md.
+- [ ] Verify active-order Google Maps handoff and return on Android hardware; requires an assigned order and physical device, no simulated success claimed.
+- [ ] Change internal cycling routing profile only after the standing server-function freeze is lifted; car routing is not motorcycle-specific and does not guarantee main-road routes.
+
 ## Current request — Bright food photography
 - [x] Replace 3 built-in rotating food visuals and 12 category photos with cohesive bright studio photography; preserve paid advertisements and restaurant photos.
 - [x] Verify 15 images, 3 slide controls, all 12 category destinations and search/clear in 4 EN/UR mobile/desktop browser scenarios; 285 automated tests passed, build OK, no database changes. See docs/food-photography-2026-11-21.md.
