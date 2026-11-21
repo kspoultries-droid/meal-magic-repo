@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Essential Operations improvements
+- [x] Server-filtered bounded pages for food, grocery dispatch, photo orders and audit; Karachi date ranges and authorized cross-record search.
+- [x] Preserve open details and typed notes during background refresh; show errors without silently emptying lists.
+- [x] 301 automated tests passed; signed-in EN/UR mobile/desktop checks across 6 tabs, real Kffc search/readback and retained expansion, dates, empty results, audit next page and bounded network queries passed. No live order/dispatch/finance writes. See docs/operations-list-improvements-2026-11-21.md.
+- [ ] Safe rider replacement remains blocked by the standing database/function freeze; no alternative write route.
+
 ## Current request — Operations safety and usability
 - [x] Replace food receipt popups with closable in-app previews, including automatic acceptance previews; browser system printing only.
 - [x] Remove restaurant-owner hard-delete control and request path; preserve existing open/close settings.

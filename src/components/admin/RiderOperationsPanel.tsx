@@ -29,7 +29,8 @@ export default function RiderOperationsPanel() {
     if (error) { setError(error.message); return; }
     setReport(data as unknown as Report); setError("");
   }, [days]);
-  useEffect(() => { void load(); const timer = window.setInterval(() => { if (document.visibilityState === "visible") void load(); }, 30000); return () => clearInterval(timer); }, [load]);
+  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { const timer = window.setInterval(() => { if (document.visibilityState === "visible" && !selected && !busy) void load(); }, 30000); return () => clearInterval(timer); }, [load, selected, busy]);
   const submit = async () => {
     if (!selected || busy) return;
     setBusy(true);
@@ -46,7 +47,7 @@ export default function RiderOperationsPanel() {
   return <section className="space-y-4" dir="rtl">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3"><h2 className="flex items-center gap-2 text-base font-bold"><ShieldCheck className="size-5 text-primary" /> {tr("Rider Monitoring — 1 Active Delivery", "رائیڈر نگرانی — ایک جاری ڈیلیوری")}</h2><div className="flex flex-wrap gap-2">
       {[1, 7, 30].map(value => <Button key={value} size="sm" variant={days === value ? "default" : "outline"} onClick={() => setDays(value)}>{value} {tr("Day", "دن")}</Button>)}
-      <Button size="icon" variant="outline" aria-label={tr("Refresh Monitoring", "نگرانی تازہ کریں")} onClick={() => void load()}><RefreshCw /></Button>
+      <Button size="icon" variant="outline" aria-label={tr("Refresh Monitoring", "نگرانی تازہ کریں")} disabled={!!selected || busy} onClick={() => void load()}><RefreshCw /></Button>
       <Button size="icon" variant="outline" aria-label={tr("Download Monitoring Report", "نگرانی رپورٹ ڈاؤن لوڈ کریں")} disabled={!report} onClick={() => { if (report) downloadCsv("rider-pilot-report", [tr("Duration (days)", "مدت (دن)"), tr("Metrics", "پیمائش"), tr("Result", "نتیجہ")], metrics.map(([name, value]) => [days, name, value])); }}><Download /></Button>
     </div></div>
     {error ? <p className="text-sm text-destructive" role="alert">{error}</p> : !report ? <p className="text-sm text-muted-foreground">{tr("Loading…", "لوڈ ہو رہا ہے…")}</p> : <>

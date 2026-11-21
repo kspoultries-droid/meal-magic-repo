@@ -1,5 +1,7 @@
+import OperationsDateFilter from "./OperationsDateFilter";
+import { applyOperationFilters, operationDates, operationRange, safeOperationSearch } from "@/lib/operationsList";
 import { tr } from "@/lib/i18n/tr";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { RefreshCw, Truck } from "lucide-react";
 import CourierShipmentDialog from "@/components/orders/CourierShipmentDialog";
-import { AdminListTools } from "./AdminListTools";
+import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { groceryReady, riderPresenceFresh } from "@/lib/riderOperations";
 import { dispatchInterface } from "@/lib/courier";
 
@@ -25,8 +27,15 @@ const OPEN_STATUSES = ["pending", "quoted", "confirmed", "preparing", "picking",
 
 const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [query, setQuery] = useState(initialQuery);
+  const [page, setPage] = useState(1);
+  const [kind, setKind] = useState("cart");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [count, setCount] = useState(0);
+  const [listError, setListError] = useState("");
+  const request = useRef(0);
   const [expanded, setExpanded] = useState<string | null>(initialQuery || null);
-  useEffect(() => { setQuery(initialQuery); setExpanded(initialQuery || null); }, [initialQuery]);
+  useEffect(() => { setQuery(initialQuery); setPage(1); setExpanded(initialQuery || null); }, [initialQuery]);
   const [cartOrders, setCartOrders] = useState<any[]>([]);
   const [listOrders, setListOrders] = useState<any[]>([]);
   const [riders, setRiders] = useState<any[]>([]);
@@ -36,51 +45,54 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
   const [shipOrder, setShipOrder] = useState<any>(null);
   const [cityDefaults, setCityDefaults] = useState<Record<string, any>>({});
 
-  const fetchAll = async () => {
-    setLoading(true);
-    const [{ data: cart }, { data: list }, { data: ridersData }] = await Promise.all([
-      supabase
-        .from("grocery_cart_orders")
-        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,delivery_method,dispatch_state,city_id,courier_name,tracking_number,courier_tracking_url,courier_payment_type,shipment_status,created_at,picked_up_at,delivery_stage,grocery_stores(name)")
-        .in("status", OPEN_STATUSES)
-        .order("created_at", { ascending: false })
-        .limit(40),
-      supabase
-        .from("grocery_list_orders")
-        .select("id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,dispatch_state,created_at,picked_up_at,delivery_stage,grocery_stores(name)")
-        .in("status", OPEN_STATUSES)
-        .order("created_at", { ascending: false })
-        .limit(40),
-      supabase.from("riders").select("id, is_available, is_suspended, current_lat, current_lng, last_seen_at, location_updated_at"),
-    ]);
-    const { data: cityRows } = await (supabase.rpc as any)("get_city_services");
-    const map: Record<string, any> = {};
-    (cityRows || []).forEach((c: any) => { map[c.id] = c; });
-    setCityDefaults(map);
-    setCartOrders(cart || []);
-    setListOrders(list || []);
-    const all = ridersData || [];
-    setRiders(all);
-    if (all.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name, phone").in("id", all.map((r) => r.id));
-      setRiderProfiles(profs || []);
-    }
-    setLoading(false);
-  };
+  const fetchAll = useCallback(async (showLoading = true) => {
+    const seq = ++request.current;
+    if (operationDates(from, to).invalid) { setLoading(false); return; }
+    if (showLoading) setLoading(true);
+    try {
+      const term = safeOperationSearch(query);
+      const extras: string[] = [];
+      if (term) {
+        const shops = await supabase.from("grocery_stores").select("id").ilike("name", `%${term}%`).limit(200);
+        if (shops.error) throw shops.error;
+        if (shops.data?.length) extras.push(`store_id.in.(${shops.data.map(s => s.id).join(",")})`);
+      }
+      const table = kind === "cart" ? "grocery_cart_orders" : "grocery_list_orders";
+      const columns = kind === "cart"
+        ? "id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,delivery_method,dispatch_state,city_id,courier_name,tracking_number,courier_tracking_url,courier_payment_type,shipment_status,created_at,picked_up_at,delivery_stage,grocery_stores(name)"
+        : "id,status,total_amount,delivery_address,delivery_lat,delivery_lng,rider_id,delivery_fee,dispatch_state,created_at,picked_up_at,delivery_stage,grocery_stores(name)";
+      const [start, end] = operationRange(page);
+      const [orders, riderResult, cities] = await Promise.all([
+        applyOperationFilters(supabase.from(table).select(columns, { count: "exact" }).in("status", OPEN_STATUSES), from, to, query, ["delivery_address"], extras).order("created_at", { ascending: false }).order("id", { ascending: false }).range(start, end),
+        supabase.from("riders").select("id, is_available, is_suspended, current_lat, current_lng, last_seen_at, location_updated_at"),
+        (supabase.rpc as any)("get_city_services"),
+      ]);
+      for (const result of [orders, riderResult, cities]) if (result.error) throw result.error;
+      const all = riderResult.data || [];
+      const profiles = all.length ? await supabase.from("profiles").select("id, full_name, phone").in("id", all.map(r => r.id)) : { data: [], error: null };
+      if (profiles.error) throw profiles.error;
+      if (seq !== request.current) return;
+      const map: Record<string, any> = {};
+      (cities.data || []).forEach((c: any) => { map[c.id] = c; });
+      setCityDefaults(map); setRiders(all); setRiderProfiles(profiles.data || []);
+      setCartOrders(kind === "cart" ? orders.data || [] : []); setListOrders(kind === "list" ? orders.data || [] : []);
+      setCount(orders.count || 0); setListError("");
+      const last = Math.max(1, Math.ceil((orders.count || 0) / 20));
+      if (page > last) setPage(last);
+    } catch (error) { if (seq === request.current) setListError((error as Error).message); }
+    finally { if (seq === request.current) setLoading(false); }
+  }, [kind, query, page, from, to]);
 
-  useEffect(() => { fetchAll(); }, []);
-
+  useEffect(() => { const timer = setTimeout(() => void fetchAll(), 300); return () => { clearTimeout(timer); request.current++; }; }, [fetchAll]);
   useEffect(() => {
-    const ch = supabase
-      .channel("admin-grocery-dispatch")
-      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders" }, () => fetchAll())
-      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_list_orders" }, () => fetchAll())
+    const ch = supabase.channel("admin-grocery-dispatch")
+      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_cart_orders" }, () => void fetchAll(false))
+      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_list_orders" }, () => void fetchAll(false))
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "riders" }, ({ new: rider }) => {
         setRiders(current => current.map(row => row.id === rider.id ? { ...row, ...rider } : row));
-      })
-      .subscribe();
+      }).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [fetchAll]);
 
   const riderName = (id: string) => riderProfiles.find((p) => p.id === id)?.full_name || id.slice(0, 8);
   const riderPhone = (id: string) => riderProfiles.find((p) => p.id === id)?.phone || "";
@@ -248,27 +260,28 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
     );
   };
 
-  const matches = (o: any) => `${o.id} ${o.grocery_stores?.name || ""} ${o.delivery_address || ""}`.toLowerCase().includes(query.trim().toLowerCase());
-  const filteredCart = cartOrders.filter(matches);
-  const filteredList = listOrders.filter(matches);
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
         <CardTitle>{tr("Grocery / Bazaar Dispatch", "گروسری / بازار ڈسپیچ")}</CardTitle>
-        <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="h-4 w-4" /></Button>
+        <Button variant="outline" size="sm" aria-label={tr("Refresh dispatch", "ڈسپیچ تازہ کریں")} onClick={() => void fetchAll(false)}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent className="space-y-3">
-        <AdminListTools query={query} onQuery={setQuery} count={filteredCart.length + filteredList.length} />
+        <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={count} />
+        <OperationsDateFilter from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); setPage(1); }} />
+        <div className="flex flex-wrap gap-2">{[["cart", tr("Cart orders", "کارٹ آرڈرز")], ["list", tr("List / photo orders", "لسٹ / فوٹو آرڈرز")]].map(([value, label]) => <Button key={value} size="sm" variant={kind === value ? "default" : "outline"} onClick={() => { setKind(value); setPage(1); }}>{label}</Button>)}</div>
+        {listError && <p role="alert" className="text-sm text-destructive">{listError}</p>}
         {loading ? (
           <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p>
         ) : cartOrders.length === 0 && listOrders.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">{tr("No open grocery orders", "کوئی کھلا گروسری آرڈر نہیں")}</p>
         ) : (
           <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-            {filteredCart.map((o) => renderOrder(o, "grocery_cart_orders", tr("Grocery Cart", "گروسری کارٹ")))}
-            {filteredList.map((o) => renderOrder(o, "grocery_list_orders", tr("List/Photo Order", "لسٹ/فوٹو آرڈر")))}
+            {cartOrders.map((o) => renderOrder(o, "grocery_cart_orders", tr("Grocery Cart", "گروسری کارٹ")))}
+            {listOrders.map((o) => renderOrder(o, "grocery_list_orders", tr("List/Photo Order", "لسٹ/فوٹو آرڈر")))}
           </div>
         )}
+        <AdminPagination page={page} count={count} onPage={setPage} />
       </CardContent>
       {shipOrder && (
         <CourierShipmentDialog
@@ -280,7 +293,7 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
             paymentType: cityDefaults[shipOrder.city_id]?.courier_payment_default,
             advancePercent: cityDefaults[shipOrder.city_id]?.courier_advance_percent,
           }}
-          onSaved={fetchAll}
+          onSaved={() => void fetchAll(false)}
         />
       )}
     </Card>

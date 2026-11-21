@@ -1,3 +1,5 @@
+import OperationsDateFilter from "@/components/admin/OperationsDateFilter";
+import { applyOperationFilters, operationDates, operationRange, safeOperationSearch, FOOD_CLOSED_STATUSES } from "@/lib/operationsList";
 import { tr } from "@/lib/i18n/tr";
 import { foodCancellationAvailable } from "@/lib/foodOperations";
 import TicketsQueue from "@/components/support/TicketsQueue";
@@ -7,7 +9,7 @@ import CompanySettingsTab from "@/components/admin/CompanySettingsTab";
 import MyBusinessesTab from "@/components/admin/MyBusinessesTab";
 import CatalogManagerTab from "@/components/admin/CatalogManagerTab";
 import WalletTopupsTab from "@/components/admin/WalletTopupsTab";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AdminSearch from "@/components/admin/AdminSearch";
 import RiderDetailsDialog from "@/components/admin/RiderDetailsDialog";
 import { AdminListTools, AdminPagination } from "@/components/admin/AdminListTools";
@@ -476,6 +478,12 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(1);
   useEffect(() => { setQuery(initialQuery); setPage(1); }, [initialQuery]);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [count, setCount] = useState(0);
+  const [listError, setListError] = useState("");
+  const request = useRef(0);
   const [orders, setOrders] = useState<any[]>([]);
   const [riders, setRiders] = useState<any[]>([]);
   const [riderProfiles, setRiderProfiles] = useState<any[]>([]);
@@ -488,34 +496,54 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [cancelling, setCancelling] = useState(false);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
-  const fetchOrders = async (showLoading = true) => {
+  const fetchOrders = useCallback(async (showLoading = true) => {
+    const seq = ++request.current;
+    if (operationDates(from, to).invalid) { setLoading(false); return; }
     if (showLoading) setLoading(true);
-    const [{ data: ordersData }, { data: ridersData }, { data: offersData }, { data: roleRows }] = await Promise.all([
-      supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)").order("created_at", { ascending: false }).limit(50),
-      supabase.from("riders").select("id, is_available, is_suspended, current_lat, current_lng, last_seen_at, location_updated_at"),
-      (supabase as any).from("delivery_offers").select("id,order_id,order_kind,rider_id,status,expires_at,created_at").eq("order_kind", "food").order("created_at", { ascending: false }).limit(200),
-      supabase.from("user_roles").select("user_id").eq("role", "rider"),
-    ]);
-    const list = ordersData || [];
-    setOrders(list);
-    setOffers(offersData || []);
-    const riderRoleIds = new Set((roleRows || []).map((r: any) => r.user_id));
-    const allRiders = (ridersData || []).filter((r: any) => riderRoleIds.has(r.id));
-    setRiders(allRiders);
-    // Fetch rider profiles for names
-    if (allRiders.length > 0) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name, phone").in("id", allRiders.map(r => r.id));
-      setRiderProfiles(profs || []);
-    }
-    const customerIds = Array.from(new Set(list.map((o: any) => o.customer_id).filter(Boolean)));
-    if (customerIds.length > 0) {
-      const { data: custs } = await supabase.from("profiles").select("id, full_name, phone").in("id", customerIds);
-      setCustomerProfiles(custs || []);
-    }
-    if (showLoading) setLoading(false);
-  };
+    try {
+      const term = safeOperationSearch(query);
+      const extras: string[] = [];
+      if (term) {
+        const [rests, customers] = await Promise.all([
+          supabase.from("restaurants").select("id").ilike("name", `%${term}%`).limit(200),
+          supabase.from("profiles").select("id").or(`full_name.ilike.%${term}%,phone.ilike.%${term}%`).limit(200),
+        ]);
+        if (rests.error) throw rests.error;
+        if (customers.error) throw customers.error;
+        if (rests.data?.length) extras.push(`restaurant_id.in.(${rests.data.map(r => r.id).join(",")})`);
+        if (customers.data?.length) extras.push(`customer_id.in.(${customers.data.map(r => r.id).join(",")})`);
+      }
+      let orderQuery = supabase.from("orders").select("*, order_items(*), restaurants(name, description, delivery_mode)", { count: "exact" });
+      if (statusFilter === "open") orderQuery = orderQuery.not("status", "in", `(${FOOD_CLOSED_STATUSES.join(",")})`);
+      if (statusFilter === "closed") orderQuery = orderQuery.in("status", FOOD_CLOSED_STATUSES);
+      const [start, end] = operationRange(page);
+      const [orderResult, riderResult, offerResult, roleResult] = await Promise.all([
+        applyOperationFilters(orderQuery, from, to, query, ["receiver_name", "receiver_phone"], extras).order("created_at", { ascending: false }).order("id", { ascending: false }).range(start, end),
+        supabase.from("riders").select("id, is_available, is_suspended, current_lat, current_lng, last_seen_at, location_updated_at"),
+        (supabase as any).from("delivery_offers").select("id,order_id,order_kind,rider_id,status,expires_at,created_at").eq("order_kind", "food").order("created_at", { ascending: false }).limit(200),
+        supabase.from("user_roles").select("user_id").eq("role", "rider"),
+      ]);
+      for (const result of [orderResult, riderResult, offerResult, roleResult]) if (result.error) throw result.error;
+      const list = orderResult.data || [];
+      const roleIds = new Set((roleResult.data || []).map(r => r.user_id));
+      const allRiders = (riderResult.data || []).filter(r => roleIds.has(r.id));
+      const customerIds = Array.from(new Set<string>(list.map((o: any) => o.customer_id).filter(Boolean)));
+      const [riderNames, customerNames] = await Promise.all([
+        allRiders.length ? supabase.from("profiles").select("id, full_name, phone").in("id", allRiders.map(r => r.id)) : Promise.resolve({ data: [], error: null }),
+        customerIds.length ? supabase.from("profiles").select("id, full_name, phone").in("id", customerIds) : Promise.resolve({ data: [], error: null }),
+      ]);
+      if (riderNames.error) throw riderNames.error;
+      if (customerNames.error) throw customerNames.error;
+      if (seq !== request.current) return;
+      setOrders(list); setCount(orderResult.count || 0); setOffers(offerResult.data || []);
+      setRiders(allRiders); setRiderProfiles(riderNames.data || []); setCustomerProfiles(customerNames.data || []); setListError("");
+      const last = Math.max(1, Math.ceil((orderResult.count || 0) / 20));
+      if (page > last) setPage(last);
+    } catch (error) { if (seq === request.current) setListError((error as Error).message); }
+    finally { if (seq === request.current) setLoading(false); }
+  }, [query, page, statusFilter, from, to]);
 
-  useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => { const timer = window.setTimeout(() => void fetchOrders(), 300); return () => { clearTimeout(timer); request.current++; }; }, [fetchOrders]);
 
   // Realtime
   useEffect(() => {
@@ -524,13 +552,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload: any) => {
         const nw = payload.new || {};
         const old = payload.old || {};
-        if (payload.eventType === "DELETE") {
-          setOrders((current) => current.filter((order) => order.id !== old.id));
-        } else if (payload.eventType === "UPDATE") {
-          setOrders((current) => current.map((order) => order.id === nw.id ? { ...order, ...nw } : order));
-        } else {
-          fetchOrders(false);
-        }
+        void fetchOrders(false);
         // Restaurant accepted an order and no rider is assigned yet → alert admin
         if (nw.status === "confirmed" && old.status !== "confirmed" && !nw.rider_id) {
           triggerAlert(tr("Restaurant accepted order — Assign rider!", "ریسٹورنٹ نے آرڈر قبول کر لیا — رائیڈر تفویض کریں!"));
@@ -555,7 +577,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
       window.clearInterval(fallback);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchOrders]);
 
   const updateStatus = async (order: any, status: string) => {
     if (["delivered", "completed", "cancelled"].includes(order.status)) {
@@ -651,22 +673,22 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     return map[s] || "bg-muted text-muted-foreground";
   };
 
-  const [statusFilter, setStatusFilter] = useState("all");
-  const filteredOrders = orders.filter(o => (statusFilter === "all" || (statusFilter === "open" ? !["delivered", "completed", "cancelled", "returned_to_store"].includes(o.status) : ["delivered", "completed", "cancelled", "returned_to_store"].includes(o.status))) && `${o.id} ${o.restaurants?.name || ""} ${customerOf(o).name} ${customerOf(o).phone}`.toLowerCase().includes(query.trim().toLowerCase()));
   return (
     <Card>
       <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label={tr("Order accepted — assign a rider!", "آرڈر قبول ہوا — رائیڈر تفویض کریں!")} />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{tr("Orders", "آرڈرز")}</CardTitle>
-        <Button variant="outline" size="sm" onClick={() => fetchOrders()}><RefreshCw className="h-4 w-4" /></Button>
+        <Button variant="outline" size="sm" aria-label={tr("Refresh orders", "آرڈرز تازہ کریں")} onClick={() => fetchOrders(false)}><RefreshCw className="h-4 w-4" /></Button>
       </CardHeader>
       <CardContent>
-        <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filteredOrders.length} />
+        <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={count} />
+        <OperationsDateFilter from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); setPage(1); }} />
+        {listError && <p role="alert" className="mb-3 text-sm text-destructive">{listError}</p>}
         <div className="mb-2 flex gap-1">{[["all", tr("All", "سب")], ["open", tr("Open", "جاری")], ["closed", tr("Closed", "بند")]].map(([value, label]) => <Button key={value} size="sm" variant={statusFilter === value ? "default" : "outline"} onClick={() => { setStatusFilter(value); setPage(1); }}>{label}</Button>)}</div>
         {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : (
           <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {orders.length === 0 && <p className="text-center text-muted-foreground py-8">{tr("No orders", "کوئی آرڈر نہیں")}</p>}
-            {filteredOrders.slice((page - 1) * 20, page * 20).map((o) => {
+            {orders.map((o) => {
               const deliveryMode = o.restaurants?.delivery_mode || "platform";
               const nearestRiders = getNearestRiders(o);
               const isClosed = ["delivered", "completed", "cancelled", "returned_to_store"].includes(o.status);
@@ -691,9 +713,9 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                     {canDispatch && needsRider && (
                       <Button size="sm" className="h-6 px-2 text-[11px]" onClick={() => setExpandedOrder(o.id)}>{tr("Manual assign", "دستی تفویض")}</Button>
                     )}
-                    <button className="ms-auto text-[11px] text-primary hover:underline" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
+                    <Button variant="ghost" size="sm" className="ms-auto h-7 text-[11px] text-primary" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}>
                       {expandedOrder === o.id ? tr("Closed ▲", "بند ▲") : `${tr("Details (", "تفصیل (")}${o.order_items?.length || 0}) ▼`}
-                    </button>
+                    </Button>
                   </div>
 
                   {expandedOrder === o.id && (
@@ -758,7 +780,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
             })}
           </div>
         )}
-        <AdminPagination page={page} count={filteredOrders.length} onPage={setPage} />
+        <AdminPagination page={page} count={count} onPage={setPage} />
         <Dialog open={!!cancelOrder} onOpenChange={open => { if (!open && !cancelling) setCancelOrder(null); }}>
           <DialogContent className="max-w-md w-[calc(100%-2rem)]" dir="rtl" aria-describedby={undefined}>
             <DialogHeader><DialogTitle>{tr("Cancel order", "آرڈر منسوخ کریں")} #{cancelOrder?.id.slice(0, 8)}</DialogTitle></DialogHeader>

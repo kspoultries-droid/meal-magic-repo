@@ -1,6 +1,8 @@
+import OperationsDateFilter from "./OperationsDateFilter";
+import { applyOperationFilters, operationDates, operationRange, safeOperationSearch } from "@/lib/operationsList";
 import { tr } from "@/lib/i18n/tr";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,14 +15,14 @@ import ListOrderPhotos from "@/components/grocery/ListOrderPhotos";
 import { listPhotos } from "@/lib/listOrders";
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pending: { label: tr("New / Pending", "نئی / Pending"), color: "bg-yellow-100 text-yellow-800" },
-  quoted: { label: tr("Quoted", "قیمت بتائی / Quoted"), color: "bg-blue-100 text-blue-800" },
+  pending: { label: tr("New / Pending", "نئی / Pending"), color: "bg-warning/10 text-warning" },
+  quoted: { label: tr("Quoted", "قیمت بتائی / Quoted"), color: "bg-accent text-accent-foreground" },
   confirmed: { label: tr("Confirmed", "تصدیق / Confirmed"), color: "bg-primary/20 text-primary" },
   ready_for_pickup: { label: tr("Ready for Pickup", "پک اَپ کے لیے تیار"), color: "bg-primary/10 text-primary" },
   delivered: { label: tr("Delivered", "پہنچا دیا"), color: "bg-success/10 text-success" },
   returned_to_store: { label: tr("Returned", "واپس"), color: "bg-warning/10 text-warning" },
-  delivering: { label: tr("Delivering", "ڈلیوری / Delivering"), color: "bg-orange-100 text-orange-800" },
-  completed: { label: tr("Completed", "مکمل / Done"), color: "bg-green-100 text-green-800" },
+  delivering: { label: tr("Delivering", "ڈلیوری / Delivering"), color: "bg-warning/10 text-warning" },
+  completed: { label: tr("Completed", "مکمل / Done"), color: "bg-success/10 text-success" },
   cancelled: { label: tr("Cancelled", "منسوخ / Cancelled"), color: "bg-destructive/20 text-destructive" },
 };
 
@@ -30,45 +32,48 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(1);
   useEffect(() => { setQuery(initialQuery); setPage(1); }, [initialQuery]);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [count, setCount] = useState(0);
+  const [listError, setListError] = useState("");
+  const request = useRef(0);
   const [orders, setOrders] = useState<any[]>([]);
   const [stores, setStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [filter, setFilter] = useState("all");
 
-  const fetchData = async () => {
-    setLoading(true);
-    const [{ data: ordersData }, { data: storesData }] = await Promise.all([
-      supabase.from("grocery_list_orders").select("*").order("created_at", { ascending: false }).limit(100),
-      supabase.from("grocery_stores").select("id, name"),
-    ]);
-    setOrders(ordersData || []);
-    setStores(storesData || []);
-    setLoading(false);
-  };
+  const fetchData = useCallback(async (showLoading = true) => {
+    const seq = ++request.current;
+    if (operationDates(from, to).invalid) { setLoading(false); return; }
+    if (showLoading) setLoading(true);
+    try {
+      const storeResult = await supabase.from("grocery_stores").select("id, name");
+      if (storeResult.error) throw storeResult.error;
+      const term = safeOperationSearch(query).toLowerCase();
+      const matchingStores = (storeResult.data || []).filter(s => s.name.toLowerCase().includes(term));
+      const extras = term && matchingStores.length ? [`store_id.in.(${matchingStores.map(s => s.id).join(",")})`] : [];
+      let builder = supabase.from("grocery_list_orders").select("*", { count: "exact" });
+      if (filter !== "all") builder = builder.eq("status", filter);
+      const [start, end] = operationRange(page);
+      const result = await applyOperationFilters(builder, from, to, query, ["delivery_address"], extras).order("created_at", { ascending: false }).order("id", { ascending: false }).range(start, end);
+      if (result.error) throw result.error;
+      if (seq !== request.current) return;
+      setOrders(result.data || []); setStores(storeResult.data || []); setCount(result.count || 0); setListError("");
+      setSelectedOrder((current: any) => current ? (result.data || []).find((row: any) => row.id === current.id) || current : null);
+      const last = Math.max(1, Math.ceil((result.count || 0) / 20));
+      if (page > last) setPage(last);
+    } catch (error) { if (seq === request.current) setListError((error as Error).message); }
+    finally { if (seq === request.current) setLoading(false); }
+  }, [query, page, filter, from, to]);
 
+  useEffect(() => { const timer = setTimeout(() => void fetchData(), 300); return () => { clearTimeout(timer); request.current++; }; }, [fetchData]);
   useEffect(() => {
-    fetchData();
-    const channel = supabase
-      .channel("admin-photo-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_list_orders" }, () => fetchData())
-      .subscribe();
+    const channel = supabase.channel("admin-photo-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "grocery_list_orders" }, () => void fetchData(false)).subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, []);
-
+  }, [fetchData]);
   const getStoreName = (storeId: string) => stores.find(s => s.id === storeId)?.name || storeId.slice(0, 8);
-
-  const filtered = orders.filter(o => (filter === "all" || o.status === filter) && `${o.id} ${getStoreName(o.store_id)} ${o.delivery_address || ""}`.toLowerCase().includes(query.trim().toLowerCase()));
-
-  // Stats
-  const stats = {
-    total: orders.length,
-    pending: orders.filter(o => o.status === "pending").length,
-    confirmed: orders.filter(o => o.status === "confirmed" || o.status === "quoted").length,
-    completed: orders.filter(o => o.status === "completed").length,
-    cancelled: orders.filter(o => o.status === "cancelled").length,
-    revenue: orders.filter(o => o.status === "completed").reduce((sum, o) => sum + (o.total_amount || 0), 0),
-  };
 
   const updateStatus = async (orderId: string, status: string) => {
     if (!canCancel || status !== "cancelled") return;
@@ -79,32 +84,16 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
   return (
     <div className="space-y-4">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {[
-          { label: tr("Total Orders", "کل آرڈرز"), value: stats.total, color: "text-foreground" },
-          { label: tr("Pending", "زیر التواء"), value: stats.pending, color: "text-yellow-600" },
-          { label: tr("Open", "جاری"), value: stats.confirmed, color: "text-blue-600" },
-          { label: tr("Completed", "مکمل"), value: stats.completed, color: "text-green-600" },
-          { label: tr("Earnings", "آمدنی"), value: `Rs ${stats.revenue}`, color: "text-primary" },
-        ].map((s, i) => (
-          <Card key={i}>
-            <CardContent className="p-4 text-center">
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
       {/* Filter + List */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2"><FileImage className="w-5 h-5" /> {tr("Photo List Orders", "فوٹو لسٹ آرڈرز")}</CardTitle>
-          <Button variant="outline" size="sm" onClick={fetchData}><RefreshCw className="h-4 w-4" /></Button>
+          <Button variant="outline" size="sm" aria-label={tr("Refresh photo orders", "فوٹو آرڈرز تازہ کریں")} onClick={() => void fetchData(false)}><RefreshCw className="h-4 w-4" /></Button>
         </CardHeader>
         <CardContent>
-          <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={filtered.length} />
+          <AdminListTools query={query} onQuery={v => { setQuery(v); setPage(1); }} count={count} />
+          <OperationsDateFilter from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t); setPage(1); }} />
+          {listError && <p role="alert" className="mb-3 text-sm text-destructive">{listError}</p>}
           {/* Filter Chips */}
           <div className="flex gap-2 mb-4 flex-wrap">
             {[
@@ -116,21 +105,21 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
               { key: "completed", label: tr("Completed", "مکمل") },
               { key: "cancelled", label: tr("Cancelled", "منسوخ") },
             ].map(f => (
-              <button
+              <Button size="sm" variant={filter === f.key ? "default" : "outline"}
                 key={f.key}
                 onClick={() => { setFilter(f.key); setPage(1); }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${filter === f.key ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+                className="text-xs"
               >
                 {f.label}
-              </button>
+              </Button>
             ))}
           </div>
 
-          {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : filtered.length === 0 ? (
+          {loading ? <p className="text-muted-foreground">{tr("Loading...", "لوڈ ہو رہا ہے...")}</p> : orders.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">{tr("No orders", "کوئی آرڈر نہیں")}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 gap-2">
-              {filtered.slice((page - 1) * 20, page * 20).map(order => {
+              {orders.map(order => {
                 const status = STATUS_MAP[order.status] || STATUS_MAP.pending;
                 return (
                   <div key={order.id} className="flex items-center gap-3 p-3 border rounded-xl hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setSelectedOrder(order)}>
@@ -145,7 +134,7 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       {order.delivery_address && <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><MapPin className="w-3 h-3" /> {order.delivery_address}</p>}
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-[10px] text-muted-foreground">{new Date(order.created_at).toLocaleDateString("ur-PK")}</p>
+                      <p className="text-[10px] text-muted-foreground">{new Date(order.created_at).toLocaleDateString("en-GB", { timeZone: "Asia/Karachi" })}</p>
                       <Eye className="w-4 h-4 text-muted-foreground mt-1" />
                     </div>
                   </div>
@@ -153,7 +142,7 @@ const PhotoOrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
               })}
             </div>
           )}
-          <AdminPagination page={page} count={filtered.length} onPage={setPage} />
+          <AdminPagination page={page} count={count} onPage={setPage} />
         </CardContent>
       </Card>
 
