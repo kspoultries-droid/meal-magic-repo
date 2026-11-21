@@ -1,5 +1,9 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Safe migration-history recovery
+- [x] Retry supported history inspection and compare repository metadata with read-only applied-history records; findings saved in docs/migration-history-audit-2026-11-21.md.
+- [ ] Restore history through a verified supported repair plan — blocked because the inspection tool returns `too many migration revisions to establish a unique applied history` without a plan ID. Requires platform history-inspection repair; no manual journal, snapshot or database-history rewrite.
+
 ## Current request — Streamlined food and rider workflow
 - [x] Combine restaurant accept/start preparation into one recoverable action; replace Send with explicit food-ready confirmation.
 - [x] Add deliberate swipe confirmation for rider pickup/completion while retaining authorized arrival and cash checks.
