@@ -99,8 +99,8 @@ export default function ProductQuickFill({ categories, onFill }: Props) {
     if (lock.current || search.trim().length < 2) return;
     lock.current = true; setBusy("scan");
     try {
-      const query = search.trim().replace(/[%,_]/g, " ");
-      const { data, error } = await (supabase as any).from("catalog_items").select("*").ilike("name", `%${query}%`).order("name").limit(20);
+      const query = search.trim().replace(/[%,_()."'\\]/g, " ");
+      const { data, error } = await (supabase as any).from("catalog_items").select("*").or(`name.ilike.%${query}%,name_ur.ilike.%${query}%,brand.ilike.%${query}%`).order("name").limit(20);
       if (error) throw error;
       setResults(data || []);
       setNote(data?.length ? "" : tr("No matching items", "کوئی متعلقہ چیز نہیں ملی"));

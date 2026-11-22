@@ -19,7 +19,7 @@ const hasRealPhoto = (i: any) => catalogImages(i).length > 0;
 
 type Props = { storeId: string; products: any[]; categories: string[]; onChanged: () => void; mode?: "grocery" | "bazar" };
 
-type Draft = { price: string; discount: string; available: boolean };
+type Draft = { price: string; discount: string; stock: string; available: boolean };
 
 export default function StoreInventoryTools({ storeId, products, categories, onChanged, mode = "grocery", storeCategory }: Props & { storeCategory?: string | null }) {
   const [q, setQ] = useState("");
@@ -33,7 +33,7 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
   const shown = useMemo(() => products.filter((p) => !q || matchesSearch(q, p.name, p.category)).slice(0, 300), [products, q]);
   const dirty = Object.keys(drafts);
 
-  const draftOf = (p: any): Draft => drafts[p.id] || { price: String(p.price ?? ""), discount: p.discount_price ? String(p.discount_price) : "", available: p.is_available !== false };
+  const draftOf = (p: any): Draft => drafts[p.id] || { price: String(p.price ?? ""), discount: p.discount_price ? String(p.discount_price) : "", stock: p.stock_qty == null ? "" : String(p.stock_qty), available: p.is_available !== false };
   const change = (p: any, patch: Partial<Draft>) => setDrafts((d) => ({ ...d, [p.id]: { ...draftOf(p), ...patch } }));
 
   const saveAll = async () => {
@@ -43,8 +43,8 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
     try {
       for (const id of dirty) {
         const d = drafts[id];
-        if (!validItemNumbers(d.price, d.discount, "")) continue;
-        const { error, data } = await supabase.from("grocery_products").update({ price: Number(d.price), discount_price: d.discount ? Number(d.discount) : null, is_special_offer: !!d.discount, is_available: d.available }).eq("id", id).eq("store_id", storeId).select("id").single();
+        if (!validItemNumbers(d.price, d.discount, d.stock)) continue;
+        const { error, data } = await supabase.from("grocery_products").update({ price: Number(d.price), discount_price: d.discount ? Number(d.discount) : null, is_special_offer: !!d.discount, stock_qty: d.stock === "" ? null : Number(d.stock), is_available: d.available }).eq("id", id).eq("store_id", storeId).select("id").single();
         if (!error && data) succeeded.push(id);
       }
       setDrafts((previous) => Object.fromEntries(Object.entries(previous).filter(([id]) => !succeeded.includes(id))));
@@ -92,7 +92,7 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
               <Input inputMode="numeric" placeholder={tr("Stock quantity", "اسٹاک تعداد")} value={quick.stock} onChange={(e) => setQuick({ ...quick, stock: e.target.value })} />
               <Input className="col-span-2" placeholder={tr("Description (optional)", "مختصر تفصیل (اختیاری)")} value={quick.description} onChange={(e) => setQuick({ ...quick, description: e.target.value })} />
             </div>
-            <p className="text-[10px] text-muted-foreground">تصویر اور مکمل تفصیل کے لیے اوپر «پروڈکٹ شامل» استعمال کریں۔</p>
+            <p className="text-[10px] text-muted-foreground">{tr("Photo and full details", "تصویر اور مکمل تفصیل")}</p>
             <div className="flex gap-2">
               <select className="flex-1 h-10 rounded-md border bg-background px-2 text-sm" value={quick.category} onChange={(e) => setQuick({ ...quick, category: e.target.value })}>
                 {categories.map((c) => <option key={c}>{c}</option>)}
@@ -116,12 +116,13 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-semibold">{p.name}</p>
                     <div className="mt-1 flex gap-1">
-                      <Input inputMode="numeric" aria-label={tr("Price", "قیمت")} className="h-8 px-2 text-xs" value={d.price} onChange={(e) => change(p, { price: e.target.value })} />
-                      <Input inputMode="numeric" aria-label={tr("Sale price", "رعایتی قیمت")} placeholder={tr("Sale price", "رعایت")} className="h-8 px-2 text-xs" value={d.discount} onChange={(e) => change(p, { discount: e.target.value })} />
+                      <Input disabled={saving} inputMode="numeric" aria-label={tr("Price", "قیمت")} className="h-8 px-2 text-xs" value={d.price} onChange={(e) => change(p, { price: e.target.value })} />
+                      <Input disabled={saving} inputMode="numeric" aria-label={tr("Sale price", "رعایتی قیمت")} placeholder={tr("Sale price", "رعایت")} className="h-8 px-2 text-xs" value={d.discount} onChange={(e) => change(p, { discount: e.target.value })} />
                     </div>
                   </div>
                   <div className="flex flex-col items-center gap-0.5">
-                    <Switch checked={d.available} onCheckedChange={(v) => change(p, { available: v })} aria-label={tr("Available", "موجود")} />
+                    <Input disabled={saving} inputMode="numeric" aria-label={tr(`Stock for ${p.name}`, `${p.name} کا اسٹاک`)} placeholder={tr("Stock", "اسٹاک")} className="h-8 w-16 px-2 text-xs" value={d.stock} onChange={(e) => change(p, { stock: e.target.value })} />
+                    <Switch disabled={saving} checked={d.available} onCheckedChange={(v) => change(p, { available: v })} aria-label={tr("Available", "موجود")} />
                     <span className="text-[9px] text-muted-foreground">{d.available ? tr("Available", "موجود") : tr("Out of stock", "ختم")}</span>
                   </div>
                 </div>
@@ -132,7 +133,7 @@ export default function StoreInventoryTools({ storeId, products, categories, onC
 
           {dirty.length > 0 && (
             <div className="sticky bottom-20 z-20">
-              <Button className="w-full shadow-lg" disabled={saving} onClick={saveAll}><Save className="h-4 w-4" /> {saving ? "محفوظ ہو رہا ہے..." : `${dirty.length} تبدیلیاں محفوظ کریں`}</Button>
+              <Button className="w-full shadow-lg" disabled={saving} onClick={saveAll}><Save className="h-4 w-4" /> {saving ? tr("Saving…", "محفوظ ہو رہا ہے…") : tr(`Save ${dirty.length} changes`, `${dirty.length} تبدیلیاں محفوظ کریں`)}</Button>
             </div>
           )}
         </TabsContent>

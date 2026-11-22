@@ -102,7 +102,7 @@ export function prepareInventoryImport(parsed: ImportedProduct[], existing: Arra
       }
       if (!headers.includes("available")) delete row.is_available;
       if (!headers.includes("discount_price")) delete row.is_special_offer;
-    } else if (product.stock_qty === null) row.is_available = false;
+    } else if (product.stock_qty === null || product.stock_qty === 0) row.is_available = false;
     rows.push(row);
   }
   return { rows, skipped };
