@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Food launch polish and Mardan Kirana operating audit
+- [x] Complete actionable food discovery/presentation improvements without changing restaurant records, prices or delivery rules.
+- [x] Audit stock, changing prices and ration quotations; recommend a ration-first model with optional physically reserved small catalog for a busy wholesaler.
+- [x] 356 tests and 4 authenticated EN/UR mobile/desktop food search/filter/category/quick-add/cart/checkout readbacks passed. Ration shortcut opened but current account location had no eligible shops; actual ration submission/approval and physical delivery were not tested. See docs/food-launch-and-mardan-audit-2026-11-23.md.
+- [ ] Free-delivery activation awaits explicit duration, funding and eligible-area terms; physical rider/device pilot remains required.
+
 ## Current request — Restaurant scanner and kitchen alerts
 - [x] Add up to 5 readable menu pages to one prepared image using the unchanged scanner endpoint; retain failed drafts and prevent duplicate submissions.
 - [x] Keep kitchen alerts synchronized to owner-scoped pending orders, recover missed reads on resume/polling, and preserve rows on errors.

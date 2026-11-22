@@ -12,6 +12,7 @@ import FoodDishCard from "./menu/FoodDishCard";
 import MenuItemSheet from "./menu/MenuItemSheet";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { foodStartingPrice } from "@/lib/foodPresentation";
 
 export interface MenuItem {
   id: string;
@@ -86,7 +87,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
           pickupAddress: r.pickup_address,
           deliveryMode: r.delivery_mode,
           paysDeliveryFee: r.pays_delivery_fee === true,
-          minPrice: (menus || []).filter((m) => m.restaurant_id === r.id).reduce<number | null>((min, m) => (min === null || m.price < min ? m.price : min), null),
+          minPrice: foodStartingPrice((menus || []).filter((m) => m.restaurant_id === r.id)),
           menuItems: (menus || []).filter((m) => m.restaurant_id === r.id).map((m) => ({
             id: m.id, name: m.name, price: m.price,
             category: m.category,
@@ -116,7 +117,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
   });
 
   const quickLabels: Record<string, string> = {
-    offers: L("Offers & deals", "آفرز اور سستے سودے"),
+    offers: L("From Rs. 500 or less", "ابتدائی قیمت Rs. 500 یا کم"),
     new: L("New restaurants", "نئے ریسٹورنٹس"),
     pickup: L("Pickup available", "پِک اپ دستیاب"),
     homechefs: L("Home chefs", "ہوم شیف"),
@@ -145,23 +146,23 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
   }
 
   return (
-    <section id="food-results" className="container mx-auto px-4 pb-16 min-h-[400px] scroll-mt-16">
+    <section id="food-results" className="container mx-auto px-4 pt-5 pb-12 min-h-[400px] scroll-mt-24">
       {isError && <div className="py-6 text-center text-muted-foreground"><p>{L("The list could not load", "فہرست لوڈ نہیں ہو سکی")}</p><Button variant="outline" onClick={() => void refetch()}>{L("Try again", "دوبارہ کوشش")}</Button></div>}
       {quickFilter && (
         <div className="mb-4 flex items-center gap-2 rounded-2xl border border-primary/30 bg-accent px-3 py-2 shadow-soft animate-fade-in">
           <span className="text-xs font-bold text-accent-foreground">{L("Filter", "فلٹر")}: {quickLabels[quickFilter]}</span>
           <span className="text-[11px] font-semibold text-muted-foreground">{filtered.length} {L("results", "نتائج")}</span>
-          <button
+          <Button variant="ghost" size="sm"
             onClick={() => onClearQuickFilter?.()}
-            className="ml-auto rounded-full bg-card px-3 py-1 text-[11px] font-bold text-primary shadow-soft active:scale-95 transition-transform"
+            className="ms-auto bg-card text-xs font-bold text-primary"
           >
             {L("Remove", "ہٹائیں")} ✕
-          </button>
+          </Button>
         </div>
       )}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-extrabold text-foreground">
-          {searchQuery ? L(`Results for "${searchQuery}"`, `"${searchQuery}" کے نتائج`) : quickFilter ? quickLabels[quickFilter] : L("Popular near you", "آپ کے قریب مشہور")}
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-5">
+        <h2 className="min-w-0 break-words text-xl font-extrabold text-foreground">
+          {searchQuery ? L(`Results for "${searchQuery}"`, `"${searchQuery}" کے نتائج`) : quickFilter ? quickLabels[quickFilter] : L("Restaurants", "ریسٹورنٹس")}
         </h2>
         <span className="text-muted-foreground text-sm">{filtered.length} {L("restaurants", "ریسٹورنٹس")}</span>
       </div>
@@ -173,7 +174,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((r, i) => (
-            <div key={r.id} className="animate-fade-in-up cursor-pointer" style={{ animationDelay: `${i * 80}ms` }} onClick={() => navigate(`/restaurant/${r.id}`)}>
+            <div key={r.id} className="min-w-0">
                <RestaurantCard restaurant={{ ...r, menuItems: r.menuItems.filter(item => matchesFoodCategory(activeCategory, [item.name, item.category]) && (!searchQuery.trim() || item.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || item.description?.toLowerCase().includes(searchQuery.trim().toLowerCase()))).slice(0, 3) }} index={i} />
             </div>
           ))}

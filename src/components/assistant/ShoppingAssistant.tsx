@@ -28,7 +28,7 @@ const ShoppingAssistant = ({ inline = false }: { inline?: boolean }) => {
   const [reply, setReply] = useState("");
   const [found, setFound] = useState<Found[] | null>(null);
   const [err, setErr] = useState("");
-  if (HIDDEN.some((r) => r.test(pathname)) || ((pathname === "/grocery" || pathname === "/bazar") && !inline)) return null;
+  if (HIDDEN.some((r) => r.test(pathname)) || ((pathname === "/" || pathname === "/grocery" || pathname === "/bazar") && !inline)) return null;
 
   const ask = async () => {
     if (text.trim().length < 2 || busy) return;

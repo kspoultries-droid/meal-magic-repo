@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus } from "lucide-react";
 import { useCart, type AddItemInput, type CartItemOption } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import { tr } from "@/lib/i18n/tr";
 
 export interface MenuVariant {
   id: string;
@@ -92,12 +93,12 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
     const selectedMainQty = variants.length > 0
       ? Object.values(variantQty).reduce((sum, value) => sum + value, 0)
       : baseQty;
-    if (selectedMainQty < 1) { toast.error("کم از کم ایک سائز منتخب کریں"); return; }
+    if (selectedMainQty < 1) { toast.error(tr("Select at least one portion", "کم از کم ایک سائز منتخب کریں")); return; }
 
     for (const g of groups) {
       const count = g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0);
-      if (count < g.min) { toast.error(`"${g.name}" میں کم از کم ${g.min} منتخب کریں`); return; }
-      if (count > g.max) { toast.error(`"${g.name}" میں زیادہ سے زیادہ ${g.max} چن سکتے ہیں`); return; }
+      if (count < g.min) { toast.error(tr(`Select at least ${g.min} in "${g.name}"`, `"${g.name}" میں کم از کم ${g.min} منتخب کریں`)); return; }
+      if (count > g.max) { toast.error(tr(`Select at most ${g.max} in "${g.name}"`, `"${g.name}" میں زیادہ سے زیادہ ${g.max} چن سکتے ہیں`)); return; }
     }
 
     const common = { menu_item_id: item.id, restaurant: restaurant.name, image: item.image_url || restaurant.image_url || "", source: "restaurant" as const, sourceId: restaurant.id };
@@ -139,18 +140,18 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
           {variants.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-bold">سائز / وزن</h3>
-                <span className="text-[10px] font-bold text-primary">لازمی</span>
+                <h3 className="text-sm font-bold">{tr("Size / portion", "سائز / وزن")}</h3>
+                <span className="text-[10px] font-bold text-primary">{tr("Required", "لازمی")}</span>
               </div>
               <div className="space-y-2">
                 {variants.map((v) => {
                   const quantity = variantQty[v.id] || 0;
                   return <div key={v.id} className={`flex items-center justify-between gap-3 p-3 border-2 rounded-xl transition-all ${quantity > 0 ? "border-primary bg-primary/5" : "border-border"}`}>
-                    <div><span className="text-sm font-semibold">{v.label}</span><p className="text-xs font-extrabold text-primary">Rs {v.price}</p></div>
+                    <div className="min-w-0 break-words"><span className="text-sm font-semibold">{v.id === "__base" ? tr("Regular", "بنیادی") : v.label}</span><p className="text-xs font-extrabold text-primary">Rs {v.price}</p></div>
                     <div className="flex items-center gap-1 rounded-full border bg-background p-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => changeQty(setVariantQty, v.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="icon" aria-label={tr(`Decrease ${v.label}`, `${v.label} کم کریں`)} disabled={quantity === 0} className="h-9 w-9 rounded-full" onClick={() => changeQty(setVariantQty, v.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
                       <span className="w-5 text-center text-sm font-extrabold">{quantity}</span>
-                      <Button size="icon" className="h-7 w-7 rounded-full" onClick={() => changeQty(setVariantQty, v.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
+                      <Button size="icon" aria-label={tr(`Increase ${v.label}`, `${v.label} بڑھائیں`)} className="h-9 w-9 rounded-full" onClick={() => changeQty(setVariantQty, v.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
                     </div>
                   </div>;
                 })}
@@ -163,7 +164,7 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-bold">{g.name}</h3>
                 <span className="text-[10px] font-bold text-muted-foreground">
-                  {g.min > 0 ? `لازمی • ${g.min === g.max ? g.min : `${g.min}-${g.max}`}` : g.max === 1 ? "اختیاری" : `زیادہ سے زیادہ ${g.max}`}
+                  {g.min > 0 ? `${tr("Required", "لازمی")} • ${g.min === g.max ? g.min : `${g.min}-${g.max}`}` : g.max === 1 ? tr("Optional", "اختیاری") : tr(`Up to ${g.max}`, `زیادہ سے زیادہ ${g.max}`)}
                 </span>
               </div>
               <div className="space-y-2">
@@ -171,14 +172,14 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
                   const quantity = choiceQty[c.id] || 0;
                   return (
                     <div key={c.id} className={`flex items-center justify-between gap-3 p-3 border-2 rounded-xl transition-all ${quantity > 0 ? "border-primary bg-primary/5" : "border-border"}`}>
-                      <div>
+                      <div className="min-w-0 break-words">
                         <span className="text-sm font-semibold">{c.label}</span>
                         <p className="text-xs font-bold text-primary">Rs {c.price_delta}</p>
                       </div>
                       <div className="flex items-center gap-1 rounded-full border bg-background p-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => changeQty(setChoiceQty, c.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
+                        <Button variant="ghost" size="icon" aria-label={tr(`Decrease ${c.label}`, `${c.label} کم کریں`)} disabled={quantity === 0} className="h-9 w-9 rounded-full" onClick={() => changeQty(setChoiceQty, c.id, -1)}><Minus className="h-3.5 w-3.5" /></Button>
                         <span className="w-5 text-center text-sm font-extrabold">{quantity}</span>
-                        <Button size="icon" className="h-7 w-7 rounded-full" disabled={g.max > 0 && g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0) >= g.max} onClick={() => changeQty(setChoiceQty, c.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" aria-label={tr(`Increase ${c.label}`, `${c.label} بڑھائیں`)} className="h-9 w-9 rounded-full" disabled={g.max > 0 && g.choices.reduce((sum, choice) => sum + (choiceQty[choice.id] || 0), 0) >= g.max} onClick={() => changeQty(setChoiceQty, c.id, 1)}><Plus className="h-3.5 w-3.5" /></Button>
                       </div>
                     </div>
                   );
@@ -188,9 +189,9 @@ const MenuItemSheet = ({ item, restaurant, onClose }: Props) => {
           ))}
         </div>
 
-        <div className="border-t bg-background/95 backdrop-blur px-5 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center gap-3">
-          <Button className="flex-1 h-12 font-extrabold bg-gradient-primary shadow-glow" onClick={handleAdd}>
-            منتخب اشیاء شامل کریں — Rs {total}
+        <div className="border-t bg-background px-5 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center gap-3">
+          <Button className="flex-1 min-w-0 h-auto min-h-12 whitespace-normal py-3 font-extrabold" onClick={handleAdd}>
+            {tr("Add selected items", "منتخب اشیاء شامل کریں")} — Rs {total}
           </Button>
         </div>
       </SheetContent>

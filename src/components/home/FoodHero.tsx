@@ -25,11 +25,10 @@ const foodBiryani = biryaniAsset.url;
 const foodKarahi = karahiAsset.url;
 const foodBbq = bbqAsset.url;
 const getSlides = () => [
-  { key: "s1", eyebrow: tr("Order today", "آج ہی آرڈر کریں"), title: tr("Free delivery on your first order", "پہلے آرڈر پر مفت ڈیلیوری"), cta: tr("Get it now", "ابھی حاصل کریں"), to: "/category/biryani", image: foodBiryani },
-  { key: "s2", eyebrow: tr("At selected restaurants", "منتخب ریسٹورنٹس پر"), title: tr("New deals and discounts daily", "روزانہ نئی ڈیلز اور رعایت"), cta: tr("View deals", "ڈیلز دیکھیں"), to: "/category/burgers", image: foodKarahi },
-  { key: "s3", eyebrow: tr("Near you", "آپ کے قریب"), title: tr("Fast delivery in 30 minutes", "30 منٹ میں تیز ڈیلیوری"), cta: tr("Order now", "آرڈر کریں"), to: "/category/pizza", image: foodBbq },
+  { key: "s1", title: tr("Biryani & rice", "بریانی اور چاول"), to: "/category/biryani", image: foodBiryani },
+  { key: "s2", title: tr("Karahi", "کڑاہی"), to: "/category/karahi", image: foodKarahi },
+  { key: "s3", title: tr("Barbecue", "باربی کیو"), to: "/category/bbq", image: foodBbq },
 ];
-const getPlaceholders = () => [tr("What would you like to eat?", "آج کیا کھانے کا دل ہے؟"), tr("Biryani, pizza or burgers?", "بریانی، پیزا یا برگر؟"), tr("Find nearby restaurants…", "قریبی ریسٹورنٹس تلاش کریں…")];
 
 const seen = new Set<string>();
 const track = (id: string, kind: "view" | "click") => {
@@ -40,22 +39,26 @@ const track = (id: string, kind: "view" | "click") => {
 const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   const navigate = useNavigate();
   const SLIDES = getSlides();
-  const PLACEHOLDERS = getPlaceholders();
   const [ads, setAds] = useState<Ad[]>([]);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
-  const [ph, setPh] = useState(0);
-  const autoplay = useRef(Autoplay({ delay: 3500, stopOnInteraction: false }));
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const autoplay = useRef(Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true }));
   const rtl = tr("ltr", "rtl") === "rtl";
 
   useEffect(() => {
     supabase.from("promotional_ads").select("*").eq("is_active", true).order("sort_order").then(({ data }) => {
       const today = new Date().toISOString().slice(0, 10);
-      setAds(((data || []) as any[]).filter((ad) => ad.placements?.includes("home") && ad.payment_status === "paid"
+      setAds(((data || []) as any[]).filter((ad) => typeof ad.image_url === "string" && ad.image_url.trim() && ad.placements?.includes("home") && ad.payment_status === "paid"
         && (!ad.start_date || ad.start_date <= today) && (!ad.end_date || ad.end_date >= today)).slice(0, MAX_SLIDES) as Ad[]);
     });
   }, []);
-  useEffect(() => { const t = setInterval(() => setPh((n) => (n + 1) % PLACEHOLDERS.length), 3000); return () => clearInterval(t); }, []);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   useEffect(() => {
     if (!api) return;
     const onSelect = () => setCurrent(api.selectedScrollSnap());
@@ -78,32 +81,33 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
   };
 
   const searchBar = (
-    <div className="bg-gradient-hero px-3 pb-3 pt-2">
-      <label className="mx-auto flex h-12 max-w-3xl items-center gap-2 rounded-2xl bg-card ps-3.5 shadow-elegant ring-1 ring-border/60 focus-within:ring-2 focus-within:ring-primary">
+    <div className="container mx-auto px-4 pb-2 pt-4">
+      <h1 className="mb-3 text-xl font-extrabold text-foreground">{tr("EasyLife Food", "ایزی لائف فوڈ")}</h1>
+      <form role="search" onSubmit={event => { event.preventDefault(); document.getElementById("food-results")?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" }); }} className="flex h-12 items-center gap-2 rounded-lg bg-card ps-3.5 shadow-soft ring-1 ring-border focus-within:ring-2 focus-within:ring-primary">
         <Search className="size-5 shrink-0 text-muted-foreground" />
-        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={PLACEHOLDERS[ph]} enterKeyHint="search" aria-label={tr("Search food", "کھانا تلاش کریں")} className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
+        <input value={searchQuery} onChange={(e) => onSearchChange(e.target.value)} placeholder={tr("Restaurant or dish", "ریسٹورنٹ یا ڈش تلاش کریں")} enterKeyHint="search" aria-label={tr("Search food", "کھانا تلاش کریں")} className="min-w-0 flex-1 bg-transparent text-sm text-card-foreground outline-none placeholder:text-muted-foreground" />
         {searchQuery && <Button variant="ghost" size="icon" type="button" aria-label={tr("Clear", "صاف کریں")} onClick={() => onSearchChange("")} className="grid size-8 shrink-0 place-items-center text-muted-foreground"><X className="size-4" /></Button>}
-        <span className="m-1.5 grid h-9 place-items-center rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">{tr("Search", "تلاش")}</span>
-      </label>
+        <Button type="submit" size="sm" className="m-1.5 h-9 px-3 text-xs font-bold">{tr("Search", "تلاش")}</Button>
+      </form>
     </div>
   );
 
   if (hideAds) return <header>{searchBar}</header>;
 
-  const H = "h-44 sm:h-auto sm:aspect-video";
+  const H = "h-auto aspect-[16/8] sm:aspect-[16/6]";
   return (
     <header className="relative isolate">
       {searchBar}
-      <div className="container mx-auto max-w-3xl px-3 pt-3">
-      <div className="relative overflow-hidden rounded-2xl shadow-card">
-        <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 ? [autoplay.current] : []} className="w-full">
+      <div className="container mx-auto px-4 pt-3">
+      <div className="relative mx-auto max-w-3xl overflow-hidden rounded-lg shadow-soft">
+        <Carousel setApi={setApi} dir={rtl ? "rtl" : "ltr"} opts={{ loop: total > 1, direction: rtl ? "rtl" : "ltr" }} plugins={total > 1 && !reducedMotion ? [autoplay.current] : []} className="w-full">
           <CarouselContent className="ml-0">
             {ads.map((ad, i) => (
               <CarouselItem key={ad.id} className="basis-full pl-0">
                 <Button variant="ghost" type="button" onClick={() => openAd(ad)} className={`relative block ${H} w-full overflow-hidden rounded-none bg-muted p-0 text-start`}>
                   {ad.image_url ? <img key={ad.image_url} src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" onError={e => { if (ad.image_url && e.currentTarget.dataset.fallback !== "true") { e.currentTarget.dataset.fallback = "true"; e.currentTarget.src = ad.image_url; } }} className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0 bg-gradient-hero" />}
                   {ad.show_text !== false && <>
-                    <div className="absolute bottom-6 start-3 flex max-w-[78%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-3 text-foreground shadow-card backdrop-blur-md">
+                    <div className="absolute bottom-6 start-3 flex max-w-[78%] items-center gap-1.5 rounded-full bg-card py-1 pe-1 ps-3 text-foreground shadow-soft">
                       {ad.offer_badge && <span className="shrink-0 rounded-full bg-destructive px-2 py-0.5 text-[10px] font-extrabold text-destructive-foreground">{ad.offer_badge}</span>}
                       <span className="truncate text-xs font-bold">{ad.title}</span>
                       <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"><ArrowRight className="size-3.5 rtl:rotate-180" /></span>

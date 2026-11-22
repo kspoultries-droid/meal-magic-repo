@@ -8,18 +8,19 @@ import Footer from "@/components/Footer";
 import BottomTabBar from "@/components/BottomTabBar";
 import AppShareButton from "@/components/AppShareButton";
 import ServiceUnavailableNotice from "@/components/common/ServiceUnavailableNotice";
+import ShoppingAssistant from "@/components/assistant/ShoppingAssistant";
 
 import { useCityServices } from "@/hooks/useCityServices";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const activeCategory = "All";
   const [quickFilter, setQuickFilter] = useState<QuickFilter>(null);
   const isSearching = searchQuery.trim().length > 0;
   const { foodLive, city, cities, setCityId } = useCityServices();
 
   return (
-    <div className="min-h-screen bg-gradient-subtle pb-24">
+    <div className="min-h-screen bg-background pb-24">
       <Navbar />
       <FoodHero searchQuery={searchQuery} onSearchChange={setSearchQuery} hideAds={isSearching || !!quickFilter} />
       {!foodLive ? (
@@ -40,8 +41,8 @@ const Index = () => {
       <RestaurantGrid searchQuery={searchQuery} activeCategory={activeCategory} quickFilter={quickFilter} onClearQuickFilter={() => setQuickFilter(null)} />
       </>
       )}
+      <div className="container mx-auto px-4 pb-4 flex items-center justify-end gap-2"><ShoppingAssistant inline /><AppShareButton section="food" inline /></div>
       <Footer />
-      <AppShareButton section="general" />
       <BottomTabBar />
     </div>
   );

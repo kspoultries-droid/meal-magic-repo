@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
-import { toast } from "sonner";
+import { tr } from "@/lib/i18n/tr";
+import { Button } from "@/components/ui/button";
 
 interface Suggestion {
   id: string;
@@ -51,23 +52,23 @@ const BoughtTogether = ({ sourceId, source = "restaurant", sourceName = "", baza
   if (!sourceId || list.length === 0) return null;
 
   return (
-    <div className="glass animate-fade-in rounded-2xl border border-border/50 p-4 shadow-card">
+    <section className="border-y border-border py-4">
       <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold text-foreground">
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-primary">
           <Sparkles className="h-3.5 w-3.5" />
         </span>
-        اکثر ساتھ خریدے جاتے ہیں
+        {tr("Add to your order", "آرڈر میں مزید شامل کریں")}
       </h2>
       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
         {list.map((s) => (
-          <div key={s.id} className="w-28 shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-soft">
+          <div key={s.id} className="w-28 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-card shadow-soft">
             <div className="h-20 w-full bg-secondary">
-              {s.image && <img src={s.image} alt={s.name} loading="lazy" className="h-full w-full object-cover" />}
+              {s.image ? <img src={s.image} alt={s.name} loading="lazy" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-muted-foreground"><Package className="size-6" /></div>}
             </div>
             <div className="p-2">
               <p dir="auto" className="line-clamp-2 break-words text-[11px] font-bold text-foreground">{s.name}</p>
               <p className="text-[11px] font-extrabold text-primary">Rs {s.price}</p>
-              <button
+              <Button variant="default" size="sm"
                 onClick={() => {
                   addItem({
                     id: s.id,
@@ -80,17 +81,16 @@ const BoughtTogether = ({ sourceId, source = "restaurant", sourceName = "", baza
                     sourceId,
                     bazar,
                   });
-                  toast.success(`${s.name} شامل ہو گیا`);
                 }}
-                className="mt-1.5 flex w-full items-center justify-center gap-1 rounded-lg bg-gradient-primary py-1 text-[10px] font-bold text-primary-foreground active:scale-95 transition-transform"
+                className="mt-1.5 h-8 w-full gap-1 px-1 text-[10px] font-bold"
               >
-                <Plus className="h-3 w-3" /> شامل کریں
-              </button>
+                <Plus className="h-3 w-3" /> {tr("Add", "شامل کریں")}
+              </Button>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

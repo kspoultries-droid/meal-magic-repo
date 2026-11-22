@@ -1,2 +1,3 @@
 # Food home media
 - Built-in food slides and category photos use optimized CDN asset pointers; keep paid advertiser and restaurant-owned media independent so visual refreshes never replace business photography.
+- Built-in slides describe the photographed category, not unconfigured delivery promotions; food cards keep menu navigation separate from quick-order controls and derive display prices from persisted base/variant values.

@@ -1,5 +1,6 @@
 import { img } from "@/lib/imageUrl";
-import { Star, Clock, Tag, Plus, Bike, Heart } from "lucide-react";
+import { Star, Clock, Tag, Plus, Bike, Heart, ArrowUpRight } from "lucide-react";
+import { foodStartingPrice } from "@/lib/foodPresentation";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
@@ -43,13 +44,14 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
 
   return (
     <div
-      className={`group relative bg-card rounded-2xl overflow-hidden border border-border/60 shadow-soft hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 ${
+      className={`food-restaurant-card group relative h-full bg-card rounded-lg overflow-hidden border border-border/60 shadow-soft ${
         !isActive ? "grayscale-[0.6]" : ""
       }`}
     >
       {/* Image */}
-      <div
-        className="relative h-44 overflow-hidden cursor-pointer"
+      <Button variant="ghost" type="button"
+        aria-label={L(`View ${name} menu`, `${name} کا مینو دیکھیں`)}
+        className="relative block h-auto aspect-[16/10] w-full p-0 rounded-none overflow-hidden"
         onClick={() => navigate(`/restaurant/${restaurantId}`)}
       >
         <img
@@ -58,8 +60,9 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           width={400}
           height={300}
           loading={isAboveFold ? "eager" : "lazy"}
+          decoding="async"
           {...(isAboveFold ? { fetchpriority: "high" } : {})}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          className="w-full h-full object-cover"
         />
 
         {!isActive && (
@@ -77,35 +80,32 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           </div>
         )}
 
-        {/* Favourite */}
+      </Button>
+        {/* Favourite is separate from the menu link to avoid nested buttons. */}
         <Button variant="ghost"
           onClick={(e) => { e.stopPropagation(); setFav((v) => !v); }}
           aria-label={L("Favourite", "پسندیدہ")}
+          aria-pressed={fav}
           className="absolute top-3 right-3 p-0 w-9 h-9 rounded-full bg-card/85  flex items-center justify-center shadow-soft active:scale-90 transition-transform"
         >
           <Heart className={`w-4 h-4 ${fav ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
         </Button>
 
-        {/* Rating pill on image */}
-        <span className="absolute bottom-2.5 left-3 flex items-center gap-1 text-[11px] font-bold text-foreground bg-card/95 shadow-soft rounded-full px-2.5 py-1">
-          <Star className="w-3 h-3 fill-current text-warning" />
-          {rating || L("New", "نیا")}
-        </span>
-        <span className="absolute bottom-2.5 right-3 flex items-center gap-1 text-[11px] font-semibold text-foreground bg-card/95 shadow-soft rounded-full px-2.5 py-1">
-          <Clock className="w-3 h-3" />
-          {deliveryTime}
-        </span>
-      </div>
-
       {/* Info */}
       <div className="p-4">
-        <h3 className="font-extrabold text-foreground text-base mb-1.5 truncate group-hover:text-primary transition-colors">
-          {name}
+        <h3 className="mb-1.5">
+          <Button variant="link" onClick={() => navigate(`/restaurant/${restaurantId}`)} className="h-auto max-w-full p-0 text-start whitespace-normal text-base font-extrabold text-foreground">
+            {name}<ArrowUpRight className="ms-1 size-4 shrink-0 text-muted-foreground rtl:-rotate-90" />
+          </Button>
         </h3>
         <p className="text-muted-foreground text-xs truncate mb-3">{cuisines.join(" · ")}</p>
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 font-semibold text-foreground">{rating > 0 && <Star className="size-3.5 fill-current text-warning" />}{rating > 0 ? rating : L("New", "نیا")}</span>
+          <span className="flex items-center gap-1"><Clock className="size-3.5" />{deliveryTime}</span>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1 text-[10px] font-bold text-accent-foreground bg-accent rounded-full px-2.5 py-1">
-            <Bike className="w-3 h-3" /> {paysDeliveryFee ? L("Free delivery", "فری ڈیلیوری") : L("Fast delivery", "فوری ڈیلیوری")}
+            <Bike className="w-3 h-3" /> {paysDeliveryFee ? L("Free delivery", "فری ڈیلیوری") : L("Delivery", "ڈیلیوری")}
           </span>
           {minPrice != null && (
             <span className="text-[10px] font-bold text-foreground bg-secondary rounded-full px-2.5 py-1">
@@ -116,7 +116,8 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
             <Button variant="ghost"
               type="button"
               onClick={(e) => { e.stopPropagation(); setShowMenu((v) => !v); }}
-              className="h-8 text-[11px] font-semibold text-primary ml-auto rounded-lg border border-primary/30 px-2.5 py-1"
+              aria-expanded={showMenu}
+              className="h-9 text-xs font-semibold text-primary ms-auto rounded-lg border border-primary/30 px-2.5 py-1"
             >
               {showMenu ? L("Close", "بند کریں") : L("Quick order", "فوری آرڈر")}
             </Button>
@@ -130,10 +131,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
           <p className="text-[10px] font-bold text-muted-foreground uppercase">{L("Quick add", "فوری شامل کریں")}</p>
           {menuItems.map((item) => {
             const hasChoices = (item.variants?.length || 0) > 0 || (item.option_groups?.length || 0) > 0;
-            const variantPrices = (item.variants || []).map((v: any) => Number(v.price) || 0).filter((n: number) => n > 0);
-            const minPrice = variantPrices.length
-              ? Math.min(item.price > 0 ? item.price : Infinity, ...variantPrices)
-              : item.price;
+            const minPrice = foodStartingPrice([item]);
             return (
               <div key={item.id} className="flex items-center justify-between py-1.5">
                 <div className="min-w-0">
@@ -143,6 +141,7 @@ const RestaurantCard = ({ restaurant, index = 99 }: RestaurantCardProps) => {
                   </p>
                 </div>
                 <Button variant="ghost"
+                  aria-label={L(`Add ${item.name}`, `${item.name} شامل کریں`)}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (hasChoices) {
