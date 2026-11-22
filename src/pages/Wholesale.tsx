@@ -20,6 +20,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { matchesSearch } from "@/lib/searchMatch";
 import { useCart } from "@/contexts/CartContext";
 import { X } from "lucide-react";
+import BazarQuickAddSheet, { variantLabel, variantPrice, type BazarVariant } from "@/components/wholesale/BazarQuickAddSheet";
 import ShoppingAssistant from "@/components/assistant/ShoppingAssistant";
 import BazarQuickChannels, { CHANNEL_ICONS, QuickChannel } from "@/components/wholesale/BazarQuickChannels";
 
@@ -82,8 +83,14 @@ const Wholesale = () => {
   const loadMore = async () => { if (visible + 20 <= products.length) { setVisible((v) => v + 20); return; } if (!hasMore || loadingMore) { setVisible((v) => Math.min(v + 20, products.length)); return; } setLoadingMore(true); const page = await fetchProductPage(stores, products.length); setProducts((prev) => [...prev, ...page]); setHasMore(page.length === PAGE_SIZE); setVisible((v) => v + 20); setLoadingMore(false); };
   useStatusBarOverlay();
   const { addItem } = useCart();
+  const [sheetProduct, setSheetProduct] = useState<(BazarProduct & { variants?: unknown }) | null>(null);
+  const addVariant = (p: BazarProduct & { variants?: unknown }, v: BazarVariant, qty: number) => {
+    const label = variantLabel(v);
+    const ok = addItem({ id: p.id, name: label ? `${p.name} — ${label}` : p.name, restaurant: p.storeName || "Bazar", price: variantPrice(p, v), image: v.image || p.image_url || p.images?.[0] || "", source: "grocery", sourceId: p.store_id, bazar: true, unit: p.unit || undefined, quantity: qty, variant_id: v.id || v.label || null, variant_label: label || null } as any);
+    if (ok !== false) setSheetProduct(null);
+  };
   const quickAdd = (p: BazarProduct & { variants?: unknown }) => {
-    if (readVariants(p).length) { openProduct(p); return; }
+    if (readVariants(p).length) { setSheetProduct(p); return; }
     addItem({ id: p.id, name: p.name, restaurant: p.storeName || "Bazar", price: Number(p.wholesale_price ?? p.discount_price ?? p.price), image: p.image_url || p.images?.[0] || "", source: "grocery", sourceId: p.store_id, bazar: true, unit: p.unit || undefined, quantity: Math.max(1, Number(p.min_order_qty) || 1) } as any);
   };
   const openProduct = (p: BazarProduct) => { pushRecent(p.id); navigate(`/product/${p.id}`); };
@@ -165,7 +172,7 @@ const Wholesale = () => {
     <BazarFilterBar filters={filters} onChange={setFilters} resultCount={filteredProducts.length} grid={grid} onGridChange={setGrid} sizes={variantValues.sizes} colors={variantValues.colors} />
     <section id="bazar-feed" className="w-full scroll-mt-16 px-3 pt-5 sm:px-6"><div className="mb-3 flex items-center gap-2"><Flame className="size-4 text-destructive" /><h2 className="font-display text-xl font-bold">{t("bazar.justForYou")}</h2></div><div className="no-scrollbar mb-3 flex gap-1.5 overflow-x-auto pb-1">{sortTabs.map((tab) => <Button key={tab.v} size="sm" variant={filters.sort === tab.v ? "default" : "outline"} onClick={() => setFilters((f) => ({ ...f, sort: tab.v }))} className="h-8 shrink-0 rounded-full px-3 text-xs font-semibold">{L(tab.en, tab.ur)}</Button>)}</div>{loading ? <StoreGridSkeleton count={6} /> : filteredProducts.length === 0 ? <div className="rounded-xl border bg-card py-12 text-center"><Package className="mx-auto mb-2 size-8 text-muted-foreground" /><p className="text-sm font-semibold">{t("bazar.noProducts")}</p><p className="mt-1 text-xs text-muted-foreground">{t("bazar.changeFilters")}</p></div> : <><div className={grid ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" : "space-y-2"}>{filteredProducts.slice(0, visible).map((p) => <BazarProductCard key={p.id} product={withCity(p)} list={!grid} onClick={() => openProduct(p)} isWishlisted={wishlist.includes(p.id)} onToggleWishlist={() => toggleWishlist(p.id)} onQuickAdd={() => quickAdd(p)} />)}</div>{(visible < filteredProducts.length || hasMore) && <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="mx-auto mt-5 flex">{loadingMore ? t("bazar.loading") : t("bazar.loadMore")}<ChevronRight className="size-4" /></Button>}</>}</section>
     </>}
-    <BottomTabBar />
+    <BazarQuickAddSheet product={sheetProduct} variants={sheetProduct ? (readVariants(sheetProduct) as BazarVariant[]) : []} onClose={() => setSheetProduct(null)} onAdd={(v, q) => sheetProduct && addVariant(sheetProduct, v, q)} onOpenDetails={() => { const p = sheetProduct; setSheetProduct(null); if (p) openProduct(p); }} /><BottomTabBar />
   </div>;
 };
 export default Wholesale;

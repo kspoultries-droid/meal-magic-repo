@@ -2,7 +2,10 @@ import { img } from "@/lib/imageUrl";
 import { tr } from "@/lib/i18n/tr";
 import { displayText } from "@/lib/i18n/displayText";
 import { useState } from "react";
-import { Heart, ImageOff, Package, Plus, Star } from "lucide-react";
+import { Heart, ImageOff, Package, Plus, Star, Wrench, Cpu, PenTool, ShoppingBasket, Footprints, Shirt, Zap, Smartphone, type LucideIcon } from "lucide-react";
+
+const CATEGORY_ICONS: [RegExp, LucideIcon][] = [[/hardware|sanitary|tool/i, Wrench], [/electronic/i, Cpu], [/electric/i, Zap], [/mobile/i, Smartphone], [/station|book/i, PenTool], [/kirana|grocery|general|department/i, ShoppingBasket], [/shoe/i, Footprints], [/fashion|cloth|garment/i, Shirt]];
+const iconFor = (c?: string | null) => CATEGORY_ICONS.find(([r]) => r.test(c || ""))?.[1] || Package;
 import { Button } from "@/components/ui/button";
 
 export interface BazarProduct {
@@ -47,9 +50,10 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
           {showImage ? (
             <><img src={img(imageUrl as string, 400)} alt={product.name} loading="lazy" onError={() => setImageFailed(true)} className="relative h-full w-full object-contain p-1.5 bg-card transition-transform duration-500 group-hover:scale-105" /></>
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-accent-foreground">
-              <span className="grid size-10 place-items-center rounded-full border border-primary/20 bg-card/70"><Package className="size-5 text-primary" /></span>
-              <span className="max-w-[90%] truncate text-[9px] font-semibold">{displayText(product.category) || tr("Bazar", "بازار")}</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-card via-secondary to-accent px-3 text-center text-accent-foreground">
+              {(() => { const Icon = iconFor(product.category); return <span className="grid size-12 place-items-center rounded-2xl bg-primary/10 shadow-soft"><Icon className="size-6 text-primary" /></span>; })()}
+              <span dir="auto" className="line-clamp-2 text-[11px] font-bold leading-tight text-foreground">{displayText(product.name)}</span>
+              <span className="rounded-full bg-card/80 px-2 py-0.5 text-[9px] font-semibold text-muted-foreground">{displayText(product.category) || tr("Bazar", "بازار")} · {tr("photo coming soon", "تصویر جلد")}</span>
               {imageUrl && <ImageOff className="absolute bottom-2 right-2 size-3.5 text-muted-foreground" />}
             </div>
           )}
