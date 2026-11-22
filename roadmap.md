@@ -151,3 +151,6 @@
 - [x] Shop accounts tab (sales, commission, received, remaining, bank accounts)
 - [x] Bazar auto banner photos + name size/style/colour applied
 - [ ] Battery product weight (shop owner must set real kg; Rs 80 came from 0.5 kg default)
+
+## Bazar card copy (Nov 22)
+- [x] "1 عدد بھی دستیاب" → "1 piece available" in both Urdu and English modes
