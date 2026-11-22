@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { img } from "@/lib/imageUrl";
 import { matchesSearch } from "@/lib/searchMatch";
 import { validBarcode, catalogImages, sameCatalogProduct } from "@/lib/catalogOnboarding";
-import { loadImage } from "@/lib/imageEnhance";
 import { specTemplateFor } from "@/lib/catalogSpecs";
 import { BadgeCheck, ImagePlus, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -53,7 +52,13 @@ export default function CatalogManagerTab() {
     setBusy(true);
     if (edit.image_verified) {
       try {
-        for (const url of catalogImages(edit)) await loadImage(url);
+        for (const url of catalogImages(edit)) await new Promise<void>((resolve, reject) => {
+          const image = new Image();
+          const timer = window.setTimeout(() => reject(new Error("Image timed out")), 12000);
+          image.onload = () => { window.clearTimeout(timer); image.naturalWidth > 0 ? resolve() : reject(new Error("Empty image")); };
+          image.onerror = () => { window.clearTimeout(timer); reject(new Error("Image unavailable")); };
+          image.src = url;
+        });
       } catch {
         setBusy(false);
         return toast.error(tr("A photo could not be opened. Replace it before verification.", "تصویر نہیں کھل سکی؛ تصدیق سے پہلے درست تصویر لگائیں۔"));
