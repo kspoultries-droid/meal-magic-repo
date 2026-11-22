@@ -1,4 +1,6 @@
 # Grocery photo orders
+- Starter packs prepare existing catalog drafts without prices; photo verification stays admin-authoritative, and shop-scoped duplicate checks never merge different pack sizes or vendor rows.
+- Bulk imports preview before writing, preserve absent update fields and failed drafts, and recheck current shop rows; client checks supplement rather than replace database authorization and product caps.
 - Grocery discovery uses only eligible shops and matching categories; representative photos are labelled, presentation-only, and never overwrite vendor media or become catalog/cart evidence.
 - Ration discovery selects a shop before opening the existing order form; this preserves shop-specific approval and location rules.
 - Ration-list quotations and decisions use row-locked authorized actions with quote versions; slip-only drafts carry no payable total, revisions reset it, and readiness requires final acceptance and both pins.
