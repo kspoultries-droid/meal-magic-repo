@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { copyFile, fileToDataUrl, loadImage } from "@/lib/imageEnhance";
 import { specsToText } from "@/lib/catalogSpecs";
 import { catalogImages, validBarcode } from "@/lib/catalogOnboarding";
+import { readBarcode } from "@/lib/barcodeReader";
+export { readBarcode } from "@/lib/barcodeReader";
 import { tr } from "@/lib/i18n/tr";
 import { Camera, Loader2, ScanBarcode, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -28,28 +30,6 @@ const shrink = async (file: File, max = 1280): Promise<File> => {
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
   const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => b ? resolve(b) : reject(new Error("Image encoding failed")), "image/jpeg", 0.85));
   return new File([blob], "product.jpg", { type: "image/jpeg" });
-};
-
-/** Reads a barcode from a photo using the device's built-in detector (Android Chrome / WebView). */
-export const readBarcode = async (file: File): Promise<string | null> => {
-  const Detector = (window as any).BarcodeDetector;
-  if (Detector) {
-    try {
-      const bitmap = await createImageBitmap(file);
-      try {
-        const codes = await new Detector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"] }).detect(bitmap);
-        const code = codes?.[0]?.rawValue;
-        if (code && validBarcode(code)) return code;
-      } finally { bitmap.close(); }
-    } catch { /* Fall back to portable decoding below. */ }
-  }
-  const url = URL.createObjectURL(file);
-  try {
-    const { BrowserMultiFormatReader } = await import("@zxing/browser");
-    const code = (await new BrowserMultiFormatReader().decodeFromImageUrl(url)).getText();
-    return validBarcode(code) ? code : null;
-  } catch { return null; }
-  finally { URL.revokeObjectURL(url); }
 };
 
 export const catalogToPatch = (c: any): QuickFillPatch => {

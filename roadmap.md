@@ -1,5 +1,12 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Remaining grocery onboarding work
+- [x] Research packaging-photo/barcode sources: original pack capture/authorized brand files preferred; GS1 identity checks and Open Food Facts are references, not automatically imported licensed media. See docs/grocery-catalog-review-2026-11-22.md.
+- [x] Add local barcode-photo decoding to the admin catalog editor, conflict checks and explicit save/readback; no invented evidence or auto-verification.
+- [x] Add sequential review, 50-row pages over up to 5000 loaded matches, loading/error/retry states and retained failed drafts.
+- [x] 332 tests and 4 authenticated EN/UR mobile/desktop checks passed with all writes isolated; production catalog unchanged, native certification still pending.
+- [ ] Actual packaging/barcodes await the evidence source; atomic deduplication/product-family schema await migration repair, physical Android certification awaits a device.
+
 ## Current request — Fast grocery shop onboarding
 - [x] Prepare up to 100 appropriate existing catalog items as an editable starter draft; require each shop's own prices/stock, preserve test shops and approved-photo restrictions.
 - [x] Improve catalog/name/barcode lookup, portable barcode decoding and admin quality filters; never invent barcodes or verify photographs automatically.
