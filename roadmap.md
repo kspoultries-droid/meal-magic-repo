@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Grocery launch presentation
+- [ ] Preserve test shops and business records; use explicitly representative category photos only when original photos are missing/broken.
+- [ ] Synchronize categories and eligible-store filters across products/deals; load category items without requiring prior search.
+- [ ] Provide a shop-first ration shortcut and in-flow help/share controls without changing approval or checkout rules.
+- [ ] Run automated regressions and authenticated EN/UR mobile/desktop grocery navigation, filter, cart and ration checks; report limits.
+
 ## Current request — Ads and Urdu menu
 - [x] Keep mobile role menu visible in RTL/LTR through a collision-aware portal above page content; checked before/after scrolling.
 - [x] Business/item, creative/offer and placement stages; restaurant menus, grocery/Bazar inventory and services populate names, photos, prices and canonical links. Offer badges derive from prices without changing checkout prices.

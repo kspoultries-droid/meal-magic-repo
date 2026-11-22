@@ -3,9 +3,11 @@ import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { shareLink } from "@/lib/referral";
+import { tr } from "@/lib/i18n/tr";
 
 interface AppShareButtonProps {
   section?: "food" | "grocery" | "bazar" | "services" | "general";
+  inline?: boolean;
 }
 
 const SECTION_MESSAGES: Record<string, string> = {
@@ -16,7 +18,7 @@ const SECTION_MESSAGES: Record<string, string> = {
   general: "📱 EasyLife — کھانا، گروسری، بازار اور ہوم سروسز، سب ایک ہی ایپ میں!\n\nEasy Life ایپ ڈاؤنلوڈ کریں:",
 };
 
-const AppShareButton = ({ section = "general" }: AppShareButtonProps) => {
+const AppShareButton = ({ section = "general", inline = false }: AppShareButtonProps) => {
   const [code, setCode] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,10 +39,12 @@ const AppShareButton = ({ section = "general" }: AppShareButtonProps) => {
     <Button
       onClick={handleShare}
       size="sm"
-      className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] end-3 z-40 rounded-full h-11 w-11 opacity-90 p-0 bg-success hover:bg-success/90 text-success-foreground shadow-lg"
-      title="ایپ لنک شیئر کریں"
+      className={inline ? "h-10 gap-1.5 bg-success text-success-foreground hover:bg-success/90" : "fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] end-3 z-40 rounded-full h-11 w-11 opacity-90 p-0 bg-success hover:bg-success/90 text-success-foreground shadow-lg"}
+      aria-label={tr("Share app", "ایپ شیئر کریں")}
+      title={tr("Share app", "ایپ شیئر کریں")}
     >
       <MessageCircle className="h-5 w-5" />
+      {inline && tr("Share", "شیئر")}
     </Button>
   );
 };

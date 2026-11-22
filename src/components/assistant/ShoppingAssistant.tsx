@@ -14,7 +14,7 @@ const HIDDEN = [/^\/rider/, /^\/admin/, /^\/reels/, /^\/auth/, /^\/checkout/, /^
 type Found = { id: string; name: string; price: number; list_price: number; image_url: string | null; rating: number | null; shop: string };
 
 /** Free AI helper: find items in plain Urdu/English and get app-usage help for customers and partners. */
-const ShoppingAssistant = () => {
+const ShoppingAssistant = ({ inline = false }: { inline?: boolean }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -28,7 +28,7 @@ const ShoppingAssistant = () => {
   const [reply, setReply] = useState("");
   const [found, setFound] = useState<Found[] | null>(null);
   const [err, setErr] = useState("");
-  if (HIDDEN.some((r) => r.test(pathname))) return null;
+  if (HIDDEN.some((r) => r.test(pathname)) || (pathname === "/grocery" && !inline)) return null;
 
   const ask = async () => {
     if (text.trim().length < 2 || busy) return;
@@ -45,7 +45,7 @@ const ShoppingAssistant = () => {
     : [L("How do I place an order?", "آرڈر کیسے دوں؟"), L("How do I add products to my shop?", "دکان میں چیزیں کیسے لگاؤں؟"), L("How do I track my order?", "آرڈر کہاں ہے کیسے دیکھوں؟")];
 
   return (<>
-    <Button aria-label={L("AI helper", "AI مددگار")} onClick={() => setOpen(true)} className={`fixed ${totalItems > 0 && isShopPage(pathname) ? "bottom-[calc(8.5rem+env(safe-area-inset-bottom))]" : "bottom-[calc(5.5rem+env(safe-area-inset-bottom))]"} start-3 z-40 flex h-11 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-extrabold text-primary-foreground shadow-lg shadow-primary/30`}>
+    <Button aria-label={L("AI helper", "AI مددگار")} onClick={() => setOpen(true)} className={inline ? "h-10 gap-1.5 text-xs" : `fixed ${totalItems > 0 && isShopPage(pathname) ? "bottom-[calc(8.5rem+env(safe-area-inset-bottom))]" : "bottom-[calc(5.5rem+env(safe-area-inset-bottom))]"} start-3 z-40 flex h-11 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-extrabold text-primary-foreground shadow-lg shadow-primary/30`}>
       <Sparkles className="h-4 w-4" />{L("Ask AI", "AI سے پوچھیں")}
     </Button>
     <Sheet open={open} onOpenChange={setOpen}>
