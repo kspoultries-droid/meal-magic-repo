@@ -1,33 +1,36 @@
 import { useState } from "react";
-import { Plus, Trash2, Shirt, Loader2, ImagePlus } from "lucide-react";
+import { Plus, Trash2, Shirt, Footprints, Zap, Sparkles, Package, Loader2, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { uploadGroceryProductPhoto } from "@/lib/groceryProductImages";
-import { buildMatrixVariants, readMatrix, SIZE_PRESETS, type MatrixDesign, type MatrixSize } from "@/lib/variantMatrix";
+import { buildMatrixVariants, readMatrix, type MatrixDesign, type MatrixSize } from "@/lib/variantMatrix";
+import { applySectionFields, categoryProfile, sizePresetsFor } from "@/lib/categoryProfile";
 import { toast } from "sonner";
 
-const PIECES = ["1-Piece", "2-Piece", "3-Piece"];
+const PROFILE_ICONS = { shoes: Footprints, clothes: Shirt, tech: Zap, cosmetics: Sparkles, simple: Package } as const;
 
 export default function VariantMatrixEditor({ product, onSaved }: { product: any; onSaved: () => void }) {
   const { lang } = useLanguage();
   const L = (en: string, ur: string) => (lang === "ur" ? ur : en);
   const basePrice = Number(product.wholesale_price ?? product.discount_price ?? product.price ?? 0);
+  const profile = categoryProfile(product.category);
+  const presets = sizePresetsFor(profile);
   const init = readMatrix(product.variants);
   const specs = (product.specs && typeof product.specs === "object" ? product.specs : {}) as Record<string, string>;
   const [open, setOpen] = useState(false);
   const [designs, setDesigns] = useState<MatrixDesign[]>(init.designs.length ? init.designs : [{ name: "", price: basePrice }]);
   const [sizes, setSizes] = useState<MatrixSize[]>(init.sizes);
-  const [piece, setPiece] = useState(specs["سوٹ کی قسم"] || "");
-  const [fabric, setFabric] = useState(specs["کپڑا / میٹریل"] || "");
+  const [extra, setExtra] = useState<Record<string, string>>(() =>
+    Object.fromEntries(profile.sectionFields.map((f) => [f.key, specs[f.key] || ""])));
   const [busy, setBusy] = useState<string | null>(null);
 
   const setD = (i: number, patch: Partial<MatrixDesign>) => setDesigns((all) => all.map((d, k) => (k === i ? { ...d, ...patch } : d)));
   const setS = (i: number, patch: Partial<MatrixSize>) => setSizes((all) => all.map((s, k) => (k === i ? { ...s, ...patch } : s)));
   const addPreset = (key: string) => {
-    const p = SIZE_PRESETS.find((x) => x.key === key); if (!p) return;
+    const p = presets.find((x) => x.key === key); if (!p) return;
     setSizes((all) => [...all, ...p.sizes.filter((s) => !all.some((a) => a.label === s.label))]);
   };
 
@@ -44,9 +47,7 @@ export default function VariantMatrixEditor({ product, onSaved }: { product: any
     if (!valid.length) { toast.error(L("Add at least one design with name and price", "کم از کم ایک ڈیزائن نام اور قیمت کے ساتھ لکھیں")); return; }
     const variants = buildMatrixVariants(valid, sizes, basePrice);
     if (variants.some((v) => basePrice + v.price_delta <= 0)) { toast.error(L("A price is zero or less", "کوئی قیمت صفر یا کم ہے")); return; }
-    const nextSpecs: Record<string, string> = { ...specs };
-    if (piece) nextSpecs["سوٹ کی قسم"] = piece; else delete nextSpecs["سوٹ کی قسم"];
-    if (fabric.trim()) nextSpecs["کپڑا / میٹریل"] = fabric.trim(); else delete nextSpecs["کپڑا / میٹریل"];
+    const nextSpecs = applySectionFields({ ...specs }, profile, extra);
     const photos = valid.map((d) => d.image).filter(Boolean) as string[];
     const images = Array.from(new Set([...(Array.isArray(product.images) ? product.images : []), ...photos]));
     setBusy("save");
@@ -63,7 +64,7 @@ export default function VariantMatrixEditor({ product, onSaved }: { product: any
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="h-7 w-full text-xs"><Shirt className="me-1 h-3 w-3" />{L("Designs, colours & sizes", "ڈیزائن، رنگ اور سائز")}</Button>
+        <Button size="sm" variant="outline" className="h-7 w-full text-xs">{(() => { const Icon = PROFILE_ICONS[profile.kind]; return <Icon className="me-1 h-3 w-3" />; })()}{L(profile.dialogLabel.en, profile.dialogLabel.ur)}</Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader><DialogTitle className="text-base">{product.name}</DialogTitle></DialogHeader>
@@ -89,7 +90,7 @@ export default function VariantMatrixEditor({ product, onSaved }: { product: any
         <section className="space-y-2">
           <p className="text-sm font-extrabold">2. {L("Sizes (tap a ready list, remove what you don't have)", "سائز (تیار فہرست دبائیں، جو نہیں ہیں ہٹا دیں)")}</p>
           <div className="flex flex-wrap gap-1.5">
-            {SIZE_PRESETS.map((p) => <button key={p.key} type="button" onClick={() => addPreset(p.key)} className="rounded-full border border-primary/40 bg-accent px-3 py-1 text-[11px] font-bold text-accent-foreground">+ {L(p.en, p.ur)}</button>)}
+            {presets.map((p) => <button key={p.key} type="button" onClick={() => addPreset(p.key)} className="rounded-full border border-primary/40 bg-accent px-3 py-1 text-[11px] font-bold text-accent-foreground">+ {L(p.en, p.ur)}</button>)}
           </div>
           {sizes.length > 0 && <p className="text-[11px] text-muted-foreground">{L("Extra Rs = added to design price for this size (0 if same).", "اضافی روپے = اس سائز پر ڈیزائن کی قیمت میں اضافہ (برابر ہو تو 0)۔")}</p>}
           {sizes.map((s, i) => (
@@ -103,13 +104,26 @@ export default function VariantMatrixEditor({ product, onSaved }: { product: any
           <Button size="sm" variant="ghost" className="w-full" onClick={() => setSizes((all) => [...all, { label: "", extra: 0 }])}><Plus className="me-1 h-4 w-4" />{L("Own size", "اپنا سائز")}</Button>
         </section>
 
-        <section className="space-y-2">
-          <p className="text-sm font-extrabold">3. {L("Suit type & fabric (clothes)", "سوٹ کی قسم اور کپڑا (کپڑوں کے لیے)")}</p>
-          <div className="flex gap-1.5">
-            {PIECES.map((p) => <button key={p} type="button" onClick={() => setPiece(piece === p ? "" : p)} className={`flex-1 rounded-lg border-2 py-1.5 text-xs font-bold ${piece === p ? "border-primary bg-accent" : "border-border"}`}>{p}</button>)}
-          </div>
-          <Input value={fabric} onChange={(e) => setFabric(e.target.value)} placeholder={L("Fabric: cotton, lawn, khaddar, silk…", "کپڑا: کاٹن، لان، کھدر، سلک…")} className="h-8 text-xs" />
-        </section>
+        {profile.sectionFields.length > 0 && (
+          <section className="space-y-2">
+            <p className="text-sm font-extrabold">3. {L("Category details", "کیٹیگری کی تفصیل")}</p>
+            {profile.sectionFields.map((f) => (
+              <div key={f.key} className="space-y-1">
+                <span className="text-[11px] font-bold text-muted-foreground">{f.label}</span>
+                {f.chips ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {f.chips.map((c) => (
+                      <button key={c} type="button" onClick={() => setExtra((all) => ({ ...all, [f.key]: all[f.key] === c ? "" : c }))}
+                        className={`rounded-lg border-2 px-3 py-1 text-xs font-bold ${extra[f.key] === c ? "border-primary bg-accent" : "border-border"}`}>{c}</button>
+                    ))}
+                  </div>
+                ) : (
+                  <Input value={extra[f.key] || ""} onChange={(e) => setExtra((all) => ({ ...all, [f.key]: e.target.value }))} placeholder={f.placeholder} className="h-8 text-xs" />
+                )}
+              </div>
+            ))}
+          </section>
+        )}
 
         <Button className="w-full" disabled={busy === "save"} onClick={save}>{busy === "save" ? <Loader2 className="h-4 w-4 animate-spin" /> : L("Save all options", "سب آپشن محفوظ کریں")}</Button>
       </DialogContent>

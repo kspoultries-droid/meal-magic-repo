@@ -29,6 +29,7 @@ import EarningsPanel from "@/components/vendor/EarningsPanel";
 import ShopSalesRecord from "@/components/vendor/ShopSalesRecord";
 import { useNewOrderAlert } from "@/hooks/useNewOrderAlert";
 import { availableShopQuantity } from "@/lib/shopOrders";
+import { applySectionFields, categoryProfile, extraFields } from "@/lib/categoryProfile";
 
 import BottomTabBar from "@/components/BottomTabBar";
 import { toast } from "sonner";
@@ -62,7 +63,7 @@ const GroceryStoreDetail = () => {
   const [editDiscount, setEditDiscount] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editWeightKg, setEditWeightKg] = useState("");
-  const [editInfo, setEditInfo] = useState({ name: "", brand: "", sku: "", power: "", warranty: "", stock: "" });
+  const [editInfo, setEditInfo] = useState<Record<string, string>>({ name: "", brand: "", sku: "", stock: "" });
   const [pendingCount, setPendingCount] = useState(0);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
@@ -168,7 +169,8 @@ const GroceryStoreDetail = () => {
     setEditDescription(product.description || "");
     setEditWeightKg(product.weight_kg != null ? String(product.weight_kg) : "");
     const sp = (product.specs && typeof product.specs === "object" && !Array.isArray(product.specs)) ? product.specs : {};
-    setEditInfo({ name: product.name || "", brand: product.brand || "", sku: product.sku || "", power: sp["پاور (واٹ)"] || "", warranty: sp["وارنٹی"] || "", stock: product.stock_qty != null ? String(product.stock_qty) : "" });
+    setEditInfo({ name: product.name || "", brand: product.brand || "", sku: product.sku || "", stock: product.stock_qty != null ? String(product.stock_qty) : "",
+      ...Object.fromEntries(extraFields(categoryProfile(product.category), sp).map((f) => [f.key, f.value])) });
   };
 
   const savePrice = async (productId: string) => {
@@ -181,8 +183,7 @@ const GroceryStoreDetail = () => {
     if (editInfo.stock.trim()) { const st = Number(editInfo.stock); if (!Number.isFinite(st) || st < 0) { toast.error(L("Enter valid stock", "درست اسٹاک لکھیں")); return; } updates.stock_qty = Math.floor(st); }
     const oldP = products.find((x) => x.id === productId);
     const baseSpecs = { ...((oldP?.specs && typeof oldP.specs === "object" && !Array.isArray(oldP.specs)) ? oldP.specs : {}) } as Record<string, unknown>;
-    for (const [k, v] of [["پاور (واٹ)", editInfo.power], ["وارنٹی", editInfo.warranty]] as const) { if (v.trim()) baseSpecs[k] = v.trim(); else delete baseSpecs[k]; }
-    updates.specs = baseSpecs;
+    updates.specs = applySectionFields(baseSpecs, categoryProfile(oldP?.category), editInfo);
     const w = Number(editWeightKg);
     if (editWeightKg.trim() && (!Number.isFinite(w) || w <= 0 || w > 2000)) { toast.error(L("Enter a valid weight in kg", "درست وزن (کلو) لکھیں")); return; }
     if (editWeightKg.trim()) updates.weight_kg = w;
@@ -426,9 +427,13 @@ const GroceryStoreDetail = () => {
                             </div>
                             <p className="text-[10px] text-muted-foreground">{L("Correct weight decides bike or loader and the delivery fare.", "درست وزن سے ہی بائیک یا لوڈر اور کرایہ طے ہوتا ہے۔")}</p>
                             <div className="grid grid-cols-2 gap-1">
-                              {([["name", L("Name", "نام")], ["brand", L("Brand", "برانڈ")], ["sku", L("Model", "ماڈل")], ["power", L("Power (e.g. 400W)", "پاور (مثلاً 400W)")], ["warranty", L("Warranty (e.g. 1 year)", "وارنٹی (مثلاً 1 سال)")], ["stock", L("Stock", "اسٹاک")]] as const).map(([k, label]) => (
-                                <Input key={k} type={k === "stock" ? "number" : "text"} value={editInfo[k]} onChange={(e) => setEditInfo((prev) => ({ ...prev, [k]: e.target.value }))} placeholder={label} aria-label={label} className={`h-7 text-xs ${k === "name" ? "col-span-2" : ""}`} />
+                              {([["name", L("Name", "نام")], ["brand", L("Brand", "برانڈ")], ["sku", L("Model", "ماڈل")]] as const).map(([k, label]) => (
+                                <Input key={k} value={editInfo[k]} onChange={(e) => setEditInfo((prev) => ({ ...prev, [k]: e.target.value }))} placeholder={label} aria-label={label} className={`h-7 text-xs ${k === "name" ? "col-span-2" : ""}`} />
                               ))}
+                              {extraFields(categoryProfile(product.category), (product.specs && typeof product.specs === "object" && !Array.isArray(product.specs)) ? product.specs : {}).map((f) => (
+                                <Input key={f.key} value={editInfo[f.key] ?? ""} onChange={(e) => setEditInfo((prev) => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder || f.label} aria-label={f.label} className="h-7 text-xs" />
+                              ))}
+                              <Input type="number" value={editInfo.stock} onChange={(e) => setEditInfo((prev) => ({ ...prev, stock: e.target.value }))} placeholder={L("Stock", "اسٹاک")} aria-label={L("Stock", "اسٹاک")} className="h-7 text-xs" />
                             </div>
                             <div>
                               <span className="text-[10px] text-muted-foreground">{L("Details:", "تفصیل:")}</span>

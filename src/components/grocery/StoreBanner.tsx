@@ -12,6 +12,7 @@ import PhotoTips from "@/components/media/PhotoTips";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import ProductQuickFill from "@/components/grocery/ProductQuickFill";
 import { isFreshFoodCategory } from "@/lib/productFormFields";
+import { categoryProfile } from "@/lib/categoryProfile";
 import { tr } from "@/lib/i18n/tr";
 import BannerPicker from "@/components/media/BannerPicker";
 
@@ -143,8 +144,9 @@ const StoreBanner = ({
 
   // Product form: category list and category-aware optional fields
   const productCategories = Array.from(new Set([...groceryCategories, "Electronics", "Mobiles", "Clothing", "Shoes", "Home & Kitchen", "Beauty", "Sports", "Toys", "Hardware", "Other"]));
-  const isClothingCat = ["Clothing", "Shoes"].includes(newProduct.category);
-  const isTechCat = ["Electronics", "Mobiles"].includes(newProduct.category);
+  const profile = categoryProfile(newProduct.category);
+  const isClothingCat = profile.hasSizes;
+  const isTechCat = profile.isTech;
   // Fresh/prepared food: no barcode, SKU, material, warranty or parcel class.
   const isFoodCat = isFreshFoodCategory(newProduct.category);
 
