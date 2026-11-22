@@ -101,7 +101,7 @@ const FoodHero = ({ searchQuery, onSearchChange, hideAds }: Props) => {
             {ads.map((ad, i) => (
               <CarouselItem key={ad.id} className="basis-full pl-0">
                 <Button variant="ghost" type="button" onClick={() => openAd(ad)} className={`relative block ${H} w-full overflow-hidden rounded-none bg-muted p-0 text-start`}>
-                  {ad.image_url ? <img src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0 bg-gradient-hero" />}
+                  {ad.image_url ? <img key={ad.image_url} src={img(ad.image_url, 1080, 78)} alt={ad.title} loading={i === 0 ? "eager" : "lazy"} decoding="async" onError={e => { if (ad.image_url && e.currentTarget.dataset.fallback !== "true") { e.currentTarget.dataset.fallback = "true"; e.currentTarget.src = ad.image_url; } }} className="absolute inset-0 size-full object-cover" /> : <div className="absolute inset-0 bg-gradient-hero" />}
                   {ad.show_text !== false && <>
                     <div className="absolute bottom-6 start-3 flex max-w-[78%] items-center gap-1.5 rounded-full bg-card/85 py-1 pe-1 ps-3 text-foreground shadow-card backdrop-blur-md">
                       {ad.offer_badge && <span className="shrink-0 rounded-full bg-destructive px-2 py-0.5 text-[10px] font-extrabold text-destructive-foreground">{ad.offer_badge}</span>}

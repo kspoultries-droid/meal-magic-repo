@@ -1,21 +1,24 @@
 import { tr } from "@/lib/i18n/tr";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { AdSlide } from "@/components/PromotionalAds";
 import AdProductPicker from "@/components/admin/AdProductPicker";
-import { Plus, Trash2, RefreshCw, Megaphone, Eye, EyeOff, Package } from "lucide-react";
+import { adDiscount, prepareAdImage, validAdLink, verifyAdImage, type AdSelection } from "@/lib/adCreative";
+import { Label } from "@/components/ui/label";
+import { Plus, Loader2, ChevronLeft, ChevronRight, Upload, Trash2, RefreshCw, Megaphone, Eye, EyeOff, Package } from "lucide-react";
 
 const PLACEMENT_LABELS: Record<string, string> = {
   home: tr("🏠 Home", "🏠 ہوم پیج"),
   grocery: tr("🛒 Grocery", "🛒 گروسری"),
   restaurant: tr("🍔 Restaurant", "🍔 ریسٹورنٹ"),
+  services: tr("🔧 Services", "🔧 سروسز"),
   checkout: tr("💳 Checkout", "💳 چیک آؤٹ"),
   bazar_top: tr("📦 Market Top Banner (15)", "📦 بازار ٹاپ بینر (15)"),
   bazar: tr("📦 Market Mid Ad", "📦 بازار درمیانی ایڈ"),
@@ -56,6 +59,15 @@ const AdsTab = () => {
   const [originalPrice, setOriginalPrice] = useState("");
   const [showText, setShowText] = useState(true);
   const [previewUrl, setPreviewUrl] = useState("");
+  const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [formError, setFormError] = useState("");
+  const saveLock = useRef(false);
+  const imageVersion = useRef(0);
+  const discount = adDiscount(price, originalPrice);
+  const effectiveBadge = discount || offerBadge;
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -75,6 +87,7 @@ const AdsTab = () => {
   };
 
   const resetForm = () => {
+    imageVersion.current += 1; setPreparing(false); setStep(1); setFormError("");
     setTitle(""); setBrandName(""); setImageUrl(""); setLinkUrl("");
     setPlacements(["home"]); setPackageId(""); setStartDate(new Date().toISOString().split("T")[0]);
     setEndDate(""); setPaymentStatus("pending"); setPaymentAmount(""); setImageFile(null); setEditId(null);
@@ -82,54 +95,78 @@ const AdsTab = () => {
     setPrice(""); setOriginalPrice(""); setShowText(true); setPreviewUrl("");
   };
 
-  const uploadImage = async (file: File): Promise<string | null> => {
-    const ext = file.name.split(".").pop();
-    const path = `ads/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("product-images").upload(path, file);
-    if (error) { toast.error(tr("Image upload failed", "تصویر اپلوڈ ناکام")); return null; }
-    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-    return data.publicUrl;
+  const chooseImage = async (file: File | undefined) => {
+    if (!file) return;
+    const version = ++imageVersion.current;
+    setPreparing(true); setFormError("");
+    try {
+      const prepared = await prepareAdImage(file);
+      if (version !== imageVersion.current) return;
+      setImageFile(prepared); setPreviewUrl(URL.createObjectURL(prepared));
+    } catch (e) {
+      if (version === imageVersion.current) setFormError(e instanceof Error ? e.message : tr("Image preparation failed", "تصویر تیار نہیں ہو سکی"));
+    } finally { if (version === imageVersion.current) setPreparing(false); }
+  };
+
+  const pick = (selection: AdSelection, product: boolean) => {
+    imageVersion.current += 1; setPreparing(false); setImageFile(null); setPreviewUrl("");
+    setBrandName(selection.brand); setTitle(selection.name); setImageUrl(selection.image || "");
+    setLinkUrl(selection.link); setPrice(selection.price == null ? "" : String(selection.price));
+    setOriginalPrice(selection.originalPrice == null ? "" : String(selection.originalPrice));
+    setOfferBadge(""); setPromoCode(""); setSubtitle(""); setShowText(true);
+    setAdType(product ? "product" : "banner");
+    setCtaText(product ? tr("View item", "چیز دیکھیں") : tr("View shop", "دکان دیکھیں"));
+    setPlacements(["home", selection.placement]); setFormError("");
+  };
+
+  const next = () => {
+    if (step === 1 && (!title.trim() || !brandName.trim())) { setFormError(tr("Select a business or enter its name and title", "کاروبار منتخب کریں یا نام اور عنوان لکھیں")); return; }
+    if (step === 2 && (!imageFile && !imageUrl.trim())) { setFormError(tr("An image is required", "تصویر ضروری ہے")); return; }
+    setFormError(""); setStep(s => Math.min(3, s + 1));
   };
 
   const saveAd = async () => {
-    if (!title.trim() || !brandName.trim()) { toast.error(tr("Title and brand name are required", "ٹائٹل اور برانڈ نام ضروری ہے")); return; }
-    if (placements.length === 0) { toast.error(tr("Select at least one location", "کم از کم ایک جگہ منتخب کریں")); return; }
-
-    let finalImageUrl = imageUrl;
-    if (imageFile) {
-      const uploaded = await uploadImage(imageFile);
-      if (uploaded) finalImageUrl = uploaded;
-    }
-
-    const adData = {
-      title, brand_name: brandName, image_url: finalImageUrl || null,
-      link_url: linkUrl || null, placements,
-      package_id: packageId || null,
-      start_date: startDate,
-      end_date: endDate || new Date(new Date(startDate).getTime() + 30 * 86400000).toISOString().split("T")[0],
-      payment_status: paymentStatus,
-      payment_amount: parseFloat(paymentAmount) || 0,
-      ad_type: adType, subtitle: subtitle || null, cta_text: ctaText || null,
-      offer_badge: offerBadge || null, promo_code: promoCode.trim().toUpperCase() || null,
-      price: parseFloat(price) || null, original_price: parseFloat(originalPrice) || null,
-      show_text: showText,
-    };
-
-    let error;
-    if (editId) {
-      ({ error } = await supabase.from("promotional_ads").update(adData).eq("id", editId));
-    } else {
-      ({ error } = await supabase.from("promotional_ads").insert(adData));
-    }
-
-    if (error) { toast.error(error.message); return; }
-    toast.success(editId ? tr("Ad updated!", "ایڈ اپڈیٹ ہو گئی!") : tr("New ad added! 🎉", "نئی ایڈ شامل ہو گئی! 🎉"));
-    resetForm();
-    setDialogOpen(false);
-    fetchData();
+    if (saveLock.current || preparing) return;
+    if (!title.trim() || !brandName.trim()) { setStep(1); setFormError(tr("Title and brand name are required", "عنوان اور کاروبار کا نام ضروری ہے")); return; }
+    if (!imageFile && !imageUrl.trim()) { setStep(2); setFormError(tr("An image is required", "تصویر ضروری ہے")); return; }
+    if (!validAdLink(linkUrl.trim())) { setStep(2); setFormError(tr("Use an app path or HTTPS link", "ایپ کا درست ربط یا HTTPS لنک لکھیں")); return; }
+    if (!placements.length) { setFormError(tr("Select at least one location", "کم از کم ایک جگہ منتخب کریں")); return; }
+    if (!startDate || (endDate && endDate < startDate)) { setFormError(tr("End date must not precede start date", "اختتامی تاریخ شروع سے پہلے نہیں ہو سکتی")); return; }
+    if ([price, originalPrice, paymentAmount].some(v => v !== "" && (!Number.isFinite(Number(v)) || Number(v) < 0))) { setFormError(tr("Enter valid non-negative amounts", "درست غیر منفی رقم لکھیں")); return; }
+    saveLock.current = true; setSaving(true); setFormError("");
+    try {
+      let finalImageUrl = imageUrl.trim();
+      if (imageFile) {
+        const path = `ads/${crypto.randomUUID()}.${imageFile.type === "image/webp" ? "webp" : "png"}`;
+        const { error } = await supabase.storage.from("product-images").upload(path, imageFile, { contentType: imageFile.type });
+        if (error) throw new Error(tr("Image upload failed: ", "تصویر اپلوڈ ناکام: ") + error.message);
+        finalImageUrl = supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+        // Retain an uploaded asset when the subsequent record save fails; retry does not upload it twice.
+        setImageUrl(finalImageUrl); setImageFile(null);
+      }
+      await verifyAdImage(finalImageUrl);
+      const adData = {
+        title: title.trim(), brand_name: brandName.trim(), image_url: finalImageUrl,
+        link_url: linkUrl.trim() || null, placements, package_id: packageId || null,
+        start_date: startDate,
+        end_date: endDate || new Date(new Date(startDate).getTime() + 30 * 86400000).toISOString().split("T")[0],
+        payment_status: paymentStatus, payment_amount: Number(paymentAmount) || 0,
+        ad_type: adType, subtitle: subtitle || null, cta_text: ctaText || null,
+        offer_badge: effectiveBadge || null, promo_code: promoCode.trim().toUpperCase() || null,
+        price: price === "" ? null : Number(price), original_price: originalPrice === "" ? null : Number(originalPrice), show_text: showText,
+      };
+      const { error } = editId
+        ? await supabase.from("promotional_ads").update(adData).eq("id", editId)
+        : await supabase.from("promotional_ads").insert(adData);
+      if (error) throw error;
+      toast.success(editId ? tr("Ad updated!", "اشتہار اپڈیٹ ہو گیا!") : tr("Ad saved!", "اشتہار محفوظ ہو گیا!"));
+      resetForm(); setDialogOpen(false); void fetchData();
+    } catch (e) { setFormError(e && typeof e === "object" && "message" in e ? String(e.message) : tr("Could not save the ad", "اشتہار محفوظ نہیں ہو سکا")); }
+    finally { saveLock.current = false; setSaving(false); }
   };
 
   const editAd = (ad: any) => {
+    resetForm();
     setEditId(ad.id); setTitle(ad.title); setBrandName(ad.brand_name);
     setImageUrl(ad.image_url || ""); setLinkUrl(ad.link_url || "");
     setPlacements(ad.placements || ["home"]); setPackageId(ad.package_id || "");
@@ -160,7 +197,7 @@ const AdsTab = () => {
     <div className="space-y-4">
       {/* Ad Packages */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap gap-2 items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base"><Package className="w-5 h-5" /> {tr("Ad Packages / Rates", "ایڈ پیکیجز / ریٹس")}</CardTitle>
           <Button variant="ghost" size="sm" onClick={() => setShowPackages(!showPackages)}>
             {showPackages ? tr("Hide ▲", "چھپائیں ▲") : tr("View ▼", "دیکھیں ▼")}
@@ -192,130 +229,51 @@ const AdsTab = () => {
 
       {/* Ads Management */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap gap-2 items-center justify-between">
           <CardTitle className="flex items-center gap-2"><Megaphone className="w-5 h-5" /> {tr("Promotional Ads", "پروموشنل ایڈز")}</CardTitle>
           <div className="flex gap-2">
-            <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetForm(); }}>
-              <DialogTrigger asChild>
-                <Button size="sm"><Plus className="h-4 w-4 mr-1" /> {tr("New Ad", "نئی ایڈ")}</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>{editId ? tr("Edit Ad", "ایڈ ایڈٹ کریں") : tr("Add New Ad", "نئی ایڈ شامل کریں")}</DialogTitle>
+            <Dialog open={dialogOpen} onOpenChange={(o) => { if (saveLock.current) return; setDialogOpen(o); if (!o) resetForm(); }}>
+              <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 me-1" />{tr("New Ad", "نئی ایڈ")}</Button></DialogTrigger>
+              <DialogContent className="w-[calc(100%-24px)] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6" onEscapeKeyDown={e => { if (saving) e.preventDefault(); }} onInteractOutside={e => { if (saving) e.preventDefault(); }}>
+                <DialogHeader className="text-start pe-8">
+                  <DialogTitle>{editId ? tr("Edit Ad", "اشتہار میں ترمیم") : tr("New Advertisement", "نیا اشتہار")}</DialogTitle>
+                  <DialogDescription className="sr-only">{tr("Advertisement details", "اشتہار کی تفصیل")}</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-3">
-                  {/* Live preview */}
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-muted-foreground">{tr("Preview (How it looks on phone)", "پیش منظر (فون پر ایسی نظر آئے گی)")}</p>
-                    <AdSlide ad={{ id: "preview", title: title || tr("Ad Title", "ایڈ کا عنوان"), brand_name: brandName || tr("Brand", "برانڈ"), image_url: previewUrl || imageUrl || null, link_url: linkUrl || null, sort_order: 0, ad_type: adType, subtitle, cta_text: ctaText, offer_badge: offerBadge, promo_code: promoCode, price: parseFloat(price) || null, original_price: parseFloat(originalPrice) || null, show_text: showText }} eager />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">{tr("Ad Type *", "ایڈ کی قسم *")}</label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {Object.entries(AD_TYPES).map(([key, t]) => (
-                        <button key={key} type="button" onClick={() => { setAdType(key); if (!ctaText) setCtaText(t.cta); }}
-                          className={`rounded-lg border px-2 py-2 text-xs font-medium ${adType === key ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}>{t.label}</button>
-                      ))}
+                <div className="grid grid-cols-3 gap-1 border-b pb-3">
+                  {[tr("1 · Business", "1 · کاروبار"), tr("2 · Image & offer", "2 · تصویر اور آفر"), tr("3 · Placement", "3 · جگہ")].map((label, i) => <Button key={i} variant={step === i + 1 ? "secondary" : "ghost"} size="sm" className="h-auto min-h-9 whitespace-normal text-xs px-1" disabled={saving || preparing || i + 1 > step} onClick={() => { setStep(i + 1); setFormError(""); }} aria-current={step === i + 1 ? "step" : undefined}>{label}</Button>)}
+                </div>
+                <fieldset disabled={saving} className="min-w-0 space-y-4">
+                  {step === 1 && <>
+                    <AdProductPicker onPick={pick} />
+                    <div className="border-t pt-3 space-y-3">
+                      <div><Label htmlFor="ad-brand">{tr("Business name", "کاروبار کا نام")}</Label><Input id="ad-brand" value={brandName} onChange={e => setBrandName(e.target.value)} /></div>
+                      <div><Label htmlFor="ad-title">{tr("Title", "عنوان")}</Label><Input id="ad-title" value={title} onChange={e => setTitle(e.target.value)} /></div>
+                      <Label>{tr("Ad type", "اشتہار کی قسم")}</Label>
+                      <div className="flex flex-wrap gap-2">{Object.entries(AD_TYPES).map(([key, t]) => <Button key={key} variant={adType === key ? "default" : "outline"} size="sm" aria-pressed={adType === key} onClick={() => { setAdType(key); setCtaText(t.cta); }}>{t.label}</Button>)}</div>
                     </div>
-                    <p className="mt-1 text-[11px] text-muted-foreground">{AD_TYPES[adType]?.hint}</p>
-                  </div>
-
-                  <Input placeholder={tr("Company / Store Name * (e.g., JazzCash)", "کمپنی / دکان کا نام * (مثلاً JazzCash)")} value={brandName} onChange={(e) => setBrandName(e.target.value)} />
-                  <Input placeholder={adType === "product" ? tr("Product Name * (e.g., Coke 1.5L)", "پروڈکٹ کا نام * (مثلاً Coke 1.5L)") : tr("Headline * (e.g., 10% cashback on every bill)", "بڑا عنوان * (مثلاً ہر بل پر 10% کیش بیک)")} value={title} onChange={(e) => setTitle(e.target.value)} />
-                  <Input placeholder={tr("Tagline (Optional) — e.g., This week only", "چھوٹی لائن (اختیاری) — مثلاً صرف اس ہفتے")} value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
-
-                  {adType === "product" && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input type="number" placeholder={tr("New Price Rs", "نئی قیمت Rs")} value={price} onChange={(e) => setPrice(e.target.value)} />
-                      <Input type="number" placeholder={tr("Old Price Rs", "پرانی قیمت Rs")} value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} />
+                  </>}
+                  {step === 2 && <>
+                    <AdSlide ad={{ id: "preview", title, brand_name: brandName, image_url: previewUrl || imageUrl || null, link_url: linkUrl || null, sort_order: 0, ad_type: adType, subtitle, cta_text: ctaText, offer_badge: effectiveBadge, promo_code: promoCode, price: price === "" ? null : Number(price), original_price: originalPrice === "" ? null : Number(originalPrice), show_text: showText }} eager />
+                    <div className="space-y-2"><Label htmlFor="ad-image" className="flex items-center gap-2"><Upload className="size-4" />{tr("Image · 2:1", "تصویر · 2:1")}</Label><Input id="ad-image" type="file" accept="image/jpeg,image/png,image/webp" disabled={preparing} onChange={e => { void chooseImage(e.target.files?.[0]); e.target.value = ""; }} />{preparing && <p role="status" className="text-sm text-muted-foreground">{tr("Preparing image…", "تصویر تیار ہو رہی ہے…")}</p>}
+                      {imageFile && <p className="text-xs text-muted-foreground" dir="ltr">{imageFile.name} · {Math.ceil(imageFile.size / 1024)} KB</p>}
+                      <Label htmlFor="ad-image-url">{tr("Image URL", "تصویر کا URL")}</Label><Input id="ad-image-url" dir="ltr" value={imageUrl} disabled={preparing} onChange={e => { setImageUrl(e.target.value); setImageFile(null); setPreviewUrl(""); }} />
+                      <Label className="flex gap-2 items-center text-sm"><input type="checkbox" checked={!showText} onChange={e => setShowText(!e.target.checked)} />{tr("Image contains its own text", "تصویر پر پہلے سے تحریر ہے")}</Label>
                     </div>
-                  )}
-                  {adType !== "banner" && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input placeholder={tr("Badge (e.g., 20% OFF)", "نشان (مثلاً 20% OFF)")} value={offerBadge} onChange={(e) => setOfferBadge(e.target.value)} />
-                      <Input placeholder={tr("Promo code (optional)", "پرومو کوڈ (اختیاری)")} value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
-                    </div>
-                  )}
-                  <Input placeholder={tr("Button text (e.g. Buy Now)", "بٹن کا لفظ (مثلاً ابھی خریدیں)")} value={ctaText} onChange={(e) => setCtaText(e.target.value)} />
-
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">{tr("Image (wide, 2:1 — e.g. 1200×600)", "تصویر (چوڑی، 2:1 — مثلاً 1200×600)")}</label>
-                    <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0] || null; setImageFile(f); setPreviewUrl(f ? URL.createObjectURL(f) : ""); }} className="text-sm" />
-                    <span className="text-xs text-muted-foreground block mt-1">{tr("Or enter URL:", "یا URL لکھیں:")}</span>
-                    <Input placeholder={tr("Image URL", "تصویر URL")} value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                    <label className="mt-2 flex items-center gap-2 text-xs text-foreground">
-                      <input type="checkbox" checked={!showText} onChange={(e) => setShowText(!e.target.checked)} />
-                      {tr("Image already has text — do not add overlay text", "تصویر پر پہلے سے لکھائی ہے — اوپر سے الفاظ نہ لکھیں")}
-                    </label>
-                  </div>
-
-                  <AdProductPicker onPick={(p) => {
-                    setLinkUrl(`/product/${p.id}`);
-                    if (!title) setTitle(p.name);
-                    if (!brandName && p.store) setBrandName(p.store);
-                    if (!imageUrl && !previewUrl && p.image) setImageUrl(p.image);
-                    if (p.price && !price) setPrice(String(p.price));
-                    toast.success(tr("Product added", "پروڈکٹ جوڑ دی گئی"));
-                  }} />
-                  <div>
-                    <Input placeholder={tr("Where should clicking take the user?", "دبانے پر کہاں جائے؟")} value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
-                    <p className="mt-1 text-[11px] text-muted-foreground">{tr("App page: /restaurant/... or /grocery/... — Website: https://... — WhatsApp: https://wa.me/923001234567", "ایپ کا صفحہ: /restaurant/... یا /grocery/... — ویب سائٹ: https://... — WhatsApp: https://wa.me/923001234567")}</p>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">{tr("Ad placement *", "ایڈ کی جگہ *")}</label>
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(PLACEMENT_LABELS).map(([key, label]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => togglePlacement(key)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                            placements.includes(key) ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-secondary"
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">{tr("Package", "پیکیج")}</label>
-                    <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={packageId} onChange={(e) => setPackageId(e.target.value)}>
-                      <option value="">{tr("No Package", "بغیر پیکیج")}</option>
-                      {packages.map((pkg) => <option key={pkg.id} value={pkg.id}>{pkg.name} — Rs {pkg.price_per_month}{tr("/mo", "/ماہ")}</option>)}
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs text-muted-foreground">{tr("Start", "شروع")}</label>
-                      <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">{tr("End", "ختم")}</label>
-                      <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs text-muted-foreground">{tr("Payment Status", "ادائیگی سٹیٹس")}</label>
-                      <select className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}>
-                        <option value="pending">{tr("Pending", "زیر التواء")}</option>
-                        <option value="paid">{tr("Paid", "ادا شدہ")}</option>
-                        <option value="expired">{tr("Expired", "معیاد ختم")}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">{tr("Amount (Rs)", "رقم (Rs)")}</label>
-                      <Input type="number" placeholder="0" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <Button className="w-full" onClick={saveAd}>{editId ? tr("Update", "اپڈیٹ کریں") : tr("Add", "شامل کریں")}</Button>
+                    {adType !== "banner" && <div className="grid grid-cols-2 gap-3"><div><Label htmlFor="ad-price">{tr("Offer price (Rs)", "آفر قیمت (Rs)")}</Label><Input id="ad-price" type="number" min="0" value={price} onChange={e => setPrice(e.target.value)} /></div><div><Label htmlFor="ad-original">{tr("Original price (Rs)", "اصل قیمت (Rs)")}</Label><Input id="ad-original" type="number" min="0" value={originalPrice} onChange={e => setOriginalPrice(e.target.value)} /></div><div><Label htmlFor="ad-badge">{tr("Offer badge", "آفر کا نشان")}</Label><Input id="ad-badge" value={effectiveBadge} disabled={!!discount} onChange={e => setOfferBadge(e.target.value)} /></div><div><Label htmlFor="ad-code">{tr("Promo code", "پرومو کوڈ")}</Label><Input id="ad-code" value={promoCode} onChange={e => setPromoCode(e.target.value)} /></div></div>}
+                    <div><Label htmlFor="ad-subtitle">{tr("Subtitle", "ذیلی عنوان")}</Label><Input id="ad-subtitle" value={subtitle} onChange={e => setSubtitle(e.target.value)} /></div>
+                    <div><Label htmlFor="ad-cta">{tr("Button text", "بٹن کی تحریر")}</Label><Input id="ad-cta" value={ctaText} onChange={e => setCtaText(e.target.value)} /></div>
+                    <div><Label htmlFor="ad-link">{tr("Destination", "اشتہار کا ربط")}</Label><Input id="ad-link" dir="ltr" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} /></div>
+                  </>}
+                  {step === 3 && <>
+                    <Label>{tr("Placement", "اشتہار کی جگہ")}</Label><div className="flex flex-wrap gap-2">{Object.entries(PLACEMENT_LABELS).map(([key, label]) => <Button key={key} size="sm" variant={placements.includes(key) ? "default" : "outline"} aria-pressed={placements.includes(key)} onClick={() => togglePlacement(key)}>{label}</Button>)}</div>
+                    <div className="grid grid-cols-2 gap-3"><div><Label htmlFor="ad-start">{tr("Start", "شروع")}</Label><Input id="ad-start" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} /></div><div><Label htmlFor="ad-end">{tr("End", "ختم")}</Label><Input id="ad-end" type="date" min={startDate} value={endDate} onChange={e => setEndDate(e.target.value)} /></div></div>
+                    <details className="border-t pt-3"><summary className="cursor-pointer text-sm font-medium">{tr("Package & payment record", "پیکیج اور ادائیگی کا ریکارڈ")}</summary><div className="mt-3 space-y-3"><Label htmlFor="ad-package">{tr("Package", "پیکیج")}</Label><select id="ad-package" className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={packageId} onChange={e => setPackageId(e.target.value)}><option value="">{tr("No package", "بغیر پیکیج")}</option>{packages.map(pkg => <option key={pkg.id} value={pkg.id}>{pkg.name} — Rs {pkg.price_per_month}</option>)}</select><Label htmlFor="ad-payment">{tr("Payment status", "ادائیگی کی حالت")}</Label><select id="ad-payment" className="w-full border rounded-md p-2 bg-background text-foreground text-sm" value={paymentStatus} onChange={e => setPaymentStatus(e.target.value)}><option value="pending">{tr("Pending", "زیرِ التواء")}</option><option value="paid">{tr("Paid", "ادا شدہ")}</option><option value="expired">{tr("Expired", "مدت ختم")}</option></select><Label htmlFor="ad-amount">{tr("Amount (Rs)", "رقم (Rs)")}</Label><Input id="ad-amount" type="number" min="0" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} /></div></details>
+                  </>}
+                </fieldset>
+                {formError && <p role="alert" className="text-sm text-destructive break-words">{formError}</p>}
+                <div className="sticky bottom-0 flex justify-between gap-3 border-t bg-background pt-3">
+                  <Button variant="outline" disabled={saving || preparing} onClick={() => step > 1 ? setStep(s => s - 1) : (resetForm(), setDialogOpen(false))}><ChevronLeft className="size-4 me-1" />{step > 1 ? tr("Back", "واپس") : tr("Cancel", "منسوخ")}</Button>
+                  {step < 3 ? <Button disabled={preparing || saving} onClick={next}>{tr("Next", "اگلا")}<ChevronRight className="size-4 ms-1" /></Button> : <Button disabled={saving || preparing} onClick={() => void saveAd()}>{saving && <Loader2 className="size-4 me-1 animate-spin" />}{saving ? tr("Saving…", "محفوظ ہو رہا ہے…") : editId ? tr("Update ad", "اشتہار اپڈیٹ کریں") : tr("Save ad", "اشتہار محفوظ کریں")}</Button>}
                 </div>
               </DialogContent>
             </Dialog>

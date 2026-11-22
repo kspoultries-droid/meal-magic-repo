@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Ads and Urdu menu
+- [x] Keep mobile role menu visible in RTL/LTR through a collision-aware portal above page content; checked before/after scrolling.
+- [x] Business/item, creative/offer and placement stages; restaurant menus, grocery/Bazar inventory and services populate names, photos, prices and canonical links. Offer badges derive from prices without changing checkout prices.
+- [x] Prepared 1200×600 WebP uploads, mandatory readable images, explicit failures, retained drafts/uploaded URLs and duplicate-save lock; original-image fallback in both public ad renderers.
+- [x] 310 tests passed; authenticated EN/UR × mobile/desktop selection and layout checks, real future-dated upload/save/edit/readback and cleanup passed. Isolated visibility of that saved ad verified its photo and click-through without public publication. No SQL/function changes; physical Android remains unverified. See docs/ads-menu-verification-2026-11-22.md.
+
 ## Current request — Essential Operations improvements
 - [x] Server-filtered bounded pages for food, grocery dispatch, photo orders and audit; Karachi date ranges and authorized cross-record search.
 - [x] Preserve open details and typed notes during background refresh; show errors without silently emptying lists.

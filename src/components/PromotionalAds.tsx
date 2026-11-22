@@ -5,6 +5,8 @@ import Autoplay from "embla-carousel-autoplay";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { img } from "@/lib/imageUrl";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { tr } from "@/lib/i18n/tr";
 
 export interface Ad {
   id: string;
@@ -41,17 +43,17 @@ export const AdSlide = ({ ad, eager, onOpen }: { ad: Ad; eager?: boolean; onOpen
   const showText = ad.show_text !== false;
   const hasPrice = ad.price != null && Number(ad.price) > 0;
   return (
-    <button type="button" onClick={onOpen} className="relative block w-full overflow-hidden rounded-2xl bg-card text-start shadow-card">
+    <Button type="button" variant="ghost" onClick={onOpen} className="relative block h-auto w-full overflow-hidden whitespace-normal rounded-lg bg-card p-0 text-start shadow-card hover:bg-card">
       <div className="relative aspect-[2/1] w-full">
         {ad.image_url ? (
-          <img src={img(ad.image_url, 900, 75)} alt={ad.title} loading={eager ? "eager" : "lazy"} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+          <img key={ad.image_url} src={img(ad.image_url, 900, 75)} alt={ad.title} loading={eager ? "eager" : "lazy"} decoding="async" onError={e => { if (ad.image_url && e.currentTarget.dataset.fallback !== "true") { e.currentTarget.dataset.fallback = "true"; e.currentTarget.src = ad.image_url; } }} className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-primary" />
         )}
         {showText && <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/25 to-transparent" />}
         <span className="absolute left-2 top-2 rounded bg-foreground/60 px-1.5 py-0.5 text-[10px] font-medium text-background">AD</span>
         {ad.offer_badge && (
-          <span className="absolute right-2 top-2 rounded-full bg-destructive px-2.5 py-1 text-xs font-extrabold text-destructive-foreground shadow">{ad.offer_badge}</span>
+          <span dir="auto" className="absolute right-2 top-2 rounded-full bg-destructive px-2.5 py-1 text-xs font-extrabold text-destructive-foreground shadow">{ad.offer_badge}</span>
         )}
         {showText && (
           <div className="absolute inset-x-0 bottom-0 p-3 text-background">
@@ -60,7 +62,7 @@ export const AdSlide = ({ ad, eager, onOpen }: { ad: Ad; eager?: boolean; onOpen
             {ad.subtitle && <p className="line-clamp-1 text-xs opacity-90">{ad.subtitle}</p>}
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
               {hasPrice && (
-                <span className="text-sm font-extrabold">
+                <span dir="ltr" className="text-sm font-extrabold">
                   Rs {Number(ad.price)}
                   {ad.original_price && Number(ad.original_price) > Number(ad.price) && (
                     <span className="ms-1.5 text-xs font-medium line-through opacity-75">Rs {Number(ad.original_price)}</span>
@@ -68,16 +70,16 @@ export const AdSlide = ({ ad, eager, onOpen }: { ad: Ad; eager?: boolean; onOpen
                 </span>
               )}
               {ad.promo_code && (
-                <span className="rounded border border-dashed border-background/80 px-1.5 py-0.5 text-[11px] font-bold">کوڈ: {ad.promo_code}</span>
+                <span className="rounded border border-dashed border-background/80 px-1.5 py-0.5 text-[11px] font-bold">{tr("Code:", "کوڈ:")} {ad.promo_code}</span>
               )}
               {(ad.cta_text || ad.link_url) && (
-                <span className="ms-auto rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || "ابھی دیکھیں"}</span>
+                <span className="ms-auto rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">{ad.cta_text || tr("View now", "ابھی دیکھیں")}</span>
               )}
             </div>
           </div>
         )}
       </div>
-    </button>
+    </Button>
   );
 };
 

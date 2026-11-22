@@ -8,6 +8,7 @@ import NotificationBell from "@/components/common/NotificationBell";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { saveMode, type AppMode } from "@/lib/appMode";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 const Navbar = () => {
   const { user, isAdmin, isRestaurantOwner, isRider, isSupport, isMechanic, isServiceManager, isStaff, signOut } = useAuth();
@@ -95,14 +96,15 @@ const Navbar = () => {
               {/* Mobile menu for roles + logout */}
               <div className="md:hidden relative">
                 {hasRoles ? (
-                  <>
+                  <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+                    <PopoverTrigger asChild>
                     <Button variant="ghost"
-                      onClick={() => setMenuOpen(!menuOpen)}
                       className="h-10 w-10 p-2 rounded-lg text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
                       aria-label={L("Menu", "مینو")}
                     >
                       {menuOpen ? <X className="w-5 h-5 text-primary-foreground" /> : <Menu className="w-5 h-5 text-primary-foreground" />}
                     </Button>
+                    </PopoverTrigger>
                     {menuOpen && (() => {
                       const go = (path: string, mode?: AppMode) => {
                         if (mode) saveMode(mode);
@@ -120,34 +122,33 @@ const Navbar = () => {
                       ].filter((i) => i.show);
                       return (
                         <>
-                          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                          <div className="absolute right-0 top-full mt-1 w-60 bg-card border rounded-xl shadow-elegant p-2 z-50">
+                          <PopoverContent dir={lang === "ur" ? "rtl" : "ltr"} align="end" side="bottom" collisionPadding={12} className="z-[60] w-60 max-w-[calc(100vw-24px)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto bg-card p-2 shadow-elegant">
                             <p className="px-1 pb-1.5 text-[11px] font-semibold text-muted-foreground">{L("Select mode", "موڈ منتخب کریں")}</p>
                             <div className="grid grid-cols-3 gap-1.5">
                               {items.map(({ label, icon: Icon, path, mode }) => (
-                                <button
+                                <Button variant="ghost"
                                   key={path}
                                   type="button"
                                   onClick={() => go(path, mode)}
-                                  className="flex flex-col items-center justify-center gap-1 rounded-lg bg-secondary px-1 py-2 text-[11px] font-semibold text-foreground hover:bg-primary/10 transition-colors"
+                                  className="h-auto flex flex-col items-center justify-center gap-1 whitespace-normal rounded-lg bg-secondary px-1 py-2 text-[11px] font-semibold text-foreground hover:bg-primary/10 transition-colors"
                                 >
                                   <Icon className="w-4 h-4 text-primary" />
                                   <span className="leading-tight text-center">{label}</span>
-                                </button>
+                                </Button>
                               ))}
                             </div>
-                            <button
+                            <Button variant="ghost"
                               type="button"
                               onClick={async () => { await signOut(); navigate("/"); setMenuOpen(false); }}
                               className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary"
                             >
                               <LogOut className="w-4 h-4" /> {t("common.logout")}
-                            </button>
-                          </div>
+                            </Button>
+                          </PopoverContent>
                         </>
                       );
                     })()}
-                  </>
+                  </Popover>
                 ) : (
                   <Button variant="ghost"
                     onClick={async () => { await signOut(); navigate("/"); }}
