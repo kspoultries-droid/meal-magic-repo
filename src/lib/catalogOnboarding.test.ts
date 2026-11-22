@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { catalogImages, sameCatalogProduct, starterPack, uniqueCatalogItems, validBarcode, validItemNumbers } from "./catalogOnboarding";
+import { catalogImages, fitsShopCapacity, sameCatalogProduct, starterPack, uniqueCatalogItems, validBarcode, validItemNumbers } from "./catalogOnboarding";
 
 describe("safe shop onboarding", () => {
   it("prepares at most 100 existing grocery items without prices", () => {
@@ -32,5 +32,9 @@ describe("safe shop onboarding", () => {
     expect(validItemNumbers("160", "170", "10")).toBe(false);
     expect(validItemNumbers("160", "", "1.5")).toBe(false);
     expect(validItemNumbers("Infinity", "", "")).toBe(false);
+  });
+  it("enforces the existing 1000-item shop capacity", () => {
+    expect(fitsShopCapacity(900, 100)).toBe(true);
+    expect(fitsShopCapacity(901, 100)).toBe(false);
   });
 });

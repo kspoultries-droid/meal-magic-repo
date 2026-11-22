@@ -49,4 +49,8 @@ describe("inventory import", () => {
   it("rejects fractional or negative stock", () => {
     expect(rowsToProducts([["name", "price", "stock_qty"], ["Milk", 220, -1], ["Tea", 160, 1.5]], "store").products).toEqual([]);
   });
+  it("does not publish new items with zero or unknown stock", () => {
+    const { products } = rowsToProducts([["name", "price", "stock_qty"], ["Milk", 220, 0], ["Tea", 160, ""]], "store");
+    expect(prepareInventoryImport(products, [], ["name", "price", "stock_qty"]).rows.map((p) => p.is_available)).toEqual([false, false]);
+  });
 });

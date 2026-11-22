@@ -37,6 +37,8 @@ export function validItemNumbers(price: string, discount: string, stock: string)
     (stock.trim() === "" || Number.isInteger(s) && s >= 0);
 }
 
+export const fitsShopCapacity = (existing: number, added: number) => existing >= 0 && added >= 0 && existing + added <= 1000;
+
 const groceryCategories = new Set(["general", "eggs & meat", "vegetables", "snacks", "atta & rice", "fruits", "dairy", "personal care", "cleaning", "tea", "daal", "biscuits", "rice", "atta", "beverages", "chocolates", "sugar", "salt", "masala", "besan", "noodles", "oil", "bakery", "frozen", "care"]);
 export const GROCERY_CATALOG_CATEGORIES = groceryCategories;
 export const catalogFitsMode = (category: string | null | undefined, mode: "grocery" | "bazar") =>

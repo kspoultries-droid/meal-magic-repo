@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { img } from "@/lib/imageUrl";
 import { matchesSearch } from "@/lib/searchMatch";
 import { validBarcode, catalogImages, sameCatalogProduct } from "@/lib/catalogOnboarding";
+import { loadImage } from "@/lib/imageEnhance";
 import { specTemplateFor } from "@/lib/catalogSpecs";
 import { BadgeCheck, ImagePlus, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -50,6 +51,14 @@ export default function CatalogManagerTab() {
     if (!edit || !edit.name.trim()) return toast.error(tr("Name is required", "نام لازمی ہے"));
     if (edit.image_verified && !edit.image_url) return toast.error(tr("Photo required for verification", "تصدیق کے لیے تصویر لازمی ہے"));
     setBusy(true);
+    if (edit.image_verified) {
+      try {
+        for (const url of catalogImages(edit)) await loadImage(url);
+      } catch {
+        setBusy(false);
+        return toast.error(tr("A photo could not be opened. Replace it before verification.", "تصویر نہیں کھل سکی؛ تصدیق سے پہلے درست تصویر لگائیں۔"));
+      }
+    }
     const { id, ...row } = edit;
     const images = row.images?.length ? row.images : row.image_url ? [row.image_url] : [];
     const payload = { ...row, images, image_url: images[0] || null, name: row.name.trim(), barcode: row.barcode?.trim() || null, updated_at: new Date().toISOString() };
