@@ -68,7 +68,8 @@ const BazarProductCard = ({ product, onClick, compact, list = false, isWishliste
           </div>
           <div className="flex h-5 min-w-0 items-center gap-1 pe-8">
             {product.wholesale_price != null && <span className="shrink-0 rounded bg-accent px-1 text-[9px] font-bold text-primary">{tr("Wholesale", "ہول سیل")}</span>}
-            {product.min_order_qty && product.min_order_qty > 1 ? <span className="shrink-0 rounded border border-destructive/30 px-1 text-[9px] font-semibold text-destructive">MOQ {product.min_order_qty}</span> : null}
+            {!(product.min_order_qty && product.min_order_qty > 1) && <span className="truncate rounded border border-border px-1 text-[9px] font-semibold text-muted-foreground">{tr("1 pc available", "1 عدد بھی دستیاب")}</span>}
+            {product.min_order_qty && product.min_order_qty > 1 ? <span className="shrink-0 rounded border border-destructive/30 px-1 text-[9px] font-semibold text-destructive">{tr(`Min ${product.min_order_qty} pcs`, `کم از کم ${product.min_order_qty} عدد`)}</span> : null}
           </div>
           <p dir="auto" className="line-clamp-2 min-h-4 break-words ltr:pr-10 rtl:pl-10 text-start text-[10px] leading-tight text-muted-foreground">{product.storeName || displayText(product.unit) || tr("Shop now", "خریداری کریں")}</p>
         </div>
