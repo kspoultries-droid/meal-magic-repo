@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { img } from "@/lib/imageUrl";
 import { matchesSearch } from "@/lib/searchMatch";
+import { validBarcode, catalogImages, sameCatalogProduct } from "@/lib/catalogOnboarding";
 import { specTemplateFor } from "@/lib/catalogSpecs";
 import { BadgeCheck, ImagePlus, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -18,7 +19,7 @@ const blank: Item = { name: "", name_ur: "", brand: "", category: "General", uni
 export default function CatalogManagerTab() {
   const [items, setItems] = useState<Item[]>([]);
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"all" | "unverified" | "nophoto">("all");
+  const [filter, setFilter] = useState<"all" | "unverified" | "nophoto" | "nobarcode" | "duplicates">("all");
   const [edit, setEdit] = useState<Item | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -26,7 +27,7 @@ export default function CatalogManagerTab() {
   useEffect(() => { load(); }, []);
 
   const shown = useMemo(() => items.filter((i) =>
-    (filter === "all" || (filter === "unverified" ? !i.image_verified : !i.image_url)) &&
+    (filter === "all" || (filter === "unverified" ? !i.image_verified : filter === "nophoto" ? !catalogImages(i).length : filter === "nobarcode" ? !i.barcode : items.some((other) => other.id !== i.id && sameCatalogProduct(i, other)))) &&
     (!q || matchesSearch(q, i.name, i.name_ur, i.brand, i.category, i.barcode))).slice(0, 300), [items, q, filter]);
   const verified = items.filter((i) => i.image_verified && i.image_url).length;
 
@@ -44,9 +45,25 @@ export default function CatalogManagerTab() {
   };
 
   const save = async () => {
+    if (busy) return;
+    if (edit?.barcode && !validBarcode(edit.barcode)) return toast.error(tr("Check barcode digits and checksum", "بارکوڈ کے ہندسے درست کریں"));
     if (!edit || !edit.name.trim()) return toast.error(tr("Name is required", "نام لازمی ہے"));
     if (edit.image_verified && !edit.image_url) return toast.error(tr("Photo required for verification", "تصدیق کے لیے تصویر لازمی ہے"));
     setBusy(true);
+    if (edit.image_verified) {
+      try {
+        for (const url of catalogImages(edit)) await new Promise<void>((resolve, reject) => {
+          const image = new Image();
+          const timer = window.setTimeout(() => reject(new Error("Image timed out")), 12000);
+          image.onload = () => { window.clearTimeout(timer); image.naturalWidth > 0 ? resolve() : reject(new Error("Empty image")); };
+          image.onerror = () => { window.clearTimeout(timer); reject(new Error("Image unavailable")); };
+          image.src = url;
+        });
+      } catch {
+        setBusy(false);
+        return toast.error(tr("A photo could not be opened. Replace it before verification.", "تصویر نہیں کھل سکی؛ تصدیق سے پہلے درست تصویر لگائیں۔"));
+      }
+    }
     const { id, ...row } = edit;
     const images = row.images?.length ? row.images : row.image_url ? [row.image_url] : [];
     const payload = { ...row, images, image_url: images[0] || null, name: row.name.trim(), barcode: row.barcode?.trim() || null, updated_at: new Date().toISOString() };
@@ -104,9 +121,9 @@ export default function CatalogManagerTab() {
         <div className="relative flex-1"><Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pr-9" placeholder={tr("Name, Brand, Barcode", "نام، برانڈ، بارکوڈ")} value={q} onChange={(e) => setQ(e.target.value)} /></div>
         <Button onClick={() => setEdit({ ...blank })}><Plus className="h-4 w-4" /> {tr("New Item", "نئی چیز")}</Button>
       </div>
-      <div className="flex gap-1.5">
-        {([["all", tr("All", "سب")], ["unverified", tr("Pending Verification", "تصدیق باقی")], ["nophoto", tr("No Image", "بغیر تصویر")]] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setFilter(k)} className={`rounded-full border px-3 py-1 text-xs ${filter === k ? "border-primary bg-primary text-primary-foreground" : "bg-card"}`}>{l}</button>
+      <div className="flex flex-wrap gap-1.5">
+        {([["all", tr("All", "سب")], ["unverified", tr("Pending Verification", "تصدیق باقی")], ["nophoto", tr("No verified photo", "تصدیق شدہ تصویر نہیں")], ["nobarcode", tr("No barcode", "بارکوڈ نہیں")], ["duplicates", tr("Similar items", "ملتی جلتی اشیا")]] as const).map(([k, l]) => (
+          <Button key={k} size="sm" variant={filter === k ? "default" : "outline"} onClick={() => setFilter(k)} className="text-xs">{l}</Button>
         ))}
       </div>
       <div className="divide-y rounded-xl border bg-card">
@@ -127,7 +144,7 @@ export default function CatalogManagerTab() {
               <div className="flex items-center gap-3">
                 <div className="flex gap-1.5 overflow-x-auto">{(edit.images?.length ? edit.images : edit.image_url ? [edit.image_url] : []).map((u, n) => (
                   <div key={u} className="relative shrink-0"><img src={img(u, 160)} alt="" className="h-20 w-20 rounded-lg object-contain bg-muted" />
-                    <button type="button" className="absolute -top-1 -left-1 rounded-full bg-destructive px-1.5 text-[10px] text-destructive-foreground" onClick={() => { const images = (edit.images?.length ? edit.images : [edit.image_url!]).filter((_, k) => k !== n); setEdit({ ...edit, images, image_url: images[0] || null, image_verified: images.length ? edit.image_verified : false }); }}>×</button>
+                    <button type="button" className="absolute -top-1 -left-1 rounded-full bg-destructive px-1.5 text-[10px] text-destructive-foreground" onClick={() => { const images = (edit.images?.length ? edit.images : (edit.image_url ? [edit.image_url] : [])).filter((_, k) => k !== n); setEdit({ ...edit, images, image_url: images[0] || null, image_verified: images.length ? edit.image_verified : false }); }}>×</button>
                     {n === 0 && <span className="absolute bottom-0 right-0 rounded bg-primary px-1 text-[9px] text-primary-foreground">{tr("Main", "مرکزی")}</span>}</div>))}
                   {!edit.images?.length && !edit.image_url && <div className="h-20 w-20 rounded-lg bg-muted" />}</div>
                 <label className="flex cursor-pointer items-center gap-1 rounded-lg border px-3 py-2 text-xs"><ImagePlus className="h-4 w-4" /> {tr("Add original photo (up to 8)", "اصل تصویر شامل کریں (8 تک)")}

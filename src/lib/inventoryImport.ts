@@ -1,4 +1,5 @@
 // Shared helpers for shop owners' bulk item import/export (CSV or Excel rows).
+import { sameCatalogProduct } from "./catalogOnboarding";
 export const INVENTORY_HEADERS = ["id", "name", "price", "discount_price", "unit", "category", "stock_qty", "available", "image_url"] as const;
 
 export type ImportedProduct = {
@@ -43,7 +44,7 @@ export function parseCsv(text: string): string[][] {
 
 const num = (v: unknown): number | null => {
   if (v === null || v === undefined || String(v).trim() === "") return null;
-  const n = Number(String(v).replace(/[,\sRs.]+(?=\d)|,/gi, "").replace(/^rs/i, "").trim());
+  const n = Number(String(v).replace(/^\s*rs\.?\s*/i, "").replace(/[,\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 };
 const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
@@ -67,6 +68,10 @@ export function rowsToProducts(rows: unknown[][], storeId: string, newId: () => 
     if (discount !== null && (discount <= 0 || discount >= price)) discount = null;
     const rawId = String(get(r, "id") ?? "").trim();
     const availRaw = get(r, "available");
+    const stock = num(get(r, "stock_qty"));
+    if (String(get(r, "stock_qty") ?? "").trim() && (stock === null || !Number.isInteger(stock) || stock < 0)) {
+      errors.push(`لائن ${line}: «${name}» کا اسٹاک درست نہیں`); return;
+    }
     products.push({
       id: isUuid(rawId) ? rawId : newId(),
       store_id: storeId,
@@ -76,12 +81,31 @@ export function rowsToProducts(rows: unknown[][], storeId: string, newId: () => 
       is_special_offer: discount !== null,
       unit: String(get(r, "unit") ?? "").trim() || null,
       category: String(get(r, "category") ?? "").trim() || "General",
-      stock_qty: num(get(r, "stock_qty")),
+      stock_qty: stock,
       is_available: availRaw === undefined || String(availRaw).trim() === "" ? true : yes(availRaw),
       image_url: String(get(r, "image_url") ?? "").trim() || null,
     });
   });
   return { products, errors };
+}
+
+export function prepareInventoryImport(parsed: ImportedProduct[], existing: Array<{ id: string; name: string; unit?: string | null }>, headers: string[]) {
+  const rows: Array<Partial<ImportedProduct> & { id: string; store_id: string; name: string; price: number }> = [];
+  let skipped = 0;
+  for (const product of parsed) {
+    const own = existing.find((p) => p.id === product.id);
+    if (rows.some((p) => p.id === product.id || sameCatalogProduct(p, product)) || (!own && existing.some((p) => sameCatalogProduct(p, product)))) { skipped++; continue; }
+    const row = { ...product, id: own ? product.id : crypto.randomUUID() } as typeof rows[number];
+    if (own) {
+      for (const field of ["unit", "category", "stock_qty", "image_url", "discount_price"] as const) {
+        if (!headers.includes(field)) delete row[field];
+      }
+      if (!headers.includes("available")) delete row.is_available;
+      if (!headers.includes("discount_price")) delete row.is_special_offer;
+    } else if (product.stock_qty === null || product.stock_qty === 0) row.is_available = false;
+    rows.push(row);
+  }
+  return { rows, skipped };
 }
 
 const esc = (v: unknown) => {

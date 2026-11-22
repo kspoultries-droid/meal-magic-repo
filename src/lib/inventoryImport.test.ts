@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseCsv, rowsToProducts, productsToCsv } from "./inventoryImport";
+import { parseCsv, rowsToProducts, productsToCsv, prepareInventoryImport } from "./inventoryImport";
 
 describe("inventory import", () => {
   it("reads quoted CSV cells", () => {
@@ -32,5 +32,25 @@ describe("inventory import", () => {
 
   it("neutralizes formula cells on export", () => {
     expect(productsToCsv([{ id: "1", name: "=HACK()", price: 1 }])).toContain("'=HACK()");
+  });
+  it("retains existing pictures and stock when update columns are absent", () => {
+    const id = "11111111-2222-4333-8444-555555555555";
+    const { products } = rowsToProducts([["id", "name", "price"], [id, "Milk", 220]], "store");
+    const { rows } = prepareInventoryImport(products, [{ id, name: "Milk" }], ["id", "name", "price"]);
+    expect(rows[0]).not.toHaveProperty("image_url");
+    expect(rows[0]).not.toHaveProperty("stock_qty");
+    expect(rows[0].id).toBe(id);
+  });
+  it("skips repeated new items without deleting another shop's listings", () => {
+    const { products } = rowsToProducts([["name", "price"], ["Milk", 220], ["Milk", 230]], "store");
+    expect(prepareInventoryImport(products, [], ["name", "price"]).skipped).toBe(1);
+    expect(prepareInventoryImport(products, [{ id: "own", name: "Milk" }], ["name", "price"]).rows).toHaveLength(0);
+  });
+  it("rejects fractional or negative stock", () => {
+    expect(rowsToProducts([["name", "price", "stock_qty"], ["Milk", 220, -1], ["Tea", 160, 1.5]], "store").products).toEqual([]);
+  });
+  it("does not publish new items with zero or unknown stock", () => {
+    const { products } = rowsToProducts([["name", "price", "stock_qty"], ["Milk", 220, 0], ["Tea", 160, ""]], "store");
+    expect(prepareInventoryImport(products, [], ["name", "price", "stock_qty"]).rows.map((p) => p.is_available)).toEqual([false, false]);
   });
 });

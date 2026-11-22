@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Fast grocery shop onboarding
+- [x] Prepare up to 100 appropriate existing catalog items as an editable starter draft; require each shop's own prices/stock, preserve test shops and approved-photo restrictions.
+- [x] Improve catalog/name/barcode lookup, portable barcode decoding and admin quality filters; never invent barcodes or verify photographs automatically.
+- [x] Add CSV/XLSX import preview, duplicate prevention, stock quick editing and recoverable bulk saves; 329 unit tests and 4 authenticated EN/UR mobile/desktop browser scenarios passed. Saves/readbacks isolated in browser, not production certification. An inadvertently verified existing catalog item was restored through the authorized editor; catalog metadata timestamp changed, no net verification change. See docs/grocery-onboarding-2026-11-22.md.
+- [ ] Real packaging photos/barcodes require supplied evidence; database-level atomic deduplication remains blocked by the standing migration freeze.
+
 ## Current request — Grocery launch presentation
 - [x] Preserve test shops and business records; use explicitly representative category photos only when original photos are missing/broken.
 - [x] Synchronize categories and eligible-store filters across products/deals; load category items without requiring prior search.
