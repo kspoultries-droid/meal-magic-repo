@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { foodCategories } from "@/lib/foodCategories";
 import { Button } from "@/components/ui/button";
 
+const TINTS = ["bg-accent", "bg-secondary", "bg-muted"];
+
 const CategoryRail = () => {
   const navigate = useNavigate();
 
@@ -20,7 +22,7 @@ const CategoryRail = () => {
             style={{ animationDelay: `${i * 40}ms` }}
             className="animate-fade-in group flex h-auto w-[76px] shrink-0 flex-col items-center gap-1.5 whitespace-normal p-0 hover:bg-transparent active:scale-95 transition-transform"
           >
-            <span className="relative size-[72px] overflow-hidden rounded-full bg-card shadow-soft ring-1 ring-border/50">
+            <span className={`relative size-[72px] overflow-hidden rounded-full ${TINTS[i % TINTS.length]} p-1.5 shadow-soft ring-1 ring-border/50`}>
               <img
                 src={cat.image}
                 alt={tr(cat.name, cat.ur)}
@@ -28,7 +30,7 @@ const CategoryRail = () => {
                 height={360}
                 loading="lazy"
                 decoding="async"
-                className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
+                className="h-full w-full rounded-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
               />
             </span>
             <span className="w-full truncate text-center text-[11px] font-bold text-foreground">{tr(cat.name, cat.ur)}</span>
