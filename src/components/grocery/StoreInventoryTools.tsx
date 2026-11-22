@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { specsToText } from "@/lib/catalogSpecs";
 import { tr } from "@/lib/i18n/tr";
 import { Checkbox } from "@/components/ui/checkbox";
-import { catalogImages, catalogFitsMode, sameCatalogProduct, starterPack, uniqueCatalogItems, validItemNumbers } from "@/lib/catalogOnboarding";
+import { catalogImages, catalogFitsMode, fitsShopCapacity, sameCatalogProduct, starterPack, uniqueCatalogItems, validItemNumbers } from "@/lib/catalogOnboarding";
 export { catalogFitsMode, GROCERY_CATALOG_CATEGORIES } from "@/lib/catalogOnboarding";
 const hasRealPhoto = (i: any) => catalogImages(i).length > 0;
 
@@ -189,7 +189,7 @@ function CatalogPicker({ storeId, existing, onChanged, mode, storeCategory }: { 
       const { data: current, error: readError } = await supabase.from("grocery_products").select("id,name,unit,barcode,catalog_item_id").eq("store_id", storeId);
       if (readError) throw readError;
       const fresh = uniqueCatalogItems(items.filter((i) => picks[i.id]), current || []);
-      if ((current || []).length + fresh.length > 1000) throw new Error(tr("A shop can hold at most 1000 items", "دکان میں زیادہ سے زیادہ 1000 اشیا ہو سکتی ہیں"));
+      if (!fitsShopCapacity((current || []).length, fresh.length)) throw new Error(tr("A shop can hold at most 1000 items", "دکان میں زیادہ سے زیادہ 1000 اشیا ہو سکتی ہیں"));
       const rows = fresh.map((i) => {
         const v = picks[i.id];
         const images = v.usePhoto ? catalogImages(i) : [];

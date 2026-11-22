@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Download, FileUp, Save, X } from "lucide-react";
 import { parseCsv, prepareInventoryImport, productsToCsv, rowsToProducts } from "@/lib/inventoryImport";
+import { fitsShopCapacity } from "@/lib/catalogOnboarding";
 import { tr } from "@/lib/i18n/tr";
 import { toast } from "sonner";
 
@@ -39,7 +40,7 @@ export default function InventoryImport({ storeId, products, onChanged }: { stor
       if (readError) throw readError;
       const fresh = prepareInventoryImport(preview.rows as any, current || [], headers);
       const ownIds = new Set((current || []).map((p) => p.id));
-      if ((current || []).length + fresh.rows.filter((p) => !ownIds.has(p.id)).length > 1000) throw new Error(tr("Shop limit: 1000 items", "دکان کی حد: 1000 اشیا"));
+      if (!fitsShopCapacity((current || []).length, fresh.rows.filter((p) => !ownIds.has(p.id)).length)) throw new Error(tr("Shop limit: 1000 items", "دکان کی حد: 1000 اشیا"));
       const inserts = fresh.rows.filter((p) => !ownIds.has(p.id));
       const updates = fresh.rows.filter((p) => ownIds.has(p.id));
       const succeeded = new Set<string>();
