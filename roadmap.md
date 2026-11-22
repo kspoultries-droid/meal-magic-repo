@@ -1,5 +1,12 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Restaurant scanner and kitchen alerts
+- [x] Add up to 5 readable menu pages to one prepared image using the unchanged scanner endpoint; retain failed drafts and prevent duplicate submissions.
+- [x] Keep kitchen alerts synchronized to owner-scoped pending orders, recover missed reads on resume/polling, and preserve rows on errors.
+- [x] 352 automated tests, 4 authenticated EN/UR mobile/desktop scanner/sound checks and an isolated pending-order acceptance/readback passed; Gym Bar remains empty, Paprika retains 18 items. Real scanner still returns quota 429. See docs/restaurant-scanner-alerts-2026-11-22.md.
+- [ ] Scanner quota separation / server dispatch fixes remain blocked by the standing function freeze; preserve 3/day and 40-item policy, not the previously proposed 20/day.
+- [ ] Closed-app sound/push, printer and physical delivery certification require real devices; previous readiness percentages were not measured.
+
 ## Current request — Remaining grocery onboarding work
 - [x] Research packaging-photo/barcode sources: original pack capture/authorized brand files preferred; GS1 identity checks and Open Food Facts are references, not automatically imported licensed media. See docs/grocery-catalog-review-2026-11-22.md.
 - [x] Add local barcode-photo decoding to the admin catalog editor, conflict checks and explicit save/readback; no invented evidence or auto-verification.

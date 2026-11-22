@@ -1,7 +1,7 @@
 import BannerPicker from "@/components/media/BannerPicker";
 import { tr } from "@/lib/i18n/tr";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import NotificationBell from "@/components/common/NotificationBell";
 import LiveDeliveryRoute from "@/components/orders/LiveDeliveryRoute";
@@ -798,62 +798,48 @@ const OwnerOrdersTab = () => {
   const busyOrderIds = useRef(new Set<string>());
   const [dateFilter, setDateFilter] = useState(false);
   const [day, setDay] = useState<Date>(startOfDay(new Date()));
-  const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
+  const { newOrderCount, dismissAlert, syncPendingOrders, enableSound, soundReady } = useNewOrderAlert({ persistent: true });
+  const [readError, setReadError] = useState(false);
+  const request = useRef(0);
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    const { data: rests } = await supabase.from("restaurants").select("id").eq("owner_id", user!.id);
-    if (rests?.length) {
-      const ids = rests.map((r) => r.id);
-      const { data } = await supabase
-        .from("orders")
-        .select("*, order_items(*), restaurants(name, delivery_mode, ntn, tax_percent, auto_print)")
-        .in("restaurant_id", ids)
-        .order("created_at", { ascending: false })
-        .limit(300);
-      setOrders(data || []);
-    } else {
-      setOrders([]);
-    }
-    setLoading(false);
-  };
+  const fetchOrders = useCallback(async (showLoading = false) => {
+    if (!user) return;
+    const seq = ++request.current;
+    if (showLoading) setLoading(true);
+    try {
+      const { data: rests, error: restError } = await supabase.from("restaurants").select("id").eq("owner_id", user.id);
+      if (restError) throw restError;
+      const ids = rests?.map(rest => rest.id) || [];
+      if (!ids.length) {
+        if (seq === request.current) { setOrders([]); syncPendingOrders([]); setReadError(false); }
+        return;
+      }
+      const selection = "*, order_items(*), restaurants(name, delivery_mode, ntn, tax_percent, auto_print)";
+      const [active, history] = await Promise.all([
+        supabase.from("orders").select(selection).in("restaurant_id", ids).not("status", "in", "(delivered,completed,cancelled,returned_to_store)").order("created_at", { ascending: false }).limit(1000),
+        supabase.from("orders").select(selection).in("restaurant_id", ids).in("status", ["delivered", "completed", "cancelled", "returned_to_store"]).order("created_at", { ascending: false }).limit(300),
+      ]);
+      if (active.error || history.error) throw active.error || history.error;
+      if (seq !== request.current) return;
+      const rows = [...(active.data || []), ...(history.data || [])];
+      setOrders(rows);
+      syncPendingOrders(rows.filter(order => order.status === "pending").map(order => order.id));
+      setReadError(false);
+    } catch { if (seq === request.current) setReadError(true); }
+    finally { if (seq === request.current) setLoading(false); }
+  }, [user?.id, syncPendingOrders]);
 
-  useEffect(() => { fetchOrders(); }, [user]);
-
-  // Realtime
   useEffect(() => {
-    const channel = supabase
-      .channel("owner-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
-        fetchOrders();
-        if (payload.eventType === 'INSERT') {
-          triggerAlert(tr("New order received — Accept now!", "نیا آرڈر آیا ہے — قبول کریں!"));
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user]);
-
-  // Every pending order rings again after 5 minutes, until it is accepted
-  const remindedRef = useRef<Record<string, number>>({});
-  useEffect(() => {
-    const check = () => {
-      const now = Date.now();
-      const due = orders.filter((o) => {
-        if (o.status !== "pending") return false;
-        const age = now - new Date(o.created_at).getTime();
-        const last = remindedRef.current[o.id] || 0;
-        return age > 5 * 60 * 1000 && now - last > 5 * 60 * 1000;
-      });
-      if (due.length === 0) return;
-      due.forEach((o) => { remindedRef.current[o.id] = now; });
-      triggerAlert(`${due.length} ${tr("Order not accepted yet!", "آرڈر ابھی تک قبول نہیں کیا گیا!")}`);
-      toast.warning(`⏰ ${due.length} ${tr("Order pending for over 5 mins — accept now", "آرڈر 5 منٹ سے زیادہ سے زیرِ التوا ہے — فوراً قبول کریں")}`, { id: "pending-reminder" });
-    };
-    check();
-    const timer = setInterval(check, 30 * 1000);
-    return () => clearInterval(timer);
-  }, [orders, triggerAlert]);
+    if (!user) return;
+    void fetchOrders(true);
+    const channel = supabase.channel(`owner-orders-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => { void fetchOrders(); }).subscribe();
+    const resume = () => { if (document.visibilityState === "visible") void fetchOrders(); };
+    const timer = setInterval(resume, 20000);
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("focus", resume);
+    return () => { request.current++; clearInterval(timer); document.removeEventListener("visibilitychange", resume); window.removeEventListener("focus", resume); void supabase.removeChannel(channel); };
+  }, [user?.id, fetchOrders]);
 
   const updateStatus = async (order: any, action: RestaurantAction) => {
     if (busyOrderIds.current.has(order.id)) return;
@@ -1031,10 +1017,11 @@ const OwnerOrdersTab = () => {
   return (
     <Card>
       <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label={t("rest.newFoodOrder")} />
+      {readError && <p role="alert" className="p-3 text-sm text-destructive">{tr("Orders could not refresh; previous orders are retained. Retry refresh.", "آرڈر تازہ نہیں ہوئے؛ پچھلے آرڈر محفوظ ہیں۔ دوبارہ تازہ کریں۔")}</p>}
       <CardHeader className="space-y-2 pb-3">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base">{t("common.orders")}</CardTitle>
-          <Button variant="outline" size="sm" onClick={fetchOrders}><RefreshCw className="h-4 w-4" /></Button>
+          <div className="flex gap-2"><Button variant="outline" size="sm" onClick={() => void enableSound()}>{soundReady ? tr("Sound on", "آواز فعال") : tr("Enable order sound", "آرڈر کی آواز فعال کریں")}</Button><Button variant="outline" size="sm" aria-label={tr("Refresh orders", "آرڈر تازہ کریں")} onClick={() => void fetchOrders(true)}><RefreshCw className="h-4 w-4" /></Button></div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
