@@ -3,11 +3,11 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { setTrLang } from "@/lib/i18n/tr";
 import CourierShipmentDialog from "./CourierShipmentDialog";
 
-const { update, eq, success } = vi.hoisted(() => ({ update: vi.fn(), eq: vi.fn(), success: vi.fn() }));
+const { update, eq, is, select, single, success } = vi.hoisted(() => ({ update: vi.fn(), eq: vi.fn(), is: vi.fn(), select: vi.fn(), single: vi.fn(), success: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: () => ({ update }) } }));
 vi.mock("sonner", () => ({ toast: { success, error: vi.fn() } }));
 
-const order = { id: "test-order", delivery_method: "courier", courier_name: "Receipt carrier", tracking_number: "ACTUAL-CN" };
+const order = { id: "test-order", status: "confirmed", delivery_method: "courier", courier_name: "Receipt carrier", tracking_number: "ACTUAL-CN" };
 const renderDialog = (overrides = {}, onSaved = vi.fn()) => {
   render(<CourierShipmentDialog open order={{ ...order, ...overrides }} onOpenChange={vi.fn()} onSaved={onSaved} />);
   return onSaved;
@@ -18,8 +18,9 @@ beforeEach(() => {
   cleanup();
   vi.clearAllMocks();
   setTrLang("en");
-  update.mockReturnValue({ eq });
-  eq.mockResolvedValue({ error: null });
+  const query = { eq, is, select, single };
+  update.mockReturnValue(query); eq.mockReturnValue(query); is.mockReturnValue(query); select.mockReturnValue(query);
+  single.mockResolvedValue({data:{id:order.id},error:null});
 });
 
 describe("manual courier record preserves existing financial and delivery snapshots", () => {
@@ -33,6 +34,8 @@ describe("manual courier record preserves existing financial and delivery snapsh
     await waitFor(() => expect(saved).toHaveBeenCalledOnce());
     expect(update).toHaveBeenCalledWith({ courier_name: "Receipt carrier", tracking_number: "ACTUAL-CN", courier_tracking_url: null, courier_payment_type: "cod", shipment_status: "pending" });
     expect(eq).toHaveBeenCalledWith("id", "test-order");
+    expect(eq).toHaveBeenCalledWith("status", "confirmed");
+    expect(is).toHaveBeenCalledWith("shipment_status",null);
   });
   it("cannot convert a local rider order to courier", () => {
     renderDialog({ delivery_method: "local_rider" }); submit();
@@ -45,10 +48,21 @@ describe("manual courier record preserves existing financial and delivery snapsh
     submit(); expect(update).not.toHaveBeenCalled();
   });
   it("does not report saved or notify success when server authorization rejects the write", async () => {
-    eq.mockResolvedValue({ error: { message: "Permission denied" } });
+    single.mockResolvedValue({ data:null,error: { message: "Permission denied" } });
     const saved = renderDialog(); submit();
-    await waitFor(() => expect(eq).toHaveBeenCalledOnce());
+    await waitFor(() => expect(single).toHaveBeenCalledOnce());
     expect(saved).not.toHaveBeenCalled();
     expect(success).not.toHaveBeenCalled();
+  });
+  it("never writes evidence against cancelled orders", () => {
+    renderDialog({status:"cancelled"}); submit();
+    expect(update).not.toHaveBeenCalled();
+  });
+  it("requires a returned row before claiming a stale write saved",async()=>{
+    single.mockResolvedValue({data:null,error:null});
+    const saved=renderDialog({shipment_status:"in_transit"});submit();
+    await waitFor(()=>expect(single).toHaveBeenCalledOnce());
+    expect(eq).toHaveBeenCalledWith("shipment_status","in_transit");
+    expect(saved).not.toHaveBeenCalled();expect(success).not.toHaveBeenCalled();
   });
 });

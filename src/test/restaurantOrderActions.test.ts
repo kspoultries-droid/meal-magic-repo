@@ -23,6 +23,8 @@ describe("streamlined restaurant actions", () => {
     expect(restaurantTransitions("delivering", "complete", false)).toEqual(["delivered"]);
   });
   it("never reopens a closed order", () => {
-    for (const status of ["delivered", "completed", "cancelled"]) expect(restaurantTransitions(status, "accept")).toEqual([]);
+    for (const status of ["delivered", "completed", "cancelled", "returned_to_store"]) {
+      for (const action of ["accept", "ready", "complete", "cancel"] as const) expect(restaurantTransitions(status, action)).toEqual([]);
+    }
   });
 });

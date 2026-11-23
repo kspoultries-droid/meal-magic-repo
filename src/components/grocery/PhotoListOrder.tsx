@@ -10,6 +10,7 @@ import { Camera, FileImage, Send, Loader2, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
 import { tr } from "@/lib/i18n/tr";
 import { MAX_LIST_PHOTOS, validListPin } from "@/lib/listOrders";
+import CameraPhotoButton from "@/components/media/CameraPhotoButton";
 
 interface PhotoListOrderProps { storeId: string; storeName: string; advancePercent?: number; }
 export default function PhotoListOrder({storeId, storeName}: PhotoListOrderProps) {
@@ -23,11 +24,10 @@ export default function PhotoListOrder({storeId, storeName}: PhotoListOrderProps
   const [coords,setCoords]=useState<{lat:number;lng:number}|null>(null);
   const [locOpen,setLocOpen]=useState(false);
   const [submitting,setSubmitting]=useState(false);
-  const camera=useRef<HTMLInputElement>(null), gallery=useRef<HTMLInputElement>(null);
+  const gallery=useRef<HTMLInputElement>(null);
   useEffect(()=>{if(location){setAddress(location.address);setCoords(validListPin(location.lat,location.lng)?{lat:Number(location.lat),lng:Number(location.lng)}:null);}},[location]);
   useEffect(()=>{const urls=files.map(f=>URL.createObjectURL(f));setPreviews(urls);return ()=>urls.forEach(URL.revokeObjectURL);},[files]);
-  const addFiles=(e:React.ChangeEvent<HTMLInputElement>)=>{
-    const incoming=Array.from(e.target.files||[]); e.target.value="";
+  const addFiles=(incoming:File[])=>{
     if(incoming.some(f=>!f.type.startsWith('image/')||f.size>10*1024*1024)){toast.error(tr("Images must be smaller than 10MB", "تصویر 10MB سے چھوٹی ہونی چاہیے"));return;}
     if(files.length+incoming.length>MAX_LIST_PHOTOS){toast.error(tr("Maximum 4 photos", "زیادہ سے زیادہ 4 تصاویر"));return;}
     setFiles(prev=>[...prev,...incoming]);
@@ -53,10 +53,9 @@ export default function PhotoListOrder({storeId, storeName}: PhotoListOrderProps
   return <><Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild><Button className="w-full gap-2"><FileImage className="h-4 w-4"/>{tr("Send list photo","راشن لسٹ بھیجیں")}</Button></DialogTrigger>
     <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>{tr("Ration list","راشن لسٹ")} — {storeName}</DialogTitle></DialogHeader>
-      <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" onChange={addFiles}/>
-      <input ref={gallery} type="file" accept="image/*" multiple className="hidden" onChange={addFiles}/>
+      <input ref={gallery} type="file" accept="image/*" multiple className="hidden" disabled={submitting} onChange={e=>{addFiles(Array.from(e.target.files||[]));e.target.value="";}}/>
       <div className="grid grid-cols-2 gap-2">{previews.map((url,i)=><div key={url} className="relative"><img src={url} alt={`List ${i+1}`} className="w-full h-44 object-contain bg-secondary border rounded-lg"/><Button size="icon" variant="destructive" className="absolute top-1 end-1 h-7 w-7" aria-label={tr("Remove photo","تصویر ہٹائیں")} onClick={()=>setFiles(f=>f.filter((_,n)=>n!==i))}><X className="h-4 w-4"/></Button></div>)}</div>
-      <div className="flex gap-2"><Button variant="outline" disabled={files.length>=4} onClick={()=>camera.current?.click()} className="flex-1 gap-2"><Camera className="h-4 w-4"/>{tr("Camera","کیمرہ")}</Button><Button variant="outline" disabled={files.length>=4} onClick={()=>gallery.current?.click()} className="flex-1 gap-2"><FileImage className="h-4 w-4"/>{tr("Gallery","گیلری")} ({files.length}/4)</Button></div>
+      <div className="flex gap-2"><CameraPhotoButton disabled={submitting||files.length>=MAX_LIST_PHOTOS} onCapture={file=>addFiles([file])} className="flex-1 gap-2"/><Button variant="outline" disabled={submitting||files.length>=MAX_LIST_PHOTOS} onClick={()=>gallery.current?.click()} className="flex-1 gap-2"><FileImage className="h-4 w-4"/>{tr("Gallery","گیلری")} ({files.length}/4)</Button></div>
       <Input aria-label={tr("Delivery address","ڈیلیوری پتہ")} value={address} placeholder={tr("Delivery address","ڈیلیوری پتہ")} onChange={e=>setAddress(e.target.value)}/>
       <Button variant="outline" onClick={()=>setLocOpen(true)} className="gap-2"><MapPin className="h-4 w-4"/>{coords?tr("Change location","مقام تبدیل کریں"):tr("Choose location","مقام منتخب کریں")}</Button>
       {coords&&<p className="text-xs text-primary">GPS: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</p>}

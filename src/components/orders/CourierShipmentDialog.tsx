@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SHIPMENT_STATUSES, isValidShipmentTransition } from "@/lib/courier";
 import { tr } from "@/lib/i18n/tr";
+import { deliveryClosed } from "@/lib/riderOperations";
 
 interface Props {
   open: boolean;
@@ -24,6 +25,7 @@ const CourierShipmentDialog = ({ open, onOpenChange, order, defaults, onSaved }:
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
+    if (saving || deliveryClosed(order?.status)) return;
     if (order?.delivery_method !== "courier") { toast.error(tr("Delivery snapshot review required", "محفوظ ترسیل کے طریقے کا جائزہ درکار ہے")); return; }
     if (!courier.trim()) { toast.error(tr("Enter the actual courier name", "اصل کوریئر کا نام درج کریں")); return; }
     if (!tracking.trim()) { toast.error(tr("Enter the actual tracking number", "اصل ٹریکنگ نمبر درج کریں")); return; }
@@ -33,7 +35,7 @@ const CourierShipmentDialog = ({ open, onOpenChange, order, defaults, onSaved }:
     }
     setSaving(true);
     try {
-      const { error } = await supabase
+      let query = supabase
         .from("grocery_cart_orders")
         .update({
           courier_name: courier.trim(),
@@ -42,8 +44,10 @@ const CourierShipmentDialog = ({ open, onOpenChange, order, defaults, onSaved }:
           courier_payment_type: paymentType,
           shipment_status: status,
         } as any)
-        .eq("id", order.id);
-      if (error) { toast.error(error.message); return; }
+        .eq("id", order.id).eq("status",order.status);
+      query = order.shipment_status == null ? query.is("shipment_status",null) : query.eq("shipment_status",order.shipment_status);
+      const {data,error} = await query.select("id").single();
+      if (error || !data) { toast.error(error?.message || tr("Record changed; refresh and try again", "ریکارڈ بدل گیا؛ تازہ کر کے دوبارہ کوشش کریں")); return; }
       toast.success(tr("Courier record saved", "کوریئر ریکارڈ محفوظ ہو گیا"));
       onSaved?.();
       onOpenChange(false);
@@ -92,7 +96,7 @@ const CourierShipmentDialog = ({ open, onOpenChange, order, defaults, onSaved }:
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={save} disabled={saving || order?.delivery_method !== "courier"} className="w-full font-extrabold">
+          <Button onClick={save} disabled={saving || deliveryClosed(order?.status) || order?.delivery_method !== "courier"} className="w-full font-extrabold">
             {saving ? tr("Saving...", "محفوظ ہو رہا ہے...") : tr("Save courier record", "کوریئر ریکارڈ محفوظ کریں")}
           </Button>
         </DialogFooter>

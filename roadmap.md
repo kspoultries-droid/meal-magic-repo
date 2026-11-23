@@ -1,6 +1,7 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
 ## Current request — Partner dispatch safety and restaurant banner/camera
+- [x] Sweep sibling camera, photo-evidence, terminal lifecycle and background integration paths; original-evidence camera controls and receipt retry repaired, returned food orders moved to history and courier terminal transitions blocked in UI. 366 automated tests and 14 authenticated browser scenarios passed; server limitations remain explicit in docs/dispatch-sweep-verification-2026-11-23.md.
 - [x] Separate active partner jobs from searchable, paginated terminal history; confirm actions inside the app and reject obsolete/duplicate updates.
 - [x] Replace grocery and food delivery prompts with recoverable in-app confirmations, preserving authorized RPCs.
 - [x] Repair web camera/gallery selection and retain banner upload drafts on save failures; 362 tests and 10 authenticated browser scenarios passed (action writes isolated). See docs/dispatch-banner-verification-2026-11-23.md.

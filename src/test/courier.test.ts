@@ -9,6 +9,13 @@ import {
 import { computeCityGating } from "@/lib/cityGating";
 
 describe("courier shipment transitions", () => {
+  it("cannot turn a returned shipment into delivered", () => {
+    expect(isValidShipmentTransition("returned", "delivered")).toBe(false);
+    expect(isValidShipmentTransition("returned", "returned")).toBe(true);
+  });
+  it("cannot turn a delivered shipment into returned", () => {
+    expect(isValidShipmentTransition("delivered", "returned")).toBe(false);
+  });
   it("accepts forward moves", () => {
     expect(isValidShipmentTransition("pending", "dispatched")).toBe(true);
     expect(isValidShipmentTransition("dispatched", "delivered")).toBe(true);
@@ -49,6 +56,7 @@ describe("order status derived from shipment", () => {
     expect(orderStatusForShipment("delivered", "in_transit")).toBeNull();
     expect(orderStatusForShipment("cancelled", "delivered")).toBeNull();
     expect(orderStatusForShipment("completed", "returned")).toBeNull();
+    expect(orderStatusForShipment("returned_to_store", "delivered")).toBeNull();
   });
 
   it("ignores pending shipments", () => {

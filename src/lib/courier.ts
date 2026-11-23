@@ -48,10 +48,11 @@ export const isKnownShipmentStatus = (status?: string | null): status is Shipmen
 export const isValidShipmentTransition = (from: string | null | undefined, to: string): boolean => {
   if (!isKnownShipmentStatus(to)) return false;
   if (!isKnownShipmentStatus(from)) return true;
+  if (from === "returned" || from === "delivered") return from === to;
   return shipmentRank(to) >= shipmentRank(from);
 };
 
-const TERMINAL_ORDER_STATUSES = ["delivered", "completed", "cancelled"];
+const TERMINAL_ORDER_STATUSES = ["delivered", "completed", "cancelled", "returned_to_store"];
 
 /** Order status implied by a shipment status — mirrors the DB trigger. */
 export const orderStatusForShipment = (

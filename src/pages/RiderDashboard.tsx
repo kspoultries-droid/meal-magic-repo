@@ -27,6 +27,7 @@ import RiderDeliveryActions from "@/components/rider/RiderDeliveryActions";
 import LiveDeliveryRoute from "@/components/orders/LiveDeliveryRoute";
 import { CLOSED_DELIVERIES } from "@/lib/riderOperations";
 import RiderPushGuard from "@/components/rider/RiderPushGuard";
+import CameraPhotoButton from "@/components/media/CameraPhotoButton";
 
 
 
@@ -413,20 +414,7 @@ const RiderDashboard = () => {
                       {!isClosed && <RiderDeliveryActions order={o} kind="food" onChanged={() => fetchData(false)} />}
                       {o.status === "delivering" && (
                         <div className="space-y-1.5">
-                          <label className="flex h-9 w-full cursor-pointer items-center justify-center rounded-md border border-dashed text-[11px] font-bold text-muted-foreground hover:bg-muted">
-                            {o.delivery_proof_path ? t("rider.proofChange") : t("rider.proofAdd")}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              capture="environment"
-                              className="hidden"
-                              onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) uploadProof(o, f);
-                                e.target.value = "";
-                              }}
-                            />
-                          </label>
+                          <CameraPhotoButton className="h-9 w-full border-dashed text-[11px]" label={o.delivery_proof_path ? t("rider.proofChange") : t("rider.proofAdd")} onCapture={file=>uploadProof(o,file)} />
 
                         </div>
                       )}

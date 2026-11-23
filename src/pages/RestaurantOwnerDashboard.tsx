@@ -1,4 +1,5 @@
 import BannerPicker from "@/components/media/BannerPicker";
+import { deliveryClosed } from "@/lib/riderOperations";
 import { tr } from "@/lib/i18n/tr";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -875,8 +876,8 @@ const OwnerOrdersTab = () => {
   const visible = dateFilter
     ? orders.filter((o) => dayKey(new Date(o.created_at)) === dayKey(day))
     : orders;
-  const activeOrders = visible.filter((o) => !["delivered", "completed", "cancelled"].includes(o.status));
-  const doneOrders = visible.filter((o) => ["delivered", "completed", "cancelled"].includes(o.status));
+  const activeOrders = visible.filter((o) => !deliveryClosed(o.status));
+  const doneOrders = visible.filter((o) => deliveryClosed(o.status));
   const foodAmount = (o: any) => Math.max(0, Math.round(Number(o.total_amount || 0) - Number(o.delivery_fee || 0)));
   const dayTotal = doneOrders.reduce((s, o) => s + foodAmount(o), 0);
 

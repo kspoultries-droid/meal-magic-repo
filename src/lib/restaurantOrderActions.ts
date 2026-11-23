@@ -1,8 +1,9 @@
 export type RestaurantAction = "accept" | "ready" | "complete" | "cancel";
+import { deliveryClosed } from "@/lib/riderOperations";
 
 /** Presentation combines taps, but each persisted transition still goes through server guards. */
 export function restaurantTransitions(status: string, action: RestaurantAction, riderAssigned = false): string[] {
-  if (["delivered", "completed", "cancelled"].includes(status)) return [];
+  if (deliveryClosed(status)) return [];
   if (action === "accept") return status === "pending" ? ["confirmed", "preparing"] : status === "confirmed" ? ["preparing"] : [];
   if (action === "ready") return status === "confirmed" ? ["preparing", "delivering"] : status === "preparing" ? ["delivering"] : [];
   if (action === "complete") return status === "delivering" && !riderAssigned ? ["delivered"] : [];

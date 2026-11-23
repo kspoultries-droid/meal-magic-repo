@@ -12,6 +12,8 @@ import ListOrderPhotos from "./ListOrderPhotos";
 import ListOrderPrint from "./ListOrderPrint";
 import { listPhotos } from "@/lib/listOrders";
 import { tr } from "@/lib/i18n/tr";
+import CameraPhotoButton from "@/components/media/CameraPhotoButton";
+import { createBannerUploadDraft } from "@/lib/bannerUploadDraft";
 
 interface ShopkeeperListOrdersProps {
   storeId: string;
@@ -41,7 +43,9 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
   const [alternativesNote, setAlternativesNote] = useState("");
   const [updating, setUpdating] = useState(false);
   const [uploadingBill, setUploadingBill] = useState(false);
-  const billInputRef = useRef<HTMLInputElement>(null);
+  const billLock = useRef(false);
+  const billUpload = useRef(createBannerUploadDraft());
+  const [billDraft, setBillDraft] = useState<{orderId:string;file:File}|null>(null);
   const galleryBillInputRef = useRef<HTMLInputElement>(null);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
 
@@ -110,23 +114,32 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
   };
 
   const uploadBill = async (orderId: string, file: File) => {
+    if (billLock.current) return;
+    billLock.current = true;
+    setBillDraft({orderId,file});
     setUploadingBill(true);
     try {
+      const url = await billUpload.current.save(file, async () => {
       const ext = file.name.split(".").pop();
       const path = `bills/${orderId}-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("product-images").upload(path, file);
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-      const { error: dbErr } = await supabase.rpc("list_order_action",{_order_id:orderId,_action:"bill",_bill:urlData.publicUrl});
-      if (dbErr) throw dbErr;
+      return urlData.publicUrl;
+      }, async url => {
+        const { data, error: dbErr } = await supabase.rpc("list_order_action",{_order_id:orderId,_action:"bill",_bill:url});
+        if (dbErr) throw dbErr;
+        if (!data) throw new Error(tr("Receipt not saved", "رسید محفوظ نہیں ہوئی"));
+      });
+      billUpload.current.reset(); setBillDraft(null);
       toast.success("🧾 بل اپلوڈ ہو گیا / Bill uploaded!");
       fetchOrders();
       // Update selected order locally
-      setSelectedOrder((prev: any) => prev ? { ...prev, bill_image_url: urlData.publicUrl } : null);
+      setSelectedOrder((prev: any) => prev?.id === orderId ? { ...prev, bill_image_url: url } : prev);
     } catch (err: any) {
       toast.error(err.message || "بل اپلوڈ ناکام");
     }
-    setUploadingBill(false);
+    setUploadingBill(false); billLock.current = false;
   };
 
   const pendingCount = orders.filter(o => o.status === "pending").length;
@@ -185,18 +198,6 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
       {blocks.length>0 && <div className="mt-3 space-y-2">{blocks.map(b=><div key={b.customer_id} className="flex items-center gap-2 text-xs"><span className="flex-1">{b.reason}</span><Button variant="outline" size="sm" onClick={async()=>{const {error}=await supabase.from("shop_customer_blocks").delete().eq("store_id",storeId).eq("customer_id",b.customer_id);if(error)toast.error(error.message);else fetchOrders();}}>{tr("Unblock","بلاک ختم کریں")}</Button></div>)}</div>}
       {/* Hidden bill inputs - camera & gallery */}
       <input
-        ref={billInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file && selectedOrder) uploadBill(selectedOrder.id, file);
-          e.target.value = "";
-        }}
-      />
-      <input
         ref={galleryBillInputRef}
         type="file"
         accept="image/*"
@@ -216,6 +217,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-4">
+              {billDraft?.orderId===selectedOrder.id && <Button variant="outline" disabled={uploadingBill} onClick={()=>void uploadBill(billDraft.orderId,billDraft.file)}>{tr("Retry receipt save", "رسید دوبارہ محفوظ کریں")}</Button>}
               <ListOrderPrint order={selectedOrder} storeId={storeId} />
               <ListOrderPhotos urls={listPhotos(selectedOrder)} />
               {selectedOrder.customer_revision && <p className="bg-accent p-3 rounded-lg text-sm"><strong>{tr("Requested items:","مطلوبہ اشیا:")}</strong> {selectedOrder.customer_revision}</p>}
@@ -248,16 +250,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        className="flex-1 gap-1 text-xs"
-                        size="sm"
-                        disabled={uploadingBill}
-                        onClick={() => billInputRef.current?.click()}
-                      >
-                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                        📷 کیمرہ سے بل
-                      </Button>
+                      <CameraPhotoButton className="flex-1 gap-1 text-xs" disabled={uploadingBill} label={tr("Camera receipt", "کیمرہ سے بل")} onCapture={file=>uploadBill(selectedOrder.id,file)} />
                       <Button
                         variant="outline"
                         className="flex-1 gap-1 text-xs"
@@ -299,9 +292,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
                 <div className="space-y-2">
                   {!selectedOrder.bill_image_url ? (
                     <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1 gap-1 text-xs" size="sm" disabled={uploadingBill} onClick={() => billInputRef.current?.click()}>
-                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />} 📷 کیمرہ سے بل
-                      </Button>
+                      <CameraPhotoButton className="flex-1 gap-1 text-xs" disabled={uploadingBill} label={tr("Camera receipt", "کیمرہ سے بل")} onCapture={file=>uploadBill(selectedOrder.id,file)} />
                       <Button variant="outline" className="flex-1 gap-1 text-xs" size="sm" disabled={uploadingBill} onClick={() => galleryBillInputRef.current?.click()}>
                         {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileImage className="w-4 h-4" />} 🖼 گیلری سے بل
                       </Button>
@@ -325,9 +316,7 @@ const ShopkeeperListOrders = ({ storeId }: ShopkeeperListOrdersProps) => {
                 <div className="space-y-2">
                   {!selectedOrder.bill_image_url && (
                     <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1 gap-1 text-xs" size="sm" disabled={uploadingBill} onClick={() => billInputRef.current?.click()}>
-                        {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />} 📷 کیمرہ
-                      </Button>
+                      <CameraPhotoButton className="flex-1 gap-1 text-xs" disabled={uploadingBill} label={tr("Camera receipt", "کیمرہ سے بل")} onCapture={file=>uploadBill(selectedOrder.id,file)} />
                       <Button variant="outline" className="flex-1 gap-1 text-xs" size="sm" disabled={uploadingBill} onClick={() => galleryBillInputRef.current?.click()}>
                         {uploadingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileImage className="w-4 h-4" />} 🖼 گیلری
                       </Button>
