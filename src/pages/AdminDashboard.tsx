@@ -36,6 +36,7 @@ import WholesaleCategoriesTab from "@/components/admin/WholesaleCategoriesTab";
 import ApplicationsTab from "@/components/admin/ApplicationsTab";
 import GroceryDispatchTab from "@/components/admin/GroceryDispatchTab";
 import PartnerDeliveryJobs from "@/components/admin/PartnerDeliveryJobs";
+import OperationConfirmDialog from "@/components/admin/OperationConfirmDialog";
 import RiderOperationsPanel from "@/components/admin/RiderOperationsPanel";
 import { riderPresenceFresh } from "@/lib/riderOperations";
 import CitySettingsTab from "@/components/admin/CitySettingsTab";
@@ -492,6 +493,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [cancelOrder, setCancelOrder] = useState<any>(null);
+  const [deliveryOrder, setDeliveryOrder] = useState<any>(null);
   const [cancelNote, setCancelNote] = useState("");
   const [cancelling, setCancelling] = useState(false);
   const { newOrderCount, triggerAlert, dismissAlert } = useNewOrderAlert();
@@ -601,12 +603,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
   };
 
   const forceDeliver = async (order: any) => {
-    const note = window.prompt(tr("Confirm delivery note (e.g. rider called, phone was off)", "تصدیق کا نوٹ (مثلاً رائیڈر نے فون پر بتایا)"));
-    if (!note || note.trim().length < 3) return;
-    const { error } = await (supabase as any).rpc("staff_force_deliver", { _kind: "food", _order_id: order.id, _note: note });
-    if (error) { toast.error(error.message); return; }
-    toast.success(tr("Marked as delivered", "ڈیلیور شدہ درج ہو گیا"));
-    fetchOrders();
+    setDeliveryOrder(order);
   };
 
   const assignRider = async (orderId: string, riderId: string) => {
@@ -675,6 +672,11 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
 
   return (
     <Card>
+      {deliveryOrder && <OperationConfirmDialog title={tr("Confirm delivery", "ڈیلیوری کی تصدیق")} onClose={() => setDeliveryOrder(null)} onConfirm={async note => {
+        const { error } = await (supabase as any).rpc("staff_force_deliver", { _kind: "food", _order_id: deliveryOrder.id, _note: note });
+        if (error) throw new Error(error.message);
+        toast.success(tr("Marked as delivered", "ڈیلیور شدہ درج ہو گیا")); await fetchOrders(false);
+      }} />}
       <NewOrderBanner count={newOrderCount} onDismiss={dismissAlert} label={tr("Order accepted — assign a rider!", "آرڈر قبول ہوا — رائیڈر تفویض کریں!")} />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{tr("Orders", "آرڈرز")}</CardTitle>
@@ -764,7 +766,7 @@ const OrdersTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
                       )}
 
                       <div className="flex flex-wrap items-center gap-1.5">
-                        {canDispatch && !o.rider_id && o.dispatch_state === "stuck" && (
+                        {canDispatch && !isClosed && !o.rider_id && o.dispatch_state === "stuck" && (
                           <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" onClick={() => retryDispatch(o.id)}>{tr("Redispatch", "دوبارہ ڈسپیچ")}</Button>
                         )}
                         {!isClosed && Date.now() - new Date(o.created_at).getTime() > 2 * 60 * 60 * 1000 && <Badge variant="destructive" className="h-6 text-[10px]">{tr("⚠️ Over 2 hours", "⚠️ 2 گھنٹے سے زائد")}</Badge>}

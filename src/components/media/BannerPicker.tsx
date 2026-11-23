@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { ImageIcon, Check } from "lucide-react";
 import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import { tr } from "@/lib/i18n/tr";
 import { bannerOptionsFor, type BannerVertical } from "@/lib/bannerLibrary";
+import { createBannerUploadDraft } from "@/lib/bannerUploadDraft";
 
 interface Props {
   vertical: BannerVertical;
@@ -23,29 +24,42 @@ export default function BannerPicker({ vertical, category, hasBanner, folder, re
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const lock = useRef(false);
+  const draft = useRef(createBannerUploadDraft());
+  const fetched = useRef<{ src: string; blob: Blob } | null>(null);
   const options = bannerOptionsFor(vertical, category);
 
   const start = () => {
     if (hasBanner && !confirm(tr("Your banner is your shop's identity for customers. Change it anyway?", "بینر گاہکوں کے لیے آپ کی دکان کی پہچان ہے۔ کیا واقعی تبدیل کرنا چاہتے ہیں؟"))) return;
-    setPicked(null); setOpen(true);
+    draft.current.reset(); fetched.current = null; setPicked(null); setOpen(true);
   };
 
   const store = async (blob: Blob) => {
+    await draft.current.save(blob, async photo => {
     const path = `${folder}/${crypto.randomUUID()}/${recordId}.jpg`;
-    const { error } = await supabase.storage.from("product-images").upload(path, blob, { upsert: false, contentType: blob.type || "image/jpeg" });
+    const { error } = await supabase.storage.from("product-images").upload(path, photo, { upsert: false, contentType: photo.type || "image/jpeg" });
     if (error) throw new Error(error.message);
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-    await onSave(data.publicUrl);
+    return data.publicUrl;
+    }, onSave);
     toast.success(tr("Banner saved", "بینر محفوظ ہو گیا"));
     setOpen(false);
   };
 
   const savePicked = async () => {
-    if (!picked) return;
+    if (!picked || lock.current) return;
+    lock.current = true;
     setSaving(true);
-    try { const blob = await (await fetch(picked)).blob(); await store(blob); }
+    try {
+      if (fetched.current?.src !== picked) {
+        const response = await fetch(picked);
+        if (!response.ok) throw new Error(tr("Could not load banner photo", "بینر کی تصویر نہیں کھل سکی"));
+        fetched.current = { src: picked, blob: await response.blob() };
+      }
+      await store(fetched.current.blob);
+    }
     catch (e: any) { toast.error(e?.message || tr("Could not save", "محفوظ نہیں ہو سکا")); }
-    finally { setSaving(false); }
+    finally { lock.current = false; setSaving(false); }
   };
 
   return (
@@ -59,16 +73,20 @@ export default function BannerPicker({ vertical, category, hasBanner, folder, re
           <p className="text-xs text-muted-foreground">{tr("Pick one ready photo for your category, or upload a real photo of your shop.", "اپنی کیٹیگری کی تیار تصویر چنیں یا اپنی دکان کی اصل تصویر لگائیں۔")}</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {options.map(o => (
-              <button key={o.id} type="button" onClick={() => setPicked(o.src)} className={`relative overflow-hidden rounded-lg border-2 ${picked === o.src ? "border-primary" : "border-transparent"}`}>
+              <Button key={o.id} type="button" variant="ghost" disabled={saving} aria-label={tr(`Banner ${o.id}`, `بینر ${o.id}`)} aria-pressed={picked === o.src} onClick={() => setPicked(o.src)} className={`relative h-auto overflow-hidden rounded-lg border-2 p-0 ${picked === o.src ? "border-primary" : "border-transparent"}`}>
                 <img src={o.src} alt="" loading="lazy" className="aspect-[2/1] w-full object-cover" />
                 {picked === o.src && <span className="absolute right-1 top-1 rounded-full bg-primary p-1 text-primary-foreground"><Check className="size-3" /></span>}
-              </button>
+              </Button>
             ))}
           </div>
           <Button disabled={!picked || saving} onClick={savePicked}>{saving ? tr("Saving…", "محفوظ ہو رہا ہے…") : tr("Use this banner", "یہ بینر لگائیں")}</Button>
           <div className="border-t pt-3">
             <p className="mb-2 text-xs font-bold">{tr("Or your own shop photo", "یا اپنی دکان کی اصل تصویر")}</p>
-            <ProductPhotoUploader aspect="wide" label={tr("Upload photo", "تصویر لگائیں")} onDone={async (photos) => { const p = photos[0]; if (p) await store(p.file); }} />
+            <ProductPhotoUploader aspect="wide" label={tr("Upload photo", "تصویر لگائیں")} onDone={async (photos) => {
+              const p = photos[0]; if (!p || lock.current) return;
+              lock.current = true; setSaving(true);
+              try { await store(p.file); } finally { lock.current = false; setSaving(false); }
+            }} />
           </div>
         </DialogContent>
       </Dialog>

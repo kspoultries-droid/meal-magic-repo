@@ -1,5 +1,7 @@
 import { tr } from "@/lib/i18n/tr";
-import { useState, ReactNode } from "react";
+import { useEffect, useRef, useState, ReactNode } from "react";
+import { Capacitor } from "@capacitor/core";
+import { Camera as NativeCamera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { Camera, ImagePlus, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,9 +36,35 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
   const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const video = useRef<HTMLVideoElement>(null);
+  const gallery = useRef<HTMLInputElement>(null);
+  const stream = useRef<MediaStream | null>(null);
+  const preparing = useRef(false);
+  const saveLock = useRef(false);
+  const objectUrls = useRef<string[]>([]);
+  const blocked = busy || saving || items.some(item => item.cleaning);
+
+  useEffect(() => {
+    if (!cameraOpen) return;
+    let cancelled = false;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false }).then(async media => {
+      if (cancelled) { media.getTracks().forEach(track => track.stop()); return; }
+      stream.current = media;
+      if (video.current) { video.current.srcObject = media; await video.current.play(); }
+      if (!cancelled) setCameraReady(true);
+    }).catch(() => {
+      if (!cancelled) { toast.error(tr("Camera could not open — check camera permission", "کیمرہ نہیں کھل سکا — کیمرہ کی اجازت چیک کریں")); setCameraOpen(false); }
+    });
+    return () => { cancelled = true; stream.current?.getTracks().forEach(track => track.stop()); stream.current = null; setCameraReady(false); };
+  }, [cameraOpen]);
+
+  useEffect(() => () => { objectUrls.current.forEach(url => URL.revokeObjectURL(url)); }, []);
 
   const handleFiles = async (files: File[]) => {
-    if (!files.length) return;
+    if (!files.length || preparing.current || saveLock.current) return;
+    preparing.current = true;
     setBusy(true);
     try {
       const prepared: Item[] = [];
@@ -47,10 +75,12 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
         const file = new File([bytes], picked.name || "photo.jpg", { type: picked.type || "image/jpeg" });
         const { file: enhanced, url, check } = await enhancePhoto(file, aspect);
         const original = await prepareOriginalPhoto(file);
+        const originalUrl = URL.createObjectURL(original);
+        objectUrls.current.push(originalUrl, url);
         prepared.push({
           id: `${file.name}-${Math.random().toString(36).slice(2)}`,
           original,
-          originalUrl: URL.createObjectURL(original),
+          originalUrl,
           enhanced,
           enhancedUrl: url,
           check,
@@ -63,6 +93,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
       toast.error(error instanceof Error ? error.message : tr("Couldn't read image", "تصویر پڑھی نہیں جا سکی"));
     } finally {
       setBusy(false);
+      preparing.current = false;
     }
   };
 
@@ -75,6 +106,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
       if (!data || (data as any)?.error || error) throw new Error(message || tr("Couldn't remove background", "پس منظر صاف نہیں ہو سکا"));
       const cleaned = await dataUrlToFile((data as any).image, `${item.original.name.replace(/\.[^.]+$/, "")}-studio.png`);
       const { file: finalFile, url } = await enhancePhoto(cleaned, aspect);
+      objectUrls.current.push(url);
       setItems((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, enhanced: finalFile, enhancedUrl: url, useOriginal: false, cleaning: false } : i)),
       );
@@ -86,6 +118,8 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
   };
 
   const save = async () => {
+    if (saveLock.current || preparing.current || !items.length || items.some(item => item.cleaning)) return;
+    saveLock.current = true;
     setSaving(true);
     try {
       const photos = await Promise.all(items.map(async i => ({ file: i.useOriginal ? i.original : i.enhanced, original: i.original })));
@@ -95,44 +129,53 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
       toast.error(error instanceof Error ? error.message : tr("Couldn't save", "محفوظ نہیں ہو سکا"));
     } finally {
       setSaving(false);
+      saveLock.current = false;
     }
   };
 
-  const pick = (capture: boolean) => (
-    <label
-      className={
-        compact
-          ? "flex size-7 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md"
-          : "flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold text-foreground shadow-sm"
-      }
-      title={capture ? tr("Camera", "کیمرہ") : tr("Gallery", "گیلری")}
-    >
-      {capture ? <Camera className="size-3.5" /> : <ImagePlus className="size-3.5" />}
-      {!compact && <span>{capture ? tr("Take photo", "کیمرہ سے تصویر") : label}</span>}
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        multiple={multiple && !capture}
-        {...(capture ? { capture: "environment" as const } : {})}
-        className="hidden"
-        onChange={(e) => {
-          const files = Array.from(e.target.files || []);
-          e.target.value = "";
-          handleFiles(files);
-        }}
-      />
-    </label>
-  );
+  const openCamera = async () => {
+    if (blocked || preparing.current) return;
+    if (Capacitor.isNativePlatform()) {
+      preparing.current = true; setBusy(true);
+      try {
+        const photo = await NativeCamera.getPhoto({ source: CameraSource.Camera, resultType: CameraResultType.Uri, quality: 90, width: 1600, correctOrientation: true });
+        if (!photo.webPath) throw new Error(tr("No camera photo returned", "کیمرہ کی تصویر نہیں ملی"));
+        const response = await fetch(photo.webPath);
+        const blob = await response.blob();
+        preparing.current = false;
+        await handleFiles([new File([blob], `camera.${photo.format}`, { type: blob.type || "image/jpeg" })]);
+      } catch (error) {
+        if (!(error instanceof Error && /cancel/i.test(error.message))) toast.error(tr("Camera could not open — check camera permission", "کیمرہ نہیں کھل سکا — کیمرہ کی اجازت چیک کریں"));
+      } finally { preparing.current = false; setBusy(false); }
+    } else if (navigator.mediaDevices?.getUserMedia) setCameraOpen(true);
+    else toast.error(tr("Camera is unavailable on this device", "اس ڈیوائس پر کیمرہ دستیاب نہیں"));
+  };
+  const capture = async () => {
+    const source = video.current;
+    if (!source || !source.videoWidth || !cameraReady || preparing.current) return;
+    const canvas = document.createElement("canvas");
+    const scale = Math.min(1, 1600 / Math.max(source.videoWidth, source.videoHeight));
+    canvas.width = Math.round(source.videoWidth * scale); canvas.height = Math.round(source.videoHeight * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.9));
+    if (!blob) { toast.error(tr("Could not capture photo", "تصویر نہیں لی جا سکی")); return; }
+    setCameraOpen(false);
+    await handleFiles([new File([blob], "camera.jpg", { type: "image/jpeg" })]);
+  };
 
   return (
     <>
       <div className={compact ? "flex gap-1" : "flex flex-wrap gap-2"}>
-        {pick(true)}
-        {pick(false)}
+        <Button type="button" variant="outline" size={compact ? "icon" : "sm"} disabled={blocked} aria-label={tr("Take photo", "کیمرہ سے تصویر")} title={tr("Camera", "کیمرہ")} onClick={() => void openCamera()}><Camera className="size-3.5" />{!compact && tr("Take photo", "کیمرہ سے تصویر")}</Button>
+        <Button type="button" variant="outline" size={compact ? "icon" : "sm"} disabled={blocked} title={tr("Gallery", "گیلری")} aria-label={label} onClick={() => gallery.current?.click()}><ImagePlus className="size-3.5" />{!compact && label}</Button>
+        <input ref={gallery} type="file" aria-label={tr("Gallery photo", "گیلری کی تصویر")} accept="image/*" multiple={multiple} className="hidden" disabled={blocked} onChange={e => { const files = Array.from(e.target.files || []); e.target.value = ""; void handleFiles(files); }} />
         {busy && <Loader2 className="size-4 animate-spin text-primary" />}
       </div>
 
-      <Dialog open={items.length > 0} onOpenChange={(open) => !open && setItems([])}>
+      <Dialog open={cameraOpen} onOpenChange={setCameraOpen}><DialogContent className="max-w-lg"><DialogHeader><DialogTitle>{tr("Camera", "کیمرہ")}</DialogTitle></DialogHeader><video ref={video} autoPlay playsInline muted className="aspect-[4/3] w-full rounded-md bg-muted object-cover" /><Button disabled={!cameraReady || busy} onClick={() => void capture()}><Camera className="size-4" />{tr("Capture photo", "تصویر کھینچیں")}</Button></DialogContent></Dialog>
+      <Dialog open={items.length > 0} onOpenChange={(open) => { if (!open && !saveLock.current && !items.some(item => item.cleaning)) setItems([]); }}>
         <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
@@ -169,7 +212,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
                 )}
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button type="button" size="sm" variant="secondary" className="h-8 gap-1 text-[11px]" disabled={item.cleaning} onClick={() => cleanBackground(item)}>
+                  <Button type="button" size="sm" variant="secondary" className="h-8 gap-1 text-[11px]" disabled={item.cleaning || saving} onClick={() => cleanBackground(item)}>
                     {item.cleaning ? <Loader2 className="size-3.5 animate-spin" /> : <Wand2 className="size-3.5" />}
                     {tr("Remove background", "پس منظر صاف کریں")}
                   </Button>
@@ -177,6 +220,7 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
                     <input
                       type="checkbox"
                       checked={item.useOriginal}
+                      disabled={saving || item.cleaning}
                       onChange={(e) => setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, useOriginal: e.target.checked } : i)))}
                     />
                     {tr("Keep original photo", "اصل تصویر ہی رکھیں")}
@@ -188,10 +232,10 @@ const ProductPhotoUploader = ({ onDone, aspect = "square", multiple = false, com
             <PhotoTips />
 
             <div className="flex gap-2">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => setItems([])} disabled={saving}>
+              <Button type="button" variant="outline" className="flex-1" onClick={() => setItems([])} disabled={blocked}>
                 {tr("Cancelled", "منسوخ")}
               </Button>
-              <Button type="button" className="flex-1 gap-1" onClick={save} disabled={saving}>
+              <Button type="button" className="flex-1 gap-1" onClick={save} disabled={blocked}>
                 {saving && <Loader2 className="size-4 animate-spin" />} {tr("Save", "محفوظ کریں")}
               </Button>
             </div>

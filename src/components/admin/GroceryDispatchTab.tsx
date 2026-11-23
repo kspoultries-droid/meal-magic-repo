@@ -13,6 +13,7 @@ import CourierShipmentDialog from "@/components/orders/CourierShipmentDialog";
 import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { groceryReady, riderPresenceFresh } from "@/lib/riderOperations";
 import { dispatchInterface } from "@/lib/courier";
+import OperationConfirmDialog from "./OperationConfirmDialog";
 
 const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
   const toRad = (v: number) => (v * Math.PI) / 180;
@@ -43,6 +44,7 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
   const [fees, setFees] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [shipOrder, setShipOrder] = useState<any>(null);
+  const [operation, setOperation] = useState<{ table: "grocery_cart_orders" | "grocery_list_orders"; order: any; cancel: boolean } | null>(null);
   const [cityDefaults, setCityDefaults] = useState<Record<string, any>>({});
 
   const fetchAll = useCallback(async (showLoading = true) => {
@@ -131,21 +133,11 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
   const isStale = (o: any) => Date.now() - new Date(o.created_at).getTime() > 2 * 60 * 60 * 1000;
 
   const cancelOrder = async (table: "grocery_cart_orders" | "grocery_list_orders", o: any) => {
-    const note = window.prompt(tr("Cancellation reason (e.g. test order, customer refused)", "منسوخی کی وجہ (مثلاً ٹیسٹ آرڈر، گاہک نے انکار کیا)"));
-    if (!note || note.trim().length < 3) return;
-    const { error } = await (supabase.rpc as any)("staff_cancel_order", { _kind: kindOf(table), _order_id: o.id, _note: note });
-    if (error) { toast.error(error.message); return; }
-    toast.success(tr("Order cancelled", "آرڈر منسوخ ہو گیا"));
-    fetchAll();
+    setOperation({ table, order: o, cancel: true });
   };
 
   const forceDeliver = async (table: "grocery_cart_orders" | "grocery_list_orders", o: any) => {
-    const note = window.prompt(tr("Confirm delivery note (e.g. rider called, phone was off)", "تصدیق کا نوٹ (مثلاً رائیڈر نے فون پر بتایا)"));
-    if (!note || note.trim().length < 3) return;
-    const { error } = await (supabase.rpc as any)("staff_force_deliver", { _kind: kindOf(table), _order_id: o.id, _note: note });
-    if (error) { toast.error(error.message); return; }
-    toast.success(tr("Marked as delivered", "ڈیلیور شدہ درج ہو گیا"));
-    fetchAll();
+    setOperation({ table, order: o, cancel: false });
   };
 
   const renderOrder = (o: any, table: "grocery_cart_orders" | "grocery_list_orders", label: string) => {
@@ -283,6 +275,11 @@ const GroceryDispatchTab = ({ initialQuery = "" }: { initialQuery?: string }) =>
         )}
         <AdminPagination page={page} count={count} onPage={setPage} />
       </CardContent>
+      {operation && <OperationConfirmDialog title={operation.cancel ? tr("Cancel order", "آرڈر منسوخ کریں") : tr("Confirm delivery", "ڈیلیوری کی تصدیق")} onClose={() => setOperation(null)} onConfirm={async note => {
+        const { error } = await (supabase.rpc as any)(operation.cancel ? "staff_cancel_order" : "staff_force_deliver", { _kind: kindOf(operation.table), _order_id: operation.order.id, _note: note });
+        if (error) throw new Error(error.message);
+        toast.success(tr("Saved", "محفوظ ہو گیا")); await fetchAll(false);
+      }} reasons={operation.cancel ? [tr("Test order", "ٹیسٹ آرڈر"), tr("Customer refused", "کسٹمر نے انکار کیا"), tr("Rider unavailable", "رائیڈر دستیاب نہیں")] : []} />}
       {shipOrder && (
         <CourierShipmentDialog
           open={!!shipOrder}

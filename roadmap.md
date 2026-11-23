@@ -1,9 +1,10 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
 ## Current request — Partner dispatch safety and restaurant banner/camera
-- [ ] Separate active partner jobs from searchable, paginated terminal history; confirm actions inside the app and reject obsolete/duplicate updates.
-- [ ] Replace grocery dispatch prompts with recoverable in-app confirmations, preserving authorized RPCs.
-- [ ] Repair camera/gallery selection and retain banner upload drafts on save failures; verify mobile/desktop flows.
+- [x] Separate active partner jobs from searchable, paginated terminal history; confirm actions inside the app and reject obsolete/duplicate updates.
+- [x] Replace grocery and food delivery prompts with recoverable in-app confirmations, preserving authorized RPCs.
+- [x] Repair web camera/gallery selection and retain banner upload drafts on save failures; 362 tests and 10 authenticated browser scenarios passed (action writes isolated). See docs/dispatch-banner-verification-2026-11-23.md.
+- [ ] Native camera plugin activation requires a new APK and physical Android verification; old APKs lack the plugin.
 - [ ] Server terminal-state enforcement and restaurant identity-trigger repair: migration collision persists; no alternate SQL write route permitted.
 
 ## Current request — Food launch polish and Mardan Kirana operating audit
