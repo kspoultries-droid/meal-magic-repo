@@ -1,5 +1,11 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Partner dispatch safety and restaurant banner/camera
+- [ ] Separate active partner jobs from searchable, paginated terminal history; confirm actions inside the app and reject obsolete/duplicate updates.
+- [ ] Replace grocery dispatch prompts with recoverable in-app confirmations, preserving authorized RPCs.
+- [ ] Repair camera/gallery selection and retain banner upload drafts on save failures; verify mobile/desktop flows.
+- [ ] Server terminal-state enforcement and restaurant identity-trigger repair: migration collision persists; no alternate SQL write route permitted.
+
 ## Current request — Food launch polish and Mardan Kirana operating audit
 - [x] Complete actionable food discovery/presentation improvements without changing restaurant records, prices or delivery rules.
 - [x] Audit stock, changing prices and ration quotations; recommend a ration-first model with optional physically reserved small catalog for a busy wholesaler.
