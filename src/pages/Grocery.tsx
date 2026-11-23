@@ -3,7 +3,6 @@ import { displayText } from "@/lib/i18n/displayText";
 import GroceryPhoto from "@/components/grocery/GroceryPhoto";
 import ShoppingAssistant from "@/components/assistant/ShoppingAssistant";
 import { discoverGroceryProducts, groceryCategoryNames } from "@/lib/groceryDiscovery";
-import { safeOperationSearch } from "@/lib/operationsList";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Apple, Carrot, Milk, ShoppingBasket, Wheat, Star, Clock, Drumstick, Gift, Cake, Flower2, ArrowUpDown, MapPin, Percent, Flame, ChevronRight, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -150,9 +149,9 @@ const Grocery = () => {
         .select("id, name, price, discount_price, image_url, unit, store_id, category, weight_kg, weight, variants, stock_qty")
         .in("store_id", ids).eq("is_available", true);
       if (activeCategory) query = query.in("category", groceryCategoryNames(activeCategory));
-      const needle = safeOperationSearch(debounced);
-      if (needle) query = query.or(`name.ilike.%${needle}%,category.ilike.%${needle}%`);
-      const { data, error } = await query.order("name").order("id").limit(120);
+      // A substring prefilter drops Roman-Urdu and typo candidates before matchesSearch.
+      // Restore the bounded search pool; keep category-only discovery lightweight.
+      const { data, error } = await query.order("name").order("id").limit(debounced ? 3000 : 120);
       if (obsolete) return;
       if (error) { setReadError(true); setAllProducts([]); } else setAllProducts(data || []);
       setProductLoading(false);
