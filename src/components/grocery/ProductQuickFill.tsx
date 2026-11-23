@@ -9,6 +9,7 @@ import { catalogImages, validBarcode } from "@/lib/catalogOnboarding";
 import { readBarcode } from "@/lib/barcodeReader";
 export { readBarcode } from "@/lib/barcodeReader";
 import { tr } from "@/lib/i18n/tr";
+import { matchesSearch } from "@/lib/searchMatch";
 import { Camera, Loader2, ScanBarcode, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -79,11 +80,11 @@ export default function ProductQuickFill({ categories, onFill }: Props) {
     if (lock.current || search.trim().length < 2) return;
     lock.current = true; setBusy("scan");
     try {
-      const query = search.trim().replace(/[%,_()."'\\]/g, " ");
-      const { data, error } = await (supabase as any).from("catalog_items").select("*").or(`name.ilike.%${query}%,name_ur.ilike.%${query}%,brand.ilike.%${query}%`).order("name").limit(20);
+      const { data, error } = await (supabase as any).from("catalog_items").select("*").order("name").order("id").limit(3000);
       if (error) throw error;
-      setResults(data || []);
-      setNote(data?.length ? "" : tr("No matching items", "کوئی متعلقہ چیز نہیں ملی"));
+      const hits = (data || []).filter(item => matchesSearch(search, item.name, item.name_ur, item.brand)).slice(0,20);
+      setResults(hits);
+      setNote(hits.length ? "" : tr("No matching items", "کوئی متعلقہ چیز نہیں ملی"));
     } catch { toast.error(tr("Catalog could not be loaded", "فہرست نہیں آ سکی")); }
     finally { lock.current = false; setBusy(""); }
   };

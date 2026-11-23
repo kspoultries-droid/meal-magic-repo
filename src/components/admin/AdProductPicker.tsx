@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Store, Utensils, Wrench, ChevronLeft, ChevronRight } from "lucide-react";
 import type { AdSelection } from "@/lib/adCreative";
+import { matchesSearch } from "@/lib/searchMatch";
 
 type Business = { id: string; name: string; image_url: string | null; store_type?: string };
 type Kind = "restaurant" | "store" | "service";
@@ -32,10 +33,11 @@ const AdProductPicker = ({ onPick }: { onPick: (p: AdSelection, product: boolean
         else if (business) query = supabase.from("grocery_products").select("id,name,image_url,price,discount_price").eq("store_id", business.id).eq("is_available", true);
         else if (kind === "restaurant") query = supabase.from("restaurants").select("id,name,image_url").eq("is_active", true);
         else query = supabase.from("grocery_stores").select("id,name,image_url,store_type").eq("is_active", true);
-        if (term) query = query.ilike("name", `%${term}%`);
-        const { data, error } = await query.order("name").order("id").range(page * PAGE, page * PAGE + PAGE);
+        query = query.order("name").order("id");
+        const { data, error } = await (term ? query.limit(3000) : query.range(page * PAGE, page * PAGE + PAGE));
         if (error) throw error;
-        if (!obsolete) { setRows((data || []).slice(0, PAGE)); setMore((data || []).length > PAGE); }
+        const matches = term ? (data || []).filter(row => matchesSearch(term,row.name)).slice(page * PAGE,page * PAGE + PAGE + 1) : data || [];
+        if (!obsolete) { setRows(matches.slice(0, PAGE)); setMore(matches.length > PAGE); }
       } catch (e) { if (!obsolete) setError(e instanceof Error ? e.message : tr("Could not load items", "اشیا کھل نہیں سکیں")); }
       finally { if (!obsolete) setLoading(false); }
     }, 250);

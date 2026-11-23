@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { tr } from "@/lib/i18n/tr";
+import { matchesSearch } from "@/lib/searchMatch";
 
 export type BazarTarget = { name: string; store: string; image: string; link: string };
 
@@ -20,13 +21,13 @@ export default function BazarTargetPicker({ mode, onPick }: { mode: "product" | 
       setLoading(true);
       try {
         if (mode === "product") {
-          const result = await supabase.from("grocery_products").select("id,name,image_url,grocery_stores!inner(name,is_active)").eq("is_available", true).eq("grocery_stores.is_active", true).ilike("name", `%${term}%`).limit(12);
+          const result = await supabase.from("grocery_products").select("id,name,image_url,grocery_stores!inner(name,is_active)").eq("is_available", true).eq("grocery_stores.is_active", true).order("name").order("id").limit(3000);
           if (result.error) throw result.error;
-          if (active) setRows((result.data || []).map(p => ({ name: p.name, store: p.grocery_stores.name, image: p.image_url || "", link: `/product/${p.id}` })));
+          if (active) setRows((result.data || []).filter(p => matchesSearch(term,p.name)).slice(0,12).map(p => ({ name: p.name, store: p.grocery_stores.name, image: p.image_url || "", link: `/product/${p.id}` })));
         } else {
-          const result = await supabase.from("grocery_stores").select("id,name,image_url").eq("is_active", true).ilike("name", `%${term}%`).limit(12);
+          const result = await supabase.from("grocery_stores").select("id,name,image_url").eq("is_active", true).order("name").order("id").limit(3000);
           if (result.error) throw result.error;
-          if (active) setRows((result.data || []).map(s => ({ name: s.name, store: s.name, image: s.image_url || "", link: `/grocery/${s.id}` })));
+          if (active) setRows((result.data || []).filter(s=>matchesSearch(term,s.name)).slice(0,12).map(s => ({ name: s.name, store: s.name, image: s.image_url || "", link: `/grocery/${s.id}` })));
         }
       } catch { if (active) setError(true); }
       finally { if (active) setLoading(false); }

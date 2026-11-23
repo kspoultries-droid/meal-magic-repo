@@ -1,5 +1,6 @@
 import BannerPicker from "@/components/media/BannerPicker";
 import { deliveryClosed } from "@/lib/riderOperations";
+import { matchesSearch } from "@/lib/searchMatch";
 import { tr } from "@/lib/i18n/tr";
 import AiSetupAssistant from "@/components/ai/AiSetupAssistant";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -620,7 +621,7 @@ const MenuTab = () => {
   const categories = Array.from(new Set(menuItems.map((m) => m.category || "Main")));
   const visibleItems = menuItems.filter((m) =>
     (catFilter === "all" || (m.category || "Main") === catFilter) &&
-    (!search.trim() || (m.name || "").toLowerCase().includes(search.trim().toLowerCase()))
+    matchesSearch(search, m.name)
   );
   const allVisibleSelected = visibleItems.length > 0 && visibleItems.every((m) => selected.includes(m.id));
 

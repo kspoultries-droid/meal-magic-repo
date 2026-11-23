@@ -1,5 +1,9 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Search flow sweep
+- [x] Read product/dish/service name searches, shop/catalog pickers, operational identifiers and server fallbacks; repair confirmed frontend candidate loss. 372 tests and live public/owner/admin browser readbacks passed; see docs/search-flow-sweep-2026-11-23.md.
+- [x] Report bounded-search and server-freeze limitations; no orders, catalog records, settings or permissions changed.
+
 ## Current request — Partner dispatch safety and restaurant banner/camera
 - [x] Sweep sibling camera, photo-evidence, terminal lifecycle and background integration paths; original-evidence camera controls and receipt retry repaired, returned food orders moved to history and courier terminal transitions blocked in UI. 366 automated tests and 14 authenticated browser scenarios passed; server limitations remain explicit in docs/dispatch-sweep-verification-2026-11-23.md.
 - [x] Separate active partner jobs from searchable, paginated terminal history; confirm actions inside the app and reject obsolete/duplicate updates.

@@ -13,6 +13,7 @@ import MenuItemSheet from "./menu/MenuItemSheet";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { foodStartingPrice } from "@/lib/foodPresentation";
+import { matchesSearch } from "@/lib/searchMatch";
 
 export interface MenuItem {
   id: string;
@@ -106,14 +107,14 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
   const filtered = restaurants.filter((r) => {
     const matchesCategory = matchesFoodCategory(activeCategory, [...r.cuisines, ...r.menuItems.flatMap(item => [item.name, item.category])]);
     const query = searchQuery.trim().toLowerCase();
-    const matchesSearch = query === "" || r.name.toLowerCase().includes(query) || r.cuisines.some((c) => c.toLowerCase().includes(query)) || r.menuItems.some((item) => item.name.toLowerCase().includes(query) || item.description?.toLowerCase().includes(query));
+    const matchesQuery = matchesSearch(query, r.name, ...r.cuisines) || r.menuItems.some(item => matchesSearch(query, item.name, item.description, item.category));
     let matchesQuick = true;
     if (quickFilter === "offers") matchesQuick = r.minPrice !== null && r.minPrice !== undefined && r.minPrice <= 500;
     else if (quickFilter === "new") matchesQuick = !!r.createdAt && Date.now() - new Date(r.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
     else if (quickFilter === "pickup") matchesQuick = !!r.pickupAddress || r.deliveryMode === "self" || r.deliveryMode === "both";
     else if (quickFilter === "homechefs") matchesQuick = r.cuisines.some((c) => /home|chef|homemade|گھر|ہوم/i.test(c));
     else if (quickFilter === "top-rated") matchesQuick = (r.rating || 0) >= 4;
-    return matchesCategory && matchesSearch && matchesQuick;
+    return matchesCategory && matchesQuery && matchesQuick;
   });
 
   const quickLabels: Record<string, string> = {
@@ -125,7 +126,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
   };
 
   const dishes = filtered.flatMap(restaurant => restaurant.menuItems
-    .filter(item => matchesFoodCategory(activeCategory, [item.name, item.category]) && (!searchQuery.trim() || [item.name, item.description, restaurant.name].some(text => (text || "").toLowerCase().includes(searchQuery.trim().toLowerCase()))))
+    .filter(item => matchesFoodCategory(activeCategory, [item.name, item.category]) && matchesSearch(searchQuery, item.name, item.description, item.category, restaurant.name))
     .map(item => ({ item, restaurant })));
 
   if (dishesOnly && !loading) return (
@@ -175,7 +176,7 @@ const RestaurantGrid = ({ searchQuery, activeCategory, quickFilter = null, onCle
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((r, i) => (
             <div key={r.id} className="min-w-0">
-               <RestaurantCard restaurant={{ ...r, menuItems: r.menuItems.filter(item => matchesFoodCategory(activeCategory, [item.name, item.category]) && (!searchQuery.trim() || item.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || item.description?.toLowerCase().includes(searchQuery.trim().toLowerCase()))).slice(0, 3) }} index={i} />
+               <RestaurantCard restaurant={{ ...r, menuItems: r.menuItems.filter(item => matchesFoodCategory(activeCategory, [item.name, item.category]) && matchesSearch(searchQuery, item.name, item.description, item.category)).slice(0, 3) }} index={i} />
             </div>
           ))}
         </div>

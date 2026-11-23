@@ -29,6 +29,7 @@ import HeroEditor from "@/components/common/HeroEditor";
 import { useHeroSettings } from "@/hooks/useHeroSettings";
 import { servicesHeroDefaults, heroBackgroundStyle } from "@/lib/heroConfig";
 import { getStoredCityId } from "@/hooks/useCityServices";
+import { matchesSearch } from "@/lib/searchMatch";
 
 const iconMap: Record<string, any> = {
   AirVent, Wrench, Zap, Sparkles, Paintbrush, Hammer, Car,
@@ -86,18 +87,20 @@ const Services = () => {
   }, []);
 
   useEffect(() => {
+    let obsolete = false;
     const fetchServices = async () => {
       setLoading(true);
       let query = supabase.from("services").select("*, service_categories(name, is_active)");
       const cityId = getStoredCityId();
       if (cityId) query = query.or(`city_id.eq.${cityId},city_id.is.null`);
       if (activeCategory) query = query.eq("category_id", activeCategory);
-      if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       const { data } = await query.order("is_active", { ascending: false }).order("category_id").order("sort_order").order("created_at", { ascending: false });
-      setServices(data || []);
+      if (obsolete) return;
+      setServices((data || []).filter(service => matchesSearch(searchQuery, service.name)));
       setLoading(false);
     };
     fetchServices();
+    return () => { obsolete = true; };
   }, [activeCategory, searchQuery]);
 
   // Pre-fill address from profile

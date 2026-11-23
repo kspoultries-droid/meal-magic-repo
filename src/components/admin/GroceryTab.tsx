@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AdminListTools, AdminPagination } from "./AdminListTools";
 import { useAuth } from "@/hooks/useAuth";
 import BusinessLocationDialog from "./BusinessLocationDialog";
+import { matchesSearch } from "@/lib/searchMatch";
 
 const GROCERY_CATEGORIES = [
   "General", "Fruits", "Vegetables", "Dairy", "Eggs & Meat", "Atta & Rice",
@@ -167,8 +168,8 @@ const GroceryTab = ({ initialQuery = "" }: { initialQuery?: string }) => {
     fetchData();
   };
 
-  const filteredStores = stores.filter(s => (kind === "wholesale" ? s.store_type === "wholesale" : s.store_type !== "wholesale")).filter(s => `${s.id} ${s.name} ${s.category}`.toLowerCase().includes(query.trim().toLowerCase()));
-  const filteredProducts = products.filter(p => `${p.name} ${p.category}`.toLowerCase().includes(productQuery.trim().toLowerCase()));
+  const filteredStores = stores.filter(s => (kind === "wholesale" ? s.store_type === "wholesale" : s.store_type !== "wholesale")).filter(s => s.id.toLowerCase().includes(query.trim().toLowerCase()) || matchesSearch(query,s.name,s.category));
+  const filteredProducts = products.filter(p => matchesSearch(productQuery,p.name,p.category));
   useEffect(() => { setProductPage(1); setProductQuery(""); }, [selectedStore]);
   return (
     <div className="space-y-4">
