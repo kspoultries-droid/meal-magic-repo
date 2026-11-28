@@ -1,5 +1,8 @@
 # Roadmap — English Mode (Phase-wise Translation)
 
+## Current request — Restaurant banner library expansion
+- [x] Expand restaurant banner presets from 8 to 41 bright, category-specific options; add picker category tabs (Desi, Fast Food, Pizza, Chinese, Shawarma, Bakery, Drinks, Healthy, Fish). 380 tests and authenticated browser readbacks confirmed 40 visible options, tab filtering, and bright imagery. No records or prices changed.
+
 ## Current request — Search flow sweep
 - [x] Read product/dish/service name searches, shop/catalog pickers, operational identifiers and server fallbacks; repair confirmed frontend candidate loss. 372 tests and live public/owner/admin browser readbacks passed; see docs/search-flow-sweep-2026-11-23.md.
 - [x] Report bounded-search and server-freeze limitations; no orders, catalog records, settings or permissions changed.
