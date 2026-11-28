@@ -42,6 +42,6 @@ ${tax ? `<div class="r"><span>ٹیکس (${opts.taxPercent}% شامل)</span><spa
 
 export const RECEIPT_PREVIEW_EVENT = "easylife:receipt-preview";
 export const printOrderReceipt = (order: any, kind: ReceiptKind, opts: Parameters<typeof receiptDocument>[2] = {}) => {
-  window.dispatchEvent(new CustomEvent(RECEIPT_PREVIEW_EVENT, { detail: { html: receiptDocument(order, kind, opts), kind } }));
+  window.dispatchEvent(new CustomEvent(RECEIPT_PREVIEW_EVENT, { detail: { html: receiptDocument(order, kind, opts), kind, order, opts } }));
   return true;
 };
