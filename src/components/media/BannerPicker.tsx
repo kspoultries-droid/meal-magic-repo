@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { ImageIcon, Check } from "lucide-react";
 import ProductPhotoUploader from "@/components/media/ProductPhotoUploader";
 import { tr } from "@/lib/i18n/tr";
-import { bannerOptionsFor, type BannerVertical } from "@/lib/bannerLibrary";
+import { bannerOptionsFor, bannerGroupsFor, type BannerVertical } from "@/lib/bannerLibrary";
 import { createBannerUploadDraft } from "@/lib/bannerUploadDraft";
 
 interface Props {
@@ -24,14 +24,17 @@ export default function BannerPicker({ vertical, category, hasBanner, folder, re
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const lock = useRef(false);
   const draft = useRef(createBannerUploadDraft());
   const fetched = useRef<{ src: string; blob: Blob } | null>(null);
   const options = bannerOptionsFor(vertical, category);
+  const groups = bannerGroupsFor(vertical);
+  const filteredOptions = activeGroup ? options.filter(o => o.group === activeGroup) : options;
 
   const start = () => {
     if (hasBanner && !confirm(tr("Your banner is your shop's identity for customers. Change it anyway?", "بینر گاہکوں کے لیے آپ کی دکان کی پہچان ہے۔ کیا واقعی تبدیل کرنا چاہتے ہیں؟"))) return;
-    draft.current.reset(); fetched.current = null; setPicked(null); setOpen(true);
+    draft.current.reset(); fetched.current = null; setPicked(null); setActiveGroup(null); setOpen(true);
   };
 
   const store = async (blob: Blob) => {
@@ -71,8 +74,20 @@ export default function BannerPicker({ vertical, category, hasBanner, folder, re
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader><DialogTitle>{tr("Choose your banner (once)", "اپنا بینر منتخب کریں (ایک بار)")}</DialogTitle></DialogHeader>
           <p className="text-xs text-muted-foreground">{tr("Pick one ready photo for your category, or upload a real photo of your shop.", "اپنی کیٹیگری کی تیار تصویر چنیں یا اپنی دکان کی اصل تصویر لگائیں۔")}</p>
+          {groups.length > 0 && (
+            <div className="flex gap-1 flex-wrap">
+              <Button type="button" variant={activeGroup === null ? "default" : "ghost"} size="sm" className="h-7 text-xs px-2" onClick={() => setActiveGroup(null)}>
+                {tr("All", "سب")}
+              </Button>
+              {groups.map(g => (
+                <Button key={g.id} type="button" variant={activeGroup === g.id ? "default" : "ghost"} size="sm" className="h-7 text-xs px-2" onClick={() => setActiveGroup(g.id)}>
+                  {tr(g.label, g.labelUr)}
+                </Button>
+              ))}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {options.map(o => (
+            {filteredOptions.map(o => (
               <Button key={o.id} type="button" variant="ghost" disabled={saving} aria-label={tr(`Banner ${o.id}`, `بینر ${o.id}`)} aria-pressed={picked === o.src} onClick={() => setPicked(o.src)} className={`relative h-auto overflow-hidden rounded-lg border-2 p-0 ${picked === o.src ? "border-primary" : "border-transparent"}`}>
                 <img src={o.src} alt="" loading="lazy" className="aspect-[2/1] w-full object-cover" />
                 {picked === o.src && <span className="absolute right-1 top-1 rounded-full bg-primary p-1 text-primary-foreground"><Check className="size-3" /></span>}
