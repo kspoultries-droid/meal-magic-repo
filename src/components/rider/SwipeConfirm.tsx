@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { tr } from "@/lib/i18n/tr";
 
 /** Only a drag starting at the thumb, or explicit keyboard confirmation, can submit. */
 export default function SwipeConfirm({ label, disabled = false, onConfirm }: { label: string; disabled?: boolean; onConfirm: () => void | Promise<void> }) {
@@ -28,5 +29,6 @@ export default function SwipeConfirm({ label, disabled = false, onConfirm }: { l
         onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); void confirm(); } }} />
       <Button variant="outline" size="icon" aria-label={label} title={label} disabled={disabled || pending || value < 95} onClick={() => void confirm()}><Check className="h-4 w-4" /></Button>
     </div>
+    <p className="text-center text-[11px] text-muted-foreground">{tr("Drag the circle all the way right to confirm", "تصدیق کے لیے دائرے کو پورا دائیں طرف کھینچیں")}</p>
   </div>;
 }
